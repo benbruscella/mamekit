@@ -2657,6 +2657,9 @@ export interface GeneratedAuxiliaryAudioDevice {
   type: string;
   deviceTag: string;
   clock: number;
+  sampleRegion?: string;
+  sampleRom?: Uint8Array;
+  sampleRate?: number;
   initialMode?: string;
   gain: number;
   target: string;

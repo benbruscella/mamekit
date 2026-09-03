@@ -36,6 +36,7 @@ class Upd7759Runtime {
   private clocksLeft = 0;
   private fifo = 0;
   private resetLine = true;
+  private startLine = true;
   private mdLine = true;
   private drq = 0;
   private postState = UPD_IDLE;
@@ -66,6 +67,16 @@ class Upd7759Runtime {
       const next = data !== 0;
       if (this.resetLine && !next) this.reset();
       this.resetLine = next;
+    } else if (method === 'start_w') {
+      const next = data !== 0;
+      if (
+        this.state === UPD_IDLE && this.mdLine &&
+        this.startLine && !next && this.resetLine
+      ) {
+        this.state = UPD_START;
+        this.clocksLeft = 0;
+      }
+      this.startLine = next;
     } else if (method === 'md_w') {
       const next = data !== 0;
       if (this.state === UPD_IDLE && this.resetLine && this.mdLine && !next) {
@@ -297,6 +308,117 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
       context.calls[`${alias}.busy_r`] = () => chip.busy();
     }
     context.registry.read[`${chip.tag}.busy_r`] = () => chip.busy();
+  }
+  // K007232 keeps its register/control state in the generated source device.
+  // Mirror those board-facing calls to the worklet so its source-derived PCM
+  // stream advances from the same writes without duplicating device state on
+  // the main thread.
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type !== 'K007232') continue;
+    const tag = auxiliary.deviceTag;
+    const writeName = `${tag}.write`;
+    const mappedWrite = context.registry.write[writeName];
+    context.registry.write[writeName] = (address, offset, data) => {
+      mappedWrite?.(address, offset, data);
+      context.soundWrite(offset, data, context.fraction(), writeName);
+    };
+    const readName = `${tag}.read`;
+    const mappedRead = context.registry.read[readName];
+    context.registry.read[readName] = (address, offset) => {
+      const value = mappedRead?.(address, offset) ?? 0;
+      context.soundWrite(offset, 0, context.fraction(), readName);
+      return value;
+    };
+    for (const alias of deviceAliases(context.board, tag)) {
+      const originalWrite = context.calls[`${alias}.write`];
+      context.calls[`${alias}.write`] = (...args: number[]) => {
+        const result = originalWrite?.(...args);
+        const offset = args.at(-2) ?? 0;
+        context.soundWrite(offset, args.at(-1) ?? 0, context.fraction(), writeName);
+        return result;
+      };
+      const originalRead = context.calls[`${alias}.read`];
+      context.calls[`${alias}.read`] = (...args: number[]) => {
+        const result = originalRead?.(...args) ?? 0;
+        context.soundWrite(args.at(-1) ?? 0, 0, context.fraction(), readName);
+        return result;
+      };
+      const originalVolume = context.calls[`${alias}.set_volume`];
+      context.calls[`${alias}.set_volume`] = (...args: number[]) => {
+        const result = originalVolume?.(...args);
+        const channel = args.at(-3) ?? 0;
+        context.soundWrite(channel * 2, args.at(-2) ?? 0, context.fraction(), `${tag}.set_volume`);
+        context.soundWrite(channel * 2 + 1, args.at(-1) ?? 0, context.fraction(), `${tag}.set_volume`);
+        return result;
+      };
+      const originalBank = context.calls[`${alias}.set_bank`];
+      context.calls[`${alias}.set_bank`] = (...args: number[]) => {
+        const result = originalBank?.(...args);
+        context.soundWrite(0, args.at(-2) ?? 0, context.fraction(), `${tag}.set_bank`);
+        context.soundWrite(1, args.at(-1) ?? 0, context.fraction(), `${tag}.set_bank`);
+        return result;
+      };
+    }
+  }
+  // K053260 likewise keeps its communication ports on the generated device,
+  // while the worklet mirrors sound-register writes to render its four sample
+  // voices without moving CPU-visible state off the main thread.
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type !== 'K053260') continue;
+    const tag = auxiliary.deviceTag;
+    const name = `${tag}.write`;
+    const mapped = context.registry.write[name];
+    context.registry.write[name] = (address, offset, data) => {
+      mapped?.(address, offset, data);
+      context.soundWrite(offset, data, context.fraction(), name);
+    };
+    for (const alias of deviceAliases(context.board, tag)) {
+      const original = context.calls[`${alias}.write`];
+      context.calls[`${alias}.write`] = (...args: number[]) => {
+        const result = original?.(...args);
+        context.soundWrite(
+          args.at(-2) ?? 0,
+          args.at(-1) ?? 0,
+          context.fraction(),
+          name,
+        );
+        return result;
+      };
+    }
+  }
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type !== 'SAMPLES') continue;
+    const tag = auxiliary.deviceTag;
+    const playing = new Set<number>();
+    for (const alias of deviceAliases(context.board, tag)) {
+      const originalStart = context.calls[`${alias}.start`];
+      context.calls[`${alias}.start`] = (...args: number[]) => {
+        const result = originalStart?.(...args);
+        const channel = Number(args.at(-3) ?? args.at(-2) ?? 0);
+        playing.add(channel);
+        context.soundWrite(channel, Number(args.at(-2) ?? args.at(-1) ?? 0),
+          context.fraction(), `${tag}.start`);
+        return result;
+      };
+      const originalRaw = context.calls[`${alias}.start_raw`];
+      context.calls[`${alias}.start_raw`] = (...args: number[]) => {
+        const result = originalRaw?.(...args);
+        const channel = Number(args.at(-4) ?? 0);
+        playing.add(channel);
+        context.soundWrite(channel, 1, context.fraction(), `${tag}.start_raw`);
+        return result;
+      };
+      const originalStop = context.calls[`${alias}.stop`];
+      context.calls[`${alias}.stop`] = (...args: number[]) => {
+        const result = originalStop?.(...args);
+        const channel = Number(args.at(-1) ?? 0);
+        playing.delete(channel);
+        context.soundWrite(channel, 0, context.fraction(), `${tag}.stop`);
+        return result;
+      };
+      context.calls[`${alias}.playing`] = (...args: number[]) =>
+        playing.has(Number(args.at(-1) ?? 0)) ? 1 : 0;
+    }
   }
   // MSM5205 ADPCM chips mixed by the worklet: the board never instantiates
   // them, so driver calls (m_adpcm[0]->data_w from the vck feeder) and mapped

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
+import { evalExpr } from '../kg/parse.ts';
 import type {
   BoardIr,
   BoardSourceRef,
@@ -75,6 +76,7 @@ export function lowerGeneratedMachine(
   const rootMachineId = graph.edges.find(edge =>
     edge.from === `game:${game}` && edge.rel === 'USES_MACHINE')?.to;
   if (!rootMachineId) throw new Error(`${game}: selected machine config is missing`);
+  const rootMachineClass = String(byId.get(rootMachineId)?.props.cls ?? 'source_helper');
   // Clocks and raster parameters a shared machine config leaves as source
   // expressions, resolved with this game's own constructor constants.
   const classConstants = classConstantsForGame(graph, game);
@@ -309,6 +311,10 @@ export function lowerGeneratedMachine(
     .filter(node => node.label === 'Handler')
     .map(node => {
       const hasSourceBody = typeof node.props.sourceBody === 'string';
+      // Free helper templates in MAME headers have no C++ owner class. They
+      // execute in the selected driver's handler environment, so give them
+      // that concrete owner rather than emitting an invalid empty key.
+      const ownerClass = String(node.props.ownerClass || rootMachineClass);
       const constants = Object.fromEntries(
         (Array.isArray(node.props.sourceConstants) ? node.props.sourceConstants : [])
           .map(entry => /^([^=]+)=(-?(?:\d+(?:\.\d+)?|Infinity))$/.exec(String(entry)))
@@ -317,7 +323,7 @@ export function lowerGeneratedMachine(
       );
       return {
         id: node.id,
-        ownerClass: String(node.props.ownerClass),
+        ownerClass,
         method: String(node.props.method),
         ...(node.props.sourceParameters ? { parameters: String(node.props.sourceParameters) } : {}),
         ...(hasSourceBody ? { body: String(node.props.sourceBody) } : {}),
@@ -537,7 +543,24 @@ export function lowerGeneratedMachine(
     },
     ...(board.customs?.length ? { customs: board.customs } : {}),
     ...(inputMembers.size ? {
-      inputMembers: [...inputMembers].map(([member, tags]) => ({ member, tags })),
+      inputMembers: [...inputMembers].map(([member, tags]) => {
+        const outputs = graph.nodes
+          .filter(node => node.label === 'PortField' && tags.some(tag =>
+            node.id.startsWith(`inputs:${game}/${tag}/`)))
+          .flatMap(node => (Array.isArray(node.props.modifiers) ? node.props.modifiers : [])
+            .map(String)
+            .flatMap(modifier => {
+              const match = /PORT_WRITE_LINE_DEVICE_MEMBER\(\s*"([^"]+)"\s*,\s*FUNC\(\s*[\w:]+::(\w+)\s*\)\s*\)/
+                .exec(modifier);
+              return match ? [{
+                mask: Number(node.props.mask),
+                activeLow: Boolean(node.props.activeLow),
+                deviceTag: match[1]!,
+                method: match[2]!,
+              }] : [];
+            }));
+        return { member, tags, ...(outputs.length ? { outputs } : {}) };
+      }),
     } : {}),
     ...(board.inputLatches?.length ? { inputLatches: board.inputLatches } : {}),
     frameEvents: lowerFrameEvents(
@@ -1368,6 +1391,9 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   OKIM6295: ['write', 'set_pin7'],
   POKEY: ['write'],
   UPD7759: ['port_w', 'reset_w', 'start_w', 'md_w'],
+  K007232: ['write', 'read', 'set_volume', 'set_bank'],
+  K053260: ['write'],
+  SAMPLES: ['start', 'start_raw', 'stop', 'set_volume'],
   TMS5220: ['data_w'],
   TMS5220C: ['data_w'],
 };
@@ -1392,7 +1418,7 @@ export function lowerAuxiliaryAudioDevices(
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
     const clock = Number.isFinite(device.clock)
       ? device.clock!
-      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516'].includes(device.type)
+      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516', 'SAMPLES'].includes(device.type)
         ? 0
         : device.type === 'UPD7759'
           ? 640_000
@@ -1414,6 +1440,30 @@ export function lowerAuxiliaryAudioDevices(
         ? /okim6295_device::(PIN7_(?:HIGH|LOW))/.exec(config)?.[1]
         : undefined);
     const targetInput = Number(route.props.input);
+    const directSampleRegion = graph.nodes.find(node =>
+      node.label === 'RomRegion' && node.props.tag === device.tag);
+    const rawSampleHandler = device.type === 'SAMPLES'
+      ? graph.nodes.find(node =>
+          node.label === 'Handler' &&
+          String(node.props.sourceBody ?? '').includes('start_raw'))
+      : undefined;
+    const soundDeviceTags = new Set(devices
+      .filter(candidate => candidate.type !== 'SAMPLES')
+      .map(candidate => candidate.tag.toLowerCase()));
+    const sampleRegion = directSampleRegion ?? (rawSampleHandler
+      ? graph.nodes.find(node =>
+          node.label === 'RomRegion' &&
+          !soundDeviceTags.has(String(node.props.tag).toLowerCase()) &&
+          String(rawSampleHandler.props.sourceBody).toLowerCase()
+            .includes(String(node.props.tag).toLowerCase()))
+      : undefined);
+    const rawSampleRateExpression = rawSampleHandler
+      ? /start_raw\s*\(\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*([^)]+)\)/
+          .exec(String(rawSampleHandler.props.sourceBody))?.[1]
+      : undefined;
+    const rawSampleRate = rawSampleRateExpression
+      ? evalExpr(rawSampleRateExpression)
+      : undefined;
     const referenceDevice = devices.find(candidate => {
       if (candidate.type !== 'DISCRETE') return false;
       return graph.edges.some(edge => {
@@ -1427,6 +1477,8 @@ export function lowerAuxiliaryAudioDevices(
       deviceTag: device.tag,
       ...(device.member ? { member: device.member } : {}),
       clock,
+      ...(sampleRegion ? { sampleRegion: String(sampleRegion.props.tag) } : {}),
+      ...(Number.isFinite(rawSampleRate) ? { sampleRate: Number(rawSampleRate) } : {}),
       ...(initialMode ? { initialMode } : {}),
       gain,
       target: String(route.props.target),

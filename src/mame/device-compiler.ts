@@ -507,6 +507,12 @@ export function compileMameDevice(
       }];
     });
   });
+  const regionResources = Object.fromEntries(members.flatMap(member => {
+    if (!/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
+    const target = constructorBindings[member.name]?.at(-1) ?? '';
+    const name = target === 'DEVICE_SELF' ? 'self' : unquoteToken(target);
+    return name ? [[member.name, { kind: 'region' as const, name }]] : [];
+  }));
   for (const className of hierarchy) {
     const body = classes.get(className)?.body ?? '';
     for (const accessor of body.matchAll(
@@ -610,6 +616,9 @@ export function compileMameDevice(
       ? { structs: Object.fromEntries([...structFields].map(([name, fields]) => [name, fields])) }
       : {}),
     ...(Object.keys(delegates).length ? { delegates } : {}),
+    ...(Object.keys(regionResources).length
+      ? { resources: { members: regionResources } }
+      : {}),
     ...(hotMethods.length ? { hotMethods } : {}),
     ...(clockDivider ? { clockDivider } : {}),
     ...(dataAddressBits ? { dataAddressBits } : {}),

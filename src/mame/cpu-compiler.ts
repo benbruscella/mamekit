@@ -1860,7 +1860,7 @@ DISPATCH11:
   switch(m_opcode) { default: %ILLEGAL; return; }
 `
     : rawDslSource;
-  const dsl = parseM6809Dsl(dslSource, baseDsl);
+  const dsl = parseM6809Dsl(dslSource, baseDsl, variant.singleByteDispatch);
   const baseUnit = parseMameSource(cppFile, cpp);
   const inlineUnit = parseMameSource(inlineFile, inline);
   const base = (name: string, parameters?: string) => [
@@ -2075,9 +2075,9 @@ DISPATCH11:
         case 0x70: m_pc.w = value; break;
       }
     `, iregLine);
-    // The CPU's line output is represented as state here; the machine callback
-    // remains separately source-derived in the board graph.
-    upsert('set_lines', 'uint8_t data', 'm_temp_im = data;',
+    // Preserve the CPU's external bank-select bus. The board graph separately
+    // derives which driver callback is wired to the `line()` devcb.
+    upsert('set_lines', 'uint8_t data', 'm_set_lines(0, data);',
       lineAt(methodSource, methodSource.indexOf(`${variant.methodClass}::set_lines`)));
     variantConstants = extractDefineConstants(methodHeader);
   }

@@ -189,6 +189,12 @@ export interface GeneratedAuxiliaryAudioDevice {
   deviceTag: string;
   member?: string;
   clock: number;
+  /** ROM region owned by this sound device, when its stream reads samples. */
+  sampleRegion?: string;
+  /** Materialized by the shell/probe before the configuration reaches DSP. */
+  sampleRom?: Uint8Array;
+  /** samples_device::start_raw rate lowered from its driver call. */
+  sampleRate?: number;
   initialMode?: string;
   gain: number;
   target: string;

@@ -238,6 +238,10 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   'screen().height',
   'screen().frame_number',
   'screen().time_until_pos',
+  // Custom sprite devices compose against the same priority bitmap as the
+  // driver's tilemaps. The host installs the bitmap after device construction,
+  // before any screen update can invoke this service.
+  'screen().priority',
   // MAME guards a register write with this so a debugger peek changes nothing.
   // It sits at the top of the TMS9928A's `read` and `register_write`, and left
   // the whole port path -- every VRAM byte a game writes -- interpreted.
@@ -250,6 +254,11 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // The screen's visible rectangle, which a device asks for when it clears a
   // band of its own bitmap (`m_bitmap.fill(colour, screen().visible_area())`).
   'screen().visible_area',
+  // Indexed custom renderers select palette shadow modes while walking their
+  // sprite list. The generic palette currently treats shadow pens as source
+  // pens, but the call itself remains a valid framework service.
+  'palette().shadow_mode',
+  'palette().set_shadow_mode',
 ];
 
 export type GeneratedExpression =
@@ -489,7 +498,16 @@ export interface GeneratedExecutionPlan {
     deviceTag?: string;
     activeLow?: boolean;
   }[];
-  inputMembers?: { member: string; tags: string[] }[];
+  inputMembers?: {
+    member: string;
+    tags: string[];
+    outputs?: {
+      mask: number;
+      activeLow: boolean;
+      deviceTag: string;
+      method: string;
+    }[];
+  }[];
   /** Source PORT_CHANGED_MEMBER callbacks, including optimized state latches. */
   inputLatches?: {
     port: string;
@@ -739,7 +757,7 @@ export interface GeneratedProgramPalettePlan {
 export interface GeneratedRamPalettePlan {
   /** palette_device tag; also the base memory share name. */
   tag: string;
-  /** Byte order selected by palette_device::set_endianness; defaults to little. */
+  /** Byte order selected explicitly or inherited from the owning CPU share. */
   endianness?: 'little' | 'big';
   /** High-byte share tag when MAME splits palette RAM across two shares. */
   extShare?: string;

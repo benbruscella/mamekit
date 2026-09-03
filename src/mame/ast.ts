@@ -85,6 +85,13 @@ export function maskComments(source: string): string {
   const chars = [...source];
   let i = 0;
   while (i < chars.length) {
+    const numericSeparator = chars[i] === "'" &&
+      /[0-9A-Fa-f]/.test(chars[i - 1] ?? '') &&
+      /[0-9A-Fa-f]/.test(chars[i + 1] ?? '');
+    if (numericSeparator) {
+      i++;
+      continue;
+    }
     if (chars[i] === '"' || chars[i] === "'") {
       const quote = chars[i++];
       while (i < chars.length) {
@@ -168,7 +175,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   }
 
   const memberMacroRe =
-    /\b(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
+    /\b(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER|K051960_CB_MEMBER|K052109_CB_MEMBER|K053246_CB_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
   while ((fm = memberMacroRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
     const braceEnd = matchPair(masked, braceStart, '{', '}');
@@ -249,7 +256,11 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   }
 
   const classes: MameClass[] = [];
-  const classRe = /\bclass\s+(\w+)\s*:\s*([^{]+)\{/g;
+  // MAME decorates some declarations between `class` and the actual name
+  // (`class ATTR_COLD upd775x_device : ...`).  Treat those export/attribute
+  // markers as declaration syntax, not as the class identifier, or the base
+  // disappears from every derived device's executable hierarchy.
+  const classRe = /\bclass\s+(?:ATTR_\w+\s+)*(\w+)\s*:\s*([^{]+)\{/g;
   let cm: RegExpExecArray | null;
   while ((cm = classRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', cm.index + cm[0].length - 1);
@@ -475,6 +486,15 @@ function memberMacroParameters(name: string): string {
   }
   if (name === 'TILE_GET_INFO_MEMBER') {
     return 'tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index';
+  }
+  if (name === 'K051960_CB_MEMBER') {
+    return 'int &code, int &color, int &priority, bool &shadow';
+  }
+  if (name === 'K052109_CB_MEMBER') {
+    return 'int layer, int bank, int &code, int &color, int &flags, int &priority';
+  }
+  if (name === 'K053246_CB_MEMBER') {
+    return 'int &code, int &color, int &priority_mask';
   }
   return 'int param';
 }
@@ -709,7 +729,13 @@ function matchPair(source: string, open: number, left: string, right: string): n
   let depth = 0;
   for (let i = open; i < source.length; i++) {
     const c = source[i];
-    if (c === '"' || c === "'") {
+    // Apostrophes between digits are C++ numeric separators (`640'000`), not
+    // character literals. Treating one as an opening quote skips the rest of
+    // a class declaration and can erase an entire device base class.
+    const numericSeparator = c === "'" &&
+      /[0-9A-Fa-f]/.test(source[i - 1] ?? '') &&
+      /[0-9A-Fa-f]/.test(source[i + 1] ?? '');
+    if (c === '"' || (c === "'" && !numericSeparator)) {
       const quote = c;
       for (i++; i < source.length; i++) {
         if (source[i] === '\\') i++;

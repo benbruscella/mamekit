@@ -196,6 +196,13 @@ export class GeneratedM68705P5Device implements Device {
     return constants[name] ?? constants[name.split('::').at(-1)!];
   }
 
+  constants(): Readonly<Record<string, number>> {
+    return {
+      INPUT_LINE_IRQ0: 0,
+      INPUT_LINE_RESET: 1,
+    };
+  }
+
   methodNames(): readonly string[] {
     return [
       'execute_run', 'execute_set_input', 'set_input_line',

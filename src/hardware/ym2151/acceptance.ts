@@ -23,7 +23,14 @@ export async function createYm2151Probe(context: AudioProbeContext): Promise<Aud
       context.sound.chips ?? 1,
       context.outputRate,
       context.sound.sampleRegion ? context.regions[context.sound.sampleRegion] : undefined,
-      context.sound.auxiliaryDevices,
+      (context.sound.auxiliaryDevices as {
+        sampleRegion?: string;
+      }[] | undefined)?.map(device => ({
+        ...device,
+        ...(device.sampleRegion
+          ? { sampleRom: context.regions[device.sampleRegion] }
+          : {}),
+      })),
       context.sound.routes,
     ),
     context.outputRate,

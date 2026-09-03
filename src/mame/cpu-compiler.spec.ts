@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   compileMameI8080,
   compileMameI8088,
+  compileMameKonami,
   compileMameKonami1,
   compileMameLr35902,
   compileMameM6802,
@@ -652,6 +653,46 @@ konami1.setIrqLine(true);
 assert.equal(konami1.get('m_irq_line'), 1);
 assert.equal(konami1.get('m_firq_line'), 0);
 
+const konamiDefinition = compileMameKonami(process.env.MAME_SRC ?? '../mame');
+assert.equal(konamiDefinition.summary.opcodes, 256);
+assert.match(
+  generatedCpuExecutableSource(konamiDefinition),
+  /bus\.signal\?\.\('line', \(data\) & 0xff\)/,
+);
+clearGeneratedCpus();
+registerGeneratedCpu(konamiDefinition);
+const konamiMemory = new Uint8Array(0x10000);
+konamiMemory.set([0x10, 0xfb, 0x38, 0x13], 0x8000); // LDA #$fb; SETLN #$13
+konamiMemory[0xfffe] = 0x80;
+konamiMemory[0xffff] = 0x00;
+const konamiLines: number[] = [];
+const konamiCpu = createCpu('KONAMI', {
+  read: address => konamiMemory[address]!,
+  write: (address, data) => { konamiMemory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+  signal: (name, value) => {
+    if (name === 'line') konamiLines.push(value ?? 0);
+    return 0;
+  },
+});
+konamiCpu.reset();
+konamiCpu.step();
+assert.equal(konamiCpu.get('m_d.b.h'), 0xfb);
+assert.deepEqual(konamiLines, []);
+konamiMemory.set([0x3f, 0xa3], konamiCpu.get('m_pc')); // TFR Y,X (argument bit 7 selects transfer)
+konamiCpu.set('m_x', 0x1111);
+konamiCpu.set('m_y', 0x2222);
+konamiCpu.step();
+assert.equal(konamiCpu.get('m_x'), 0x2222);
+assert.equal(
+  konamiCpu.get('m_y'),
+  0x2222,
+  'KONAMI TFR must evaluate BIT(param, 7) dynamically instead of exchanging both registers',
+);
+
+clearGeneratedCpus();
+registerGeneratedCpu(konami1Definition);
 const indexedMemory = new Uint8Array(0x10000);
 indexedMemory.set([0xec ^ 0x22, 0x64], 0x8000); // LDD 4,S
 indexedMemory[0x6004] = 0x12;

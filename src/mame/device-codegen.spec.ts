@@ -178,6 +178,7 @@ assert.equal(
 
 const unsafeDefinition: GeneratedDeviceDefinition = {
   ...definition,
+  delegates: { set_callback: 'm_callback' },
   members: [
     ...definition.members,
     { name: 'm_latch', valueType: 'latch_delegate', initial: 0 },
@@ -211,6 +212,16 @@ const unsafeDefinition: GeneratedDeviceDefinition = {
       `),
     },
     {
+      name: 'render_with_mutating_delegate',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 7 },
+      program: compileMameHandler(`
+        for (int y = 0; y < 2; y++)
+          for (int x = 0; x < 2; x++)
+            m_callback(m_total);
+      `),
+    },
+    {
       name: 'write_pixel',
       parameters: 'u32 *&dest',
       source: { file: 'src/devices/test.cpp', line: 7 },
@@ -235,6 +246,7 @@ assert.deepEqual(
   [
     'mutate',
     'render_with_delegate',
+    'render_with_mutating_delegate',
     'render_with_pointer',
     'render_with_reference',
     'write_pixel',
@@ -275,6 +287,14 @@ const optimizedRuntime = {
   members: { m_total: 0, m_budget: 0, m_latch: 0, m_pixels: [0, 0, 0, 0] },
   calls: {
     'm_latch.isnull': () => 1,
+    m_callback: (value: unknown) => {
+      const reference = value as {
+        generatedLValue?: true;
+        set(next: number): void;
+      };
+      assert.equal(reference.generatedLValue, true);
+      reference.set(13);
+    },
   },
   ...indexed,
   invoke(name: string): unknown {
@@ -288,6 +308,12 @@ assert.equal(
   'compiled C++ reference parameters must write back to their caller',
 );
 optimized.render_with_delegate!(optimizedRuntime);
+optimized.render_with_mutating_delegate!(optimizedRuntime);
+assert.equal(
+  optimizedRuntime.members.m_total,
+  13,
+  'compiled device delegates must write mutable references back to the renderer',
+);
 optimized.render_with_pointer!(optimizedRuntime);
 assert.deepEqual(
   optimizedRuntime.members.m_pixels,
@@ -468,6 +494,42 @@ assert.equal(
     !generatedDeviceMethodsSource(unknownService).methods.includes('odd'),
     'an unbound framework chain must leave the method interpreted',
   );
+}
+
+// ALLOC knows an array's length, while the declaration owns its element type.
+// K051960 uses -1 in an int array as its inactive-sprite sentinel; emitting a
+// Uint8Array changes that sentinel to 255 and draws every inactive sprite.
+{
+  const typedLocals: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['sentinel'],
+    methods: [{
+      name: 'sentinel',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler(`
+        int sorted[2];
+        sorted[0] = -1;
+        sorted[1] = 300;
+        return sorted[0] + sorted[1];
+      `),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(typedLocals);
+  assert.match(emitted.source, /new Int32Array\(new Uint8Array/);
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown) => unknown>;
+  const runtime = {
+    members: {},
+    add: (left: number, right: number) => left + right,
+    readIndex: (memory: ArrayLike<number>, index: number) => memory[index] ?? 0,
+    writeIndex: (memory: { [index: number]: number }, index: number, value: number) => {
+      memory[index] = value;
+      return value;
+    },
+  };
+  assert.equal(built.sentinel!(runtime), 299,
+    'direct local arrays must preserve their source-declared signed width');
 }
 
 console.log('device-codegen.spec: IR selection, dependency closure, case scoping, host services and pointer calls passed');

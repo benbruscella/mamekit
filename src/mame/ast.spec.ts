@@ -77,6 +77,26 @@ check('inherited function resolved',
   hierarchy.findFunctionInHierarchy('derived_state', 'bankselect_w')?.className,
   'base_state');
 
+const attributedClass = parseMameSource('attributed.h', `
+class ATTR_COLD sound_base : public device_t
+{
+public:
+  enum : unsigned { STANDARD_CLOCK = 640'000 };
+  void tick() { int cycles = 31'166; // we're not closing the class here }
+    cycles++; }
+  int busy_r() { return m_busy; }
+private:
+  int m_busy;
+};
+class sound_device : public sound_base { };
+`);
+check('attributed class name and base parsed', attributedClass.classes.map(entry => [
+  entry.name, entry.bases,
+]), [
+  ['sound_base', ['device_t']],
+  ['sound_device', ['sound_base']],
+]);
+
 const inline = parseMameSource('device.h', `
 class scroll_device : public device_t
 {
@@ -137,6 +157,15 @@ INTERRUPT_GEN_MEMBER(test_state::vblank_irq)
 {
   device.execute().set_input_line(0, HOLD_LINE);
 }
+K052109_CB_MEMBER(test_state::tile_callback)
+{
+  code |= bank << 14;
+  color += layer;
+}
+K053246_CB_MEMBER(test_state::sprite_callback)
+{
+  priority_mask = color >> 6;
+}
 `);
 check('timer callback member parsed',
   [memberMacros.functions[0]?.className, memberMacros.functions[0]?.name, memberMacros.functions[0]?.parameters],
@@ -146,6 +175,16 @@ check(
   'interrupt generator member parsed',
   [memberMacros.functions[2]?.name, memberMacros.functions[2]?.parameters],
   ['vblank_irq', 'device_t &device'],
+);
+check(
+  'Konami tile callback member parsed with reference parameters',
+  [memberMacros.functions[3]?.name, memberMacros.functions[3]?.parameters],
+  ['tile_callback', 'int layer, int bank, int &code, int &color, int &flags, int &priority'],
+);
+check(
+  'Konami sprite callback member parsed with reference parameters',
+  [memberMacros.functions[4]?.name, memberMacros.functions[4]?.parameters],
+  ['sprite_callback', 'int &code, int &color, int &priority_mask'],
 );
 
 const lifecycleMacros = parseMameSource('machine.cpp', `

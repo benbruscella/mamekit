@@ -1355,6 +1355,7 @@ export class GeneratedGfxElement {
   readonly decoded: GfxSet;
   /** Pens per color entry; drivers can widen it (mario's set_granularity(8)). */
   private penGranularity: number;
+  private colorCount: number;
   private readonly palette: GeneratedPaletteDevice;
   /** Indexed (bitmap_ind16) screens compose pens; the screen resolves them. */
   private readonly indexed: boolean;
@@ -1368,6 +1369,7 @@ export class GeneratedGfxElement {
     this.entry = entry;
     this.decoded = decoded;
     this.penGranularity = 1 << entry.layout.planes;
+    this.colorCount = entry.colorCount;
     this.palette = palette;
     this.indexed = indexed;
   }
@@ -1384,6 +1386,88 @@ export class GeneratedGfxElement {
     transparentMask: number,
   ): void {
     this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, transparentMask);
+  }
+
+  /** Konami sprite devices supply one draw-mode byte per pen. */
+  transtable(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    drawModes: ArrayLike<number>,
+  ): void {
+    this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, drawModeMask(drawModes));
+  }
+
+  prio_transtable(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    priorityBitmap: unknown,
+    priorityMask: number,
+    drawModes: ArrayLike<number>,
+  ): void {
+    if (!(priorityBitmap instanceof GeneratedPriorityBitmap)) {
+      throw new Error('prio_transtable needs the screen priority bitmap');
+    }
+    this.draw(
+      bitmap, clip, code, color, flipX, flipY, sx, sy,
+      drawModeMask(drawModes),
+      { kind: 'claim', bitmap: priorityBitmap, mask: priorityMask | (1 << 31) },
+    );
+  }
+
+  zoom_transtable(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    scaleX: number,
+    scaleY: number,
+    drawModes: ArrayLike<number>,
+  ): void {
+    this.drawZoom(
+      bitmap, clip, code, color, flipX, flipY, sx, sy, scaleX, scaleY,
+      drawModeMask(drawModes),
+    );
+  }
+
+  prio_zoom_transtable(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    scaleX: number,
+    scaleY: number,
+    priorityBitmap: unknown,
+    priorityMask: number,
+    drawModes: ArrayLike<number>,
+  ): void {
+    if (!(priorityBitmap instanceof GeneratedPriorityBitmap)) {
+      throw new Error('prio_zoom_transtable needs the screen priority bitmap');
+    }
+    this.drawZoom(
+      bitmap, clip, code, color, flipX, flipY, sx, sy, scaleX, scaleY,
+      drawModeMask(drawModes),
+      { kind: 'claim', bitmap: priorityBitmap, mask: priorityMask | (1 << 31) },
+    );
   }
 
   /**
@@ -1511,6 +1595,18 @@ export class GeneratedGfxElement {
     return this.entry.colorBase;
   }
 
+  colors(): number {
+    return this.colorCount;
+  }
+
+  depth(): number {
+    return 1 << this.entry.layout.planes;
+  }
+
+  set_colors(value: number): void {
+    if (Number.isFinite(value) && value > 0) this.colorCount = Math.trunc(value);
+  }
+
   /** MAME gfx_element source surface used by custom zoom/scaling renderers. */
   elements(): number {
     return this.decoded.count;
@@ -1614,6 +1710,71 @@ export class GeneratedGfxElement {
       }
     }
   }
+
+  private drawZoom(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    scaleX: number,
+    scaleY: number,
+    transparentMask: number,
+    priority?: GeneratedPriorityOp,
+  ): void {
+    if (!(scaleX > 0) || !(scaleY > 0)) return;
+    const gfx = this.decoded;
+    const width = Math.max(1, Math.floor((gfx.width * scaleX + 0x8000) / 0x10000));
+    const height = Math.max(1, Math.floor((gfx.height * scaleY + 0x8000) / 0x10000));
+    const element = modulo(code, gfx.count);
+    const base = element * gfx.width * gfx.height;
+    const colorBase = this.entry.colorBase + color * this.penGranularity;
+    for (let dy = 0; dy < height; dy++) {
+      const y = sy + dy;
+      if (y < clip.min_y || y > clip.max_y) continue;
+      const rawY = Math.min(gfx.height - 1, Math.floor(dy * gfx.height / height));
+      const sourceY = flipY ? gfx.height - 1 - rawY : rawY;
+      for (let dx = 0; dx < width; dx++) {
+        const x = sx + dx;
+        if (x < clip.min_x || x > clip.max_x) continue;
+        const rawX = Math.min(gfx.width - 1, Math.floor(dx * gfx.width / width));
+        const sourceX = flipX ? gfx.width - 1 - rawX : rawX;
+        const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
+        if (transparentMask & (1 << pen)) continue;
+        if (priority) {
+          if (priority.kind === 'stamp') {
+            priority.bitmap.set(
+              x, y,
+              (priority.bitmap.get(x, y) & priority.keep) | priority.value,
+            );
+          } else {
+            const claimed = priority.bitmap.get(x, y);
+            priority.bitmap.set(x, y, 31);
+            if (((1 << (claimed & 0x1f)) & priority.mask) !== 0) continue;
+          }
+        }
+        bitmap['pix='](
+          y,
+          x,
+          this.indexed ? colorBase + pen : this.palette.colors[colorBase + pen] ?? 0xff000000,
+        );
+      }
+    }
+  }
+}
+
+function drawModeMask(drawModes: ArrayLike<number>): number {
+  let transparent = 0;
+  for (let pen = 0; pen < Math.min(32, drawModes.length); pen++) {
+    // DRAWMODE_NONE is zero. Shadow pens still participate in priority and
+    // are drawn as their source color until the generic palette exposes its
+    // shadow lookup tables.
+    if ((drawModes[pen] ?? 0) === 0) transparent |= 1 << pen;
+  }
+  return transparent;
 }
 
 class GeneratedTilemap {

@@ -20,6 +20,7 @@ import {
   parseMemoryBanks,
   parseEnumConstants,
   parseRomSets,
+  parseTextMacros,
 } from './parse.ts';
 
 let totalPass = 0;
@@ -322,6 +323,38 @@ INPUT_PORTS_START( board )
   PORT_INCLUDE( dips )
 INPUT_PORTS_END
 `)[0]?.includes, ['controls', 'system', 'dips']);
+
+// Konami's shared player macros are layered: the driver calls the outer macro,
+// two helper macros only delegate, and the innermost macro owns the PORT_BITs.
+// The delegating definitions must remain in the expansion closure even though
+// their own bodies do not mention PORT_* directly.
+{
+  const macros = parseTextMacros(`
+#define KONAMI8_MULTI(player, direction1, direction2, button1, button2) \\
+  PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_JOYSTICK_##direction1) PORT_PLAYER(player) \\
+  PORT_BIT(0x02, IP_ACTIVE_LOW, IPT_JOYSTICK_##direction2) PORT_PLAYER(player) \\
+  PORT_BIT(0x10, IP_ACTIVE_LOW, button1) PORT_PLAYER(player) \\
+  PORT_BIT(0x20, IP_ACTIVE_LOW, button2) PORT_PLAYER(player)
+#define KONAMI8_LR(player, button1, button2) \\
+  KONAMI8_MULTI(player, LEFT, RIGHT, button1, button2)
+#define KONAMI8_B12(player) KONAMI8_LR(player, IPT_BUTTON1, IPT_BUTTON2)
+#define KONAMI8_B12_START(player) \\
+  KONAMI8_B12(player) \\
+  PORT_BIT(0x80, IP_ACTIVE_LOW, IPT_START##player)
+`);
+  eq('nested input helper macros expand through their complete call chain', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("P1")
+  KONAMI8_B12_START(1)
+INPUT_PORTS_END
+`, macros)[0]?.ports[0]?.fields.map(field => [field.mask, field.type, field.modifiers]), [
+    [0x01, 'IPT_JOYSTICK_LEFT', ['PORT_PLAYER(1)']],
+    [0x02, 'IPT_JOYSTICK_RIGHT', ['PORT_PLAYER(1)']],
+    [0x10, 'IPT_BUTTON1', ['PORT_PLAYER(1)']],
+    [0x20, 'IPT_BUTTON2', ['PORT_PLAYER(1)']],
+    [0x80, 'IPT_START1', undefined],
+  ]);
+}
 
 eq('nested symbolic STEP gfx offsets expand', parseGfxLayouts(`
 static const gfx_layout sprites = {

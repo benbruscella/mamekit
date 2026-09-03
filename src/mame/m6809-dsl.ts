@@ -31,6 +31,7 @@ interface SourceBlock {
 export function parseM6809Dsl(
   source: string,
   includedSource: string,
+  singleByteDispatch = false,
 ): M6809Dsl {
   const combined = source.replace(
     /^\s*#include\s+"base6x09\.lst"\s*$/m,
@@ -49,14 +50,17 @@ export function parseM6809Dsl(
   );
   const baseCases = dispatchBlocks.get('DISPATCH01')!.cases;
   const opcodes: M6809DslOpcode[] = [];
-  for (const [dispatch, prefix] of [
-    ['DISPATCH01', ''],
-    ['DISPATCH10', '10'],
-    ['DISPATCH11', '11'],
-  ] as const) {
+  const dispatches: readonly (readonly [string, string])[] = singleByteDispatch
+    ? [['DISPATCH01', '']]
+    : [
+      ['DISPATCH01', ''],
+      ['DISPATCH10', '10'],
+      ['DISPATCH11', '11'],
+    ];
+  for (const [dispatch, prefix] of dispatches) {
     const { block, cases } = dispatchBlocks.get(dispatch)!;
     for (let opcode = 0; opcode < 256; opcode++) {
-      if (!prefix && (opcode === 0x10 || opcode === 0x11)) continue;
+      if (!singleByteDispatch && !prefix && (opcode === 0x10 || opcode === 0x11)) continue;
       let dispatchSource = cases.explicit.get(opcode) ?? cases.fallback;
       if (dispatchSource === undefined) {
         throw new Error(`${dispatch} has no case for opcode ${hex(opcode)}`);

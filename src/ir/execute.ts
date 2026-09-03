@@ -1620,6 +1620,10 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     const width = args.length > 2 ? toNumber(args[2]) : 1;
     return (toNumber(args[0]) >> toNumber(args[1])) & ((1 << width) - 1);
   }
+  // C's built-in short cast is parsed as a function-style call. Direct device
+  // code reaches this macro surface (rather than the interpreter's broader
+  // call dispatcher), so keep its signed 16-bit coordinate semantics here.
+  if (name === 'short') return (toNumber(args[0]) << 16) >> 16;
   if (name === 'BITSWAP') {
     const source = toNumber(args[0]);
     return args.slice(1).reduce<number>(
@@ -1746,8 +1750,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     return args[0];
   }
   if (name === 'std::copy_n') {
-    copyGeneratedMemory(args[2], args[0], toNumber(args[1]));
-    return args[2];
+    const count = toNumber(args[1]);
+    copyGeneratedMemory(args[2], args[0], count);
+    // std::copy_n returns the output iterator immediately after the copied
+    // range. Sprite DMA uses that return value as the destination for the
+    // next active object; returning the original pointer overwrote slot zero
+    // for every object and then cleared its active flag.
+    return generatedAdd(args[2], count);
   }
   if (name === 'memset') {
     fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));

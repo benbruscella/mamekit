@@ -1624,6 +1624,7 @@ export interface TextMacros {
 
 export function parseTextMacros(src: string): TextMacros {
   const out: TextMacros = { ports: {}, strings: {} };
+  const candidates: Record<string, { params: string[]; body: string }> = {};
   const re = /^[ \t]*#define\s+(\w+)(\(([^)]*)\))?[ \t]*((?:[^\n]*\\\r?\n)*[^\n]*)/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
@@ -1632,7 +1633,29 @@ export function parseTextMacros(src: string): TextMacros {
     const body = m[4].replace(/\\\r?\n/g, '\n').trim();
     const str = /^\(?\s*("(?:[^"\\]|\\.)*")\s*\)?$/.exec(body);
     if (str) out.strings[name] = str[1].slice(1, -1);
-    else if (/PORT_[A-Z]/.test(body)) out.ports[name] = { params, body };
+    else candidates[name] = { params, body };
+  }
+  // A public input macro often delegates through helpers whose own bodies do
+  // not contain a PORT_* token. Konami's KONAMI8_B12_START expands through
+  // KONAMI8_B12 and KONAMI8_LR_40 before it reaches KONAMI8_MULTI_8WAY, which
+  // finally declares the joystick and buttons. Keeping only the outer and
+  // innermost definitions drops the whole middle of that chain, leaving just
+  // the start bit. Retain the complete transitive port-macro closure.
+  for (const [name, macro] of Object.entries(candidates)) {
+    if (/PORT_[A-Z]/.test(macro.body)) out.ports[name] = macro;
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [name, macro] of Object.entries(candidates)) {
+      if (out.ports[name]) continue;
+      const reachesPortMacro = Object.keys(out.ports).some(portMacro =>
+        new RegExp(`\\b${portMacro.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(macro.body)
+      );
+      if (!reachesPortMacro) continue;
+      out.ports[name] = macro;
+      changed = true;
+    }
   }
   return out;
 }

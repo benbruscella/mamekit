@@ -17,4 +17,16 @@ assert.doesNotMatch(dsl.opcodes.find(opcode => opcode.key === 'bd00')!.source, /
 assert.ok(dsl.blocks.has('INDEXED'));
 assert.ok(dsl.blocks.has('INTERRUPT_VECTOR'));
 
-console.log('m6809-dsl.spec: 6 passed');
+const konamiSource = readFileSync(join(directory, 'konami.lst'), 'utf8')
+  .replace(/^MAIN:\s*$/m, 'DISPATCH01:') + `
+DISPATCH10:
+  switch(m_opcode) { default: %ILLEGAL; return; }
+DISPATCH11:
+  switch(m_opcode) { default: %ILLEGAL; return; }
+`;
+const konami = parseM6809Dsl(konamiSource, base, true);
+assert.equal(konami.opcodes.length, 256);
+assert.match(konami.opcodes.find(opcode => opcode.key === '1000')!.source, /read_operand/);
+assert.match(konami.opcodes.find(opcode => opcode.key === '1100')!.source, /read_operand/);
+
+console.log('m6809-dsl.spec: 9 passed');

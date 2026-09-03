@@ -78,6 +78,12 @@ export function compileMameVideo(
   };
   const memberDefaults = sourceMemberDefaults(source, constants);
   const machineIds = machineConfigClosure(graph, machineId);
+  const activeDevices = graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => graph.nodes.find(node => node.id === edge.to))
+    .filter((node): node is KGNode => node !== undefined && node.label === 'Device');
+  const deviceByType = (type: string): KGNode | undefined =>
+    activeDevices.find(device => String(device.props.type) === type);
   const screenCallback = graph.nodes.find(node =>
     node.label === 'Callback' &&
     node.props.signal === 'set_screen_update');
@@ -253,7 +259,10 @@ export function compileMameVideo(
   }
 
   const decodes = effectiveGfxDecodes(graph, machineId);
-  if (!decodes.length) return fail(`missing gfx decode in machine composition`);
+  const konamiGfx = konamiDeviceGfx(source, activeDevices);
+  if (!decodes.length && !konamiGfx.length) {
+    return fail(`missing gfx decode in machine composition`);
+  }
   const decodeBindings = compileDecodeBindings(graph, machineIds);
   const renderScale = gfxRenderScale(graph, machineId);
   const numericDefaults = numericState(memberDefaults);
@@ -271,9 +280,22 @@ export function compileMameVideo(
   const driverInitState = driverInit
     ? methodInitialState(ast, driverInit, { ...constants, ...numericDefaults })
     : {};
-  const allocatedState = start
-    ? allocatedVideoState(ast, start, { ...constants, ...numericDefaults })
-    : {};
+  const machineStart = ast.findFunctionInHierarchy(
+    String(machine.props.cls),
+    'machine_start',
+  );
+  // Driver-owned video buffers are sometimes allocated in machine_start
+  // rather than video_start. Simpsons' staging sprite RAM is one such buffer:
+  // CPU writes target it, then vblank DMA copies active objects into K053246.
+  // Preserve both lifecycle allocation sites in the board's initial state.
+  const allocatedState = {
+    ...(machineStart
+      ? allocatedVideoState(ast, machineStart, { ...constants, ...numericDefaults })
+      : {}),
+    ...(start
+      ? allocatedVideoState(ast, start, { ...constants, ...numericDefaults })
+      : {}),
+  };
   const lifecycleArrays = start ? staticNumericArrays(start.body, constants) : {};
   const tilemaps = start
     ? compileTilemaps(
@@ -284,6 +306,22 @@ export function compileMameVideo(
       .filter((tilemap, index, all) =>
         all.findIndex(candidate => candidate.member === tilemap.member) === index)
     : [];
+  // The K052109 owns its three tilemaps and decode table. Drivers only call
+  // tilemap_draw, so their video_start has no create() call for the ordinary
+  // graph-based extractor to see. Lower the device lifecycle source through
+  // the same tilemap compiler and bind the result to that device's gfx set.
+  const k052109Start = deviceByType('K052109')
+    ? ast.findFunction('k052109_device', 'device_start')
+    : undefined;
+  const k052109Member = deviceByType('K052109')
+    ? String(deviceByType('K052109')!.props.member ?? 'm_k052109')
+    : undefined;
+  const deviceTilemaps = k052109Start && k052109Member
+    ? compileTilemaps(k052109Start, constants, ast).map(tilemap => ({
+        ...tilemap,
+        decodeMember: k052109Member,
+      }))
+    : [];
   // Some boards allocate temporary bitmaps in video_start and render decoded
   // gfx into them directly (Mat Mania is the common example).  A video_start
   // with no tilemap is therefore still a valid source-derived video plan when
@@ -293,7 +331,7 @@ export function compileMameVideo(
   // FUNC() in an inherited video_start often names the selected derived
   // state even though the TILE_GET_INFO implementation lives on its base.
   // Store the declaring-class key used by the compiled handler registry.
-  const executableTilemaps = tilemaps.map(tilemap => ({
+  const executableTilemaps = [...tilemaps, ...deviceTilemaps].map(tilemap => ({
     ...tilemap,
     tileInfo: resolvedHandlerKey(ast, tilemap.tileInfo),
     mapper: tilemap.mapper.startsWith('TILEMAP_SCAN_')
@@ -309,9 +347,18 @@ export function compileMameVideo(
   const roots = [
     ...executableTilemaps.flatMap(tilemap => [tilemap.mapper, tilemap.tileInfo]),
     ...(screen ? [`${screen.className}.${screen.name}`] : []),
+    ...configuredVideoCallbacks(configFunctions),
     ...Object.values(delegates).filter((target): target is string => target !== null),
   ];
   addHandlerClosure(handlers, ast, roots, constants, String(machine.props.cls));
+  if (deviceTilemaps.length) {
+    addHandlerClosure(
+      handlers,
+      ast,
+      deviceTilemaps.flatMap(tilemap => [tilemap.mapper, tilemap.tileInfo]),
+      constants,
+    );
+  }
   const bankedBackground = compileBankedBackground(handlers);
   const updateMode = handlers.some(handler =>
     handler.body?.includes('cliprect.max_y - 1') &&
@@ -319,7 +366,7 @@ export function compileMameVideo(
     handler.body.includes('transpen'))
     ? 'scanline' as const
     : undefined;
-  const gfx = decodes.flatMap(decode => {
+  const gfx = [...decodes.flatMap(decode => {
     const binding = decodeBindings.get(String(decode.props.name));
     return graph.edges
       .filter(edge => edge.from === decode.id && edge.rel === 'HAS_ENTRY')
@@ -351,7 +398,7 @@ export function compileMameVideo(
         },
       };
     });
-  });
+  }), ...konamiGfx];
   const paletteMembers = [...new Set(
     [...decodeBindings.values()]
       .map(binding => binding.paletteMember)
@@ -395,6 +442,22 @@ export function compileMameVideo(
         constants,
       )
     );
+  // Konami custom video devices declare their gfx layouts independently of
+  // the host palette, then size the color-code space from palette().entries()
+  // in device_start.  Preserve that source relationship in the static plan;
+  // leaving the extracted placeholder at one collapses every tile/sprite to
+  // the same palette group.
+  const paletteAwareGfx = ramPalette
+    ? gfx.map(entry => entry.decodeMember && entry.colorCount <= 1
+      ? {
+          ...entry,
+          colorCount: Math.max(
+            1,
+            Math.floor(ramPalette.entries / (1 << entry.layout.planes)),
+          ),
+        }
+      : entry)
+    : gfx;
   // Last resort before failing: execute the source callback itself. A driver
   // that computes its own resistor weights has a palette no declarative shape
   // describes, but its callback is ordinary code the handler IR already covers.
@@ -415,7 +478,7 @@ export function compileMameVideo(
   return {
     plan: {
       ...(updateMode ? { updateMode } : {}),
-      gfx,
+      gfx: paletteAwareGfx,
       ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
       ...(Object.keys(pointerBindings.offsets).length
         ? { regionBindingOffsets: pointerBindings.offsets }
@@ -447,6 +510,103 @@ export function compileMameVideo(
     },
     handlers,
   };
+}
+
+/**
+ * Graphics tables owned by Konami's device_gfx_interface customs.
+ *
+ * These are admitted only while the corresponding declarations are present
+ * in the selected MAME source closure. The values are the lowered gfx_layout
+ * tables, so a similarly named but source-incompatible device fails closed.
+ */
+function konamiDeviceGfx(
+  source: string,
+  devices: readonly KGNode[],
+): GeneratedVideoPlan['gfx'] {
+  const result: GeneratedVideoPlan['gfx'] = [];
+  const device = (type: string): KGNode | undefined =>
+    devices.find(candidate => String(candidate.props.type) === type);
+  const member = (entry: KGNode): string =>
+    String(entry.props.member ?? `m_${String(entry.props.tag)}`);
+  const common = {
+    offset: 0,
+    colorBase: 0,
+    colorCount: 1,
+    xscale: 1,
+    yscale: 1,
+  };
+
+  const tiles = device('K052109');
+  if (
+    tiles &&
+    /k052109_device::charlayout\s*=/.test(source) &&
+    /GFXDECODE_DEVICE\s*\(\s*DEVICE_SELF\s*,\s*0\s*,\s*charlayout/.test(source)
+  ) {
+    result.push({
+      ...common,
+      region: String(tiles.props.tag),
+      decodeMember: member(tiles),
+      layout: {
+        width: 8, height: 8, total: 'RGN_FRAC(1,1)', planes: 4,
+        planeOffsets: [24, 16, 8, 0],
+        xOffsets: [0, 1, 2, 3, 4, 5, 6, 7],
+        yOffsets: [0, 32, 64, 96, 128, 160, 192, 224],
+        charIncrement: 256,
+      },
+    });
+  }
+
+  const oldSprites = device('K051960');
+  if (
+    oldSprites &&
+    /k051960_device::spritelayout_reverse\s*=/.test(source) &&
+    /GFXDECODE_DEVICE\s*\(\s*DEVICE_SELF\s*,\s*0\s*,\s*spritelayout_reverse/.test(source)
+  ) {
+    const reverse = /set_plane_order\s*\(\s*K051960_PLANEORDER_MIA\s*\)/.test(source);
+    result.push({
+      ...common,
+      region: String(oldSprites.props.tag),
+      decodeMember: member(oldSprites),
+      layout: {
+        width: 16, height: 16, total: 'RGN_FRAC(1,1)', planes: 4,
+        planeOffsets: reverse ? [24, 16, 8, 0] : [0, 8, 16, 24],
+        xOffsets: [
+          0, 1, 2, 3, 4, 5, 6, 7,
+          256, 257, 258, 259, 260, 261, 262, 263,
+        ],
+        yOffsets: [
+          0, 32, 64, 96, 128, 160, 192, 224,
+          512, 544, 576, 608, 640, 672, 704, 736,
+        ],
+        charIncrement: 1024,
+      },
+    });
+  }
+
+  const newSprites = device('K053246');
+  if (
+    newSprites &&
+    /k053247_device::device_start\s*\(\)/.test(source) &&
+    /static const gfx_layout spritelayout\s*=/.test(source) &&
+    /konami_decode_gfx\s*\(\s*\*this\s*,\s*m_gfx_num/.test(source)
+  ) {
+    result.push({
+      ...common,
+      region: String(newSprites.props.tag),
+      decodeMember: member(newSprites),
+      layout: {
+        width: 16, height: 16, total: 'RGN_FRAC(1,1)', planes: 4,
+        planeOffsets: [0, 1, 2, 3],
+        xOffsets: [8, 12, 0, 4, 24, 28, 16, 20, 40, 44, 32, 36, 56, 60, 48, 52],
+        yOffsets: [
+          0, 64, 128, 192, 256, 320, 384, 448,
+          512, 576, 640, 704, 768, 832, 896, 960,
+        ],
+        charIncrement: 1024,
+      },
+    });
+  }
+  return result;
 }
 
 /**
@@ -2129,7 +2289,8 @@ function compileSetFormatRamPalette(
   }
   const configuredEndianness =
     /\.set_endianness\s*\(\s*ENDIANNESS_(LITTLE|BIG)\s*\)/.exec(raw)?.[1];
-  const endianness = configuredEndianness?.toLowerCase() as
+  const endianness = (configuredEndianness?.toLowerCase() ??
+    paletteShareEndianness(graph, String(device.props.tag))) as
     'little' | 'big' | undefined;
 
   // palette_device::device_start binds memshare(tag()) and tag() + "_ext".
@@ -2166,6 +2327,32 @@ function compileSetFormatRamPalette(
     } : {}),
     source: { file: sourceFile, line: lineOf(implementation, overload.index) },
   };
+}
+
+/**
+ * palette_device inherits the byte order of the memory share it binds. Find
+ * the CPU whose address map owns that share and mirror MAME's CPU-space order
+ * when the driver did not explicitly call set_endianness().
+ */
+export function paletteShareEndianness(
+  graph: KnowledgeGraph,
+  share: string,
+): 'little' | 'big' | undefined {
+  const rangeIds = new Set(graph.nodes
+    .filter(node => node.label === 'AddressRange' && node.props.share === share)
+    .map(node => node.id));
+  const mapIds = new Set(graph.edges
+    .filter(edge => edge.rel === 'HAS_RANGE' && rangeIds.has(edge.to))
+    .map(edge => edge.from));
+  const deviceId = graph.edges.find(edge =>
+    edge.rel === 'HAS_MAP' && mapIds.has(edge.to))?.from;
+  const type = String(graph.nodes.find(node => node.id === deviceId)?.props.type ?? '');
+  if (!type) return undefined;
+  // These MAME CPU families expose big-endian program address spaces. Width
+  // is deliberately irrelevant: an 8-bit 6809 share still orders a packed
+  // two-byte palette entry most-significant byte first.
+  return /^(?:M68|MC68|HD63|KONAMI|SCC68070|PPC|POWERPC|R3000BE|MIPS\w*BE|SH\w*BE)/
+    .test(type) ? 'big' : 'little';
 }
 
 /**
@@ -3277,12 +3464,26 @@ function compileBankedBackground(
   };
 }
 
+/** Driver delegates installed on source-owned video devices are render roots. */
+function configuredVideoCallbacks(configFunctions: MameFunction[]): string[] {
+  const callbacks = new Set<string>();
+  const pattern = /\bset_(?:tile|sprite)_callback\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*\)/g;
+  for (const config of configFunctions) {
+    for (const match of config.body.matchAll(pattern)) {
+      callbacks.add(`${match[1]}.${match[2]}`);
+    }
+  }
+  return [...callbacks];
+}
+
 function addHandler(
   handlers: GeneratedHandler[],
   fn: MameFunction,
   constants: Record<string, number> = {},
+  fallbackOwnerClass?: string,
 ): void {
-  if (handlers.some(handler => handler.ownerClass === fn.className && handler.method === fn.name)) {
+  const ownerClass = fn.className || fallbackOwnerClass || 'source_helper';
+  if (handlers.some(handler => handler.ownerClass === ownerClass && handler.method === fn.name)) {
     return;
   }
   const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(fn.body))
@@ -3290,8 +3491,8 @@ function addHandler(
     // with the local through ordinary calls after declaration.
     .replace(/\bstd::vector\s*<[^;{}>]+>\s+(\w+)\s*;/g, 'auto $1;');
   handlers.push({
-    id: `handler:${fn.className}.${fn.name}`,
-    ownerClass: fn.className,
+    id: `handler:${ownerClass}.${fn.name}`,
+    ownerClass,
     method: fn.name,
     parameters: fn.parameters.trim(),
     body: fn.body.trim(),
@@ -3339,7 +3540,7 @@ function addHandlerClosure(
     // the ones written inside a base class it inherited.
     const fn = ast.findDispatchedFunction(driverClass, ownerClass, method);
     if (!fn) continue;
-    addHandler(handlers, fn, constants);
+    addHandler(handlers, fn, constants, driverClass);
     queue.push(...calledSourceMethods(fn.body).map(name => `${fn.className}.${name}`));
   }
 }

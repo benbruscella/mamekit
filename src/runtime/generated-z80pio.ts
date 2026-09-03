@@ -194,6 +194,10 @@ export class GeneratedZ80PioDevice implements Device {
       this.definition.constants[name.split('::').at(-1)!];
   }
 
+  constants(): Readonly<Record<string, number>> {
+    return this.definition.constants;
+  }
+
   methodNames(): readonly string[] {
     return [...this.methodParameters.keys()];
   }
