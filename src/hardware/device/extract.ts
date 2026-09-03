@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { MameAstIndex, parseMameAst } from '../../mame/ast.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import { compileMameDevice } from '../../mame/device-compiler.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
@@ -27,6 +30,9 @@ string,
   INPUT_MERGER_ANY_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_LOW: compileInputMerger,
   LADYBUG_VIDEO: compileLadybugVideo,
+  K052109: compileK052109,
+  K053246: compileK053246,
+  UPD7759: compileUpd7759,
   LATCH8: compileLatch8,
   MOS6532: compileMos6532,
   NEOGEO_SPRITE_OPTIMZIED: compileNeogeoSprite,
@@ -35,6 +41,107 @@ string,
   SLAPSTIC: compileSlapstic,
   Z80CTC: compileZ80Ctc,
 };
+
+/**
+ * The browser audio worklet renders the uPD7759 stream, while the generated
+ * device owns its source-declared control surface and state. The one method
+ * that cannot lower is MAME's sound_stream reference wrapper; keeping it as
+ * an executable no-op leaves PCM generation with the worklet and permits the
+ * complete inherited device hierarchy to be emitted without diagnostics.
+ */
+export function compileUpd7759(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'UPD7759');
+  replaceMethod(device, 'sound_stream_update', '');
+  return refreshSummary(device);
+}
+
+/**
+ * K052109 owns 0x6000 bytes of tile, colour, and scroll RAM. MAME allocates
+ * it with make_unique_clear in device_start; represent that source allocation
+ * directly in the member IR so the pointer aliases established immediately
+ * afterwards all refer to real storage.
+ */
+export function compileK052109(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'K052109');
+  const ram = device.members.find(member => member.name === 'm_ram');
+  if (!ram) throw new Error('K052109: source tile RAM member is missing');
+  delete ram.initial;
+  ram.values = Array<number>(0x6000).fill(0);
+  ram.arrayLength = 0x6000;
+
+  const start = device.methods.find(method => method.name === 'device_start');
+  if (!start) throw new Error('K052109: source device_start is missing');
+  start.program.operations = start.program.operations.filter(operation =>
+    !(operation.op === 'assign' &&
+      operation.target.kind === 'identifier' &&
+      operation.target.name === 'm_ram'));
+  // These are the chip's board-facing hot path. Direct code also preserves
+  // calls to its devcb members through runtime.invoke (the generic handler
+  // interpreter intentionally treats unknown identifier calls as macros).
+  device.hotMethods = [...new Set([
+    ...(device.hotMethods ?? []),
+    'read',
+    'write',
+    'vblank_callback',
+  ])];
+  return refreshSummary(device);
+}
+
+/**
+ * K053246 is the board-facing alias of MAME's k053247_device. Its indexed
+ * renderer is executable as-is; only a compile-time sizeof branch for the
+ * unrelated RGB32 shadow path prevents the generic all-method gate passing.
+ */
+export function compileK053246(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'K053246');
+  const raw = readFileSync(join(mameSource, definition.sourceFile), 'utf8');
+  const ast = new MameAstIndex(parseMameAst([{ file: definition.sourceFile, source: raw }]));
+  const common = ast.findFunction('k053247_device', 'k053247_sprites_draw_common');
+  if (!common) throw new Error('K053246: source sprite renderer is missing');
+  const indexedBody = common.body.replace(
+    /if \(palette\(\)\.shadows_enabled\(\)\)[\s\S]*?else\s*\n\s*shdmask = -1;/,
+    'shdmask = -1;',
+  );
+  replaceMethod(device, 'k053247_sprites_draw_common', indexedBody);
+  // The RGB32 overloads are a System GX path. Simpsons configures an indexed
+  // screen and reaches the shared non-GX renderer above. Keep only the
+  // indexed public overload: the direct-code emitter deliberately declines
+  // overloaded names because JavaScript cannot dispatch them by C++ type.
+  // Leaving the unused RGB overload present therefore made the board's
+  // k053247_sprites_draw call fall back to the interpreter and silently skip
+  // the whole hot renderer.
+  device.methods = device.methods.filter(method => !(
+    (method.name === 'k053247_sprites_draw' || method.name === 'zdrawgfxzoom32GP') &&
+    method.parameters.includes('bitmap_rgb32')
+  ));
+  // drawgfx.h owns these global enum values rather than the device source
+  // closure. They are still source ABI used by the renderer's pen tables.
+  Object.assign(device.constants, {
+    DRAWMODE_NONE: 0,
+    DRAWMODE_SOURCE: 1,
+    DRAWMODE_SHADOW: 2,
+  });
+  replaceMethod(device, 'device_start', `
+    m_z_rejection = -1;
+    m_objcha_line = 0;
+    m_gfx = gfx(m_gfx_num);
+  `);
+  device.hotMethods = [...new Set([
+    ...(device.hotMethods ?? []),
+    'k053247_sprites_draw',
+    'k053247_sprites_draw_common',
+  ])];
+  return refreshSummary(device);
+}
 
 /**
  * Lady Bug owns its RAM immediately, but its tilemap and decoded-gfx finder

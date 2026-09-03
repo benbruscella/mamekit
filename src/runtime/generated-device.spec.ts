@@ -23,6 +23,7 @@ const definition: GeneratedDeviceDefinition = {
     { name: 'm_reschedule_count', valueType: 'int', bits: 32, initial: 0 },
   ],
   callbacks: [{ signal: 'q_out_cb', member: 'm_q', slots: 2, initial: 9 }],
+  delegates: { set_callback: 'm_callback' },
   timers: [
     { member: 'm_timer', callback: 'timer_tick' },
     { member: 'm_reschedule_timer', callback: 'reschedule_tick' },
@@ -48,6 +49,7 @@ const definition: GeneratedDeviceDefinition = {
     method('fast', 'uint8_t data', 'return 0;'),
     method('timer_remaining', '', 'return 0;'),
     method('timer_ticks', '', 'return 0;'),
+    method('delegate_test', '', 'int value = 7; m_callback(value); return value;'),
     method('seconds_from_hz', 'double frequency', 'return attotime::from_hz(frequency);'),
     method(
       'seconds_from_ticks',
@@ -103,6 +105,15 @@ device.bindCall('external', value => value + 2);
 assert.equal(device.call('write', 0xff), 0x101);
 assert.equal(device.get('m_byte'), 0xff);
 assert.deepEqual(signals, [0xff]);
+
+device.bindCall('m_callback', value => {
+  (value as { set(next: number): void }).set(11);
+}, 'int &value');
+assert.equal(
+  device.call('delegate_test'),
+  11,
+  'configured device delegates must preserve generated reference arguments',
+);
 
 device.set('m_signed', 0xff);
 assert.equal(device.get('m_signed'), -1);

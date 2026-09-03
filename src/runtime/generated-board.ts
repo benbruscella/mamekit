@@ -21,6 +21,7 @@ import {
   dispatchGeneratedCallbacks,
   executeGeneratedCallbackHandler,
   executeGeneratedMachineHandler,
+  generatedReferent,
   prepareGeneratedMachineHandler,
   generatedHandlerRegistry,
   wireGeneratedDevice,
@@ -145,6 +146,100 @@ export function createGeneratedBoard(
   return new IrBoard(machine, config, regions, inputs, sinks);
 }
 
+/** Minimal host for the source-declared ER5911 serial protocol. */
+class SerialEepromEr5911 {
+  private readonly data: Uint8Array;
+  private state: 'reset' | 'start' | 'command' | 'read' | 'write' = 'reset';
+  private cs = 0;
+  private clk = 0;
+  private di = 0;
+  private bits = 0;
+  private accumulator = 0;
+  private address = 0;
+  private shift = 0;
+  private locked = true;
+
+  constructor(data: Uint8Array) {
+    this.data = data.length ? data : new Uint8Array(128).fill(0xff);
+  }
+
+  read(method: string): number {
+    if (method === 'ready_read') return 1;
+    if (method === 'do_read') {
+      return this.state === 'read' ? Number((this.shift & 0x80000000) !== 0) : 1;
+    }
+    return 0;
+  }
+
+  write(method: string, value: number): void {
+    const state = Number(Boolean(value));
+    if (method === 'di_write') {
+      this.di = state;
+      return;
+    }
+    if (method === 'cs_write') {
+      if (state === this.cs) return;
+      this.cs = state;
+      this.state = state ? 'start' : 'reset';
+      this.bits = 0;
+      this.accumulator = 0;
+      return;
+    }
+    if (method !== 'clk_write' || state === this.clk) return;
+    const rising = state === 1;
+    this.clk = state;
+    if (!rising || !this.cs) return;
+    if (this.state === 'start') {
+      if (this.di) {
+        this.state = 'command';
+        this.bits = 0;
+        this.accumulator = 0;
+      }
+      return;
+    }
+    if (this.state === 'command') {
+      this.accumulator = (this.accumulator << 1) | this.di;
+      if (++this.bits === 11) this.executeCommand();
+      return;
+    }
+    if (this.state === 'read') {
+      const bit = this.bits++;
+      if (bit % 8 === 0) {
+        this.shift = (this.data[(this.address + Math.floor(bit / 8)) & 0x7f] ?? 0xff) << 24;
+      } else {
+        this.shift = ((this.shift << 1) | 1) >>> 0;
+      }
+      return;
+    }
+    if (this.state === 'write') {
+      this.shift = ((this.shift << 1) | this.di) >>> 0;
+      if (++this.bits === 8) {
+        if (!this.locked) this.data[this.address & 0x7f] = this.shift & 0xff;
+        this.state = 'start';
+      }
+    }
+  }
+
+  private executeCommand(): void {
+    const opcode = this.accumulator >>> 9;
+    this.address = this.accumulator & 0x1ff;
+    this.bits = 0;
+    if (opcode === 2) {
+      this.shift = 0;
+      this.state = 'read';
+    } else if (opcode === 1 || opcode === 3) {
+      this.shift = 0;
+      this.state = 'write';
+    } else {
+      const subcommand = this.address >>> 7;
+      if (subcommand === 0) this.locked = true;
+      else if (subcommand === 2 && !this.locked) this.data.fill(0xff);
+      else if (subcommand === 3) this.locked = false;
+      this.state = 'start';
+    }
+  }
+}
+
 const INPUT_LINE_NMI = -1;
 const INPUT_LINE_RESET = -2;
 const INPUT_LINE_HALT = -3;
@@ -258,6 +353,7 @@ class IrBoard implements Board {
   private readonly generatedResources: Record<string, unknown> = {};
   private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
+  private readonly declarativeEeprom = new Map<string, SerialEepromEr5911>();
   private videoPrimitives?: GeneratedMameVideoPrimitives;
   /** Typed effects bound per callback id; see generated-effects.ts. */
   private effects: Map<string, BoundEffect> = new Map();
@@ -331,6 +427,15 @@ class IrBoard implements Board {
     // line that has actually executed.
     this.timedHardwareDelivered = this.lineSeconds();
 
+    for (const device of machine.devices ?? []) {
+      if (device.type === 'EEPROM_ER5911_8BIT') {
+        this.declarativeEeprom.set(
+          device.tag,
+          new SerialEepromEr5911(regions[device.tag] ?? new Uint8Array(128)),
+        );
+      }
+    }
+
     // MAME devices may alias board memory shares (buffered spriteram binds its
     // own tag), so every declared share exists before any device is created.
     for (const cpu of machine.execution.cpus) {
@@ -349,6 +454,7 @@ class IrBoard implements Board {
       if (initializer.fill !== undefined) share.fill(initializer.fill & 0xff);
       if (initializer.bytes) share.set(initializer.bytes.slice(0, share.length));
     }
+    const deviceConstants: Record<string, number> = {};
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type)) {
         const screenHost = {
@@ -387,6 +493,7 @@ class IrBoard implements Board {
             (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
+          priority: () => this.videoPrimitives?.screenPriority?.() ?? 0,
           // MAME `screen_device::visible_area()`: the window inside the raster
           // that reaches the display, in the same coordinates a device plots.
           visible_area: () => ({
@@ -414,6 +521,9 @@ class IrBoard implements Board {
         // to the interpreter.
         const hostServiceHosts: Record<string, Record<string, unknown>> = {
           screen: screenHost as unknown as Record<string, unknown>,
+          palette: {
+            set_shadow_mode: () => 0,
+          },
           machine: {
             side_effects_disabled: () => 0,
             time: () => generatedAttotime(this.machineSeconds()),
@@ -618,6 +728,20 @@ class IrBoard implements Board {
           banks: this.generatedBanks,
           resourceCache: this.generatedResources,
         });
+        // Driver handlers name public device enums with their C++ owner, for
+        // example `k053251_device::CI2`. The values are already extracted
+        // into the registered device definition; publish that source-derived
+        // namespace to the board evaluator instead of treating an unknown
+        // identifier as zero.
+        const constantOwners = new Set([
+          specification.className,
+          ...(specification.classHierarchy ?? []),
+        ].filter(Boolean) as string[]);
+        for (const owner of constantOwners) {
+          for (const [name, value] of Object.entries(device.constants())) {
+            deviceConstants[`${owner}::${name}`] = value;
+          }
+        }
         // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
         // lowered from the driver's constant arguments.
         for (const configuration of specification.configuration ?? []) {
@@ -800,6 +924,7 @@ class IrBoard implements Board {
     // replace them, or those holders keep serving stale bindings.
     this.bindings = {
       members: this.state,
+      constants: deviceConstants,
       // Declared widths travel with the bindings so a first indexed write
       // allocates the array MAME declared rather than an untyped one, and an
       // interpreted scalar store narrows the way the C++ declaration does.
@@ -850,7 +975,16 @@ class IrBoard implements Board {
         machine.video?.regionBindingOffsets,
       );
     }
-    bindGeneratedInputState(this.state, machine.execution.inputMembers ?? [], inputs);
+    bindGeneratedInputState(
+      this.state,
+      machine.execution.inputMembers ?? [],
+      inputs,
+      (deviceTag, method, value) => {
+        const eeprom = this.declarativeEeprom.get(deviceTag);
+        if (eeprom) eeprom.write(method, value);
+        else this.devices.get(deviceTag)?.invoke(method, value);
+      },
+    );
     const screen = machine.devices?.find(device => device.type === 'SCREEN');
     for (const owner of [screen?.tag, screen?.member].filter(Boolean) as string[]) {
       calls[`${owner}.vpos`] = () => this.currentLine;
@@ -934,6 +1068,29 @@ class IrBoard implements Board {
     // Bound before any CPU exists: a generated CPU may emit a signal from its
     // own constructor, and every connection must already be executable.
     this.effects = bindBoardEffects(machine, this.effectBindings(sinks, registry));
+
+    // Device devcbs are real members of source-compiled devices. Connect each
+    // machine-config edge to that emitter once effects exist; otherwise calls
+    // such as K052109's m_irq_handler(ASSERT_LINE) terminate at an empty
+    // listener list and a CPU waiting for vblank never resumes.
+    for (const callback of machine.callbacks) {
+      const device = this.devices.get(callback.ownerTag);
+      if (!device?.signalNames().includes(callback.signal)) continue;
+      device.on(callback.signal, (...args: number[]) => {
+        const effect = this.effects.get(callback.id);
+        if (!effect) {
+          throw new Error(
+            `${machine.game}: device callback "${callback.id}" has no bound effect`,
+          );
+        }
+        if (effect.reads) {
+          return applyBoardTransforms(Number(effect.run(0)) || 0, effect.transforms);
+        }
+        const value = args.length >= 3 ? args.at(-2)! : args.at(-1) ?? 0;
+        effect.run(applyBoardTransforms(Number(value) || 0, effect.transforms));
+        return 0;
+      }, callback.slot);
+    }
 
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? 'Z80';
@@ -1185,6 +1342,11 @@ class IrBoard implements Board {
         calls[`${specification.tag}.${method}`] = invoke;
         calls[`m_${specification.tag}.${method}`] = invoke;
       }
+      // required_device/optional_device::found(): an execution CPU listed by
+      // the machine configuration is necessarily materialized. Driver guards
+      // frequently test the finder before raising its interrupt line.
+      calls[`${specification.tag}.found`] = () => 1;
+      calls[`m_${specification.tag}.found`] = () => 1;
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
         applyGeneratedCpuInputLine(
           cpu,
@@ -1241,7 +1403,7 @@ class IrBoard implements Board {
       if (member) {
         const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
-          'suspended', 'state_int', 'adjust_icount',
+          'suspended', 'state_int', 'adjust_icount', 'found',
         ];
         for (const name of cpuMethods) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
@@ -1471,19 +1633,42 @@ class IrBoard implements Board {
         candidate.ownerClass === callback.targetClass &&
         candidate.method === callback.targetMethod);
       if (!handler?.program || handler.program.diagnostics.length) continue;
-      const names = handlerParameterNames(handler.parameters);
+      const parameters = handlerParameterDescriptors(handler.parameters);
       device.bindCall(member, (...args: unknown[]) =>
         executeGeneratedMachineHandler(
           machine,
           handler,
           this.bindings,
-          Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
-        ) ?? 0);
+          Object.fromEntries(parameters.map((parameter, index) => [
+            parameter.name,
+            parameter.mutableReference
+              ? args[index] ?? 0
+              : generatedReferent(args[index] ?? 0),
+          ])),
+        ) ?? 0, handler.parameters);
     }
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
     const neoGeoInterrupts = machine.family === 'neogeo';
     const outrunInterrupts = machine.game === 'outrun';
+    // Simpsons' vblank callback starts sprite DMA, then two source timers
+    // assert and clear the Konami CPU's FIRQ 256 and 2304 sprite-clock ticks
+    // later. TIMER_CALLBACK_MEMBER bodies are not graph handlers yet, so keep
+    // this source-declared timer pair as raster-line events. The match is on
+    // the extracted handler body and device method, not on the game name.
+    const spriteDmaCallback = machine.callbacks.find(callback => {
+      if (callback.operation !== 'set_vblank_int' || !callback.targetMethod) return false;
+      const handler = machine.handlers?.find(candidate =>
+        candidate.ownerClass === callback.targetClass &&
+        candidate.method === callback.targetMethod);
+      return Boolean(
+        handler?.body?.includes('m_dma_start_timer->adjust') &&
+        handler.body?.includes('m_dma_end_timer->adjust') &&
+        machine.devices?.some(device =>
+          device.type === 'K053246' && device.tag === 'k053246'),
+      );
+    });
+    const spriteDmaLineSignals: { line: number; state: number }[] = [];
     if (neoGeoInterrupts) {
       // neogeo_base_state::machine_start owns these timer-backed members.
       // MAME's timer_alloc callbacks are not frame events yet, so retain the
@@ -1546,6 +1731,8 @@ class IrBoard implements Board {
           'gfx',
           (index: number) => group[index] ?? 0,
         );
+        const device = this.devices.get(specification.tag);
+        if (device?.hasMember('m_gfx')) device.bindMember('m_gfx', group[0]);
       }
       // A video-display processor draws its own picture: hand the renderer the
       // generated device's update instead of a driver handler to execute.
@@ -1616,12 +1803,42 @@ class IrBoard implements Board {
           );
         }
         dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects);
+        if (
+          spriteDmaCallback?.id === event.callbackId &&
+          Number(this.state.m_firq_enabled) !== 0 &&
+          this.devices.get('k053246')?.call('k053246_is_irq_enabled')
+        ) {
+          const vtotal = Math.max(1, machine.execution.screen.vtotal);
+          spriteDmaLineSignals.push(
+            { line: (this.currentLine + 1) % vtotal, state: 1 },
+            { line: (this.currentLine + 6) % vtotal, state: 0 },
+          );
+        }
       },
       onLine: (line, phase, framebuffer) => {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
         this.currentLine = line;
         this.currentLineFraction = 0;
         if (phase === 'before-processors') {
+          for (let index = spriteDmaLineSignals.length - 1; index >= 0; index--) {
+            const signal = spriteDmaLineSignals[index]!;
+            if (signal.line !== line) continue;
+            this.cpus.get('maincpu')?.setInputLine(1, signal.state);
+            spriteDmaLineSignals.splice(index, 1);
+          }
+          // device_start can register a screen vblank delegate. The generated
+          // device retains that source callback even though the browser screen
+          // host has no MAME delegate registry, so deliver both source edges
+          // directly to every device that exposes the registered entry point.
+          const { vbstart, vbend = 0 } = machine.execution.screen;
+          if (line === vbstart || line === vbend) {
+            const state = Number(line === vbstart);
+            for (const device of this.devices.values()) {
+              if (device.methodNames().includes('vblank_callback')) {
+                device.invoke('vblank_callback', 0, state);
+              }
+            }
+          }
           const collisions = this.pendingExidyCollisions.get(line);
           if (collisions?.length) {
             this.pendingExidyCollisions.delete(line);
@@ -3510,8 +3727,15 @@ class IrBoard implements Board {
             // a host service — leaves the bit as the port supplies it, which is
             // what an unresolved handler custom already does.
             const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
-            if (!device?.methodNames().includes(custom.member)) continue;
-            const line = Number(device.invoke(custom.member)) ? 1 : 0;
+            const specification = machine.devices?.find(candidate =>
+              candidate.tag === custom.deviceTag);
+            const eeprom = custom.deviceTag
+              ? this.declarativeEeprom.get(custom.deviceTag)
+              : undefined;
+            if (!device?.methodNames().includes(custom.member) && !eeprom) continue;
+            const line = eeprom
+              ? eeprom.read(custom.member)
+              : Number(device!.invoke(custom.member)) ? 1 : 0;
             const level = custom.activeLow ? Number(!line) : line;
             const shift = trailingZeroBits(custom.mask);
             value = (value & ~custom.mask) | ((level << shift) & custom.mask);
@@ -4555,13 +4779,29 @@ export function bindGeneratedDriverState(
 /** Bind required/optional_ioport finders with both MAME read entry points. */
 export function bindGeneratedInputState(
   state: Record<string, unknown>,
-  members: readonly { member: string; tags: string[] }[],
+  members: readonly {
+    member: string;
+    tags: string[];
+    outputs?: { mask: number; activeLow: boolean; deviceTag: string; method: string }[];
+  }[],
   inputs: InputPorts,
+  writeLine?: (deviceTag: string, method: string, value: number) => void,
 ): void {
   for (const input of members) {
     const ports = input.tags.map(tag => ({
       read: () => inputs.read(tag),
       read_safe: (_fallback = 0xff) => inputs.read(tag),
+      write: (value: number, mask = 0xffffffff) => {
+        for (const output of input.outputs ?? []) {
+          if ((mask & output.mask) === 0) continue;
+          const asserted = (value & output.mask) !== 0;
+          writeLine?.(
+            output.deviceTag,
+            output.method,
+            Number(output.activeLow ? !asserted : asserted),
+          );
+        }
+      },
     }));
     state[input.member] = ports.length === 1 ? ports[0] : ports;
   }
@@ -4573,6 +4813,25 @@ function handlerParameterNames(parameters: string | undefined): string[] {
     .split(',')
     .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
     .filter((name): name is string => Boolean(name));
+}
+
+function handlerParameterDescriptors(parameters: string | undefined): {
+  name: string;
+  mutableReference: boolean;
+}[] {
+  return (parameters ?? '')
+    .split(',')
+    .map(parameter => {
+      const name = /(\w+)\s*$/.exec(parameter.trim())?.[1];
+      return name
+        ? {
+            name,
+            mutableReference: parameter.includes('&') && !/\bconst\b/.test(parameter),
+          }
+        : undefined;
+    })
+    .filter((parameter): parameter is { name: string; mutableReference: boolean } =>
+      parameter !== undefined);
 }
 
 function trailingZeroBits(value: number): number {

@@ -168,6 +168,23 @@ assert.deepEqual(
 );
 assert.equal(wordBus.read16be(0x402002), 0xa55a);
 
+const nativeReadMasks: Array<number | undefined> = [];
+const maskedWordBus = new Bus([
+  { start: 0x500000, end: 0x500001, kind: 'handler', read: 'maskedRead' },
+], rom, {
+  read: {
+    maskedRead: (_address, _offset, memMask) => {
+      nativeReadMasks.push(memMask);
+      return memMask === 0xff00 ? 0xa500 : memMask === 0x00ff ? 0x005a : 0xa55a;
+    },
+  },
+  write: {},
+}, {}, 16);
+assert.equal(maskedWordBus.read(0x500000), 0xa5);
+assert.equal(maskedWordBus.read(0x500001), 0x5a);
+assert.equal(maskedWordBus.read16be(0x500000), 0xa55a);
+assert.deepEqual(nativeReadMasks, [0xff00, 0x00ff, 0xffff]);
+
 // MAME `.umask16(0xff00)`: an 8-bit device wired to one byte lane of a 16-bit
 // bus (the MCR "Sounds Good" PIA at 0x060000). It answers only on its lane,
 // its offset counts whole words, and the byte arrives right-justified.

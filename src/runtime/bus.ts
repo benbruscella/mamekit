@@ -30,7 +30,7 @@ export interface RangeSpec {
   viewEntry?: number;
 }
 
-export type ReadHandler = (addr: number, offset: number) => number;
+export type ReadHandler = (addr: number, offset: number, memMask?: number) => number;
 export type WriteHandler = (addr: number, offset: number, data: number, memMask?: number) => void;
 type WordReadHandler = (addr: number, offset: number) => number;
 type WordWriteHandler = (addr: number, offset: number, data: number) => void;
@@ -47,7 +47,11 @@ const OPEN_BUS = 0x00;
 
 function wordReadHandler(handler: ReadHandler): ReadHandler {
   return (address, offset) => {
-    const value = handler(address, offset >>> 1) & 0xffff;
+    const value = handler(
+      address,
+      offset >>> 1,
+      address & 1 ? 0x00ff : 0xff00,
+    ) & 0xffff;
     return address & 1 ? value & 0xff : value >>> 8;
   };
 }
@@ -186,7 +190,7 @@ export class Bus {
       const adaptWordRead = (h: ReadHandler): WordReadHandler | null =>
         r.bank ? (dataWidth === 16 ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff : null)
           : lane !== undefined ? laneWordReadHandler(h, lane)
-          : dataWidth === 16 ? (a, off) => h(a, off >>> 1) & 0xffff
+          : dataWidth === 16 ? (a, off) => h(a, off >>> 1, 0xffff) & 0xffff
             : null;
       const adaptWrite = (h: WriteHandler): WriteHandler =>
         r.bank ? h

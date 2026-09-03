@@ -212,6 +212,8 @@ export interface Device {
   bindMember(name: string, value: unknown): void;
   /** Resolve a numeric constant declared by this generated device family. */
   constant(name: string): number | undefined;
+  /** All numeric constants declared by this generated device family. */
+  constants(): Readonly<Record<string, number>>;
   methodNames(): readonly string[];
   /**
    * PCM the device published through `sound_stream::put_int`, and clear it.
@@ -229,6 +231,7 @@ export interface Device {
   bindCall(
     name: string,
     listener: (...args: any[]) => unknown,
+    parameters?: string,
   ): Device;
   cycleClock(): number;
   dataAddressBits(): number | undefined;
@@ -736,7 +739,12 @@ class IrDevice implements Device {
         const method = this.selectMethod(name, args);
         if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);
         const binding = this.bindings.calls?.[name];
-        if (binding) return binding(...args.map(Number));
+        if (binding) {
+          const delegate = Object.values(this.definition.delegates ?? {}).includes(name);
+          return (binding as (...values: unknown[]) => unknown)(
+            ...(delegate ? args : args.map(Number)),
+          );
+        }
         const member = this.members[name];
         if (typeof member === 'function') return member(...args);
         return 0;
@@ -862,7 +870,16 @@ class IrDevice implements Device {
     // external card/device dependency is supplied by the host (for example a
     // controller connector backed by live browser input ports).
     const bound = this.bindings.calls?.[name];
-    if (bound) return bound(...args.map(Number));
+    if (bound) {
+      // device_delegate callbacks may carry C++ reference parameters (Konami
+      // tile/sprite callbacks update code, color and priority in place).  A
+      // numeric coercion here discards the generated pointer wrapper and makes
+      // the callback appear to run while none of its results reach the chip.
+      const delegate = Object.values(this.definition.delegates ?? {}).includes(name);
+      return (bound as (...values: unknown[]) => unknown)(
+        ...(delegate ? args : args.map(Number)),
+      );
+    }
     const method = this.selectMethod(name, args);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
     return this.executeMethod(method, this.methodParams.get(method)!, args);
@@ -891,6 +908,10 @@ class IrDevice implements Device {
   constant(name: string): number | undefined {
     return this.definition.constants[name] ??
       this.definition.constants[name.split('::').at(-1)!];
+  }
+
+  constants(): Readonly<Record<string, number>> {
+    return this.definition.constants;
   }
 
   methodNames(): readonly string[] {
@@ -941,8 +962,15 @@ class IrDevice implements Device {
   bindCall(
     name: string,
     listener: (...args: any[]) => unknown,
+    parameters?: string,
   ): Device {
     this.bindings.calls![name] = listener;
+    if (parameters !== undefined) {
+      this.bindings.callParameters![name] = splitParameters(parameters);
+      if (parameters.includes('&')) {
+        this.bindings.referenceCalls![name] = listener;
+      }
+    }
     return this;
   }
 
@@ -1147,13 +1175,15 @@ function resolveDeviceResource(
 ): unknown {
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
-  if (resource.kind === 'region') return regions[resource.name] ?? new Uint8Array(0);
+  const resourceName = 'name' in resource ? resource.name : '';
+  const regionName = resourceName === 'self' ? options.tag ?? '' : resourceName;
+  if (resource.kind === 'region') return regions[regionName] ?? new Uint8Array(0);
   // MAME's `memory_region *`. A device that is handed one asks it three
   // questions -- how big, where does it start, give me the bytes -- and a
   // missing region answers as a null pointer does, which is what lets a
   // cartridge with no save RAM take MAME's own "no NVRAM" branch.
   if (resource.kind === 'region-object') {
-    const bytes = regions[resource.name];
+    const bytes = regions[regionName];
     if (!bytes?.length) return 0;
     return {
       bytes: () => bytes.length,
@@ -1165,16 +1195,16 @@ function resolveDeviceResource(
     // MAME's `get_rom_base() + N`: the same bytes, addressed from an offset.
     return {
       generatedPointer: true,
-      source: regions[resource.name] ?? new Uint8Array(0),
+      source: regions[regionName] ?? new Uint8Array(0),
       offset: resource.offset,
     };
   }
-  if (resource.kind === 'region-length') return regions[resource.name]?.length ?? 0;
+  if (resource.kind === 'region-length') return regions[regionName]?.length ?? 0;
   if (resource.kind === 'region-pages') {
-    return Math.floor((regions[resource.name]?.length ?? 0) / Math.max(1, resource.bytes));
+    return Math.floor((regions[regionName]?.length ?? 0) / Math.max(1, resource.bytes));
   }
   if (resource.kind === 'region-page-mask') {
-    const pages = Math.floor((regions[resource.name]?.length ?? 0) / Math.max(1, resource.bytes));
+    const pages = Math.floor((regions[regionName]?.length ?? 0) / Math.max(1, resource.bytes));
     return Math.max(0, pages - 1);
   }
   if (resource.kind === 'missing-region-number') {

@@ -301,6 +301,25 @@ export type RomTransform =
       bits: number[];
     }
   | {
+      /** Source `bitswap<N>` applied independently to little-endian ROM words. */
+      kind: 'word-bitswap';
+      region: string;
+      wordBits: number;
+      bits: number[];
+    }
+  | {
+      /** PROM-selected permutation of low ROM word-address lines. */
+      kind: 'prom-word-address';
+      region: string;
+      promRegion: string;
+      wordBytes: number;
+      addressKeepMask: number;
+      tableAddressMask: number;
+      tableAddressShift: number;
+      tableEntryMask: number;
+      bitPickTable: number[][];
+    }
+  | {
       kind: 'byte-substitution';
       sourceRegion: string;
       targetRegion: string;
@@ -452,6 +471,72 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
           (result, sourceBit, outputIndex) =>
             result | (((value >> sourceBit) & 1) << (7 - outputIndex)),
           0,
+        );
+      }
+      continue;
+    }
+    if (transform.kind === 'word-bitswap') {
+      const region = regions[transform.region];
+      const bytesPerWord = transform.wordBits / 8;
+      if (
+        !region || transform.wordBits !== 32 || region.length % bytesPerWord !== 0 ||
+        transform.bits.length !== transform.wordBits ||
+        transform.bits.some(bit => bit < 0 || bit >= transform.wordBits) ||
+        new Set(transform.bits).size !== transform.wordBits
+      ) {
+        throw new Error(`ROM word bitswap for "${transform.region}" is invalid`);
+      }
+      for (let offset = 0; offset < region.length; offset += bytesPerWord) {
+        const source = (
+          region[offset]! |
+          (region[offset + 1]! << 8) |
+          (region[offset + 2]! << 16) |
+          (region[offset + 3]! << 24)
+        ) >>> 0;
+        const value = transform.bits.reduce(
+          (result, sourceBit, outputIndex) =>
+            (result | (((source >>> sourceBit) & 1) << (31 - outputIndex))) >>> 0,
+          0,
+        );
+        region[offset] = value;
+        region[offset + 1] = value >>> 8;
+        region[offset + 2] = value >>> 16;
+        region[offset + 3] = value >>> 24;
+      }
+      continue;
+    }
+    if (transform.kind === 'prom-word-address') {
+      const region = regions[transform.region];
+      const prom = regions[transform.promRegion];
+      const rowCount = transform.bitPickTable.length;
+      if (
+        !region || !prom || transform.wordBytes <= 0 || region.length % transform.wordBytes !== 0 ||
+        !rowCount || transform.bitPickTable.some(row =>
+          row.length <= transform.tableEntryMask ||
+          row.some(bit => bit < 0 || bit >= rowCount))
+      ) {
+        throw new Error(`PROM word-address transform for "${transform.region}" is invalid`);
+      }
+      const source = region.slice();
+      const wordCount = region.length / transform.wordBytes;
+      for (let address = 0; address < wordCount; address++) {
+        const tableAddress = (address & transform.tableAddressMask) >>>
+          transform.tableAddressShift;
+        const entry = (prom[tableAddress] ?? 0) & transform.tableEntryMask;
+        let sourceAddress = address & transform.addressKeepMask;
+        for (let bit = 0; bit < rowCount; bit++) {
+          sourceAddress |= ((address >>> transform.bitPickTable[bit]![entry]!) & 1) << bit;
+        }
+        if (sourceAddress < 0 || sourceAddress >= wordCount) {
+          throw new Error(
+            `PROM word-address transform for "${transform.region}" reads ${sourceAddress}`,
+          );
+        }
+        const targetOffset = address * transform.wordBytes;
+        const sourceOffset = sourceAddress * transform.wordBytes;
+        region.set(
+          source.subarray(sourceOffset, sourceOffset + transform.wordBytes),
+          targetOffset,
         );
       }
       continue;
@@ -701,7 +786,10 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
         dacs: cfg.sound.dacs,
         routes: cfg.sound.routes,
         auxiliary: cfg.sound.auxiliary,
-        auxiliaryDevices: cfg.sound.auxiliaryDevices,
+        auxiliaryDevices: cfg.sound.auxiliaryDevices?.map(device => ({
+          ...device,
+          ...(device.sampleRegion ? { sampleRom: regions[device.sampleRegion] } : {}),
+        })),
         filterChain: cfg.sound.filterChain,
         discreteMixer: cfg.sound.discreteMixer,
         discreteDac: cfg.sound.discreteDac,

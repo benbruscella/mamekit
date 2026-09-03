@@ -228,6 +228,14 @@ export function inputKeys(game: string, type: string): string[] | undefined {
   return GAME_KEYMAP[game]?.[type] ?? KEYMAP[type];
 }
 
+/** Whether a source input field belongs to the one keyboard-driven player. */
+export function isKeyboardPlayerInput(modifiers: readonly string[]): boolean {
+  const player = modifiers
+    .map(modifier => /PORT_PLAYER\s*\(\s*(\d+)\s*\)/.exec(modifier)?.[1])
+    .find((value): value is string => value !== undefined);
+  return player === undefined || Number(player) === 1;
+}
+
 /**
  * The browser key for one key of a MAME keypad, taken from the name the field
  * carries. A keypad has no fixed set of buttons -- the ColecoVision's twelve
@@ -1853,7 +1861,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           continue;
         }
         if (mods.includes('PORT_COCKTAIL')) continue;  // player-2 cocktail path: unbound
-        if (mods.includes('PORT_PLAYER(2)')) continue; // don't double-bind P1 keys
+        if (!isKeyboardPlayerInput(mods)) continue;    // don't double-bind P1 keys
         // An alternate controller's fields belong to a selector setting this
         // machine is not configured for. They stay in the port map -- the
         // source declares them -- but they are not bound or advertised.
@@ -2084,6 +2092,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     String(graph.meta.driverFile),
     String(game.props.cls),
     Object.fromEntries(roms.map(region => [region.region, region.size])),
+    String(game.props.init ?? ''),
   ) as unknown as Record<string, unknown>[]);
   // Declarative transforms are the preferred lowering, so the executable init
   // program is only reached when nothing declarative was recovered from the

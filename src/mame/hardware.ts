@@ -396,6 +396,10 @@ function resolveDefinition(
 ): MameHardwareDefinition | undefined {
   const aliases: Record<string, string> = {
     I8255A: 'I8255',
+    // MAME exposes the paired 053246/053247 sprite generator through a C++
+    // reference alias rather than a second DEFINE_DEVICE_TYPE. Boards name
+    // the front-end custom K053246; its implementation is k053247_device.
+    K053246: 'K053247',
     MC6809: 'M6809',
     MC6809E: 'M6809E',
   };

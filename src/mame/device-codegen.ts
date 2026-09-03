@@ -25,6 +25,8 @@ export interface CodegenScope {
   /** Struct types the scope declares, so a field store can narrow inline. */
   structs?: Record<string, GeneratedStructField[]>;
   callbacks: GeneratedDeviceCallback[];
+  /** Machine-config setter -> delegate member used for driver callbacks. */
+  delegates?: Record<string, string>;
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
   /** Entry points that must use direct generated code regardless of shape. */
@@ -915,7 +917,11 @@ function emitCall(
       }
       return yieldToOverride(call, args);
     }
-    const args = expression.args.map(argument => emitExpression(argument, context));
+    const delegate = Object.values(context.definition.delegates ?? {}).includes(name);
+    const args = expression.args.map(argument =>
+      delegate && ['identifier', 'index', 'member'].includes(argument.kind)
+        ? emitReferenceArgument(argument, context)
+        : emitExpression(argument, context));
     if (name === 'COMBINE_DATA') {
       // The interpreter reads data/mem_mask from the handler's locals; emitted
       // code passes its own parameters, with MAME's full-mask default.
@@ -1328,7 +1334,7 @@ function emitReferenceArgument(
   }
   const target = targetInfo(expression, context);
   const annotation = context.typescript ? ': any' : '';
-  return `({ get: () => ${emitExpression(expression, context)}, ` +
+  return `({ generatedLValue: true, get: () => ${emitExpression(expression, context)}, ` +
     `set: (value${annotation}) => { ${target.code} = ${wrapTarget('value', target)}; } })`;
 }
 

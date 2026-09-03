@@ -932,6 +932,15 @@ function emitCall(
   if (['u32', 'uint32_t'].includes(name)) return wrapType(args[0] ?? '0', 'u32');
   if (['s32', 'int32_t'].includes(name)) return wrapType(args[0] ?? '0', 's32');
   if (name === 'bool') return `((${args[0] ?? '0'}) ? 1 : 0)`;
+  if (name === 'BIT') {
+    const value = `(${args[0] ?? '0'})`;
+    const shift = `(${args[1] ?? '0'})`;
+    if (args.length > 2) {
+      const width = `(${args[2] ?? '1'})`;
+      return `((${value} >>> ${shift}) & ((1 << ${width}) - 1))`;
+    }
+    return `((${value} >>> ${shift}) & 1)`;
+  }
   if (name === 'std::popcount') {
     return `popcount32((${args[0] ?? '0'}) >>> 0)`;
   }
@@ -1093,6 +1102,9 @@ function emitCall(
   }
   if (name === 'prog_w') {
     return `(this.bus.signal?.('prog_out_cb', (${args[0] ?? '0'}) & 1) ?? 0)`;
+  }
+  if (name === 'm_set_lines') {
+    return `(this.bus.signal?.('line', (${args[1] ?? args[0] ?? '0'}) & 0xff) ?? 0)`;
   }
   if (name === 'm_in_inta_func.isunset' || name === 'm_out_status_func.isunset') return '1';
   if (name === 'm_out_inte_func' || name === 'm_out_sod_func' || name === 'm_out_status_func') {

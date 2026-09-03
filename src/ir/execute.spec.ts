@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
+  applyGeneratedMacro,
   compileGeneratedMachineHandler,
   executeGeneratedHandler,
   executeGeneratedProgram,
@@ -330,22 +331,41 @@ check('std::copy_n copies between source memory containers', () => {
   const source = Uint8Array.of(4, 5, 6, 7);
   const destination = new Array(4).fill(0);
   executeGeneratedHandler(
-    program([{
-      op: 'call',
-      expression: {
-        kind: 'call',
-        callee: { kind: 'identifier', name: 'std::copy_n' },
-        args: [
-          { kind: 'identifier', name: 'source' },
-          { kind: 'number', value: 3 },
-          { kind: 'identifier', name: 'destination' },
-        ],
+    program([
+      {
+        op: 'assign',
+        target: { kind: 'identifier', name: 'cursor' },
+        operator: '=',
+        value: {
+          kind: 'call',
+          callee: { kind: 'identifier', name: 'std::copy_n' },
+          args: [
+            { kind: 'identifier', name: 'source' },
+            { kind: 'number', value: 3 },
+            { kind: 'identifier', name: 'destination' },
+          ],
+        },
       },
-    }]),
+      {
+        op: 'assign',
+        target: {
+          kind: 'unary',
+          operator: '*',
+          operand: { kind: 'identifier', name: 'cursor' },
+        },
+        operator: '=',
+        value: { kind: 'number', value: 9 },
+      },
+    ]),
     {},
-    { source, destination },
+    { source, destination, cursor: 0 },
   );
-  assert.deepEqual(destination, [4, 5, 6, 0]);
+  assert.deepEqual(destination, [4, 5, 6, 9]);
+});
+
+check('direct device macros preserve C short casts', () => {
+  assert.equal(applyGeneratedMacro('short', [0xff80]), -128);
+  assert.equal(applyGeneratedMacro('short', [0x0261]), 0x0261);
 });
 
 check('finite hardware initialization loops may exceed 65536 iterations', () => {

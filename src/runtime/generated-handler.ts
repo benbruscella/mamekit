@@ -191,11 +191,16 @@ function makeReadHandler(
   cpuTag?: string,
 ): ReadHandler {
   const space = handlerSpace(handler, bindings, cpuTag);
-  return (addr, offset) => executeGeneratedMachineHandler(
+  return (addr, offset, memMask) => executeGeneratedMachineHandler(
     machine,
     handler,
     bindings,
-    { addr, offset, ...space },
+    {
+      addr,
+      offset,
+      ...space,
+      ...(memMask !== undefined ? { mem_mask: memMask } : {}),
+    },
   ) ?? 0xff;
 }
 

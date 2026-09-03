@@ -324,6 +324,9 @@ export interface GeneratedAuxiliaryAudioDevice {
   type: string;
   deviceTag: string;
   clock: number;
+  sampleRegion?: string;
+  sampleRom?: Uint8Array;
+  sampleRate?: number;
   initialMode?: string;
   gain: number;
   target: string;
@@ -1082,6 +1085,170 @@ export class GeneratedUpd7759Core {
   }
 }
 
+interface K007232Channel {
+  volume: [number, number];
+  address: number;
+  counter: number;
+  start: number;
+  step: number;
+  bank: number;
+  playing: boolean;
+}
+
+/**
+ * Konami 007232 two-channel PCM stream. The register protocol, 17-bit sample
+ * address, end marker, loop flags and clock/128 stream rate are lowered from
+ * k007232_device; the per-machine ROM and route gain stay generated data.
+ */
+export class GeneratedK007232Core {
+  private readonly registers = new Uint8Array(0x10);
+  private readonly channels: [K007232Channel, K007232Channel] = [
+    { volume: [255, 0], address: 0, counter: 0x1000, start: 0, step: 0,
+      bank: 0, playing: false },
+    { volume: [0, 255], address: 0, counter: 0x1000, start: 0, step: 0,
+      bank: 0, playing: false },
+  ];
+  private readonly rom: Uint8Array;
+  private readonly stepRate: number;
+  private phase = 0;
+  private held = 0;
+
+  constructor(rom: Uint8Array, clock: number, outputRate: number) {
+    this.rom = rom;
+    this.stepRate = clock / 128 / outputRate;
+  }
+
+  write(offset: number, data: number, method: string): void {
+    if (method.endsWith('.set_volume')) {
+      const channel = this.channels[(offset >>> 1) & 1]!;
+      channel.volume[offset & 1] = data & 0xff;
+      return;
+    }
+    if (method.endsWith('.set_bank')) {
+      this.channels[offset & 1]!.bank = (data & 0xff) << 17;
+      return;
+    }
+    if (method.endsWith('.read')) {
+      if ((offset & 15) === 5) this.start(0);
+      else if ((offset & 15) === 11) this.start(1);
+      return;
+    }
+    if (!method.endsWith('.write')) return;
+    offset &= 15;
+    this.registers[offset] = data & 0xff;
+    if (offset >= 12) return;
+    const channelIndex = offset >= 6 ? 1 : 0;
+    const register = offset - channelIndex * 6;
+    const channel = this.channels[channelIndex]!;
+    const base = channelIndex * 6;
+    if (register <= 1) {
+      channel.step = ((this.registers[base + 1]! & 15) << 8) |
+        this.registers[base]!;
+    } else if (register <= 4) {
+      channel.start = ((this.registers[base + 4]! & 1) << 16) |
+        (this.registers[base + 3]! << 8) | this.registers[base + 2]!;
+    } else {
+      this.start(channelIndex);
+    }
+  }
+
+  sample(): number {
+    this.phase += this.stepRate;
+    while (this.phase >= 1) {
+      this.phase -= 1;
+      this.held = this.clockSample();
+    }
+    return this.held;
+  }
+
+  private start(index: number): void {
+    const channel = this.channels[index]!;
+    if (channel.start >= Math.min(0x20000, this.rom.length)) return;
+    channel.playing = true;
+    channel.address = channel.start;
+    channel.counter = 0x1000;
+  }
+
+  private read(index: number, address: number): number {
+    const channel = this.channels[index]!;
+    return this.rom[(channel.bank + (address & 0x1ffff)) % Math.max(1, this.rom.length)] ?? 0x80;
+  }
+
+  private clockSample(): number {
+    let mixed = 0;
+    const limit = Math.min(0x20000, this.rom.length);
+    for (let index = 0; index < 2; index++) {
+      const channel = this.channels[index]!;
+      if (!channel.playing) continue;
+      let address = channel.address & 0x1ffff;
+      while (channel.counter <= channel.step) {
+        const value = address < limit ? this.read(index, address++) : 0x80;
+        if (address > limit || (value & 0x80)) {
+          if (this.registers[13]! & (1 << index)) address = channel.start;
+          else {
+            channel.playing = false;
+            break;
+          }
+        }
+        channel.counter += 0x1000 - channel.step;
+      }
+      channel.address = address;
+      if (!channel.playing) continue;
+      channel.counter -= 32;
+      const value = (this.read(index, address) & 0x7f) - 0x40;
+      mixed += value * (channel.volume[0] + channel.volume[1]) * 2 / 32768;
+    }
+    return mixed;
+  }
+}
+
+/** Raw PCM player used by MAME's samples_device::start_raw path. */
+export class GeneratedRawSamplesCore {
+  private readonly rom: Uint8Array;
+  private readonly sourceStep: number;
+  private playing = false;
+  private phase = 0;
+  private cursor = 0;
+  private held = 0;
+
+  constructor(rom: Uint8Array, outputRate: number, sourceRate = 20_000) {
+    this.rom = rom;
+    this.sourceStep = sourceRate / outputRate;
+  }
+
+  write(method: string): void {
+    if (method.endsWith('.start_raw')) {
+      this.playing = true;
+      this.phase = 0;
+      this.cursor = 0;
+      this.held = 0;
+    } else if (method.endsWith('.stop')) {
+      this.playing = false;
+      this.held = 0;
+    }
+  }
+
+  sample(): number {
+    if (!this.playing) return 0;
+    this.phase += this.sourceStep;
+    while (this.phase >= 1) {
+      this.phase -= 1;
+      if (this.cursor * 2 + 1 >= this.rom.length) {
+        this.playing = false;
+        this.held = 0;
+        break;
+      }
+      const packed = (this.rom[this.cursor * 2]! |
+        (this.rom[this.cursor * 2 + 1]! << 8)) >>> 3;
+      const floating = packed ^ 0x1e00;
+      const shifted = (floating << 6) << 16 >> 16;
+      this.held = (shifted >> ((floating >>> 10) & 7)) / 32768;
+      this.cursor++;
+    }
+    return this.held;
+  }
+}
+
 /**
  * Hosts the machine's YM2151 bank, resampling each chip's native ymfm rate to
  * the host output rate and mixing the driver's add_route gains.
@@ -1107,6 +1274,16 @@ export class GeneratedYm2151Mixer {
     deviceTag: string;
     gain: number;
     core: GeneratedUpd7759Core;
+  }[];
+  private readonly k007232Chips: {
+    deviceTag: string;
+    gain: number;
+    core: GeneratedK007232Core;
+  }[];
+  private readonly rawSamples: {
+    deviceTag: string;
+    gain: number;
+    core: GeneratedRawSamplesCore;
   }[];
   // A speech chip whose engine runs on the main thread streams finished PCM
   // in rather than register writes; all this side does is resample it.
@@ -1176,6 +1353,24 @@ export class GeneratedYm2151Mixer {
             core: new GeneratedUpd7759Core(device.clock, outputRate),
           }))
       : [];
+    this.k007232Chips = auxiliaryDevices
+      .filter(device => device.type === 'K007232')
+      .map(device => ({
+        deviceTag: device.deviceTag,
+        gain: device.gain,
+        core: new GeneratedK007232Core(
+          device.sampleRom ?? new Uint8Array(), device.clock, outputRate,
+        ),
+      }));
+    this.rawSamples = auxiliaryDevices
+      .filter(device => device.type === 'SAMPLES')
+      .map(device => ({
+        deviceTag: device.deviceTag,
+        gain: device.gain,
+        core: new GeneratedRawSamplesCore(
+          device.sampleRom ?? new Uint8Array(), outputRate, device.sampleRate,
+        ),
+      }));
     this.pcmChips = auxiliaryDevices
       .filter(device => device.type.startsWith('TMS5220'))
       .map(device => ({
@@ -1223,6 +1418,18 @@ export class GeneratedYm2151Mixer {
         return;
       }
     }
+    for (const chip of this.k007232Chips) {
+      if (method?.startsWith(chip.deviceTag + '.')) {
+        chip.core.write(offset, data, method);
+        return;
+      }
+    }
+    for (const device of this.rawSamples) {
+      if (method?.startsWith(device.deviceTag + '.')) {
+        device.core.write(method);
+        return;
+      }
+    }
     if (this.oki && method?.startsWith(this.oki.tag + '.')) {
       if (method.endsWith('.set_pin7')) this.oki.core.setPin7(data);
       else this.oki.core.write(data);
@@ -1261,6 +1468,8 @@ export class GeneratedYm2151Mixer {
     for (const device of this.msmChips) output += device.core.sample() * device.gain;
     for (const device of this.pokeyChips) output += device.core.sample() * device.gain;
     for (const device of this.updChips) output += device.core.sample() * device.gain;
+    for (const device of this.k007232Chips) output += device.core.sample() * device.gain;
+    for (const device of this.rawSamples) output += device.core.sample() * device.gain;
     for (const device of this.pcmChips) {
       device.phase += device.rate / this.outputRate;
       while (device.phase >= 1) {

@@ -178,6 +178,7 @@ assert.equal(
 
 const unsafeDefinition: GeneratedDeviceDefinition = {
   ...definition,
+  delegates: { set_callback: 'm_callback' },
   members: [
     ...definition.members,
     { name: 'm_latch', valueType: 'latch_delegate', initial: 0 },
@@ -211,6 +212,16 @@ const unsafeDefinition: GeneratedDeviceDefinition = {
       `),
     },
     {
+      name: 'render_with_mutating_delegate',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 7 },
+      program: compileMameHandler(`
+        for (int y = 0; y < 2; y++)
+          for (int x = 0; x < 2; x++)
+            m_callback(m_total);
+      `),
+    },
+    {
       name: 'write_pixel',
       parameters: 'u32 *&dest',
       source: { file: 'src/devices/test.cpp', line: 7 },
@@ -235,6 +246,7 @@ assert.deepEqual(
   [
     'mutate',
     'render_with_delegate',
+    'render_with_mutating_delegate',
     'render_with_pointer',
     'render_with_reference',
     'write_pixel',
@@ -275,6 +287,14 @@ const optimizedRuntime = {
   members: { m_total: 0, m_budget: 0, m_latch: 0, m_pixels: [0, 0, 0, 0] },
   calls: {
     'm_latch.isnull': () => 1,
+    m_callback: (value: unknown) => {
+      const reference = value as {
+        generatedLValue?: true;
+        set(next: number): void;
+      };
+      assert.equal(reference.generatedLValue, true);
+      reference.set(13);
+    },
   },
   ...indexed,
   invoke(name: string): unknown {
@@ -288,6 +308,12 @@ assert.equal(
   'compiled C++ reference parameters must write back to their caller',
 );
 optimized.render_with_delegate!(optimizedRuntime);
+optimized.render_with_mutating_delegate!(optimizedRuntime);
+assert.equal(
+  optimizedRuntime.members.m_total,
+  13,
+  'compiled device delegates must write mutable references back to the renderer',
+);
 optimized.render_with_pointer!(optimizedRuntime);
 assert.deepEqual(
   optimizedRuntime.members.m_pixels,
