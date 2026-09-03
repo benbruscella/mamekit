@@ -2332,7 +2332,7 @@ function compilePalette(
     : fn;
   const resNet = compileResNetAllPalette(graph, source, paletteFn, constants);
   if (resNet) return resNet;
-  const body = paletteFn.body;
+  const body = expandPaletteGfxExpressions(paletteFn.body, graph, machineIds);
   let region = /memregion\(\s*"([^"]+)"\s*\)/.exec(body)?.[1];
   const weightsCall = findCallArguments(body, 'compute_resistor_weights');
   const loops = numericForLoops(body);
@@ -2535,7 +2535,22 @@ function compilePalette(
         'PROM',
       );
       const expandedScalarColorExpression = scalarColorExpression;
-      const colorMap = compilePaletteColorMap(expandedScalarColorExpression, constants);
+      const maskedLookup = new RegExp(
+        String.raw`^\s*\(?\s*(\w+)\s*&\s*(-?(?:0x[\da-f]+|\d+))\s*\)?\s*\?\s*` +
+        String.raw`\(?\s*\1\s*&\s*(-?(?:0x[\da-f]+|\d+))\s*\)?\s*:\s*` +
+        String.raw`(-?(?:0x[\da-f]+|\d+))\s*$`,
+        'i',
+      ).exec(colorExpression);
+      // Some lookup PROMs use one output bit solely as an opacity selector.
+      // The local holding the combined PROM byte is the lookup value itself,
+      // so preserve that conditional as a table instead of re-evaluating each
+      // physical PROM term after both have been collapsed to `PROM`.
+      const colorMap = maskedLookup
+        ? Array.from({ length: 0x100 }, (_unused, value) =>
+            value & expressionNumber(maskedLookup[2], constants)
+              ? value & expressionNumber(maskedLookup[3], constants)
+              : expressionNumber(maskedLookup[4], constants))
+        : compilePaletteColorMap(expandedScalarColorExpression, constants);
       const colorOrExpression =
         /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarLookupExpression)?.[1]
         ?? /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarColorExpression)?.[1]
@@ -2693,6 +2708,52 @@ function compilePalette(
   };
 }
 
+/**
+ * Palette callbacks frequently use MAME's local TOTAL_COLORS(gfx) shorthand
+ * and gfx_element::colorbase() instead of numeric loop bounds/pen offsets.
+ * Both values are already declarative in the active GFXDECODE table, so fold
+ * them before parsing palette loops. Leaving either expression unresolved
+ * turns the corresponding lookup bank into a zero-length bank.
+ */
+function expandPaletteGfxExpressions(
+  source: string,
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+): string {
+  const decode = graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'DECODES')
+    .map(edge => graph.nodes.find(node => node.id === edge.to))
+    .find((node): node is KGNode => Boolean(node));
+  if (!decode) return source;
+  const entries = graph.edges
+    .filter(edge => edge.from === decode.id && edge.rel === 'HAS_ENTRY')
+    .map(edge => graph.nodes.find(node => node.id === edge.to))
+    .filter((node): node is KGNode => Boolean(node))
+    .map(entry => {
+      const layoutEdge = graph.edges.find(edge =>
+        edge.from === entry.id && edge.rel === 'USES_LAYOUT');
+      const layout = layoutEdge && graph.nodes.find(node => node.id === layoutEdge.to);
+      const planes = Number(layout?.props.planes ?? 0);
+      return {
+        colorBase: Number(entry.props.colorBase),
+        totalColors: Number(entry.props.colorCount) * (1 << planes),
+      };
+    });
+  const metric = (index: string, field: 'colorBase' | 'totalColors'): string => {
+    const value = entries[Number(index)]?.[field];
+    return Number.isFinite(value) ? String(value) : '0';
+  };
+  return source
+    .replace(
+      /\b(?:m_\w+|\w+)->gfx\(\s*(\d+)\s*\)->colorbase\(\)/g,
+      (_match, index: string) => metric(index, 'colorBase'),
+    )
+    .replace(
+      /\bTOTAL_COLORS\(\s*(\d+)\s*\)/g,
+      (_match, index: string) => metric(index, 'totalColors'),
+    );
+}
+
 /** Inline simple per-loop aliases before extracting PROM lookup expressions. */
 function expandPaletteLoopLocals(
   expression: string,
@@ -2773,17 +2834,35 @@ function evaluateIndexedPaletteExpression(
   while (source.startsWith('(') && matchingPair(source, 0, '(', ')') === source.length - 1) {
     source = source.slice(1, -1).trim();
   }
+  let expandedBit = true;
+  while (expandedBit) {
+    expandedBit = false;
+    source = source.replace(/\bBIT\s*\(\s*([^(),]+)\s*,\s*([^(),]+)\s*\)/g,
+      (match, valueExpression: string, bitExpression: string) => {
+        const value = evaluateIndexedPaletteExpression(valueExpression, values);
+        const bit = evaluateIndexedPaletteExpression(bitExpression, values);
+        if (value === null || bit === null) return match;
+        expandedBit = true;
+        return String((value >>> bit) & 1);
+      });
+  }
   const question = topLevelOperator(source, '?');
   if (question >= 0) {
     const colon = topLevelOperator(source, ':', question + 1);
     if (colon < 0) return null;
     const condition = source.slice(0, question).trim().replace(/^\((.*)\)$/s, '$1');
     const comparison = /^(.*?)\s*(==|!=)\s*(.*?)$/.exec(condition);
-    if (!comparison) return null;
-    const left = evaluateIndexedPaletteExpression(comparison[1]!, values);
-    const right = evaluateIndexedPaletteExpression(comparison[3]!, values);
-    if (left === null || right === null) return null;
-    const matched = comparison[2] === '==' ? left === right : left !== right;
+    let matched: boolean;
+    if (comparison) {
+      const left = evaluateIndexedPaletteExpression(comparison[1]!, values);
+      const right = evaluateIndexedPaletteExpression(comparison[3]!, values);
+      if (left === null || right === null) return null;
+      matched = comparison[2] === '==' ? left === right : left !== right;
+    } else {
+      const value = evaluateIndexedPaletteExpression(condition, values);
+      if (value === null) return null;
+      matched = value !== 0;
+    }
     return evaluateIndexedPaletteExpression(
       source.slice(matched ? question + 1 : colon + 1, matched ? colon : undefined),
       values,
@@ -3722,18 +3801,22 @@ function paletteExpressionAt(
   before: number,
   constants: Record<string, number>,
 ): number {
-  const values: Record<string, number> = { ...constants };
+  const values: Record<string, number> = { ...constants, i: index };
   const prefix = body.slice(0, before);
   const events = /\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+(\w+)\s*=\s*([^;]+);|\b(\w+)\s*\+=\s*([^;]+);/g;
   let event: RegExpExecArray | null;
   while ((event = events.exec(prefix)) !== null) {
     const name = event[1] ?? event[3]!;
     const expression = event[2] ?? event[4]!;
-    const value = evalExpr(substituteNumbers(expression.trim(), values));
+    const value = evaluateIndexedPaletteExpression(expression, values);
     if (value === null) continue;
     values[name] = event[3] ? (values[name] ?? 0) + value : value;
   }
-  return expressionNumber(source.replace(/\bi\b/g, String(index)), values);
+  // Earlier `for (int i = ...)` declarations occur in the prefix but are not
+  // locals visible to this lookup loop. Keep the caller's current iteration
+  // after replaying the genuinely shared pointer/scalar state.
+  values.i = index;
+  return evaluateIndexedPaletteExpression(source, values) ?? 0;
 }
 
 function compilePaletteLookupTerms(

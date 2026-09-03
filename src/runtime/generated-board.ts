@@ -987,14 +987,20 @@ class IrBoard implements Board {
               }),
             ),
           ]
-        : machine.game === 'outrun' && specification.tag === 'maincpu'
+        : (machine.game === 'outrun' || machine.family === 'segas16b') &&
+            specification.tag === 'maincpu'
         ? [
             // The 315-5195 starts with every bank overlaid at zero, then the
             // boot ROM programs its live windows.  Keep the extracted RAM
             // ranges solely to allocate their shares, and put the mapper back
             // on top so its runtime decoder owns every access.
             ...sourceRanges.filter(range => range.read !== 'mapper.read'),
-            ...sourceRanges.filter(range => range.read === 'mapper.read'),
+            ...sourceRanges
+              .filter(range => range.read === 'mapper.read')
+              // The 315-5195's own registers occupy the low byte lane, but
+              // the ROM/RAM/handler windows it installs cover the full 16-bit
+              // 68000 bus. The live decoder below handles that distinction.
+              .map(range => ({ ...range, umask: undefined })),
           ]
         : machine.family === 'neogeo' && specification.tag === 'maincpu'
         ? [
@@ -2349,6 +2355,186 @@ class IrBoard implements Board {
     regions: Regions,
     registry: HandlerRegistry,
   ): (() => void) | undefined {
+    if (machine.family === 'segas16b') {
+      // System 16B routes the complete 68000 address space through Sega's
+      // 315-5195. Its eight windows power up together at zero, then the ROM
+      // bootstrap relocates ROM, video RAM, work RAM and I/O by programming
+      // registers $10-$1f through any otherwise-unmapped low byte address.
+      const rom = regions.maincpu ?? new Uint8Array(0);
+      const registers = new Uint8Array(0x20);
+      const sizeMasks = [0x00ffff, 0x01ffff, 0x07ffff, 0x1fffff] as const;
+      type MapperWindow = {
+        kind: 'rom' | 'ram' | 'io';
+        offset: number;
+        romOffset?: number;
+        share?: string;
+      };
+      const window = (
+        address: number,
+        index: number,
+        offset: number,
+        length: number,
+        mirror: number,
+        kind: MapperWindow['kind'],
+        share?: string,
+        romOffset?: number,
+      ): MapperWindow | undefined => {
+        const sizeMask = sizeMasks[registers[0x10 + 2 * index]! & 3]!;
+        const base = (registers[0x11 + 2 * index]! << 16) & ~sizeMask;
+        const mirrorMask = mirror & sizeMask;
+        const start = base + (offset & sizeMask);
+        const end = start + Math.min(length - 1, sizeMask);
+        const decoded = address & ~mirrorMask;
+        if (decoded < start || decoded > end) return undefined;
+        return { kind, share, romOffset, offset: decoded - start };
+      };
+      const decode = (address: number): MapperWindow | undefined => {
+        address &= 0xffffff;
+        const romWindow = (index: number, sourceOffset: number) =>
+          sourceOffset < rom.length
+            ? window(
+                address,
+                index,
+                0,
+                Math.min(0x20000, rom.length - sourceOffset),
+                0xfe0000,
+                'rom',
+                undefined,
+                sourceOffset,
+              )
+            : undefined;
+        // update_mapping() installs regions 7 down to 0, so the lowest region
+        // number wins. Within region 5 the later text-RAM mapping wins over
+        // tile RAM when the reset masks temporarily overlap them.
+        for (let index = 0; index <= 7; index++) {
+          let hit: MapperWindow | undefined;
+          if (index === 0) {
+            hit = romWindow(0, 0);
+          } else if (index === 1) {
+            hit = romWindow(1, 0x20000);
+          } else if (index === 2) {
+            hit = romWindow(2, 0x40000);
+          } else if (index === 3) {
+            const length = this.shares.workram?.length ?? 0x4000;
+            hit = window(address, 3, 0, length, ~(length - 1), 'ram', 'workram');
+          } else if (index === 4) {
+            hit = window(address, 4, 0, 0x00800, 0xfff800, 'ram', 'sprites');
+          } else if (index === 5) {
+            hit = window(address, 5, 0x10000, 0x01000, 0xfef000, 'ram', 'textram')
+              ?? window(address, 5, 0, 0x10000, 0xfe0000, 'ram', 'tileram');
+          } else if (index === 6) {
+            hit = window(address, 6, 0, 0x01000, 0xfff000, 'ram', 'paletteram');
+          } else {
+            hit = window(address, 7, 0, 0x04000, 0xffc000, 'io');
+          }
+          if (hit) return hit;
+        }
+        return undefined;
+      };
+      const shareWord = (tag: string, offset: number) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset + 1 >= bytes.length) return 0xffff;
+        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+        return words[offset >>> 1]!;
+      };
+      const writeShareWord = (
+        tag: string,
+        offset: number,
+        data: number,
+        memMask: number,
+      ) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset + 1 >= bytes.length) return;
+        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+        const index = offset >>> 1;
+        words[index] = (words[index]! & ~memMask) | (data & memMask);
+      };
+      const ioRead = (byteOffset: number): number => {
+        const offset = (byteOffset >>> 1) & 0x1fff;
+        switch (offset & 0x1800) {
+          case 0x0800:
+            return this.inputs.read(['SERVICE', 'P1', 'UNUSED', 'P2'][offset & 3]!);
+          case 0x1000:
+            return this.inputs.read((offset & 1) ? 'DSW1' : 'DSW2');
+          default:
+            return 0xffff;
+        }
+      };
+      const ioWrite = (byteOffset: number, data: number, memMask: number) => {
+        const offset = (byteOffset >>> 1) & 0x1fff;
+        if ((offset & 0x1800) !== 0 || !(memMask & 0x00ff)) return;
+        this.state.__system16bFlip = data & 0x40;
+        this.state.__system16bDisplayEnable = data & 0x20;
+        this.state.__system16bOutputs = data & 0xff;
+      };
+      const mapperRegister = (address: number) => (address >>> 1) & 0x1f;
+      const readMappedWord = (address: number): number => {
+        const hit = decode(address);
+        if (!hit) {
+          const slot = mapperRegister(address);
+          if (slot <= 1) return registers[slot]!;
+          if (slot === 2) return (registers[2]! & 3) === 3 ? 0 : 0x0f;
+          if (slot === 3) return Number(this.state.m_from_sound ?? 0) & 0xff;
+          return 0xffff;
+        }
+        if (hit.kind === 'rom') {
+          const offset = (hit.romOffset ?? 0) + hit.offset;
+          return ((rom[offset] ?? 0xff) << 8) | (rom[offset + 1] ?? 0xff);
+        }
+        if (hit.kind === 'ram') return shareWord(hit.share!, hit.offset);
+        return ioRead(hit.offset);
+      };
+      const writeMappedWord = (
+        address: number,
+        data: number,
+        memMask = 0xffff,
+      ): void => {
+        const hit = decode(address);
+        if (!hit) {
+          if (!(memMask & 0x00ff)) return;
+          const slot = mapperRegister(address);
+          registers[slot] = data & 0xff;
+          if (slot === 3) {
+            this.state.m_to_sound = data & 0xff;
+            this.cpus.get('soundcpu')?.setIrqLine(true, 0xff, true);
+          } else if (slot === 4 && (registers[slot]! & 7) !== 7) {
+            const irq = (~registers[slot]!) & 7;
+            this.cpus.get('maincpu')?.setInputLine(irq, 1);
+          } else if (slot === 5) {
+            if ((data & 0xff) === 1) {
+              const target = (registers[0x0a]! << 17) |
+                (registers[0x0b]! << 9) | (registers[0x0c]! << 1);
+              writeMappedWord(target, (registers[0]! << 8) | registers[1]!, 0xffff);
+            } else if ((data & 0xff) === 2) {
+              const target = (registers[7]! << 17) |
+                (registers[8]! << 9) | (registers[9]! << 1);
+              const result = readMappedWord(target);
+              registers[0] = result >>> 8;
+              registers[1] = result & 0xff;
+            }
+          }
+          return;
+        }
+        if (hit.kind === 'ram') writeShareWord(hit.share!, hit.offset, data, memMask);
+        else if (hit.kind === 'io') ioWrite(hit.offset, data, memMask);
+        // Writes to mapped ROM are intentionally swallowed rather than
+        // falling through to the mapper's repeating register aperture.
+      };
+      registry.read['mapper.read'] = address => readMappedWord(address & ~1);
+      registry.write['mapper.write'] = (address, _offset, data, memMask) =>
+        writeMappedWord(address & ~1, data, memMask);
+      registry.read['mapper.pread'] = () => Number(this.state.m_to_sound ?? 0) & 0xff;
+      const reset = () => {
+        registers.fill(0);
+        this.state.m_to_sound = 0;
+        this.state.m_from_sound = 0;
+        this.state.__system16bFlip = 0;
+        this.state.__system16bDisplayEnable = 0;
+        this.state.__system16bOutputs = 0;
+      };
+      reset();
+      return reset;
+    }
     if (machine.game === 'outrun') {
       // Sega's 315-5195 is not a fixed address decoder.  All eight regions
       // power up at zero with 64K windows; the first ROM page then programs

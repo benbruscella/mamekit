@@ -598,4 +598,80 @@ const slotBackedBoard = createGeneratedBoard(
 slotBackedBoard.frame(new Uint32Array(1));
 assert.equal(slotBackedRan, true, 'slot-backed CPUs must not require a fake fixed ROM region');
 
+let system16bRomWord = -1;
+let system16bRamWord = -1;
+registerGeneratedCpu({
+  // Use a generated 16-bit CPU family name so the fixture exercises the
+  // mapper through the same native word path as System 16B's 68000.
+  type: 'm68010',
+  summary: { diagnostics: 0 },
+  create(bus) {
+    return {
+      reset() {},
+      step() { return 1; },
+      run(cycles) {
+        system16bRomWord = bus.read16be?.(0) ?? -1;
+        // Region 3 is work RAM. Relocate it to $500000 through the mapper's
+        // repeating low-byte register aperture, then prove its installed
+        // window still carries complete 68000 words.
+        bus.write16be?.(0xff002e, 0x0050);
+        bus.write16be?.(0x500000, 0xabcd);
+        system16bRamWord = bus.read16be?.(0x500000) ?? -1;
+        return cycles;
+      },
+      setIrqLine() {},
+      setInputLine() {},
+      nmi() {},
+      get() { return 0; },
+      stateInt() { return 0; },
+      set() {},
+      invoke() { return 0; },
+      hasMethod() { return false; },
+    };
+  },
+});
+const system16bMachine: BoardIr = {
+  ...opcodeMachine,
+  game: 'system16b-mapper-fixture',
+  family: 'segas16b',
+  execution: {
+    ...opcodeMachine.execution,
+    cpus: [{
+      tag: 'maincpu',
+      type: 'm68010',
+      clock: 60,
+      region: 'maincpu',
+      mask: 0xffffff,
+      ranges: [
+        {
+          start: 0,
+          end: 0xffffff,
+          kind: 'handler',
+          umask: 0x00ff,
+          read: 'mapper.read',
+          write: 'mapper.write',
+        },
+        { start: 0x500000, end: 0x503fff, kind: 'ram', share: 'workram' },
+      ],
+    }],
+  },
+};
+const system16bBoard = createGeneratedBoard(
+  system16bMachine,
+  {
+    game: system16bMachine.game,
+    family: 'segas16b',
+    cpus: [],
+    ranges: [],
+    screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 },
+  },
+  { maincpu: Uint8Array.of(0x12, 0x34) },
+  { read: () => 0xff },
+  { soundWrite: () => {} },
+);
+system16bBoard.frame(new Uint32Array(1));
+assert.equal(system16bRomWord, 0x1234, '315-5195 ROM windows must cover both data lanes');
+assert.equal(system16bRamWord, 0xabcd, '315-5195 RAM windows must preserve 68000 words');
+
 console.log('generated-board.spec: shares, CPU lines, flip-screen state and CPU buses passed');

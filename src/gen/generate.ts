@@ -1420,11 +1420,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // set's chip occupying the same region/offset/size slot is an acceptable
   // alternative, derived entirely from the driver's other ROM_START blocks.
   const altSlots = new Map<string, { file: string; crc: string }[]>();
-  if (opts.fullGraph) {
-    const full = new Graph(opts.fullGraph);
+  const full = opts.fullGraph ? new Graph(opts.fullGraph) : undefined;
+  const lineage = full ?? g;
+  if (full) {
     const gameId = `game:${opts.game}`;
     const parentId = full.out(gameId, 'CLONE_OF')[0]?.node.id ?? gameId;
-    const family = opts.fullGraph.nodes.filter(n =>
+    const family = opts.fullGraph!.nodes.filter(n =>
       n.label === 'Game' && n.id !== gameId &&
       (n.id === parentId || full.out(n.id, 'CLONE_OF')[0]?.node.id === parentId));
     for (const sib of family) {
@@ -1439,17 +1440,26 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       }
     }
   }
-  const parentGame = g.out(`game:${opts.game}`, 'CLONE_OF')[0]?.node;
+  // A clone's canonical parent may live in another driver file and therefore
+  // be represented only by the CLONE_OF edge in this driver's full graph
+  // (shinobi5 -> shinobi is the canonical cross-file case).
+  const parentEdge = opts.fullGraph?.edges.find(edge =>
+    edge.from === `game:${opts.game}` && edge.rel === 'CLONE_OF');
+  const parentGame = parentEdge ? lineage.node(parentEdge.to) : undefined;
+  const parentSetName = parentEdge?.to.replace(/^game:/, '');
+  const parentRomSet = parentGame
+    ? lineage.out(parentGame.id, 'USES_ROMSET')[0]?.node
+    : undefined;
   const biosRomSet = parentGame && String(parentGame.props.flags ?? '').includes('MACHINE_IS_BIOS_ROOT')
-    ? g.out(parentGame.id, 'USES_ROMSET')[0]?.node
+    ? parentRomSet
     : undefined;
   const inheritedBiosSet = (region: KGNode): string | undefined => {
     if (!biosRomSet) return undefined;
-    const parentRegion = g.out(biosRomSet.id, 'HAS_REGION')
+    const parentRegion = lineage.out(biosRomSet.id, 'HAS_REGION')
       .map(edge => edge.node)
       .find(candidate => candidate.props.tag === region.props.tag);
     if (!parentRegion) return undefined;
-    const parentLoads = g.out(parentRegion.id, 'LOADS').map(edge => edge.node);
+    const parentLoads = lineage.out(parentRegion.id, 'LOADS').map(edge => edge.node);
     const loads = g.out(region.id, 'LOADS').map(edge => edge.node);
     if (!loads.length || !loads.every(load => parentLoads.some(parent =>
       parent.props.file === load.props.file &&
@@ -1458,52 +1468,59 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       parent.props.size === load.props.size))) return undefined;
     return String(biosRomSet.props.name);
   };
-  const roms = g.out(romset.id, 'HAS_REGION').map(({ node: region }) => ({
-    region: String(region.props.tag),
-    size: Number(region.props.size),
-    ...(inheritedBiosSet(region) ? { romSet: inheritedBiosSet(region) } : {}),
-    ...(String(region.props.flags).includes('ROMREGION_ERASEFF') ? { fill: 0xff } : {}),
-    ...(String(region.props.flags).includes('ROMREGION_INVERT') ? { invert: true } : {}),
-    ...(region.props.fills ? {
-      fills: chunkTriples(region.props.fills as number[]).map(
-        ([offset, size, value]) => ({ offset, size, value }),
-      ),
-    } : {}),
-    loads: g.out(region.id, 'LOADS').map(({ node: rom }) => {
-      const crc = String(rom.props.crc);
-      const alts = (altSlots.get(`${region.props.tag}/${rom.props.offset}/${rom.props.size}`) ?? [])
-        .filter((a, i, arr) => a.crc !== crc && arr.findIndex(x => x.crc === a.crc) === i);
-      return {
-        file: String(rom.props.file),
-        offset: Number(rom.props.offset),
-        size: Number(rom.props.size),
-        crc,
-        ...(alts.length ? { alt: alts } : {}),
-        ...(rom.props.reloadOffsets ? { reloadOffsets: rom.props.reloadOffsets as number[] } : {}),
-        ...(rom.props.groupSize ? { groupSize: Number(rom.props.groupSize) } : {}),
-        ...(rom.props.skip ? { skip: Number(rom.props.skip) } : {}),
-        ...(rom.props.reverse ? { reverse: true } : {}),
-        ...(rom.props.nibbleShift !== undefined
-          ? { nibbleShift: Number(rom.props.nibbleShift) as 0 | 4 }
-          : {}),
-        ...(rom.props.continueSegments ? {
-          continueSegments: chunkTriples(rom.props.continueSegments as number[]).map(
-            ([offset, size, fileOffset]) => ({ offset, size, fileOffset }),
-          ),
-        } : {}),
-        ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
-      };
-    }),
-  }));
+  const cloneRomSet = !biosRomSet ? parentSetName : undefined;
+  const roms = g.out(romset.id, 'HAS_REGION').map(({ node: region }) => {
+    const assignedRomSet = inheritedBiosSet(region) ?? cloneRomSet;
+    return {
+      region: String(region.props.tag),
+      size: Number(region.props.size),
+      ...(assignedRomSet ? { romSet: assignedRomSet } : {}),
+      ...(String(region.props.flags).includes('ROMREGION_ERASEFF') ? { fill: 0xff } : {}),
+      ...(String(region.props.flags).includes('ROMREGION_INVERT') ? { invert: true } : {}),
+      ...(region.props.fills ? {
+        fills: chunkTriples(region.props.fills as number[]).map(
+          ([offset, size, value]) => ({ offset, size, value }),
+        ),
+      } : {}),
+      loads: g.out(region.id, 'LOADS').map(({ node: rom }) => {
+        const crc = String(rom.props.crc);
+        const slot = `${region.props.tag}/${rom.props.offset}/${rom.props.size}`;
+        const alts = (altSlots.get(slot) ?? [])
+          .filter((a, i, arr) => a.crc !== crc && arr.findIndex(x => x.crc === a.crc) === i);
+        return {
+          file: String(rom.props.file),
+          offset: Number(rom.props.offset),
+          size: Number(rom.props.size),
+          crc,
+          ...(alts.length ? { alt: alts } : {}),
+          ...(rom.props.reloadOffsets
+            ? { reloadOffsets: rom.props.reloadOffsets as number[] }
+            : {}),
+          ...(rom.props.groupSize ? { groupSize: Number(rom.props.groupSize) } : {}),
+          ...(rom.props.skip ? { skip: Number(rom.props.skip) } : {}),
+          ...(rom.props.reverse ? { reverse: true } : {}),
+          ...(rom.props.nibbleShift !== undefined
+            ? { nibbleShift: Number(rom.props.nibbleShift) as 0 | 4 }
+            : {}),
+          ...(rom.props.continueSegments ? {
+            continueSegments: chunkTriples(rom.props.continueSegments as number[]).map(
+              ([offset, size, fileOffset]) => ({ offset, size, fileOffset }),
+            ),
+          } : {}),
+          ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
+        };
+      }),
+    };
+  });
   // BIOS-root parents contribute board ROM regions that cartridge sets do not
   // repeat (Neo Geo's main BIOS and initial Z80 BIOS window). Duplicate parent
   // regions are already recognized above and loaded from the BIOS zip; append
   // only parent-only regions that contain physical chips.
   if (biosRomSet) {
     const present = new Set(roms.map(region => region.region));
-    for (const { node: region } of g.out(biosRomSet.id, 'HAS_REGION')) {
+    for (const { node: region } of lineage.out(biosRomSet.id, 'HAS_REGION')) {
       const tag = String(region.props.tag);
-      const loads = g.out(region.id, 'LOADS').map(({ node: rom }) => ({
+      const loads = lineage.out(region.id, 'LOADS').map(({ node: rom }) => ({
         file: String(rom.props.file),
         offset: Number(rom.props.offset),
         size: Number(rom.props.size),
@@ -1531,8 +1548,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       present.add(tag);
     }
   }
-  if (opts.fullGraph) {
-    const full = new Graph(opts.fullGraph);
+  if (full) {
     // A device hosted inside another source-defined device may own a dumped
     // ROM set (Namco's 51/52/53/54xx MCUs are one family, but this is not
     // specific to them). Discover those sets from the declaring host class
