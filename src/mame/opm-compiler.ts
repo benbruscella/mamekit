@@ -1095,6 +1095,139 @@ interface K007232Channel {
   playing: boolean;
 }
 
+interface K053260Voice {
+  position: number;
+  counter: number;
+  output: number;
+  start: number;
+  length: number;
+  pitch: number;
+  volume: number;
+  pan: number;
+  loop: boolean;
+  kadpcm: boolean;
+  reverse: boolean;
+  playing: boolean;
+}
+
+const K053260_PAN: readonly (readonly [number, number])[] = [
+  [0, 0], [65536, 0], [59870, 26656], [53684, 37950],
+  [46341, 46341], [37950, 53684], [26656, 59870], [0, 65536],
+];
+const K053260_KADPCM = [0, 1, 2, 4, 8, 16, 32, 64, -128, -64, -32, -16, -8, -4, -2, -1];
+
+/** Konami 053260 four-voice PCM/KADPCM stream, clocked at input clock / 64. */
+export class GeneratedK053260Core {
+  private readonly voices: K053260Voice[] = Array.from({ length: 4 }, () => ({
+    position: 0, counter: 0, output: 0, start: 0, length: 0, pitch: 0,
+    volume: 0, pan: 0, loop: false, kadpcm: false, reverse: false, playing: false,
+  }));
+  private readonly rom: Uint8Array;
+  private readonly stepRate: number;
+  private keyon = 0;
+  private mode = 0;
+  private phase = 0;
+  private held = 0;
+
+  constructor(rom: Uint8Array, clock: number, outputRate: number) {
+    this.rom = rom;
+    this.stepRate = clock / 64 / outputRate;
+  }
+
+  write(offset: number, data: number): void {
+    offset &= 0x3f;
+    data &= 0xff;
+    if (offset >= 0x08 && offset <= 0x27) {
+      const voice = this.voices[Math.floor((offset - 8) / 8)]!;
+      switch (offset & 7) {
+        case 0: voice.pitch = (voice.pitch & 0x0f00) | data; break;
+        case 1: voice.pitch = (voice.pitch & 0x00ff) | ((data << 8) & 0x0f00); break;
+        case 2: voice.length = (voice.length & 0xff00) | data; break;
+        case 3: voice.length = (voice.length & 0x00ff) | (data << 8); break;
+        case 4: voice.start = (voice.start & 0x1fff00) | data; break;
+        case 5: voice.start = (voice.start & 0x1f00ff) | (data << 8); break;
+        case 6: voice.start = (voice.start & 0x00ffff) | ((data << 16) & 0x1f0000); break;
+        case 7: voice.volume = data & 0x7f; break;
+      }
+      return;
+    }
+    if (offset === 0x28) {
+      const rising = data & ~this.keyon;
+      for (let index = 0; index < 4; index++) {
+        const voice = this.voices[index]!;
+        voice.reverse = Boolean(data & (1 << (index + 4)));
+        if (rising & (1 << index)) {
+          voice.position = voice.kadpcm ? 1 : 0;
+          voice.counter = 0x1000 - 64;
+          voice.output = 0;
+          voice.playing = true;
+        } else if (!(data & (1 << index))) {
+          voice.position = 0;
+          voice.output = 0;
+          voice.playing = false;
+        }
+      }
+      this.keyon = data;
+    } else if (offset === 0x2a) {
+      for (let index = 0; index < 4; index++) {
+        this.voices[index]!.loop = Boolean(data & (1 << index));
+        this.voices[index]!.kadpcm = Boolean(data & (1 << (index + 4)));
+      }
+    } else if (offset === 0x2c || offset === 0x2d) {
+      const first = (offset - 0x2c) * 2;
+      this.voices[first]!.pan = data & 7;
+      this.voices[first + 1]!.pan = (data >> 3) & 7;
+    } else if (offset === 0x2f) {
+      this.mode = data;
+    }
+  }
+
+  sample(): number {
+    this.phase += this.stepRate;
+    while (this.phase >= 1) {
+      this.phase -= 1;
+      this.held = this.clockSample();
+    }
+    return this.held;
+  }
+
+  private clockSample(): number {
+    if (!(this.mode & 2)) return 0;
+    let left = 0;
+    let right = 0;
+    for (const voice of this.voices) {
+      if (!voice.playing) continue;
+      voice.counter += 64;
+      while (voice.counter >= 0x1000) {
+        voice.counter = voice.counter - 0x1000 + voice.pitch;
+        let bytepos = ++voice.position >> (voice.kadpcm ? 1 : 0);
+        if (bytepos > voice.length) {
+          if (voice.loop) voice.position = voice.output = bytepos = 0;
+          else {
+            voice.playing = false;
+            break;
+          }
+        }
+        const address = voice.start + (voice.reverse ? -bytepos : bytepos);
+        let romdata = this.rom[address & 0x1fffff] ?? 0;
+        if (voice.kadpcm) {
+          if (voice.position & 1) romdata >>= 4;
+          const next = voice.output + K053260_KADPCM[romdata & 15]!;
+          voice.output = (next << 24) >> 24;
+        } else {
+          voice.output = (romdata << 24) >> 24;
+        }
+      }
+      if (!voice.playing) continue;
+      const pan = K053260_PAN[voice.pan] ?? K053260_PAN[0]!;
+      left += (voice.output * voice.volume * pan[0]) / 0x8000;
+      right += (voice.output * voice.volume * pan[1]) / 0x8000;
+    }
+    // Both chip outputs route to the mono speaker on Simpsons.
+    return (left + right) / 32768;
+  }
+}
+
 /**
  * Konami 007232 two-channel PCM stream. The register protocol, 17-bit sample
  * address, end marker, loop flags and clock/128 stream rate are lowered from
@@ -1280,6 +1413,11 @@ export class GeneratedYm2151Mixer {
     gain: number;
     core: GeneratedK007232Core;
   }[];
+  private readonly k053260Chips: {
+    deviceTag: string;
+    gain: number;
+    core: GeneratedK053260Core;
+  }[];
   private readonly rawSamples: {
     deviceTag: string;
     gain: number;
@@ -1362,6 +1500,15 @@ export class GeneratedYm2151Mixer {
           device.sampleRom ?? new Uint8Array(), device.clock, outputRate,
         ),
       }));
+    this.k053260Chips = auxiliaryDevices
+      .filter(device => device.type === 'K053260')
+      .map(device => ({
+        deviceTag: device.deviceTag,
+        gain: device.gain,
+        core: new GeneratedK053260Core(
+          device.sampleRom ?? new Uint8Array(), device.clock, outputRate,
+        ),
+      }));
     this.rawSamples = auxiliaryDevices
       .filter(device => device.type === 'SAMPLES')
       .map(device => ({
@@ -1424,6 +1571,12 @@ export class GeneratedYm2151Mixer {
         return;
       }
     }
+    for (const chip of this.k053260Chips) {
+      if (method === chip.deviceTag + '.write') {
+        chip.core.write(offset, data);
+        return;
+      }
+    }
     for (const device of this.rawSamples) {
       if (method?.startsWith(device.deviceTag + '.')) {
         device.core.write(method);
@@ -1469,6 +1622,7 @@ export class GeneratedYm2151Mixer {
     for (const device of this.pokeyChips) output += device.core.sample() * device.gain;
     for (const device of this.updChips) output += device.core.sample() * device.gain;
     for (const device of this.k007232Chips) output += device.core.sample() * device.gain;
+    for (const device of this.k053260Chips) output += device.core.sample() * device.gain;
     for (const device of this.rawSamples) output += device.core.sample() * device.gain;
     for (const device of this.pcmChips) {
       device.phase += device.rate / this.outputRate;

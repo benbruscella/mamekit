@@ -434,6 +434,9 @@ const konamiPcmGraph = {
     { id: 'k007', label: 'Device', props: { type: 'K007232', tag: 'k007232' } },
     { id: 'kroute', label: 'AudioRoute', props: { target: 'mono', gain: 0.15 } },
     { id: 'krom', label: 'RomRegion', props: { tag: 'k007232' } },
+    { id: 'k053', label: 'Device', props: { type: 'K053260', tag: 'k053260' } },
+    { id: 'k053route', label: 'AudioRoute', props: { target: 'mono', gain: 0.75 } },
+    { id: 'k053rom', label: 'RomRegion', props: { tag: 'k053260' } },
     { id: 'samples', label: 'Device', props: { type: 'SAMPLES', tag: 'samples' } },
     { id: 'sroute', label: 'AudioRoute', props: { target: 'mono', gain: 0.25 } },
     { id: 'title', label: 'RomRegion', props: { tag: 'title' } },
@@ -445,11 +448,13 @@ const konamiPcmGraph = {
   ],
   edges: [
     { from: 'k007', to: 'kroute', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'k053', to: 'k053route', rel: 'HAS_AUDIO_ROUTE' },
     { from: 'samples', to: 'sroute', rel: 'HAS_AUDIO_ROUTE' },
   ],
 } as KnowledgeGraph;
 const konamiPcm = lowerAuxiliaryAudioDevices(konamiPcmGraph, [
   { id: 'k007', tag: 'k007232', type: 'K007232', clock: 3_579_545 },
+  { id: 'k053', tag: 'k053260', type: 'K053260', clock: 3_579_545 },
   { id: 'samples', tag: 'samples', type: 'SAMPLES' },
 ]);
 const konamiPcmRegions = konamiPcm.map(device => [
@@ -457,6 +462,7 @@ const konamiPcmRegions = konamiPcm.map(device => [
 ]);
 const expectedKonamiPcmRegions = [
   ['K007232', 'k007232', undefined],
+  ['K053260', 'k053260', undefined],
   ['SAMPLES', 'title', 20_000],
 ];
 if (JSON.stringify(konamiPcmRegions) !== JSON.stringify(expectedKonamiPcmRegions)) {

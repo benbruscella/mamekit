@@ -30,6 +30,7 @@ string,
   INPUT_MERGER_ANY_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_LOW: compileInputMerger,
   LADYBUG_VIDEO: compileLadybugVideo,
+  K051960: compileK051960,
   K052109: compileK052109,
   K053246: compileK053246,
   UPD7759: compileUpd7759,
@@ -41,6 +42,29 @@ string,
   SLAPSTIC: compileSlapstic,
   Z80CTC: compileZ80Ctc,
 };
+
+/**
+ * K051960 draws from its vblank-latched 1 KiB sprite list. The draw-mode
+ * values live in drawgfx.h rather than the device's source closure, so make
+ * that source ABI explicit and keep the renderer on the direct-code path.
+ */
+export function compileK051960(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'K051960');
+  Object.assign(device.constants, {
+    DRAWMODE_NONE: 0,
+    DRAWMODE_SOURCE: 1,
+    DRAWMODE_SHADOW: 2,
+    DRAWMODE_SHADOW_PRI: 3,
+  });
+  device.hotMethods = [...new Set([
+    ...(device.hotMethods ?? []),
+    'k051960_sprites_draw',
+  ])];
+  return refreshSummary(device);
+}
 
 /**
  * The browser audio worklet renders the uPD7759 stream, while the generated

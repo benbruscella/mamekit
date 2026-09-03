@@ -257,6 +257,7 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // Indexed custom renderers select palette shadow modes while walking their
   // sprite list. The generic palette currently treats shadow pens as source
   // pens, but the call itself remains a valid framework service.
+  'palette().shadow_mode',
   'palette().set_shadow_mode',
 ];
 

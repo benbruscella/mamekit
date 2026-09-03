@@ -25,11 +25,11 @@ export const simpsons = sourceTarget({
       1200: { video: '4884073c', state: 'c2fe3648' },
     },
     audio: {
-      writes: 54882,
-      nonzeroWrites: 54689,
-      writeHash: '6965ec8c',
-      pcmHash: '4f12a2d0',
-      rms: 0.017597,
+      writes: 57046,
+      nonzeroWrites: 55331,
+      writeHash: '59d413f6',
+      pcmHash: '9cb310e0',
+      rms: 0.034053,
     },
   },
   actions: [
@@ -39,4 +39,10 @@ export const simpsons = sourceTarget({
     { atFrame: 780, code: 'Space', heldFrames: 30, releasedFrames: 20 },
     { atFrame: 850, code: 'KeyZ', heldFrames: 30, releasedFrames: 20 },
   ],
+  audioRequirements: [{
+    method: 'k053260.write',
+    offset: 0x28,
+    fromFrame: 120,
+    minimumNonzeroWrites: 20,
+  }],
 });

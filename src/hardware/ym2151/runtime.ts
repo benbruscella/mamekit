@@ -360,6 +360,32 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
       };
     }
   }
+  // K053260 likewise keeps its communication ports on the generated device,
+  // while the worklet mirrors sound-register writes to render its four sample
+  // voices without moving CPU-visible state off the main thread.
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type !== 'K053260') continue;
+    const tag = auxiliary.deviceTag;
+    const name = `${tag}.write`;
+    const mapped = context.registry.write[name];
+    context.registry.write[name] = (address, offset, data) => {
+      mapped?.(address, offset, data);
+      context.soundWrite(offset, data, context.fraction(), name);
+    };
+    for (const alias of deviceAliases(context.board, tag)) {
+      const original = context.calls[`${alias}.write`];
+      context.calls[`${alias}.write`] = (...args: number[]) => {
+        const result = original?.(...args);
+        context.soundWrite(
+          args.at(-2) ?? 0,
+          args.at(-1) ?? 0,
+          context.fraction(),
+          name,
+        );
+        return result;
+      };
+    }
+  }
   for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
     if (auxiliary.type !== 'SAMPLES') continue;
     const tag = auxiliary.deviceTag;

@@ -1392,6 +1392,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   POKEY: ['write'],
   UPD7759: ['port_w', 'reset_w', 'start_w', 'md_w'],
   K007232: ['write', 'read', 'set_volume', 'set_bank'],
+  K053260: ['write'],
   SAMPLES: ['start', 'start_raw', 'stop', 'set_volume'],
   TMS5220: ['data_w'],
   TMS5220C: ['data_w'],

@@ -418,6 +418,9 @@ function supportsMethod(
         ) ||
           inner.kind !== 'call' ||
           inner.callee.kind !== 'identifier' ||
+          // device_gfx_interface::gfx(index) is a host-bound object lookup;
+          // calls on the returned gfx_element are safe value-method calls.
+          inner.callee.name === 'gfx' ||
           definition.methods.some(candidate => candidate.name ===
             (inner.callee as { name: string }).name);
       }
