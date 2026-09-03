@@ -97,10 +97,20 @@ assert.deepEqual(messages.slice(2), [
   { type: 'batch', writes: [] },
 ]);
 
+// Fast-forward mutes presentation, but the worklet must still receive chip
+// state. Dropping a one-time K053260 mode write makes every later fight sample
+// silent after using F to skip the Simpsons intro.
+output.write(0x2f, 6, 0.75, 'k053260.write');
+output.discard();
+assert.deepEqual(messages.at(-1), {
+  type: 'batch',
+  writes: [{ offset: 0x2f, data: 6, frac: 0.75, method: 'k053260.write' }],
+});
+
 // The QA tap hangs off the post-gain mix and never re-routes the speakers.
 const analyser = output.monitor();
 assert.equal(analyser?.fftSize, 2048);
 assert.deepEqual(connections.slice(3), ['gain->analyser']);
 assert.equal(new AudioOutput().monitor(), null); // nothing to tap before start()
 
-console.log('audio.spec: 4 passed');
+console.log('audio.spec: 5 passed');

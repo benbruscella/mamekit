@@ -185,6 +185,38 @@ assert.equal(maskedWordBus.read(0x500001), 0x5a);
 assert.equal(maskedWordBus.read16be(0x500000), 0xa55a);
 assert.deepEqual(nativeReadMasks, [0xff00, 0x00ff, 0xffff]);
 
+// An 8-bit device may span both lanes of a 16-bit address map without an
+// umask. Its offsets remain byte-based and a word access becomes two ordered
+// byte accesses. K051960 sprite RAM uses exactly this mapping on TMNT.
+const byteDevice = new Uint8Array(4);
+const byteWrites: Array<[number, number, number, number | undefined]> = [];
+const byteDeviceBus = new Bus([{
+  start: 0x140400,
+  end: 0x140403,
+  kind: 'handler',
+  handlerWidth: 8,
+  read: 'byteRead',
+  write: 'byteWrite',
+}], rom, {
+  read: { byteRead: (_address, offset) => byteDevice[offset]! },
+  write: {
+    byteWrite: (address, offset, data, memMask) => {
+      byteWrites.push([address, offset, data, memMask]);
+      byteDevice[offset] = data;
+    },
+  },
+}, {}, 16);
+byteDeviceBus.write16be(0x140400, 0x80a5);
+byteDeviceBus.write(0x140402, 0x33);
+assert.deepEqual(byteDevice, Uint8Array.of(0x80, 0xa5, 0x33, 0));
+assert.deepEqual(byteWrites, [
+  [0x140400, 0, 0x80, 0xff],
+  [0x140401, 1, 0xa5, 0xff],
+  [0x140402, 2, 0x33, undefined],
+]);
+assert.equal(byteDeviceBus.read16be(0x140400), 0x80a5);
+assert.equal(byteDeviceBus.read(0x140402), 0x33);
+
 // MAME `.umask16(0xff00)`: an 8-bit device wired to one byte lane of a 16-bit
 // bus (the MCR "Sounds Good" PIA at 0x060000). It answers only on its lane,
 // its offset counts whole words, and the byte arrives right-justified.

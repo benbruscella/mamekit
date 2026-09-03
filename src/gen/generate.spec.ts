@@ -4,6 +4,7 @@ import {
   handlerOwnsSharedRam,
   isKeyboardPlayerInput,
   keypadKeys,
+  sourceHandlerDataWidth,
 } from './generate.ts';
 
 assert.equal(
@@ -22,6 +23,8 @@ assert.equal(
 );
 assert.equal(handlerOwnsSharedRam('palette.write8(offset, data);', 'palette'), false);
 assert.equal(handlerOwnsSharedRam('m_spriteram[offset] = data;', ''), false);
+assert.equal(sourceHandlerDataWidth(['offs_t offset, u8 data']), 8);
+assert.equal(sourceHandlerDataWidth(['offs_t offset, uint16_t data, uint16_t mem_mask']), undefined);
 
 // --- keypad keys ------------------------------------------------------------
 //

@@ -22,6 +22,8 @@ export interface RangeSpec {
   bank?: string;
   /** MAME `.umask16(...)`: the data lines this range's handler is wired to. */
   umask?: number;
+  /** Native data width declared by a source handler on a wider CPU bus. */
+  handlerWidth?: 8 | 16;
   readOnly?: boolean;
   writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
@@ -175,26 +177,30 @@ export class Bus {
       let write: WriteHandler | null = null;
       let wordRead: WordReadHandler | null = null;
       let wordWrite: WordWriteHandler | null = null;
-      // A byte-lane device is the only case where the handler is narrower than
-      // the bus; otherwise the handler owns the full bus width and the byte
-      // adapters split word accesses across it.
+      // A byte-lane device is wired to one half of the bus. A full-width byte
+      // handler is different: both lanes reach consecutive device offsets,
+      // as with the K051960's byte-addressed sprite RAM on a 68000.
       const lane = dataWidth === 16 && isByteLane(r.umask) ? r.umask : undefined;
+      const byteHandler = dataWidth === 16 && r.handlerWidth === 8;
       // A bank window is storage, so its handler is byte-addressed at every
       // bus width, exactly like the rom and ram ranges beside it. Only a MAME
       // device handler is native to the bus and indexed by word.
       const adaptRead = (h: ReadHandler): ReadHandler =>
         r.bank ? h
           : lane !== undefined ? laneReadHandler(h, lane)
+          : byteHandler ? h
           : dataWidth === 16 ? wordReadHandler(h)
             : h;
       const adaptWordRead = (h: ReadHandler): WordReadHandler | null =>
         r.bank ? (dataWidth === 16 ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff : null)
           : lane !== undefined ? laneWordReadHandler(h, lane)
+          : byteHandler ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff
           : dataWidth === 16 ? (a, off) => h(a, off >>> 1, 0xffff) & 0xffff
             : null;
       const adaptWrite = (h: WriteHandler): WriteHandler =>
         r.bank ? h
           : lane !== undefined ? laneWriteHandler(h, lane)
+          : byteHandler ? h
           : dataWidth === 16 ? wordWriteHandler(h)
             : h;
       const adaptWordWrite = (h: WriteHandler): WordWriteHandler | null =>
@@ -206,6 +212,10 @@ export class Bus {
             }
             : null)
           : lane !== undefined ? laneWordWriteHandler(h, lane)
+          : byteHandler ? (a, off, data) => {
+            h(a, off, (data >>> 8) & 0xff, LANE_MEM_MASK);
+            h(a + 1, off + 1, data & 0xff, LANE_MEM_MASK);
+          }
           : dataWidth === 16 ? (a, off, data) => h(a, off >>> 1, data & 0xffff, 0xffff)
             : null;
 

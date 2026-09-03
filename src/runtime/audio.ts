@@ -191,16 +191,18 @@ export class AudioOutput {
   }
 
   /**
-   * Throw away the frame's register writes instead of sending them.
+   * Keep a fast-forward frame's register state in sync while its output is
+   * muted by the shell.
    *
-   * Fast-forward emits frames far faster than the worklet consumes them, and a
-   * queued frame is permanent latency rather than a dropped one -- the sound
-   * would still be playing the boot screen minutes later. Discarding keeps the
-   * chip's own state advancing (the board writes it either way) while nothing
-   * reaches the audio graph.
+   * The worklet collapses excess queued frames by applying their writes
+   * without rendering them. Sending this batch is therefore essential: a
+   * one-time mode write discarded during boot leaves chips such as Simpsons'
+   * K053260 permanently silent after fast-forwarding to gameplay.
    */
   discard(): void {
-    this.pending.length = 0;
+    const frame = this.pending.splice(0);
+    if (this.node) this.postFrame(this.node, frame);
+    else this.pendingFrames.push(frame);
   }
 
   /**

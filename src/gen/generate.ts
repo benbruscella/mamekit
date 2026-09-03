@@ -766,6 +766,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         spec.writeHandlerOwnsRam = true;
       }
     }
+    const handlerWidth = sourceHandlerDataWidth([
+      ...reads.map(handler => handler.node.props.sourceParameters),
+      ...writes.map(handler => handler.node.props.sourceParameters),
+    ]);
+    if (handlerWidth !== undefined) spec.handlerWidth = handlerWidth;
     // .portr("IN0") -> read handler key "port.IN0" (boards register these from InputPorts)
     if (r.props.portRead) spec.read = `port.${r.props.portRead}`;
     if (r.props.portWrite) spec.write = `port.${r.props.portWrite}`;
@@ -2300,6 +2305,20 @@ export function handlerOwnsSharedRam(sourceBody: string, share: string): boolean
   if (!share) return false;
   const member = `m_${share.replace(/[^A-Za-z0-9_]/g, '_')}`;
   return new RegExp(`\\b${member}\\s*\\[[^\\]]+\\]\\s*[-+*/&|^]?=`).test(sourceBody);
+}
+
+/**
+ * MAME permits an 8-bit device delegate to span both lanes of a 16-bit map.
+ * Its `u8 data` declaration is the source fact that distinguishes that byte-
+ * addressed device from a native word handler when no explicit umask exists.
+ */
+export function sourceHandlerDataWidth(
+  parameters: readonly unknown[],
+): 8 | undefined {
+  return parameters.some(value =>
+    /(?:^|,)\s*(?:u8|s8|uint8_t|int8_t)\s+data\b/.test(String(value ?? '')))
+    ? 8
+    : undefined;
 }
 
 function configuredDeviceMember(props: Record<string, unknown>): string | undefined {
