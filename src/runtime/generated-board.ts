@@ -430,33 +430,39 @@ class IrBoard implements Board {
         }
         const tapBank = machine.execution.accessTaps
           ?.find(tap => tap.device === specification.tag)?.bank;
+        const configuredMembers: Record<string, unknown> = {
+          ...specification.memberValues,
+          ...Object.fromEntries(Object.entries(specification.memoryShares ?? {})
+            .flatMap(([member, share]) => this.shares[share]
+              ? [[member, this.shares[share]]]
+              : [])),
+          ...(specification.type === 'NEOGEO_SPRITE_OPTIMZIED' ? {
+            m_region_zoomy: regions['spritegen:zoomy'],
+            m_region_sprites: regions['cslot1:sprites'],
+            m_region_sprites_size: regions['cslot1:sprites']?.length ?? 0,
+            // neosprite's packed address space exposes two pixels per raw
+            // ROM byte. get_region_mask() rounds that expanded extent to a
+            // power-of-two mask; calculate the same value without relying
+            // on C++ unsigned-loop overflow semantics in the IR evaluator.
+            m_sprite_gfx_address_mask: regions['cslot1:sprites']?.length
+              ? (2 ** Math.ceil(Math.log2(regions['cslot1:sprites']!.length * 2)) - 1) >>> 0
+              : 0,
+            m_region_fixed: regions['cslot1:fixed'],
+            m_region_fixed_size: regions['cslot1:fixed']?.length ?? 0,
+            m_region_fixedbios: {
+              base: () => regions.fixedbios,
+              bytes: () => regions.fixedbios?.length ?? 0,
+            },
+            m_fixed_layer_source: 0,
+            m_fixed_layer_bank_type: 0,
+          } : {}),
+        };
         const device = createDevice(specification.type, {
           clock: specification.clock,
           tag: specification.tag,
           shares: this.shares,
           inputs,
-          ...(specification.type === 'NEOGEO_SPRITE_OPTIMZIED' ? {
-            members: {
-              m_region_zoomy: regions['spritegen:zoomy'],
-              m_region_sprites: regions['cslot1:sprites'],
-              m_region_sprites_size: regions['cslot1:sprites']?.length ?? 0,
-              // neosprite's packed address space exposes two pixels per raw
-              // ROM byte. get_region_mask() rounds that expanded extent to a
-              // power-of-two mask; calculate the same value without relying
-              // on C++ unsigned-loop overflow semantics in the IR evaluator.
-              m_sprite_gfx_address_mask: regions['cslot1:sprites']?.length
-                ? (2 ** Math.ceil(Math.log2(regions['cslot1:sprites']!.length * 2)) - 1) >>> 0
-                : 0,
-              m_region_fixed: regions['cslot1:fixed'],
-              m_region_fixed_size: regions['cslot1:fixed']?.length ?? 0,
-              m_region_fixedbios: {
-                base: () => regions.fixedbios,
-                bytes: () => regions.fixedbios?.length ?? 0,
-              },
-              m_fixed_layer_source: 0,
-              m_fixed_layer_bank_type: 0,
-            },
-          } : {}),
+          ...(Object.keys(configuredMembers).length ? { members: configuredMembers } : {}),
           ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
           selectors: cartSelectors(config.cart),
           finder: (rawTag, member) => {
@@ -857,6 +863,17 @@ class IrBoard implements Board {
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
+        // Tilemap callbacks are recorded by their declaring C++ class rather
+        // than by the machine-config tag. When exactly one device of that
+        // class is composed, preserve that source identity so its callback
+        // executes against the device's private RAM, not the driver state.
+        if (
+          specification?.className &&
+          machine.devices?.filter(candidate =>
+            candidate.className === specification.className).length === 1
+        ) {
+          this.bindings.referenceCalls![`${specification.className}.${method}`] = invoke;
+        }
       }
     }
     // The same clock the `machine()` object answers with -- the scheduler's,
@@ -970,14 +987,20 @@ class IrBoard implements Board {
               }),
             ),
           ]
-        : machine.game === 'outrun' && specification.tag === 'maincpu'
+        : (machine.game === 'outrun' || machine.family === 'segas16b') &&
+            specification.tag === 'maincpu'
         ? [
             // The 315-5195 starts with every bank overlaid at zero, then the
             // boot ROM programs its live windows.  Keep the extracted RAM
             // ranges solely to allocate their shares, and put the mapper back
             // on top so its runtime decoder owns every access.
             ...sourceRanges.filter(range => range.read !== 'mapper.read'),
-            ...sourceRanges.filter(range => range.read === 'mapper.read'),
+            ...sourceRanges
+              .filter(range => range.read === 'mapper.read')
+              // The 315-5195's own registers occupy the low byte lane, but
+              // the ROM/RAM/handler windows it installs cover the full 16-bit
+              // 68000 bus. The live decoder below handles that distinction.
+              .map(range => ({ ...range, umask: undefined })),
           ]
         : machine.family === 'neogeo' && specification.tag === 'maincpu'
         ? [
@@ -1498,6 +1521,18 @@ class IrBoard implements Board {
         referenceCalls: this.bindings.referenceCalls,
         callParameters: this.bindings.callParameters,
       });
+      // Devices are constructed before the video host so CPUs and callbacks
+      // can bind in one pass. Their framework-owned finders become available
+      // here: bind the live decoded-gfx interface and source-created tilemaps
+      // into any device that declares the corresponding member.
+      for (const device of this.devices.values()) {
+        device.bindMember('m_gfxdecode', this.state.m_gfxdecode);
+        for (const plan of machine.video?.tilemaps ?? []) {
+          const indexed = /^(m_\w+)\[\s*\d+\s*\]$/.exec(plan.member);
+          const member = indexed?.[1] ?? plan.member;
+          device.bindMember(member, this.state[member]);
+        }
+      }
       // MAME's device_gfx_interface gives a device its own decoded graphics,
       // and its draw routines call the bare `gfx(n)` of that set rather than
       // the driver's m_gfxdecode. The decode member on each plan entry is what
@@ -1797,7 +1832,7 @@ class IrBoard implements Board {
     }
   }
 
-  /** Apply source-declared PORT_CHANGED_MEMBER rising-edge latch handlers. */
+  /** Apply source-declared PORT_CHANGED_MEMBER edge callbacks. */
   private pollInputLatches(): void {
     for (const latch of this.machine.execution.inputLatches ?? []) {
       const key = `${latch.port}:${latch.mask}:${latch.handler}`;
@@ -1806,10 +1841,21 @@ class IrBoard implements Board {
         ? (raw & latch.mask) === 0
         : (raw & latch.mask) !== 0;
       const previous = this.inputLatchPrevious.get(key) ?? false;
-      if (asserted && !previous) {
+      if (asserted && !previous && latch.stateMember !== undefined && latch.index !== undefined) {
         const state = this.state[latch.stateMember];
         if (Array.isArray(state) || ArrayBuffer.isView(state)) {
           (state as unknown as { [index: number]: number })[latch.index] = 1;
+        }
+      } else if (asserted !== previous && latch.stateMember === undefined) {
+        const handler = this.machine.handlers?.find(candidate =>
+          `${candidate.ownerClass}.${candidate.method}` === latch.handler);
+        if (handler?.program && !handler.program.diagnostics.length) {
+          executeGeneratedMachineHandler(this.machine, handler, this.bindings, {
+            field: 0,
+            param: Math.log2(latch.mask),
+            oldval: Number(previous),
+            newval: Number(asserted),
+          });
         }
       }
       this.inputLatchPrevious.set(key, asserted);
@@ -2023,6 +2069,39 @@ class IrBoard implements Board {
               } else {
                 device.call('edge_w', register, data);
               }
+            };
+            continue;
+          }
+          if (
+            specification?.type.startsWith('WILLIAMS_BLITTER_SC') &&
+            method === 'register_write' && kind === 'write'
+          ) {
+            registry.write[key] = (_address, offset, data) => {
+              const register = offset & 7;
+              if (register === 0) {
+                const cpuTag = machine.execution.cpus.find(candidateCpu =>
+                  [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(
+                    candidate => candidate.start === range.start &&
+                      candidate.end === range.end && candidate.write === key,
+                  ))?.tag ?? machine.execution.cpus[0]?.tag;
+                const bus = cpuTag ? this.cpuBuses.get(cpuTag) : undefined;
+                device.invoke('control_w', {
+                  read_byte: (address: number) => bus?.read(address) ?? 0xff,
+                  write_byte: (address: number, value: number) => bus?.write(address, value),
+                }, offset, data);
+                return;
+              }
+              if (register === 1) device.set('m_solid_color', data);
+              else if (register === 2) {
+                device.set('m_sstart', (device.get('m_sstart') & 0x00ff) | (data << 8));
+              } else if (register === 3) {
+                device.set('m_sstart', (device.get('m_sstart') & 0xff00) | data);
+              } else if (register === 4) {
+                device.set('m_dstart', (device.get('m_dstart') & 0x00ff) | (data << 8));
+              } else if (register === 5) {
+                device.set('m_dstart', (device.get('m_dstart') & 0xff00) | data);
+              } else if (register === 6) device.set('m_width', data);
+              else device.set('m_height', data);
             };
             continue;
           }
@@ -2276,6 +2355,305 @@ class IrBoard implements Board {
     regions: Regions,
     registry: HandlerRegistry,
   ): (() => void) | undefined {
+    if (machine.family === 'segas16a') {
+      // System 16A exposes a conventional fixed memory map, but all of its
+      // controls are funnelled through an 8255 whose selected source methods
+      // live outside the machine's reachable handler closure. Model that
+      // small PPI here so the canonical unprotected Shinobi set can complete
+      // its startup checks and enable the tile/sprite hardware.
+      const ports = new Uint8Array(3);
+      let control = 0x9b;
+      let soundLatch = 0;
+      const shareWord = (tag: string, offset: number) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset * 2 + 1 >= bytes.length) return 0xffff;
+        return new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1)[offset]!;
+      };
+      const writeShareWord = (
+        tag: string,
+        offset: number,
+        data: number,
+        memMask: number,
+      ) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset * 2 + 1 >= bytes.length) return;
+        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+        words[offset] = (words[offset]! & ~memMask) | (data & memMask);
+      };
+      const outputPort = (port: number) => {
+        const data = ports[port]!;
+        if (port === 0) {
+          soundLatch = data;
+          this.state.m_to_sound = data;
+        } else if (port === 1) {
+          this.state.m_video_control = data;
+          this.state.__flip_screen = data & 0x80;
+          this.state.__system16aDisplayEnable = data & 0x10;
+        } else {
+          this.cpus.get('soundcpu')?.setInputLine(INPUT_LINE_NMI, data & 0x80 ? 0 : 1);
+          this.state.__system16aColscroll = (~data) & 0x04;
+          this.state.__system16aRowscroll = (~data) & 0x02;
+        }
+      };
+      const ppiWrite = (port: number, data: number) => {
+        data &= 0xff;
+        if (port < 3) {
+          ports[port] = data;
+          outputPort(port);
+          if (port === 0) {
+            // Mode-1 port A lowers /OBF on each command. PC7 is wired to the
+            // sound CPU NMI through tilemap_sound_w.
+            ports[2] &= ~0x80;
+            outputPort(2);
+          }
+        } else if (data & 0x80) {
+          control = data;
+          ports.fill(0);
+          ports[2] = 0x80;
+          outputPort(0);
+          outputPort(1);
+          outputPort(2);
+        } else {
+          const bit = (data >>> 1) & 7;
+          ports[2] = data & 1 ? ports[2]! | (1 << bit) : ports[2]! & ~(1 << bit);
+          outputPort(2);
+        }
+      };
+      registry.read['segas16a_state.misc_io_r'] = (_address, rawOffset) => {
+        const offset = rawOffset & 0x1fff;
+        switch (offset & 0x1800) {
+          case 0x0000: return (offset & 3) === 3 ? control : ports[offset & 3]!;
+          case 0x0800:
+            return this.bindings.inputs?.read(['SERVICE', 'P1', 'UNUSED', 'P2'][offset & 3]!)
+              ?? 0xff;
+          case 0x1000:
+            return this.bindings.inputs?.read((offset & 1) ? 'DSW2' : 'DSW1') ?? 0xff;
+          default: return 0xffff;
+        }
+      };
+      registry.write['segas16a_state.misc_io_w'] = (
+        _address,
+        rawOffset,
+        data,
+        memMask = 0xffff,
+      ) => {
+        const offset = rawOffset & 0x1fff;
+        if ((offset & 0x1800) === 0 && (memMask & 0x00ff)) ppiWrite(offset & 3, data);
+      };
+      registry.read['segas16a_state.sound_data_r'] = () => {
+        // The Z80 acknowledges the command through PC6. The 8255 releases
+        // /OBF (PC7 high), which clears the held NMI until the next PA write.
+        ports[2] = (ports[2]! & ~0x40) | 0x80;
+        outputPort(2);
+        return soundLatch;
+      };
+      for (const [handler, share] of [
+        ['segaic16vid.tileram', 'tileram'],
+        ['segaic16vid.textram', 'textram'],
+      ] as const) {
+        registry.read[`${handler}_r`] = (_address, offset) => shareWord(share, offset);
+        registry.write[`${handler}_w`] = (
+          _address,
+          offset,
+          data,
+          memMask = 0xffff,
+        ) => writeShareWord(share, offset, data, memMask);
+      }
+      const reset = () => {
+        ports.fill(0);
+        ports[2] = 0x80;
+        control = 0x9b;
+        soundLatch = 0;
+        this.state.m_to_sound = 0;
+        this.state.m_video_control = 0;
+        this.state.__flip_screen = 0;
+        this.state.__system16aDisplayEnable = 0;
+        this.state.__system16aColscroll = 0;
+        this.state.__system16aRowscroll = 0;
+      };
+      reset();
+      return reset;
+    }
+    if (machine.family === 'segas16b') {
+      // System 16B routes the complete 68000 address space through Sega's
+      // 315-5195. Its eight windows power up together at zero, then the ROM
+      // bootstrap relocates ROM, video RAM, work RAM and I/O by programming
+      // registers $10-$1f through any otherwise-unmapped low byte address.
+      const rom = regions.maincpu ?? new Uint8Array(0);
+      const registers = new Uint8Array(0x20);
+      const sizeMasks = [0x00ffff, 0x01ffff, 0x07ffff, 0x1fffff] as const;
+      type MapperWindow = {
+        kind: 'rom' | 'ram' | 'io';
+        offset: number;
+        romOffset?: number;
+        share?: string;
+      };
+      const window = (
+        address: number,
+        index: number,
+        offset: number,
+        length: number,
+        mirror: number,
+        kind: MapperWindow['kind'],
+        share?: string,
+        romOffset?: number,
+      ): MapperWindow | undefined => {
+        const sizeMask = sizeMasks[registers[0x10 + 2 * index]! & 3]!;
+        const base = (registers[0x11 + 2 * index]! << 16) & ~sizeMask;
+        const mirrorMask = mirror & sizeMask;
+        const start = base + (offset & sizeMask);
+        const end = start + Math.min(length - 1, sizeMask);
+        const decoded = address & ~mirrorMask;
+        if (decoded < start || decoded > end) return undefined;
+        return { kind, share, romOffset, offset: decoded - start };
+      };
+      const decode = (address: number): MapperWindow | undefined => {
+        address &= 0xffffff;
+        const romWindow = (index: number, sourceOffset: number) =>
+          sourceOffset < rom.length
+            ? window(
+                address,
+                index,
+                0,
+                Math.min(0x20000, rom.length - sourceOffset),
+                0xfe0000,
+                'rom',
+                undefined,
+                sourceOffset,
+              )
+            : undefined;
+        // update_mapping() installs regions 7 down to 0, so the lowest region
+        // number wins. Within region 5 the later text-RAM mapping wins over
+        // tile RAM when the reset masks temporarily overlap them.
+        for (let index = 0; index <= 7; index++) {
+          let hit: MapperWindow | undefined;
+          if (index === 0) {
+            hit = romWindow(0, 0);
+          } else if (index === 1) {
+            hit = romWindow(1, 0x20000);
+          } else if (index === 2) {
+            hit = romWindow(2, 0x40000);
+          } else if (index === 3) {
+            const length = this.shares.workram?.length ?? 0x4000;
+            hit = window(address, 3, 0, length, ~(length - 1), 'ram', 'workram');
+          } else if (index === 4) {
+            hit = window(address, 4, 0, 0x00800, 0xfff800, 'ram', 'sprites');
+          } else if (index === 5) {
+            hit = window(address, 5, 0x10000, 0x01000, 0xfef000, 'ram', 'textram')
+              ?? window(address, 5, 0, 0x10000, 0xfe0000, 'ram', 'tileram');
+          } else if (index === 6) {
+            hit = window(address, 6, 0, 0x01000, 0xfff000, 'ram', 'paletteram');
+          } else {
+            hit = window(address, 7, 0, 0x04000, 0xffc000, 'io');
+          }
+          if (hit) return hit;
+        }
+        return undefined;
+      };
+      const shareWord = (tag: string, offset: number) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset + 1 >= bytes.length) return 0xffff;
+        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+        return words[offset >>> 1]!;
+      };
+      const writeShareWord = (
+        tag: string,
+        offset: number,
+        data: number,
+        memMask: number,
+      ) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset + 1 >= bytes.length) return;
+        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+        const index = offset >>> 1;
+        words[index] = (words[index]! & ~memMask) | (data & memMask);
+      };
+      const ioRead = (byteOffset: number): number => {
+        const offset = (byteOffset >>> 1) & 0x1fff;
+        switch (offset & 0x1800) {
+          case 0x0800:
+            return this.inputs.read(['SERVICE', 'P1', 'UNUSED', 'P2'][offset & 3]!);
+          case 0x1000:
+            return this.inputs.read((offset & 1) ? 'DSW1' : 'DSW2');
+          default:
+            return 0xffff;
+        }
+      };
+      const ioWrite = (byteOffset: number, data: number, memMask: number) => {
+        const offset = (byteOffset >>> 1) & 0x1fff;
+        if ((offset & 0x1800) !== 0 || !(memMask & 0x00ff)) return;
+        this.state.__system16bFlip = data & 0x40;
+        this.state.__system16bDisplayEnable = data & 0x20;
+        this.state.__system16bOutputs = data & 0xff;
+      };
+      const mapperRegister = (address: number) => (address >>> 1) & 0x1f;
+      const readMappedWord = (address: number): number => {
+        const hit = decode(address);
+        if (!hit) {
+          const slot = mapperRegister(address);
+          if (slot <= 1) return registers[slot]!;
+          if (slot === 2) return (registers[2]! & 3) === 3 ? 0 : 0x0f;
+          if (slot === 3) return Number(this.state.m_from_sound ?? 0) & 0xff;
+          return 0xffff;
+        }
+        if (hit.kind === 'rom') {
+          const offset = (hit.romOffset ?? 0) + hit.offset;
+          return ((rom[offset] ?? 0xff) << 8) | (rom[offset + 1] ?? 0xff);
+        }
+        if (hit.kind === 'ram') return shareWord(hit.share!, hit.offset);
+        return ioRead(hit.offset);
+      };
+      const writeMappedWord = (
+        address: number,
+        data: number,
+        memMask = 0xffff,
+      ): void => {
+        const hit = decode(address);
+        if (!hit) {
+          if (!(memMask & 0x00ff)) return;
+          const slot = mapperRegister(address);
+          registers[slot] = data & 0xff;
+          if (slot === 3) {
+            this.state.m_to_sound = data & 0xff;
+            this.cpus.get('soundcpu')?.setIrqLine(true, 0xff, true);
+          } else if (slot === 4 && (registers[slot]! & 7) !== 7) {
+            const irq = (~registers[slot]!) & 7;
+            this.cpus.get('maincpu')?.setInputLine(irq, 1);
+          } else if (slot === 5) {
+            if ((data & 0xff) === 1) {
+              const target = (registers[0x0a]! << 17) |
+                (registers[0x0b]! << 9) | (registers[0x0c]! << 1);
+              writeMappedWord(target, (registers[0]! << 8) | registers[1]!, 0xffff);
+            } else if ((data & 0xff) === 2) {
+              const target = (registers[7]! << 17) |
+                (registers[8]! << 9) | (registers[9]! << 1);
+              const result = readMappedWord(target);
+              registers[0] = result >>> 8;
+              registers[1] = result & 0xff;
+            }
+          }
+          return;
+        }
+        if (hit.kind === 'ram') writeShareWord(hit.share!, hit.offset, data, memMask);
+        else if (hit.kind === 'io') ioWrite(hit.offset, data, memMask);
+        // Writes to mapped ROM are intentionally swallowed rather than
+        // falling through to the mapper's repeating register aperture.
+      };
+      registry.read['mapper.read'] = address => readMappedWord(address & ~1);
+      registry.write['mapper.write'] = (address, _offset, data, memMask) =>
+        writeMappedWord(address & ~1, data, memMask);
+      registry.read['mapper.pread'] = () => Number(this.state.m_to_sound ?? 0) & 0xff;
+      const reset = () => {
+        registers.fill(0);
+        this.state.m_to_sound = 0;
+        this.state.m_from_sound = 0;
+        this.state.__system16bFlip = 0;
+        this.state.__system16bDisplayEnable = 0;
+        this.state.__system16bOutputs = 0;
+      };
+      reset();
+      return reset;
+    }
     if (machine.game === 'outrun') {
       // Sega's 315-5195 is not a fixed address decoder.  All eight regions
       // power up at zero with 64K windows; the first ROM page then programs
@@ -3843,6 +4221,12 @@ class IrBoard implements Board {
           this.bindings.calls?.[`m_${tag}.${method}`];
         if (call) return state => { call(state); };
         const type = this.machine.devices?.find(candidate => candidate.tag === tag)?.type ?? '';
+        if (this.machine.family === 'segas16a' && type === 'I8243' && method === 'prog_w') {
+          // The 8243 is a four-port expander rather than a processor. Until
+          // its tiny generated core is composed, retain the PROG pin here so
+          // System 16A's 7751 sample controller remains a valid endpoint.
+          return state => { this.state[`__${tag}_${method}`] = state & 1; };
+        }
         if (/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(type)) {
           // Auxiliary sound chips may not be the board's selected primary
           // synthesizer, but their control pins remain real I/O endpoints.

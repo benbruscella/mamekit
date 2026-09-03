@@ -1,9 +1,9 @@
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
-import { compileMsm5205 } from '../../mame/audio-compiler.ts';
+import { compileMsm5205, compileUpd7759 } from '../../mame/audio-compiler.ts';
 import { compileYm2151, generatedYm2151WorkletSource } from '../../mame/opm-compiler.ts';
 import { compilePokey } from '../../mame/pokey-compiler.ts';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';
-import { POKEY_IR_ARTIFACT, YM2151_IR_ARTIFACT, YM2151_WORKLET_ARTIFACT } from './definition.ts';
+import { YM2151_IR_ARTIFACT, YM2151_WORKLET_ARTIFACT } from './definition.ts';
 
 export function extractYm2151(input: CapabilityInput): CapabilityExtraction | undefined {
   const entry = input.entries.find(candidate => candidate.type === 'YM2151');
@@ -26,28 +26,28 @@ export function extractYm2151(input: CapabilityInput): CapabilityExtraction | un
   const pokey = pokeyEntry?.definition
     ? compilePokey(input.mameSource, pokeyEntry.definition as MameHardwareDefinition)
     : undefined;
+  const updEntry = input.entries.find(candidate =>
+    candidate.type === 'UPD7759' && candidate.definition);
+  const upd7759 = updEntry?.definition
+    ? compileUpd7759(input.mameSource, updEntry.definition as MameHardwareDefinition)
+    : undefined;
   return {
-    // The POKEY's engine is generated, so it is executable even though it has
-    // no core of its own; leaving it out reports it as a generation gap, which
-    // would claim the board is missing hardware it actually runs.
-    executableTypes: ['YM2151', ...(pokey ? ['POKEY'] : [])],
+    // POKEY owns its executable claim and standalone worklet. The OPM worklet
+    // still embeds the same lowered plan when a board routes both chips to one
+    // speaker (Gauntlet), but must not claim or emit the family twice.
+    executableTypes: ['YM2151'],
     executable: {
       YM2151: { kind: 'audio', artifact: YM2151_WORKLET_ARTIFACT },
-      ...(pokey ? { POKEY: { kind: 'audio' as const, artifact: POKEY_IR_ARTIFACT } } : {}),
     },
     artifacts: [
       { path: YM2151_IR_ARTIFACT, contents: JSON.stringify(plan, null, 2) },
       {
         path: YM2151_WORKLET_ARTIFACT,
-        contents: generatedYm2151WorkletSource(plan, msm5205, pokey),
+        contents: generatedYm2151WorkletSource(plan, msm5205, pokey, upd7759),
       },
-      ...(pokey
-        ? [{ path: POKEY_IR_ARTIFACT, contents: JSON.stringify(pokey, null, 2) }]
-        : []),
     ],
     entrySourceFiles: {
       YM2151: plan.sourceFiles,
-      ...(pokey ? { POKEY: pokey.sourceFiles } : {}),
     },
   };
 }

@@ -184,14 +184,15 @@ const archiveNames = new Set(metadata.files.map(file => file.name));
 
 const bezelGames = games.filter(game => !isConsole(game));
 const bezelFailures = await pool(bezelGames, async game => {
-  const name = `${game}.zip`;
-  if (!archiveNames.has(name)) {
-    await buildFallbackBezel(game, join(artwork, name));
+  const targetName = `${game}.zip`;
+  const sourceName = `${game}.zip`;
+  if (!archiveNames.has(sourceName)) {
+    await buildFallbackBezel(game, join(artwork, targetName));
     return;
   }
   await download(
-    `https://archive.org/download/artwork_202505/${encodeURIComponent(name)}`,
-    join(artwork, name),
+    `https://archive.org/download/artwork_202505/${encodeURIComponent(sourceName)}`,
+    join(artwork, targetName),
   );
 }, 6);
 repairKnownLayoutTypos();

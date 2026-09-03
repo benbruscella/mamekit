@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { MameHardwareDefinition } from './hardware.ts';
-import type { GeneratedMsm5205Plan } from './audio-compiler.ts';
+import type { GeneratedMsm5205Plan, GeneratedUpd7759Plan } from './audio-compiler.ts';
 import { generatedPokeyCoreSource, type GeneratedPokeyPlan } from './pokey-compiler.ts';
 import {
   algorithmOps,
@@ -271,6 +271,7 @@ export function generatedYm2151WorkletSource(
   plan: GeneratedYm2151Plan,
   msm5205Plan?: GeneratedMsm5205Plan,
   pokeyPlanSource?: GeneratedPokeyPlan,
+  upd7759Plan?: GeneratedUpd7759Plan,
 ): string {
   return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
 // The OPM FM engine, register bitfield map, die-extracted sine, power,
@@ -278,6 +279,7 @@ export function generatedYm2151WorkletSource(
 // from MAME's bundled ymfm implementation.
 const plan = ${JSON.stringify(plan, null, 2)};
 const msmPlan = (${JSON.stringify(msm5205Plan ?? null, null, 2)}) as GeneratedMsm5205PlanData | null;
+const updPlan = (${JSON.stringify(upd7759Plan ?? null, null, 2)}) as GeneratedUpd7759PlanData | null;
 ${pokeyPlanSource ? generatedPokeyCoreSource(pokeyPlanSource) : ''}
 /** Null on a board with no POKEY, so the engine above is only emitted when one exists. */
 const pokeyFactory: ((clock: number, rate: number) => {
@@ -296,6 +298,12 @@ interface GeneratedMsm5205PlanData {
   maximumSignal: number;
   sampleScale: number;
   dacBits: number;
+}
+
+interface GeneratedUpd7759PlanData {
+  stepTable: number[][];
+  stateTable: number[];
+  sampleScale: number;
 }
 
 export interface GeneratedYmRoute {
@@ -943,6 +951,138 @@ export class GeneratedMsm5205Core {
 }
 
 /**
+ * uPD7759 slave-mode command parser and 4-to-9-bit ADPCM converter. System 16B
+ * feeds the chip one ROM byte per DRQ-generated NMI, so no sample ROM is
+ * duplicated in the worklet; the command stream itself is the source.
+ */
+export class GeneratedUpd7759Core {
+  private readonly clock: number;
+  private readonly outputRate: number;
+  private resetLine = true;
+  private mdLine = true;
+  private active = false;
+  private stage: 'last' | 'dummy1' | 'addrHi' | 'addrLo' | 'dummy2' |
+    'header' | 'count' | 'data' = 'last';
+  private firstHeader = false;
+  private sampleRate = 1;
+  private nibblesLeft = 0;
+  private adpcmState = 0;
+  private value = 0;
+  private held = 0;
+  private remaining = 0;
+  private readonly queue: { value: number; duration: number }[] = [];
+
+  constructor(clock: number, outputRate: number) {
+    this.clock = clock;
+    this.outputRate = outputRate;
+  }
+
+  write(method: string, data: number): void {
+    if (method === 'reset_w') {
+      const next = data !== 0;
+      if (this.resetLine && !next) this.reset();
+      this.resetLine = next;
+      return;
+    }
+    if (method === 'md_w') {
+      const next = data !== 0;
+      if (this.mdLine && !next && this.resetLine) this.startSlave();
+      this.mdLine = next;
+      return;
+    }
+    if (method === 'start_w') return;
+    if (method !== 'port_w' || !this.active) return;
+    this.consume(data & 0xff);
+  }
+
+  sample(): number {
+    if (this.remaining <= 0) {
+      const next = this.queue.shift();
+      if (next) {
+        this.held = next.value;
+        this.remaining = next.duration;
+      } else {
+        this.held = 0;
+        this.remaining = 1;
+      }
+    }
+    this.remaining--;
+    return this.held;
+  }
+
+  private reset(): void {
+    this.active = false;
+    this.stage = 'last';
+    this.firstHeader = false;
+    this.nibblesLeft = 0;
+    this.adpcmState = 0;
+    this.value = 0;
+    this.held = 0;
+    this.remaining = 0;
+    this.queue.length = 0;
+  }
+
+  private startSlave(): void {
+    this.active = true;
+    this.stage = 'last';
+    this.firstHeader = false;
+  }
+
+  private consume(data: number): void {
+    if (this.stage === 'last') this.stage = 'dummy1';
+    else if (this.stage === 'dummy1') this.stage = 'addrHi';
+    else if (this.stage === 'addrHi') this.stage = 'addrLo';
+    else if (this.stage === 'addrLo') this.stage = 'dummy2';
+    else if (this.stage === 'dummy2') this.stage = 'header';
+    else if (this.stage === 'count') {
+      this.nibblesLeft = data + 1;
+      this.stage = 'data';
+    } else if (this.stage === 'header') {
+      if ((data & 0xc0) === 0) {
+        const clocks = 1024 * ((data & 0x3f) + 1);
+        this.enqueue(0, Math.max(1, Math.round(this.outputRate * clocks / this.clock)));
+        this.value = 0;
+        this.adpcmState = 0;
+        if (data === 0 && this.firstHeader) this.active = false;
+      } else if ((data & 0xc0) === 0x40) {
+        this.sampleRate = (data & 0x3f) + 1;
+        this.nibblesLeft = 256;
+        this.stage = 'data';
+      } else if ((data & 0xc0) === 0x80) {
+        this.sampleRate = (data & 0x3f) + 1;
+        this.stage = 'count';
+      }
+      if (data !== 0) this.firstHeader = true;
+    } else {
+      this.decode(data >>> 4);
+      if (--this.nibblesLeft > 0) {
+        this.decode(data & 15);
+        this.nibblesLeft--;
+      }
+      if (this.nibblesLeft <= 0) this.stage = 'header';
+    }
+  }
+
+  private decode(nibble: number): void {
+    if (!updPlan) return;
+    this.value += updPlan.stepTable[this.adpcmState]?.[nibble] ?? 0;
+    this.adpcmState = Math.max(
+      0,
+      Math.min(15, this.adpcmState + (updPlan.stateTable[nibble] ?? 0)),
+    );
+    const duration = Math.max(
+      1,
+      Math.round(this.outputRate * this.sampleRate * 4 / this.clock),
+    );
+    this.enqueue(this.value * updPlan.sampleScale, duration);
+  }
+
+  private enqueue(value: number, duration: number): void {
+    if (this.queue.length < 262_144) this.queue.push({ value, duration });
+  }
+}
+
+/**
  * Hosts the machine's YM2151 bank, resampling each chip's native ymfm rate to
  * the host output rate and mixing the driver's add_route gains.
  */
@@ -962,6 +1102,11 @@ export class GeneratedYm2151Mixer {
     deviceTag: string;
     gain: number;
     core: { write(offset: number, data: number): void; sample(): number };
+  }[];
+  private readonly updChips: {
+    deviceTag: string;
+    gain: number;
+    core: GeneratedUpd7759Core;
   }[];
   // A speech chip whose engine runs on the main thread streams finished PCM
   // in rather than register writes; all this side does is resample it.
@@ -1022,6 +1167,15 @@ export class GeneratedYm2151Mixer {
             core: pokeyFactory(device.clock, outputRate),
           }))
       : [];
+    this.updChips = updPlan
+      ? auxiliaryDevices
+          .filter(device => device.type === 'UPD7759')
+          .map(device => ({
+            deviceTag: device.deviceTag,
+            gain: device.gain,
+            core: new GeneratedUpd7759Core(device.clock, outputRate),
+          }))
+      : [];
     this.pcmChips = auxiliaryDevices
       .filter(device => device.type.startsWith('TMS5220'))
       .map(device => ({
@@ -1063,6 +1217,12 @@ export class GeneratedYm2151Mixer {
         return;
       }
     }
+    for (const upd of this.updChips) {
+      if (method?.startsWith(upd.deviceTag + '.')) {
+        upd.core.write(method.slice(upd.deviceTag.length + 1), data);
+        return;
+      }
+    }
     if (this.oki && method?.startsWith(this.oki.tag + '.')) {
       if (method.endsWith('.set_pin7')) this.oki.core.setPin7(data);
       else this.oki.core.write(data);
@@ -1100,6 +1260,7 @@ export class GeneratedYm2151Mixer {
     output += (this.oki?.core.sample() ?? 0) * (this.oki?.gain ?? 0);
     for (const device of this.msmChips) output += device.core.sample() * device.gain;
     for (const device of this.pokeyChips) output += device.core.sample() * device.gain;
+    for (const device of this.updChips) output += device.core.sample() * device.gain;
     for (const device of this.pcmChips) {
       device.phase += device.rate / this.outputRate;
       while (device.phase >= 1) {

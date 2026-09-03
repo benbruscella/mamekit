@@ -19,6 +19,8 @@ import {
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
   polePositionVerticalModifiers,
+  segaSystem16Channel,
+  segaSystem16PaletteEntry,
   taitoSjLayerScrollX,
   taitoSjSpritePosition,
   williamsPaletteColor,
@@ -114,11 +116,57 @@ assert.deepEqual(exidySpriteCollisions(
 ]);
 assert.equal(williamsPaletteColor(0), 0xff000000);
 assert.equal(williamsPaletteColor(0xff), 0xffffffff);
+
 const polePositionProms = new Uint8Array(0x800);
 polePositionProms[0x507] = 3;
 polePositionProms[0x607] = 4;
 polePositionProms[0x707] = 5;
 assert.equal(polePositionVerticalModifiers(polePositionProms)[7], 0x543);
+
+assert.deepEqual(
+  [0, 1, 30, 31].map(value => segaSystem16Channel(value)),
+  [0, 8, 247, 255],
+);
+assert.equal(segaSystem16Channel(31, 'shadow'), 200);
+assert.equal(segaSystem16Channel(0, 'highlight'), 55);
+assert.deepEqual(segaSystem16PaletteEntry(0x0fff), {
+  normal: 0xfff7f7f7,
+  effect: 0xffc1c1c1,
+});
+assert.deepEqual(segaSystem16PaletteEntry(0x8fff), {
+  normal: 0xfff7f7f7,
+  effect: 0xfff8f8f8,
+});
+
+const segaScreenBody = `
+  m_sprites->draw_async(cliprect);
+  m_segaic16vid->tilemap_draw(screen, bitmap, cliprect, 0, TILEMAP_BACKGROUND, 0, 0);
+  m_sprites->iterate_dirty_rects(cliprect, [] (rectangle const &rect) {});
+`;
+assert.equal(
+  generatedDirectScreenShape({
+    family: 'segas16a',
+    execution: { screenUpdate: { handler: 'segas16a_state.screen_update' } },
+    handlers: [{
+      ownerClass: 'segas16a_state',
+      method: 'screen_update',
+      body: segaScreenBody,
+    }],
+  } as unknown as BoardIr),
+  'system16a-layers',
+);
+assert.equal(
+  generatedDirectScreenShape({
+    family: 'segas16b',
+    execution: { screenUpdate: { handler: 'segas16b_state.screen_update' } },
+    handlers: [{
+      ownerClass: 'segas16b_state',
+      method: 'screen_update',
+      body: segaScreenBody,
+    }],
+  } as unknown as BoardIr),
+  'system16b-layers',
+);
 
 assert.equal(
   generatedDirectScreenShape({
@@ -282,6 +330,56 @@ const machine: BoardIr = {
   },
 };
 
+// Universal's Lady Bug hardware inverts each PROM output before its RGB
+// resistor network. A zero PROM byte must therefore produce the bright color,
+// while an all-one byte produces black.
+{
+  const paletteMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      palette: {
+        region: 'proms',
+        colorCount: 2,
+        min: 0,
+        max: 255,
+        scaler: -1,
+        channels: (['r', 'g', 'b'] as const).map(channel => ({
+          channel,
+          bits: [0, 1],
+          inverted: [true, true],
+          resistances: [470, 220],
+          pulldown: 470,
+          pullup: 0,
+        })),
+        lookupOffset: 0,
+        lookupCount: 2,
+        lookupMask: 0xff,
+        banks: [{
+          penOffset: 0,
+          colorOr: 0,
+          lookupOffset: 0,
+          lookupCount: 2,
+          direct: true,
+        }],
+        transparentIndirect: 0,
+      },
+    },
+  };
+  const paletteState: Record<string, unknown> = {};
+  new GeneratedMameVideoPrimitives(
+    paletteMachine,
+    { proms: Uint8Array.of(0x00, 0xff) },
+    paletteState,
+    {},
+  );
+  const palette = paletteState.m_palette as { colors: Uint32Array };
+  assert.equal(palette.colors[0], 0xffffffff);
+  assert.equal(palette.colors[1], 0xff000000);
+}
+
 const renderer = new GeneratedVideoRenderer(machine, primitives);
 const frame = new Uint32Array(4);
 renderer.vblank();
@@ -433,7 +531,7 @@ const tileMachine: BoardIr = {
     ...machine.handlers!,
     {
       id: 'handler:tile_info',
-      ownerClass: 'fixture_state',
+      ownerClass: 'fixture_video_device',
       method: 'tile_info',
       program: compileMameHandler('tileinfo.set(0, 0, 0, 0);'),
     },
@@ -448,7 +546,7 @@ const tileMachine: BoardIr = {
       columns: 1,
       rows: 1,
       mapper: 'TILEMAP_SCAN_ROWS',
-      tileInfo: 'fixture_state.tile_info',
+      tileInfo: 'fixture_video_device.tile_info',
     }],
   },
 };
@@ -467,6 +565,33 @@ executeGeneratedProgram(
 if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   throw new Error('mark_all_dirty did not invalidate generated tile cache');
 }
+
+let deviceTileInfoCalls = 0;
+const deviceTileState: Record<string, unknown> = {};
+const deviceTilePrimitives = new GeneratedMameVideoPrimitives(
+  tileMachine,
+  {},
+  deviceTileState,
+  {
+    referenceCalls: {
+      'fixture_video_device.tile_info': (_tilemap, tileinfo, tileIndex) => {
+        deviceTileInfoCalls++;
+        (tileinfo as { set(...args: number[]): void }).set(0, Number(tileIndex) + 7, 3, 0);
+      },
+    },
+  },
+);
+const deviceTilemap = deviceTileState.m_bg_tilemap as {
+  tiles: { code: number; color: number }[];
+  draw(screen: unknown, bitmap: unknown, clip: unknown, flags: number): void;
+};
+deviceTilemap.draw({}, {}, { min_x: 0, max_x: 7, min_y: 0, max_y: 7 }, 0);
+assert.equal(deviceTileInfoCalls, 1);
+assert.deepEqual(
+  { code: deviceTilemap.tiles[0]?.code, color: deviceTilemap.tiles[0]?.color },
+  { code: 7, color: 3 },
+  'device-owned tile callbacks must read the device instance rather than driver state',
+);
 
 // A scrolled tilemap must repaint the whole visible area. Ghosts'n Goblins
 // scrolls a single-band 32x32 map of 16px tiles: at scrollx 140 a tile range

@@ -53,6 +53,7 @@ import type { BoardConfig } from '../runtime/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
+import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { dacGeneratorTable } from '../hardware/dac/extract.ts';
 import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
@@ -64,6 +65,7 @@ export function lowerGeneratedMachine(
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
   nesApu?: GeneratedNesApuPlan,
   discretePlan?: GeneratedDiscreteDacPlan | GeneratedDiscreteEffectsPlan,
+  extraHandlers: GeneratedHandler[] = [],
 ): BoardIr {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
   // A full source graph can contain sibling machine configurations that the
@@ -237,6 +239,39 @@ export function lowerGeneratedMachine(
       }
       return callback;
     });
+  // Inline device-delegate setters are ordinary composition edges even when
+  // the graph callback extractor does not know the particular setter name.
+  // The generated device IR carries setter -> delegate-member metadata, so
+  // preserving the FUNC target here is enough for the runtime to bind it.
+  for (const { node, tag } of reachableDevices) {
+    const member = deviceMember(node.props);
+    if (!member) continue;
+    for (const line of deviceConfigLines(node.props)) {
+      const escaped = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const match = new RegExp(
+        `^${escaped}->(set_\\w+)\\(\\s*FUNC\\(\\s*([\\w:]+)::(\\w+)\\s*\\)\\s*\\)`,
+      ).exec(line.trim());
+      if (!match || callbacks.some(callback =>
+        callback.ownerTag === tag && callback.signal === match[1])) continue;
+      callbacks.push({
+        id: `${node.id}/callback:${tag}:${match[1]}`,
+        ownerTag: tag,
+        signal: match[1]!,
+        operation: 'set',
+        targetClass: match[2]!,
+        targetMethod: match[3]!,
+        ...(node.props.sourceFile && node.props.sourceLine ? {
+          source: {
+            file: String(node.props.sourceFile),
+            line: Number(node.props.sourceLine),
+            ...(node.props.sourceColumn
+              ? { column: Number(node.props.sourceColumn) }
+              : {}),
+          },
+        } : {}),
+      });
+    }
+  }
   const sourceRef = (props: Record<string, unknown>): BoardSourceRef | undefined =>
     props.sourceFile && props.sourceLine
       ? {
@@ -261,6 +296,7 @@ export function lowerGeneratedMachine(
       ...(deviceConfiguration(node.props).length
         ? { configuration: deviceConfiguration(node.props) }
         : {}),
+      ...deviceConstructorComposition(node.props),
       ...(typeof node.props.slotOptions === 'string'
         ? { slotOptions: node.props.slotOptions }
         : {}),
@@ -292,7 +328,46 @@ export function lowerGeneratedMachine(
         ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
       };
     });
+  const delegateTargets = callbacks.filter(callback =>
+    callback.operation === 'set' && callback.targetClass && callback.targetMethod &&
+    !handlers.some(handler => handler.ownerClass === callback.targetClass &&
+      handler.method === callback.targetMethod));
+  if (delegateTargets.length) {
+    const sourceFiles = [
+      String(graph.meta.driverFile ?? ''),
+      ...graph.nodes.filter(node => node.label === 'SourceFile')
+        .map(node => String(node.props.path ?? '')),
+    ].filter(Boolean);
+    const astSources = [...new Set(sourceFiles)].flatMap(file => {
+      const path = join(String(graph.meta.mameSrc ?? ''), file);
+      return existsSync(path) ? [{ file, source: readFileSync(path, 'utf8') }] : [];
+    });
+    const ast = new MameAstIndex(parseMameAst(astSources));
+    for (const callback of delegateTargets) {
+      const fn = ast.findFunctionInHierarchy(callback.targetClass!, callback.targetMethod!);
+      if (!fn) continue;
+      const body = normalizeMameExecutionSource(fn.body);
+      handlers.push({
+        id: `handler:${fn.className}.${fn.name}`,
+        ownerClass: fn.className,
+        method: fn.name,
+        parameters: fn.parameters,
+        body: fn.body,
+        program: compileMameHandler(body),
+        source: sourceRef({
+          sourceFile: fn.span.file,
+          sourceLine: fn.span.line,
+        }),
+      });
+    }
+  }
   for (const handler of compiledVideo?.handlers ?? []) {
+    const existing = handlers.find(candidate =>
+      candidate.ownerClass === handler.ownerClass && candidate.method === handler.method);
+    if (existing) Object.assign(existing, handler);
+    else handlers.push(handler);
+  }
+  for (const handler of extraHandlers) {
     const existing = handlers.find(candidate =>
       candidate.ownerClass === handler.ownerClass && candidate.method === handler.method);
     if (existing) Object.assign(existing, handler);
@@ -390,9 +465,7 @@ export function lowerGeneratedMachine(
   const stateMembers: GeneratedStateMember[] = (
     Array.isArray(rootStateMembers) ? rootStateMembers : []
   ).map(raw => JSON.parse(String(raw)) as GeneratedStateMember);
-  const memoryBanks = graph.nodes.some(node => node.label === 'MemoryBank')
-    ? lowerMemoryBanks(graph, sourceRef)
-    : [];
+  const memoryBanks = lowerMemoryBanks(graph, sourceRef);
   const accessTaps = lowerAccessTaps(graph, devices, memoryBanks, sourceRef);
   // The driver's own region_ptr finders, read straight from its source. These
   // reach the runtime whether or not the board compiles a video plan.
@@ -520,6 +593,7 @@ export function lowerGeneratedMachine(
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
+  const pokeyDevices = devices.filter(device => device.type === 'POKEY');
   const dacDevices = devices.filter(device =>
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT'].includes(device.type));
@@ -625,6 +699,19 @@ export function lowerGeneratedMachine(
             ? { routes: lowerAudioRoutes(graph, snDevices) }
             : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
+        }
+    : pokeyDevices.length
+      ? {
+          kind: 'pokey',
+          deviceTag: pokeyDevices[0]!.tag,
+          deviceTags: pokeyDevices.map(device => device.tag),
+          deviceType: 'POKEY',
+          writeMethods: ['write'],
+          enableMethods: [],
+          controlOffset: -1,
+          ...(lowerAudioRoutes(graph, pokeyDevices).length
+            ? { routes: lowerAudioRoutes(graph, pokeyDevices) }
+            : {}),
         }
     : dacDevices.length && !(sampleDevices.length && dacDevices.every(device =>
         device.type === 'DAC_1BIT'))
@@ -977,6 +1064,45 @@ function lowerMemoryBanks(
     const tag = String(node.props.tag);
     byTag.set(tag, [...(byTag.get(tag) ?? []), node]);
   }
+  // Some drivers use a one-base bank rather than configure_entries().  The
+  // bank still exists in the address map and machine_reset publishes its ROM
+  // pointer with `set_base(...)`; represent that initial source-derived base
+  // as entry zero so validation and the executable bus see the same window.
+  const referencedTags = new Set(graph.nodes
+    .filter(node => node.label === 'AddressRange')
+    .flatMap(node => [node.props.bankRead, node.props.bankWrite])
+    .filter((value): value is string => typeof value === 'string'));
+  for (const tag of referencedTags) {
+    if (byTag.has(tag)) continue;
+    const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(
+      `membank\\(\\s*["']${escaped}["']\\s*\\)->set_base\\(` +
+      `\\s*memregion\\(\\s*["']([^"']+)["']\\s*\\)->base\\(\\)` +
+      `\\s*\\+\\s*(0x[\\da-f]+|\\d+)\\s*\\)`,
+      'i',
+    );
+    const owner = graph.nodes.find(node =>
+      node.label === 'Handler' && pattern.test(String(node.props.sourceBody ?? '')));
+    const match = pattern.exec(String(owner?.props.sourceBody ?? ''));
+    if (!owner || !match) continue;
+    byTag.set(tag, [{
+      id: `bank:${tag}:set-base`,
+      label: 'MemoryBank',
+      props: {
+        tag,
+        member: `m_${tag}`,
+        region: match[1]!,
+        startEntry: 0,
+        entries: 1,
+        offset: Number(match[2]),
+        stride: 1,
+        initialEntry: 0,
+        ...(owner.props.sourceFile ? { sourceFile: owner.props.sourceFile } : {}),
+        ...(owner.props.sourceLine ? { sourceLine: owner.props.sourceLine } : {}),
+        ...(owner.props.sourceColumn ? { sourceColumn: owner.props.sourceColumn } : {}),
+      },
+    }]);
+  }
   return [...byTag].map(([tag, nodes]) => {
     const entryOffsets: (number | null)[] = [];
     const entryMembers: (string | null)[] = [];
@@ -1241,6 +1367,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
   OKIM6295: ['write', 'set_pin7'],
   POKEY: ['write'],
+  UPD7759: ['port_w', 'reset_w', 'start_w', 'md_w'],
   TMS5220: ['data_w'],
   TMS5220C: ['data_w'],
 };
@@ -1267,7 +1394,9 @@ export function lowerAuxiliaryAudioDevices(
       ? device.clock!
       : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516'].includes(device.type)
         ? 0
-        : undefined;
+        : device.type === 'UPD7759'
+          ? 640_000
+          : undefined;
     if (!writeMethods || clock === undefined) return [];
     const routeEdge = graph.edges.find(edge =>
       edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE');
@@ -1352,6 +1481,33 @@ function deviceConfiguration(
     candidate.method === entry.method &&
     candidate.args.length === entry.args.length &&
     candidate.args.every((value, arg) => value === entry.args[arg])) === index);
+}
+
+/**
+ * Lower values wired by typed machine-config constructors.  These arguments
+ * are real composition metadata, but unlike `device->setter(...)` calls they
+ * live on the device-add expression itself.  Williams' blitter constructors
+ * configure both scalar behavior and the driver's shared video RAM this way.
+ */
+function deviceConstructorComposition(
+  props: Record<string, unknown>,
+): Pick<GeneratedDevice, 'memberValues' | 'memoryShares'> {
+  const type = String(props.type ?? '');
+  if (type !== 'WILLIAMS_BLITTER_SC1' && type !== 'WILLIAMS_BLITTER_SC2') return {};
+  const line = deviceConfigLines(props).find(candidate =>
+    candidate.trimStart().startsWith(`${type}(`));
+  if (!line) return {};
+  const match = /^[^(]+\((.*)\)\s*;?$/.exec(line.trim());
+  const args = match?.[1]?.split(',').map(argument => argument.trim()) ?? [];
+  const clipAddress = Number(args[2]);
+  const vram = args[4]?.replace(/^m_/, '');
+  return {
+    memberValues: {
+      ...(Number.isFinite(clipAddress) ? { m_clip_address: clipAddress } : {}),
+      m_size_xor: type === 'WILLIAMS_BLITTER_SC1' ? 4 : 0,
+    },
+    ...(vram ? { memoryShares: { m_vram: vram } } : {}),
+  };
 }
 
 function inferInterruptVectorWriters(
@@ -1689,6 +1845,7 @@ export function emitGeneratedMachine(
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
   nesApu?: GeneratedNesApuPlan,
   discretePlan?: GeneratedDiscreteDacPlan | GeneratedDiscreteEffectsPlan,
+  extraHandlers: GeneratedHandler[] = [],
 ): BoardIr {
   const machine = lowerGeneratedMachine(
     graph,
@@ -1698,6 +1855,7 @@ export function emitGeneratedMachine(
     compiledVideo,
     nesApu,
     discretePlan,
+    extraHandlers,
   );
   const generatedDir = join(outDir, 'generated');
   rmSync(generatedDir, { recursive: true, force: true });

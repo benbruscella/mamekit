@@ -199,6 +199,10 @@ export interface GeneratedDevice {
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
   configuration?: { method: string; args: number[] }[];
+  /** Constructor-configured scalar members that are not ordinary setter calls. */
+  memberValues?: Record<string, number>;
+  /** Constructor-configured shared-pointer member -> board share bindings. */
+  memoryShares?: Record<string, string>;
   /** Source-declared slot option table/default from the machine config. */
   slotOptions?: string;
   slotDefault?: string;
@@ -486,13 +490,13 @@ export interface GeneratedExecutionPlan {
     activeLow?: boolean;
   }[];
   inputMembers?: { member: string; tags: string[] }[];
-  /** Source PORT_CHANGED_MEMBER handlers that latch an asserted input bit. */
+  /** Source PORT_CHANGED_MEMBER callbacks, including optimized state latches. */
   inputLatches?: {
     port: string;
     mask: number;
     activeLow: boolean;
-    stateMember: string;
-    index: number;
+    stateMember?: string;
+    index?: number;
     handler: string;
   }[];
   frameEvents: GeneratedFrameEvent[];
@@ -601,6 +605,8 @@ export interface GeneratedPromPalettePlan {
   channels: {
     channel: 'r' | 'g' | 'b';
     bits: number[];
+    /** Whether the source PROM bit is inverted before entering the network. */
+    inverted?: boolean[];
     /** Byte offset from the palette index for each source bit. */
     offsets?: number[];
     /** MAME-declared contribution for each bit when the source uses fixed weights. */
@@ -692,6 +698,8 @@ export interface GeneratedPromPalettePlan {
      */
     lookupValueOverride?: number;
     overrideColor?: number;
+    /** Source lookup value -> indirect color for bit shuffles/non-linear wiring. */
+    colorMap?: number[];
     /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
     direct?: boolean;
   }[];

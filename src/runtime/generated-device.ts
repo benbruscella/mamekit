@@ -207,6 +207,9 @@ export interface Device {
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   get(name: string): number;
   set(name: string, value: number): void;
+  hasMember(name: string): boolean;
+  /** Bind a host object such as a tilemap or decoded-gfx finder after composition. */
+  bindMember(name: string, value: unknown): void;
   /** Resolve a numeric constant declared by this generated device family. */
   constant(name: string): number | undefined;
   methodNames(): readonly string[];
@@ -877,6 +880,14 @@ class IrDevice implements Device {
     );
   }
 
+  hasMember(name: string): boolean {
+    return Object.hasOwn(this.members, name);
+  }
+
+  bindMember(name: string, value: unknown): void {
+    if (this.hasMember(name)) this.members[name] = value;
+  }
+
   constant(name: string): number | undefined {
     return this.definition.constants[name] ??
       this.definition.constants[name.split('::').at(-1)!];
@@ -1337,8 +1348,13 @@ function memoryMember(
 ): ArrayLike<number> {
   const memory = member.memory!;
   if (memory.kind === 'owned') return new Uint8Array(0);
-  const tag = memory.share === 'self' ? options.tag : memory.share;
+  const tag = (memory.share === 'self' ? options.tag : memory.share)
+    ?.replace(/^\^+/, '')
+    .replace(/^:/, '');
   const bytes = tag ? options.shares?.[tag] : undefined;
+  if (!bytes && /^optional_shared_ptr\b/.test(member.valueType)) {
+    return new Uint8Array(0);
+  }
   if (!bytes) {
     throw new Error(
       `generated device memory share "${tag ?? memory.share}" is not available for ${member.name}`,

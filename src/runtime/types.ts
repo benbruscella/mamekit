@@ -85,17 +85,13 @@ export interface BoardConfig {
     deviceTag?: string;
     activeLow?: boolean;
   }[];
-  /**
-   * Edge-triggered input bits whose MAME PORT_CHANGED_MEMBER handler latches
-   * the assertion into driver state.  Zaxxon uses this circuit for its three
-   * debounced coin/service inputs rather than reading the switches directly.
-   */
+  /** Source PORT_CHANGED_MEMBER callbacks, including optimized state latches. */
   inputLatches?: {
     port: string;
     mask: number;
     activeLow: boolean;
-    stateMember: string;
-    index: number;
+    stateMember?: string;
+    index?: number;
     handler: string;
   }[];
   screen: {

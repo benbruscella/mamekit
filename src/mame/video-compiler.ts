@@ -232,12 +232,22 @@ export function compileMameVideo(
   const startMatch = configFunctions
     .map(fn => /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/.exec(fn.body))
     .find((match): match is RegExpExecArray => Boolean(match));
-  const start = startMatch
+  const driverStart = startMatch
     // MCFG may spell the selected derived driver class even when the
     // VIDEO_START_MEMBER implementation is inherited from its base class
     // (pengo_state selects pacman_state::video_start_pacman).
     ? ast.findFunctionInHierarchy(startMatch[1]!, `video_start_${startMatch[2]}`)
     : ast.findFunctionInHierarchy(String(machine.props.cls), 'video_start');
+  // A plain device_t can own the tilemap and decoded-gfx finder while the
+  // driver merely delegates its screen update to that device. Lady Bug is the
+  // canonical shape: LADYBUG_VIDEO(...).set_gfxdecode_tag("gfxdecode") points
+  // the device back at the driver's GFXDECODE, and its device_start creates
+  // the only tilemap on the board. Treat that lifecycle method as video_start
+  // so the tilemap, its callback and its gfx binding all enter the plan.
+  const deviceStart = !driverStart && screen
+    ? configuredGfxDeviceStart(configFunctions, screen, ast, source)
+    : undefined;
+  const start = driverStart ?? deviceStart;
   if (!start && !screen) {
     return fail(`missing video_start and screen update for ${String(machine.props.cls)}`);
   }
@@ -343,7 +353,9 @@ export function compileMameVideo(
     });
   });
   const paletteMembers = [...new Set(
-    [...decodeBindings.values()].map(binding => binding.paletteMember),
+    [...decodeBindings.values()]
+      .map(binding => binding.paletteMember)
+      .filter((member): member is string => Boolean(member)),
   )];
   const palettes = paletteMembers.length > 1
     ? compileNamedPalettes(graph, ast, source, constants, paletteMembers)
@@ -375,7 +387,8 @@ export function compileMameVideo(
         machineIds,
         ast,
         constants,
-      ) ?? compileDriverManagedPalette(
+      ) ?? compileSystem16RamPalette(graph, machineIds, source, constants)
+        ?? compileDriverManagedPalette(
         graph,
         machineIds,
         source,
@@ -434,6 +447,92 @@ export function compileMameVideo(
     },
     handlers,
   };
+}
+
+/**
+ * Sega's shared System 16 base owns its palette writer rather than attaching
+ * it directly to the PALETTE(config, ...) declaration.  Lower the documented
+ * sBGR-BBBB-GGGG-RRRR word layout so mapper-installed palette RAM remains a
+ * generated writable palette instead of blocking the whole video plan.
+ */
+function compileSystem16RamPalette(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  source: string,
+  constants: Record<string, number>,
+): GeneratedRamPalettePlan | undefined {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  if (!graph.nodes.some(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'SEGAIC16VID')) {
+    return undefined;
+  }
+  if (!source.includes('paletteram_w') || !source.includes('"paletteram"')) return undefined;
+  const palette = graph.nodes.find(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  const raw = ((palette?.props.config as string[] | undefined) ?? []).join('\n');
+  const entriesExpression = /\.set_entries\s*\(\s*([^)]*)\)/.exec(raw)?.[1];
+  const entries = entriesExpression
+    ? expressionNumber(entriesExpression, constants)
+    : undefined;
+  if (!entries) return undefined;
+  return {
+    tag: 'paletteram',
+    endianness: 'big',
+    entries,
+    bytesPerEntry: 2,
+    channels: [
+      { channel: 'r', bits: 4, shift: 0 },
+      { channel: 'g', bits: 4, shift: 4 },
+      { channel: 'b', bits: 4, shift: 8 },
+    ],
+    ...(palette?.props.sourceFile && palette.props.sourceLine ? {
+      source: {
+        file: String(palette.props.sourceFile),
+        line: Number(palette.props.sourceLine),
+        ...(palette.props.sourceColumn
+          ? { column: Number(palette.props.sourceColumn) }
+          : {}),
+      },
+    } : {}),
+  };
+}
+
+/**
+ * Find a source-defined video device selected through set_gfxdecode_tag.
+ *
+ * Unlike a device_gfx_interface device, this component does not own a decode
+ * table in its constructor. The machine config supplies a tag and the device
+ * creates its tilemap later in device_start, so that setter is the composition
+ * edge that proves which otherwise-unrelated lifecycle method belongs to the
+ * active screen path.
+ */
+function configuredGfxDeviceStart(
+  configFunctions: MameFunction[],
+  screen: MameFunction,
+  ast: MameAstIndex,
+  source: string,
+): MameFunction | undefined {
+  const deviceClasses = new Map<string, string>();
+  for (const match of source.matchAll(
+    /\bDEFINE_DEVICE_TYPE\s*\(\s*([A-Z][A-Z0-9_]*)\s*,\s*(\w+)/g,
+  )) {
+    deviceClasses.set(match[1]!, match[2]!);
+  }
+  for (const config of configFunctions) {
+    for (const match of config.body.matchAll(
+      /\b([A-Z][A-Z0-9_]*)\s*\(\s*config\s*,\s*(m_\w+)[^;\n]*?\)\s*\.\s*set_gfxdecode_tag\s*\(\s*"[^"]+"\s*\)/g,
+    )) {
+      const [, type, member] = match;
+      if (!screen.body.includes(`${member}->`)) continue;
+      const className = deviceClasses.get(type!);
+      if (!className) continue;
+      const start = ast.findFunction(className, 'device_start');
+      if (start) return start;
+    }
+  }
+  return undefined;
 }
 
 function compileCps1GameConfig(
@@ -1400,22 +1499,31 @@ function tilemapScrollDelta(
 function compileDecodeBindings(
   graph: KnowledgeGraph,
   machineIds: Set<string>,
-): Map<string, { decodeMember: string; paletteMember: string }> {
+): Map<string, { decodeMember: string; paletteMember?: string }> {
   const deviceIds = new Set(graph.edges
     .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
     .map(edge => edge.to));
-  const bindings = new Map<string, { decodeMember: string; paletteMember: string }>();
-  const bindingsByTag = new Map<string, { decodeMember: string; paletteMember: string }>();
+  const bindings = new Map<string, { decodeMember: string; paletteMember?: string }>();
+  const bindingsByTag = new Map<string, { decodeMember: string; paletteMember?: string }>();
   for (const device of graph.nodes.filter(node =>
     deviceIds.has(node.id) &&
     node.label === 'Device' &&
     node.props.type === 'GFXDECODE')) {
     const raw = ((device.props.config as string[] | undefined) ?? []).join('\n');
-    const args = /GFXDECODE(?:_SCALE)?\s*\(\s*config\s*,\s*(m_\w+)\s*,\s*(m_\w+)\s*,\s*(\w+)/.exec(raw);
+    const args = /GFXDECODE(?:_SCALE)?\s*\(\s*config\s*,\s*(m_\w+|"[^"]+")\s*,\s*(m_\w+|"[^"]+")\s*,\s*(\w+)/.exec(raw);
     if (!args) continue;
+    const decodeMember = configuredDeviceMember(args[1]!);
+    if (!decodeMember) continue;
+    // A quoted palette tag proves which device gfxdecode uses, but not that
+    // the owning C++ object exposes a correspondingly named member. The
+    // generated gfx elements already use the board's sole palette by default;
+    // retain a palette binding only when MAME names an actual member.
+    const paletteMember = /^m_\w+$/.test(args[2]!.trim())
+      ? args[2]!.trim()
+      : undefined;
     const binding = {
-      decodeMember: args[1]!,
-      paletteMember: args[2]!,
+      decodeMember,
+      ...(paletteMember ? { paletteMember } : {}),
     };
     bindings.set(args[3]!, binding);
     bindingsByTag.set(String(device.props.tag), binding);
@@ -1439,6 +1547,21 @@ function compileDecodeBindings(
     if (binding) bindings.set(String(decode.props.name), binding);
   }
   return bindings;
+}
+
+/**
+ * Modern MAME machine configs commonly use either a required-device member or
+ * its simple tag for GFXDECODE. Both forms name the conventional decode finder
+ * (`m_gfxdecode` / `"gfxdecode"`, for example), so retain that gfx grouping for
+ * generated video plans. Hierarchical tags are deliberately excluded: a
+ * colon-separated tag cannot be mapped to a C++ member without source type
+ * information.
+ */
+function configuredDeviceMember(value: string): string | undefined {
+  const token = value.trim();
+  if (/^m_\w+$/.test(token)) return token;
+  const tag = /^"([A-Za-z_]\w*)"$/.exec(token)?.[1];
+  return tag ? `m_${tag}` : undefined;
 }
 
 /**
@@ -2209,7 +2332,7 @@ function compilePalette(
     : fn;
   const resNet = compileResNetAllPalette(graph, source, paletteFn, constants);
   if (resNet) return resNet;
-  const body = paletteFn.body;
+  const body = expandPaletteGfxExpressions(paletteFn.body, graph, machineIds);
   let region = /memregion\(\s*"([^"]+)"\s*\)/.exec(body)?.[1];
   const weightsCall = findCallArguments(body, 'compute_resistor_weights');
   const loops = numericForLoops(body);
@@ -2330,8 +2453,8 @@ function compilePalette(
     const method = loop.body.includes('set_pen_indirect')
       ? 'palette.set_pen_indirect'
       : 'palette.set_pen_color';
-    return findCallArgumentLists(loop.body, method).flatMap(
-      (call): GeneratedPromPalettePlan['banks'] => {
+    return findCallArgumentEntries(loop.body, method).flatMap(
+      ({ arguments: call, offset: callOffset }): GeneratedPromPalettePlan['banks'] => {
       const args = splitMameArgs(call);
       if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
         console.error('video palette: lookup loop', {
@@ -2342,12 +2465,19 @@ function compilePalette(
         });
       }
       const lookupExpression = args[1] ?? '';
-      const colorExpression = /ctabentry\s*=\s*([^;]+)/.exec(loop.body)?.[1]
-        ?? lookupExpression;
+      const colorExpression = lookupExpression;
       const expandedColorExpression = expandPaletteLoopLocals(
         colorExpression,
         loop.body,
+        callOffset,
       );
+      if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+        console.error('video palette: expanded lookup', {
+          colorExpression,
+          expandedColorExpression,
+          callOffset,
+        });
+      }
       const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/
         .exec(expandedColorExpression)?.[1];
       const usesPostIncrement = /\*\s*color_prom\s*\+\+/.test(colorExpression);
@@ -2372,13 +2502,23 @@ function compilePalette(
       ) {
         const penOffset = expressionAt(args[0]!, loop.start);
         const penStride = expressionAt(args[0]!, loop.start + 1) - penOffset;
-        const colorOr = expressionAt(lookupExpression, loop.start);
-        const colorStride = expressionAt(lookupExpression, loop.start + 1) - colorOr;
+        const colors = Array.from({ length: Math.max(0, loop.end - loop.start) }, (_unused, index) =>
+          paletteExpressionAt(
+            expandedColorExpression,
+            loop.start + index,
+            body,
+            loop.sourceOffset,
+            constants,
+          ));
+        const colorOr = colors[0] ?? 0;
+        const colorStride = (colors[1] ?? colorOr) - colorOr;
+        const linear = colors.every((color, index) => color === colorOr + index * colorStride);
         return [{
           penOffset,
           ...(penStride !== 1 ? { penStride } : {}),
-          colorOr,
-          ...(colorStride !== 1 ? { colorStride } : {}),
+          colorOr: linear ? colorOr : 0,
+          ...(linear && colorStride !== 1 ? { colorStride } : {}),
+          ...(!linear ? { colorMap: colors } : {}),
           lookupOffset: 0,
           lookupCount: Math.max(0, loop.end - loop.start),
           direct: true,
@@ -2390,14 +2530,27 @@ function compilePalette(
         /\b\w+\s*\[[^\]]+\]/g,
         'PROM',
       );
-      const scalarColorExpression = colorExpression.replace(
+      const scalarColorExpression = expandedColorExpression.replace(
         /\b\w+\s*\[[^\]]+\]/g,
         'PROM',
       );
-      const expandedScalarColorExpression = expandedColorExpression.replace(
-        /\b\w+\s*\[[^\]]+\]/g,
-        'PROM',
-      );
+      const expandedScalarColorExpression = scalarColorExpression;
+      const maskedLookup = new RegExp(
+        String.raw`^\s*\(?\s*(\w+)\s*&\s*(-?(?:0x[\da-f]+|\d+))\s*\)?\s*\?\s*` +
+        String.raw`\(?\s*\1\s*&\s*(-?(?:0x[\da-f]+|\d+))\s*\)?\s*:\s*` +
+        String.raw`(-?(?:0x[\da-f]+|\d+))\s*$`,
+        'i',
+      ).exec(colorExpression);
+      // Some lookup PROMs use one output bit solely as an opacity selector.
+      // The local holding the combined PROM byte is the lookup value itself,
+      // so preserve that conditional as a table instead of re-evaluating each
+      // physical PROM term after both have been collapsed to `PROM`.
+      const colorMap = maskedLookup
+        ? Array.from({ length: 0x100 }, (_unused, value) =>
+            value & expressionNumber(maskedLookup[2], constants)
+              ? value & expressionNumber(maskedLookup[3], constants)
+              : expressionNumber(maskedLookup[4], constants))
+        : compilePaletteColorMap(expandedScalarColorExpression, constants);
       const colorOrExpression =
         /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarLookupExpression)?.[1]
         ?? /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarColorExpression)?.[1]
@@ -2408,7 +2561,7 @@ function compilePalette(
         // Replacing the outer array access with PROM hides that base, so
         // retain it from the source expression before falling back.
         ?? /\bpalette_val\s*\[[^\]]*(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))\s*\]/i
-          .exec(colorExpression)?.[1]
+          .exec(expandedColorExpression)?.[1]
         ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarLookupExpression)?.[1]
         ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarColorExpression)?.[1];
       const lookupOverride = new RegExp(
@@ -2417,6 +2570,15 @@ function compilePalette(
         `(-?(?:0x[\\da-f]+|\\d+))`,
         'i',
       ).exec(expandedScalarColorExpression);
+      if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+        console.error('video palette: lookup mapping', {
+          scalarLookupExpression,
+          scalarColorExpression,
+          expandedScalarColorExpression,
+          colorOrExpression,
+          colorMap: Boolean(colorMap),
+        });
+      }
       return [{
         penOffset: paletteExpressionAt(
           args[0]!, loop.start, body, loop.sourceOffset, constants,
@@ -2431,6 +2593,7 @@ function compilePalette(
           lookupValueOverride: expressionNumber(lookupOverride[1]),
           overrideColor: expressionNumber(lookupOverride[2]),
         } : {}),
+        ...(colorMap ? { colorMap } : {}),
       }];
     });
   });
@@ -2545,22 +2708,75 @@ function compilePalette(
   };
 }
 
+/**
+ * Palette callbacks frequently use MAME's local TOTAL_COLORS(gfx) shorthand
+ * and gfx_element::colorbase() instead of numeric loop bounds/pen offsets.
+ * Both values are already declarative in the active GFXDECODE table, so fold
+ * them before parsing palette loops. Leaving either expression unresolved
+ * turns the corresponding lookup bank into a zero-length bank.
+ */
+function expandPaletteGfxExpressions(
+  source: string,
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+): string {
+  const decode = graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'DECODES')
+    .map(edge => graph.nodes.find(node => node.id === edge.to))
+    .find((node): node is KGNode => Boolean(node));
+  if (!decode) return source;
+  const entries = graph.edges
+    .filter(edge => edge.from === decode.id && edge.rel === 'HAS_ENTRY')
+    .map(edge => graph.nodes.find(node => node.id === edge.to))
+    .filter((node): node is KGNode => Boolean(node))
+    .map(entry => {
+      const layoutEdge = graph.edges.find(edge =>
+        edge.from === entry.id && edge.rel === 'USES_LAYOUT');
+      const layout = layoutEdge && graph.nodes.find(node => node.id === layoutEdge.to);
+      const planes = Number(layout?.props.planes ?? 0);
+      return {
+        colorBase: Number(entry.props.colorBase),
+        totalColors: Number(entry.props.colorCount) * (1 << planes),
+      };
+    });
+  const metric = (index: string, field: 'colorBase' | 'totalColors'): string => {
+    const value = entries[Number(index)]?.[field];
+    return Number.isFinite(value) ? String(value) : '0';
+  };
+  return source
+    .replace(
+      /\b(?:m_\w+|\w+)->gfx\(\s*(\d+)\s*\)->colorbase\(\)/g,
+      (_match, index: string) => metric(index, 'colorBase'),
+    )
+    .replace(
+      /\bTOTAL_COLORS\(\s*(\d+)\s*\)/g,
+      (_match, index: string) => metric(index, 'totalColors'),
+    );
+}
+
 /** Inline simple per-loop aliases before extracting PROM lookup expressions. */
-function expandPaletteLoopLocals(expression: string, loopBody: string): string {
+function expandPaletteLoopLocals(
+  expression: string,
+  loopBody: string,
+  before = loopBody.length,
+): string {
   let expanded = expression;
-  const declarations = [...loopBody.matchAll(
-    /\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+(\w+)\s*=\s*([^;]+);/g,
-  )];
+  const aliases = new Map<string, string>();
+  for (const assignment of loopBody.slice(0, before).matchAll(
+    /(?:\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+)?\b(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    aliases.set(assignment[1]!, assignment[2]!.trim());
+  }
+  const declarations = [...aliases];
   // A declaration can depend on an earlier alias; a few reverse passes are
   // sufficient for the straight-line palette loops used by MAME drivers.
   for (let pass = 0; pass < declarations.length + 1; pass++) {
     let changed = false;
-    for (const declaration of declarations) {
-      const name = declaration[1]!;
+    for (const [name, value] of declarations) {
       if (!new RegExp(`\\b${name}\\b`).test(expanded)) continue;
       const next = expanded.replace(
         new RegExp(`\\b${name}\\b`, 'g'),
-        `(${declaration[2]!.trim()})`,
+        `(${value})`,
       );
       changed ||= next !== expanded;
       expanded = next;
@@ -2618,17 +2834,35 @@ function evaluateIndexedPaletteExpression(
   while (source.startsWith('(') && matchingPair(source, 0, '(', ')') === source.length - 1) {
     source = source.slice(1, -1).trim();
   }
+  let expandedBit = true;
+  while (expandedBit) {
+    expandedBit = false;
+    source = source.replace(/\bBIT\s*\(\s*([^(),]+)\s*,\s*([^(),]+)\s*\)/g,
+      (match, valueExpression: string, bitExpression: string) => {
+        const value = evaluateIndexedPaletteExpression(valueExpression, values);
+        const bit = evaluateIndexedPaletteExpression(bitExpression, values);
+        if (value === null || bit === null) return match;
+        expandedBit = true;
+        return String((value >>> bit) & 1);
+      });
+  }
   const question = topLevelOperator(source, '?');
   if (question >= 0) {
     const colon = topLevelOperator(source, ':', question + 1);
     if (colon < 0) return null;
     const condition = source.slice(0, question).trim().replace(/^\((.*)\)$/s, '$1');
     const comparison = /^(.*?)\s*(==|!=)\s*(.*?)$/.exec(condition);
-    if (!comparison) return null;
-    const left = evaluateIndexedPaletteExpression(comparison[1]!, values);
-    const right = evaluateIndexedPaletteExpression(comparison[3]!, values);
-    if (left === null || right === null) return null;
-    const matched = comparison[2] === '==' ? left === right : left !== right;
+    let matched: boolean;
+    if (comparison) {
+      const left = evaluateIndexedPaletteExpression(comparison[1]!, values);
+      const right = evaluateIndexedPaletteExpression(comparison[3]!, values);
+      if (left === null || right === null) return null;
+      matched = comparison[2] === '==' ? left === right : left !== right;
+    } else {
+      const value = evaluateIndexedPaletteExpression(condition, values);
+      if (value === null) return null;
+      matched = value !== 0;
+    }
     return evaluateIndexedPaletteExpression(
       source.slice(matched ? question + 1 : colon + 1, matched ? colon : undefined),
       values,
@@ -2908,28 +3142,32 @@ function compileFixedWeightChannels(
   body: string,
   indexValue = 0,
 ): GeneratedPromPalettePlan['channels'] {
-  const bits = new Map<string, { offset: number; bit: number }>();
+  const bits = new Map<string, { offset: number; bit: number; inverted: boolean }>();
   const channels: GeneratedPromPalettePlan['channels'] = [];
   const sourceRe =
-    /\b(bit\d+)\s*=\s*BIT\(\s*(?:color_prom\[\s*([^\]]+)\s*\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*([^;]+)/g;
+    /\b(bit\d+)\s*=\s*BIT\(\s*(~\s*)?(?:color_prom\[\s*([^\]]+)\s*\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*([^;]+)/g;
   let match: RegExpExecArray | null;
   while ((match = sourceRe.exec(body)) !== null) {
     if (match[1]) {
       bits.set(match[1], {
-        offset: expressionAt(match[2] ?? '0', indexValue),
-        bit: Number(match[3]),
+        offset: expressionAt(match[3] ?? '0', indexValue),
+        bit: Number(match[4]),
+        inverted: Boolean(match[2]),
       });
       continue;
     }
-    const terms = [...match[5]!.matchAll(
+    const terms = [...match[6]!.matchAll(
       /(-?(?:0x[\da-f]+|\d+))\s*\*\s*(bit\d+)/gi,
     )];
     const sources = terms.map(term => bits.get(term[2]!));
     if (!terms.length || sources.some(source => !source)) continue;
     channels.push({
-      channel: match[4] as 'r' | 'g' | 'b',
+      channel: match[5] as 'r' | 'g' | 'b',
       bits: sources.map(source => source!.bit),
       offsets: sources.map(source => source!.offset),
+      ...(sources.some(source => source!.inverted)
+        ? { inverted: sources.map(source => source!.inverted) }
+        : {}),
       weights: terms.map(term => expressionNumber(term[1])),
       resistances: [],
       pulldown: 0,
@@ -2988,20 +3226,28 @@ function compileResistorChannels(
     });
   }
   const channels: GeneratedPromPalettePlan['channels'] = [];
-  const bitVariables = new Map<string, number>();
+  const bitVariables = new Map<string, { bit: number; inverted: boolean }>();
   const colorRe =
-    /\b(bit\d+)\s*=\s*BIT\(\s*(?:color_prom\[i\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*combine_weights\(\s*(\w+)\s*,\s*([^)]+)\)/g;
+    /\b(bit\d+)\s*=\s*BIT\(\s*(~\s*)?(?:color_prom\[i\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*combine_weights\(\s*(\w+)\s*,\s*([^)]+)\)/g;
   let color: RegExpExecArray | null;
   while ((color = colorRe.exec(body)) !== null) {
     if (color[1]) {
-      bitVariables.set(color[1], Number(color[2]));
+      bitVariables.set(color[1], {
+        bit: Number(color[3]),
+        inverted: Boolean(color[2]),
+      });
       continue;
     }
-    const network = networks.get(color[4]!);
+    const network = networks.get(color[5]!);
     if (!network) continue;
+    const sources = splitMameArgs(color[6]!).map(bit => bitVariables.get(bit.trim()));
+    if (sources.some(source => !source)) continue;
     channels.push({
-      channel: color[3] as 'r' | 'g' | 'b',
-      bits: splitMameArgs(color[5]!).map(bit => bitVariables.get(bit.trim()) ?? 0),
+      channel: color[4] as 'r' | 'g' | 'b',
+      bits: sources.map(source => source!.bit),
+      ...(sources.some(source => source!.inverted)
+        ? { inverted: sources.map(source => source!.inverted) }
+        : {}),
       ...network,
     });
   }
@@ -3505,7 +3751,14 @@ function findCallArguments(source: string, name: string): string | undefined {
 }
 
 function findCallArgumentLists(source: string, name: string): string[] {
-  const calls: string[] = [];
+  return findCallArgumentEntries(source, name).map(entry => entry.arguments);
+}
+
+function findCallArgumentEntries(
+  source: string,
+  name: string,
+): { arguments: string; offset: number }[] {
+  const calls: { arguments: string; offset: number }[] = [];
   let cursor = 0;
   while (cursor < source.length) {
     const at = source.indexOf(`${name}(`, cursor);
@@ -3513,7 +3766,7 @@ function findCallArgumentLists(source: string, name: string): string[] {
     const open = source.indexOf('(', at + name.length);
     const close = matchingPair(source, open, '(', ')');
     if (close < 0) break;
-    calls.push(source.slice(open + 1, close));
+    calls.push({ arguments: source.slice(open + 1, close), offset: at });
     cursor = close + 1;
   }
   return calls;
@@ -3548,18 +3801,22 @@ function paletteExpressionAt(
   before: number,
   constants: Record<string, number>,
 ): number {
-  const values: Record<string, number> = { ...constants };
+  const values: Record<string, number> = { ...constants, i: index };
   const prefix = body.slice(0, before);
   const events = /\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+(\w+)\s*=\s*([^;]+);|\b(\w+)\s*\+=\s*([^;]+);/g;
   let event: RegExpExecArray | null;
   while ((event = events.exec(prefix)) !== null) {
     const name = event[1] ?? event[3]!;
     const expression = event[2] ?? event[4]!;
-    const value = evalExpr(substituteNumbers(expression.trim(), values));
+    const value = evaluateIndexedPaletteExpression(expression, values);
     if (value === null) continue;
     values[name] = event[3] ? (values[name] ?? 0) + value : value;
   }
-  return expressionNumber(source.replace(/\bi\b/g, String(index)), values);
+  // Earlier `for (int i = ...)` declarations occur in the prefix but are not
+  // locals visible to this lookup loop. Keep the caller's current iteration
+  // after replaying the genuinely shared pointer/scalar state.
+  values.i = index;
+  return evaluateIndexedPaletteExpression(source, values) ?? 0;
 }
 
 function compilePaletteLookupTerms(
@@ -3608,6 +3865,40 @@ function compilePaletteLookupTerms(
     });
   }
   return terms;
+}
+
+/**
+ * Preserve lookup expressions whose output pins are reordered in source.
+ * Universal's sprite PROM, for example, selects one nibble and reverses its
+ * four bits with bitswap<4>; a mask/shift-only lookup term cannot express it.
+ */
+function compilePaletteColorMap(
+  scalarExpression: string,
+  constants: Record<string, number>,
+): number[] | undefined {
+  if (!/\bPROM\b/.test(scalarExpression)) return undefined;
+  const bitswap = /\bbitswap<(\d+)>\s*\(/.exec(scalarExpression);
+  if (!bitswap) return undefined;
+  const open = scalarExpression.indexOf('(', bitswap.index + bitswap[0].length - 1);
+  const close = matchingPair(scalarExpression, open, '(', ')');
+  if (close < 0) return undefined;
+  const args = splitMameArgs(scalarExpression.slice(open + 1, close));
+  const width = Number(bitswap[1]);
+  const sourceBits = args.slice(1).map(bit => expressionNumber(bit, constants));
+  if (
+    !Number.isInteger(width) || width <= 0 || width > 31 ||
+    sourceBits.length !== width || sourceBits.some(bit => !Number.isInteger(bit))
+  ) return undefined;
+  const map = Array.from({ length: 0x100 }, (_unused, prom) => {
+    const source = evalExpr(
+      substituteNumbers(args[0]!.replace(/\bPROM\b/g, String(prom)), constants),
+      constants,
+    );
+    if (source === null) return -1;
+    return sourceBits.reduce((mapped, sourceBit, position) =>
+      mapped | (((source >>> sourceBit) & 1) << (width - position - 1)), 0);
+  });
+  return map.some(value => value < 0) ? undefined : map;
 }
 
 function numericForLoops(source: string): {

@@ -26,13 +26,58 @@ string,
   INPUT_MERGER_ALL_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_LOW: compileInputMerger,
+  LADYBUG_VIDEO: compileLadybugVideo,
   LATCH8: compileLatch8,
   MOS6532: compileMos6532,
   NEOGEO_SPRITE_OPTIMZIED: compileNeogeoSprite,
   PIT8253: compilePit8253,
+  SEGAIC16VID: compileSegaic16Video,
   SLAPSTIC: compileSlapstic,
   Z80CTC: compileZ80Ctc,
 };
+
+/**
+ * Lady Bug owns its RAM immediately, but its tilemap and decoded-gfx finder
+ * are board video services. The composition host binds those after it creates
+ * the generated video primitives, so device_start must not replace them with
+ * unresolved framework-call placeholders during early device construction.
+ */
+function compileLadybugVideo(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'LADYBUG_VIDEO');
+  replaceMethod(device, 'device_start', '');
+  device.hotMethods = [...new Set([
+    ...(device.hotMethods ?? []),
+    'draw',
+    'draw_sprites',
+    'get_bg_tile_info',
+  ])];
+  return refreshSummary(device);
+}
+
+/**
+ * The shared Sega video device contains both the System 16 tile engine and
+ * unrelated rotate/road paths.  The generic parser sees C++ struct casts in
+ * those methods as diagnostics even when a System 16B board never selects the
+ * rotate hardware.  Preserve the executable device surface and let the board
+ * video compiler own rasterization; these entry points keep the source state
+ * transitions that the mapper and driver call.
+ */
+function compileSegaic16Video(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'SEGAIC16VID');
+  const unsupported = device.methods
+    .filter(method => method.program.diagnostics.length)
+    .map(method => method.name);
+  for (const method of new Set(unsupported)) replaceMethod(device, method, '');
+  replaceMethod(device, 'tilemap_init', 'm_display_enable = 1;');
+  device.hotMethods = [...new Set([...(device.hotMethods ?? []), 'tilemap_draw'])];
+  return refreshSummary(device);
+}
 
 /** Lower the standard Neo Geo fixed layer without the two later-game banking
  * lookup tables. Metal Slug uses FIX_BANKTYPE_STD; sprite drawing itself stays
