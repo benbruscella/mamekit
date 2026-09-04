@@ -3,14 +3,16 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { buildGraph, gameSubgraph } from '../kg/build.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
-import type { GameTestContract } from './types.ts';
+import type { GameTestContract, MachineTargetDefinition } from './types.ts';
 import { validateGameContract } from './contract-validation.ts';
 
 export function mameSourceRoot(): string {
   return resolve(process.env.MAME_SRC ?? '../mame');
 }
 
-export function gameSourceGraph(contract: GameTestContract): KnowledgeGraph {
+export function gameSourceGraph(
+  contract: Pick<GameTestContract, 'game' | 'driver' | 'machine'> | MachineTargetDefinition,
+): KnowledgeGraph {
   const mameSrc = mameSourceRoot();
   const driver = join(mameSrc, contract.driver);
   assert.ok(existsSync(driver), `${contract.game}: MAME driver is missing: ${driver}`);

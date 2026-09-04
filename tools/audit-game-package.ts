@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { discoverGameNames } from '../src/games/discovery.ts';
+import { discoverGameNames, gameRegistration } from '../src/games/discovery.ts';
 import { readZip } from '../src/runtime/zip.ts';
 import { DATA_DIR } from '../src/paths.ts';
 
@@ -13,10 +13,12 @@ for (const game of games) await auditGame(game);
 console.log(`game package audit passed: ${games.join(', ')}`);
 
 async function auditGame(game: string): Promise<void> {
-  requireFile(`src/games/${game}.game.ts`);
-  requireFile(`src/games/${game}.game.spec.ts`);
+  const registration = gameRegistration(game, join(root, 'src/games'));
+  assert.ok(registration, `${game}: no game registration`);
+  requireFile(registration.modulePath.slice(root.length + 1));
+  requireFile(registration.specPath.slice(root.length + 1));
 
-  const category = ['arcade', 'consoles'].find(candidate =>
+  const category = ['arcade', 'consoles', 'computers'].find(candidate =>
     existsSync(join(root, `dist/games/${candidate}/${game}/config.json`)));
   assert.ok(category, `${game}: generate the game before auditing its package`);
   const dataPath = `dist/games/${category}/${game}`;

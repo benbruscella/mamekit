@@ -7,7 +7,7 @@
 //   --out <dir>         output root (default: <mamekit>/out)
 //   --targets <games>   comma-separated runtime closure targets
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,7 +43,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '..');
 
 function usage(): never {
-  console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
+  console.error('usage: mamekit [graph|from-graph|init-game|dev-game|check-game|promote-game] <game>');
   console.error('       mamekit <game> --from-graph [graph.json]');
   console.error('       mamekit --all              generate every required target, then the app');
   console.error('                  [--jobs <n>]   parallel target generators (default: memory-aware, max 8)');
@@ -79,12 +79,13 @@ for (let i = 0; i < argv.length; i++) {
   }
 }
 
-const command = positional[0] === 'graph'
-  ? 'graph'
-  : positional[0] === 'from-graph' || 'from-graph' in opts
-    ? 'from-graph'
-    : 'run';
-const game = positional[0] === 'graph' || positional[0] === 'from-graph'
+const namedCommands = new Set([
+  'graph', 'from-graph', 'init-game', 'dev-game', 'check-game', 'promote-game',
+]);
+const command = 'from-graph' in opts
+  ? 'from-graph'
+  : namedCommands.has(positional[0] ?? '') ? positional[0]! : 'run';
+const game = namedCommands.has(positional[0] ?? '')
   ? positional[1]
   : positional[0];
 const serveOnly = !game && ('serve' in opts || argv.includes('--serve'));
@@ -93,9 +94,14 @@ const buildRuntimeOnly = !game && 'build-runtime' in opts;
 const generateAll = !game && 'all' in opts;
 if (!game && !serveOnly && !buildAppOnly && !buildRuntimeOnly && !generateAll) usage();
 
-const outRoot = resolve(opts.out ?? join(projectRoot, 'dist'));
+const isolatedCommand = command === 'init-game' || command === 'dev-game';
+const outRoot = resolve(opts.out ?? (isolatedCommand && game
+  ? join(projectRoot, '.cache/dev', game)
+  : join(projectRoot, 'dist')));
 const explicitMameSrc = opts['mame-src'] ?? process.env.MAME_SRC;
-const detectedMameSrc = serveOnly ? '' : detectMameSrc(command !== 'from-graph');
+const sourceRequired = command === 'run' || command === 'graph' ||
+  command === 'init-game' || command === 'dev-game' || generateAll;
+const detectedMameSrc = serveOnly ? '' : detectMameSrc(sourceRequired);
 const mameSrc = serveOnly
   ? ''
   : explicitMameSrc
@@ -281,10 +287,10 @@ async function generateTargetsInParallel(targets: readonly string[]): Promise<vo
  * cache key is the byte content of every target graph plus the shared
  * identity, so any change in what the targets use re-derives the closure.
  */
-async function emitClosureFromGraphs(targets: readonly string[]): Promise<void> {
+async function emitClosureFromGraphs(targets: readonly string[], root = outRoot): Promise<void> {
   const graphs = targets.map(target => {
     const graphPath = join(
-      existingGameOutputDir(outRoot, target) ?? gameOutputDir(outRoot, 'arcade', target),
+      existingGameOutputDir(root, target) ?? gameOutputDir(root, 'arcade', target),
       'graph.json',
     );
     if (!existsSync(graphPath)) {
@@ -299,7 +305,7 @@ async function emitClosureFromGraphs(targets: readonly string[]): Promise<void> 
   let summary: { types: number; sourceResolved: number; unresolved: number };
   const cachedEntry = entryDir && cacheId ? readEntry(entryDir, cacheId) : undefined;
   if (entryDir && cachedEntry && existsSync(entryTree(entryDir))) {
-    copyTree(entryTree(entryDir), join(outRoot, 'runtime/generated'));
+    copyTree(entryTree(entryDir), join(root, 'runtime/generated'));
     summary = cachedEntry.summary as typeof summary;
     console.log('mamekit: hardware closure restored from cache');
   } else {
@@ -308,15 +314,15 @@ async function emitClosureFromGraphs(targets: readonly string[]): Promise<void> 
       game: graph.game,
       graph: JSON.parse(graph.bytes.toString('utf8')),
     })));
-    await emitHardwareClosure(closure, outRoot, defaultGeneratorJobs());
+    await emitHardwareClosure(closure, root, defaultGeneratorJobs());
     summary = closure.summary;
     if (entryDir && cacheId) {
-      copyTree(join(outRoot, 'runtime/generated'), entryTree(entryDir));
+      copyTree(join(root, 'runtime/generated'), entryTree(entryDir));
       writeEntry(entryDir, cacheId, { summary, targets: [...targets] });
     }
   }
   const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
-  const refreshedReports = refreshRuntimeReports(outRoot);
+  const refreshedReports = refreshRuntimeReports(root);
   console.log(
     `generated hardware closure: ${summary.sourceResolved}/${summary.types} ` +
     `types source-resolved, ${summary.unresolved} unresolved; ` +
@@ -478,6 +484,14 @@ if (generateAll) {
     Number(opts.serve) || 8280,
   );
   console.log(`\nserving http://localhost:${port}/app/  (menu; games at /app/g/<game>/)`);
+} else if (command === 'init-game') {
+  await initializeGame(game!);
+} else if (command === 'dev-game') {
+  await developGame(game!);
+} else if (command === 'check-game') {
+  await checkGame(game!);
+} else if (command === 'promote-game') {
+  await promoteGameCommand(game!);
 } else if (command === 'from-graph') {
   await pipelineFromGraph(game!);
 } else {
@@ -489,7 +503,12 @@ if (generateAll) {
  * and closure are written once at the end, so an intermediate manifest here
  * would describe a tree that is deliberately still incomplete.
  */
-async function pipeline(game: string, root = outRoot, batched = false): Promise<void> {
+async function pipeline(
+  game: string,
+  root = outRoot,
+  batched = false,
+  forceSkipApp = false,
+): Promise<void> {
 console.log(`mamekit: searching MAME source at ${mameSrc}`);
 const driverFile = findDriverFile(game);
 console.log(`mamekit: driver for "${game}" -> ${driverFile.slice(mameSrc.length + 1)}`);
@@ -535,13 +554,13 @@ if (regions.length) {
   }
 }
 
-if (command === 'run') {
+if (command === 'run' || command === 'init-game' || command === 'dev-game') {
   const { generate, buildApp } = await import('./gen/generate.ts');
   await generate(sub, { mameSrc, outDir, game, fullGraph: graph });
   // A batched --all build compiles one unified app after every target and the
   // shared hardware closure exist. Compiling here would rebuild the same app
   // once per target against an intentionally incomplete catalog.
-  const skipApp = batched || 'skip-app' in opts;
+  const skipApp = forceSkipApp || batched || 'skip-app' in opts;
   if (!skipApp) {
     // A target generation initially writes its report before the distribution
     // hardware manifest is consulted. Refresh reports from the existing
@@ -571,6 +590,89 @@ if ('serve' in opts || argv.includes('--serve')) {
     `(game: /app/g/${game}/, viewer: /games/${category}/${game}/viewer.html)`,
   );
 }
+}
+
+async function initializeGame(game: string): Promise<void> {
+  await pipeline(game, outRoot, false, true);
+  const outputDir = existingGameOutputDir(outRoot, game);
+  if (!outputDir) throw new Error(`${game}: generator did not create an output directory`);
+  const graph = JSON.parse(readFileSync(join(outputDir, 'graph.json'), 'utf8'));
+  const config = JSON.parse(readFileSync(join(outputDir, 'config.json'), 'utf8'));
+  const { deriveCandidateContract, writeCandidateScaffold } = await import('./games/onboarding.ts');
+  const written = writeCandidateScaffold(projectRoot, deriveCandidateContract(graph, config));
+  const { writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
+  writeCapabilityGapReport(outputDir, graph);
+  console.log(`\nmamekit: candidate registered at ${written.modulePath}`);
+  console.log(`mamekit: edit ${written.specPath} after play-testing the input scenario`);
+}
+
+async function developGame(game: string): Promise<void> {
+  prepareGenCache();
+  await pipeline(game, outRoot, false, true);
+  await emitClosureFromGraphs([game], outRoot);
+  const outputDir = existingGameOutputDir(outRoot, game);
+  if (!outputDir) throw new Error(`${game}: generator did not create an output directory`);
+  const graph = JSON.parse(readFileSync(join(outputDir, 'graph.json'), 'utf8'));
+  const { writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
+  const report = writeCapabilityGapReport(outputDir, graph);
+  const { buildApp } = await import('./gen/generate.ts');
+  if (!await buildApp(outRoot, [game])) process.exitCode = 1;
+  console.log(`\nmamekit: isolated build at ${outRoot}`);
+  console.log(`mamekit: ${report.generationGaps.length} capability gaps; see ${join(outputDir, 'CAPABILITY_GAP.md')}`);
+}
+
+async function checkGame(game: string): Promise<void> {
+  const { gameRegistration } = await import('./games/discovery.ts');
+  const registration = gameRegistration(game, join(projectRoot, 'src/games'));
+  if (!registration) throw new Error(`${game}: no accepted, candidate, or disabled registration`);
+  if (registration.lifecycle === 'disabled') {
+    console.log(`${game}: registration is disabled; no readiness claim made`);
+    return;
+  }
+  const { loadRegisteredGameContracts } = await import('./games/contracts.ts');
+  const loaded = (await loadRegisteredGameContracts([registration.lifecycle]))
+    .filter(item => item.target.game === game);
+  if (!loaded.length) throw new Error(`${game}: contract did not load`);
+  const outputDir = existingGameOutputDir(outRoot, game);
+  if (!outputDir) {
+    console.log(`${game}: ${registration.lifecycle} contract valid; no generated output at ${outRoot}`);
+    return;
+  }
+  const reportPath = join(outputDir, 'runtime-report.json');
+  if (!existsSync(reportPath)) throw new Error(`${game}: generated output has no runtime report`);
+  const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
+    playable?: boolean;
+    generationGaps?: string[];
+  };
+  console.log(`${game}: ${registration.lifecycle} contract valid; runtime ${report.playable ? 'playable' : 'blocked'}`);
+  if (report.generationGaps?.length) console.log(`  ${report.generationGaps.length} generation gaps`);
+  if (registration.lifecycle === 'accepted' && !report.playable) process.exitCode = 1;
+}
+
+async function promoteGameCommand(game: string): Promise<void> {
+  const { gameRegistration } = await import('./games/discovery.ts');
+  const registration = gameRegistration(game, join(projectRoot, 'src/games'));
+  if (registration?.lifecycle !== 'candidate') throw new Error(`${game}: no candidate registration exists`);
+  const { loadRegisteredGameContracts } = await import('./games/contracts.ts');
+  const loaded = (await loadRegisteredGameContracts(['candidate']))
+    .filter(item => item.target.game === game);
+  const { validateGameContract } = await import('./games/contract-validation.ts');
+  for (const scenario of loaded) validateGameContract(scenario.contract, 'accepted');
+  const outputDir = existingGameOutputDir(outRoot, game);
+  const runtimePath = outputDir && join(outputDir, 'runtime-report.json');
+  if (!runtimePath || !existsSync(runtimePath)) {
+    throw new Error(`${game}: generate a runtime report before promotion`);
+  }
+  const runtime = JSON.parse(readFileSync(runtimePath, 'utf8')) as { playable?: boolean };
+  if (!runtime.playable) throw new Error(`${game}: runtime report is not playable`);
+  const audit = spawnSync(process.execPath, [join(projectRoot, 'tools/audit-game-package.ts'), game], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+  });
+  if (audit.status !== 0) throw new Error(`${game}: package audit failed; candidate was not promoted`);
+  const { promoteCandidate } = await import('./games/onboarding.ts');
+  promoteCandidate(projectRoot, game);
+  console.log(`${game}: package audit passed and candidate promoted to accepted`);
 }
 
 async function pipelineFromGraph(game: string): Promise<void> {
