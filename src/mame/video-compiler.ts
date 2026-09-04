@@ -3486,10 +3486,7 @@ function addHandler(
   if (handlers.some(handler => handler.ownerClass === ownerClass && handler.method === fn.name)) {
     return;
   }
-  const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(fn.body))
-    // Container type spelling has no run-time behavior; handlers interact
-    // with the local through ordinary calls after declaration.
-    .replace(/\bstd::vector\s*<[^;{}>]+>\s+(\w+)\s*;/g, 'auto $1;');
+  const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(fn.body));
   handlers.push({
     id: `handler:${ownerClass}.${fn.name}`,
     ownerClass,

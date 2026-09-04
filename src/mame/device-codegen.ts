@@ -957,6 +957,7 @@ function emitCall(
         args,
       );
     }
+    if (name === 'ARRAY') return `[${args.join(', ')}]`;
     if (name === 'sizeof') {
       const operand = expression.args[0];
       const valueType = operand ? expressionValueType(operand, context) : undefined;
@@ -1121,6 +1122,11 @@ function emitValueMemberCall(
 ): string {
   if (expression.callee.kind !== 'member') return `${object}(${args.join(', ')})`;
   const property = expression.callee.property;
+  // normalizeMameExecutionSource lowers std::vector::push_back to Array.push.
+  // A vector is the container value itself, not a C++ pointer to its first
+  // element. Running it through runtime.dereference turns an empty vector into
+  // undefined, so the first push is discarded and it remains empty forever.
+  if (property === 'push') return `(${object}).push(${args.join(', ')})`;
   // A member holding a C++ pointer is a generated pointer at run time, not the
   // thing it points at: `m_vram_space = &space(AS_DATA)` makes every
   // `m_vram_space->read_byte(...)` a call on the wrapper. The interpreter

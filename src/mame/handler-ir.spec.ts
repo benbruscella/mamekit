@@ -558,4 +558,16 @@ assert.equal(
   1,
 );
 
-console.log('handler-ir.spec: 68 passed');
+// M72 constructs its reverse sprite order in a local vector. It must begin as
+// an empty growable container rather than numeric zero, and push_back has the
+// same run-time effect as JavaScript Array.push.
+const localVector = compileMameHandler(normalizeMameExecutionSource(`
+  std::vector<int> order;
+  order.push_back(4);
+  order.push_back(9);
+  return order[1] + order.size();
+`));
+assert.deepEqual(localVector.diagnostics, []);
+assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
+
+console.log('handler-ir.spec: 69 passed');

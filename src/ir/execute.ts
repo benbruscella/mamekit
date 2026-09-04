@@ -1746,7 +1746,7 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     return 0;
   }
   if (name === 'memcpy' || name === 'memmove') {
-    copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
+    copyGeneratedMemory(args[0], args[1], toNumber(args[2]), true);
     return args[0];
   }
   if (name === 'std::copy_n') {
@@ -2643,17 +2643,36 @@ function typeByteWidth(name: string): number {
 /** Resolve the byte view a pointer or container expression addresses. */
 function generatedMemoryView(
   value: unknown,
+  bytewise = false,
 ): { bytes: ArrayLike<unknown>; offset: number } | undefined {
   if (isGeneratedPointer(value)) {
     const source = value.source;
-    return isIndexableMemory(source) ? { bytes: source, offset: value.offset } : undefined;
+    if (!isIndexableMemory(source)) return undefined;
+    if (bytewise && ArrayBuffer.isView(source)) {
+      const view = source as ArrayBufferView;
+      const bytesPerElement = (source as { BYTES_PER_ELEMENT?: number }).BYTES_PER_ELEMENT ?? 1;
+      return {
+        bytes: new Uint8Array(view.buffer, view.byteOffset, view.byteLength),
+        offset: value.offset * bytesPerElement,
+      };
+    }
+    return { bytes: source, offset: value.offset };
+  }
+  if (bytewise && ArrayBuffer.isView(value)) {
+    const view = value as ArrayBufferView;
+    return { bytes: new Uint8Array(view.buffer, view.byteOffset, view.byteLength), offset: 0 };
   }
   return isIndexableMemory(value) ? { bytes: value, offset: 0 } : undefined;
 }
 
-function copyGeneratedMemory(destination: unknown, source: unknown, count: number): void {
-  const target = generatedMemoryView(destination);
-  const origin = generatedMemoryView(source);
+function copyGeneratedMemory(
+  destination: unknown,
+  source: unknown,
+  count: number,
+  bytewise = false,
+): void {
+  const target = generatedMemoryView(destination, bytewise);
+  const origin = generatedMemoryView(source, bytewise);
   if (!target || !origin) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
   for (let index = 0; index < count; index++) {
@@ -2662,7 +2681,7 @@ function copyGeneratedMemory(destination: unknown, source: unknown, count: numbe
 }
 
 function fillGeneratedMemory(destination: unknown, value: number, count: number): void {
-  const target = generatedMemoryView(destination);
+  const target = generatedMemoryView(destination, true);
   if (!target) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
   for (let index = 0; index < count; index++) {
@@ -2802,7 +2821,15 @@ export function generatedContainerAccessor(value: unknown, method: string): unkn
   const length = pointer
     ? Math.max(0, (held.source as ArrayLike<unknown>).length - held.offset)
     : (held as ArrayLike<unknown>).length;
-  if (method === 'bytes' || method === 'size' || method === 'length') return length;
+  if (method === 'bytes') {
+    return !pointer && ArrayBuffer.isView(held)
+      ? (held as ArrayBufferView).byteLength
+      : pointer && ArrayBuffer.isView(held.source)
+        ? Math.max(0, (held.source as ArrayBufferView).byteLength -
+          held.offset * ((held.source as { BYTES_PER_ELEMENT?: number }).BYTES_PER_ELEMENT ?? 1))
+        : length;
+  }
+  if (method === 'size' || method === 'length') return length;
   if (method === 'empty') return length === 0 ? 1 : 0;
   if (method === 'target' || method === 'base' || method === 'get' || method === 'begin') {
     return held;

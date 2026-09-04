@@ -3360,7 +3360,16 @@ export function normalizeMameExecutionSource(source: string): string {
       /\bstd::make_unique\s*<\s*(?:u8|uint8_t)\s*\[\s*\]\s*>\s*\(/g,
       'ALLOC(',
     )
-    .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(');
+    .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(')
+    // A default-constructed local std::vector is an empty, growable array.
+    // Keeping it as an uninitialised declaration materialises numeric zero,
+    // so push_back silently does nothing and a later reverse walk is empty
+    // (M72 builds its complete sprite draw order this way each frame).
+    .replace(
+      /\bstd::vector\s*<[^;{}>]+>\s+(\w+)\s*;/g,
+      'auto $1 = ARRAY();',
+    )
+    .replace(/\.push_back\s*\(/g, '.push(');
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
   )) {

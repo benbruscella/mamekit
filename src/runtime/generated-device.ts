@@ -1377,7 +1377,7 @@ function memoryMember(
   options: GeneratedDeviceOptions,
 ): ArrayLike<number> {
   const memory = member.memory!;
-  if (memory.kind === 'owned') return new Uint8Array(0);
+  if (memory.kind === 'owned') return generatedMemoryArray(memory.elementBytes);
   const tag = (memory.share === 'self' ? options.tag : memory.share)
     ?.replace(/^\^+/, '')
     .replace(/^:/, '');
@@ -1389,6 +1389,25 @@ function memoryMember(
     throw new Error(
       `generated device memory share "${tag ?? memory.share}" is not available for ${member.name}`,
     );
+  }
+  return generatedMemoryArray(memory.elementBytes, bytes);
+}
+
+/** A memory container indexed in the element width declared by its C++ type. */
+function generatedMemoryArray(
+  elementBytes: number,
+  bytes?: Uint8Array,
+): Uint8Array | Uint16Array | Uint32Array {
+  if (!bytes) {
+    if (elementBytes === 2) return new Uint16Array(0);
+    if (elementBytes === 4) return new Uint32Array(0);
+    return new Uint8Array(0);
+  }
+  if (elementBytes === 2) {
+    return new Uint16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
+  }
+  if (elementBytes === 4) {
+    return new Uint32Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 4));
   }
   return bytes;
 }

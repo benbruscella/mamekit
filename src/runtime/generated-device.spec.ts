@@ -218,6 +218,51 @@ assert.throws(
   /memory share "missing" is not available/,
 );
 
+// BUFFERED_SPRITERAM16 has the same source template as the byte device, but
+// both its required share and owned vector are indexed as uint16_t. bytes()
+// remains a byte count and memcpy copies that many bytes between word views.
+registerGeneratedDevice({
+  type: 'MEMORY16_TEST',
+  constants: {},
+  members: [
+    {
+      name: 'm_live',
+      valueType: 'required_shared_ptr<uint16_t>',
+      memory: { kind: 'shared', elementBytes: 2, share: 'self' },
+    },
+    {
+      name: 'm_buffered',
+      valueType: 'std::vector<uint16_t>',
+      memory: { kind: 'owned', elementBytes: 2 },
+    },
+  ],
+  callbacks: [],
+  methods: [
+    method('bytes', '', 'return m_live.bytes();'),
+    method('length', '', 'return bytes() / sizeof(uint16_t);'),
+    method('device_start', '', 'm_buffered.resize(length());'),
+    method('buffer', '', 'return &m_buffered[0];'),
+    method('peek', '', 'return *m_live;'),
+    method('poke', 'uint16_t value', '*m_live = value;'),
+    method('copy', '', 'memcpy(&m_buffered[0], m_live, bytes());'),
+  ],
+  start: 'device_start',
+  summary: { diagnostics: 0 },
+});
+const share16 = Uint8Array.of(0x34, 0x12, 0xcd, 0xab);
+const memory16 = createDevice('MEMORY16_TEST', {
+  tag: 'spriteram16',
+  shares: { spriteram16: share16 },
+});
+assert.equal(memory16.call('bytes'), 4);
+assert.equal(memory16.call('length'), 2);
+assert.equal(memory16.call('peek'), 0x1234);
+memory16.call('poke', 0x5678);
+assert.deepEqual([...share16.slice(0, 2)], [0x78, 0x56]);
+memory16.call('copy');
+const buffered16 = memory16.invoke('buffer') as { source?: Uint16Array };
+assert.deepEqual([...(buffered16.source ?? new Uint16Array(0))], [0x5678, 0xabcd]);
+
 // Generated slots instantiate a source-selected child definition and expose it
 // through the card member used by the parent's compiled MAME methods.
 registerGeneratedDevice({
