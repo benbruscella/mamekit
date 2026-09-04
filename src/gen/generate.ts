@@ -1259,6 +1259,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                 deviceTypes: snChips.map(chip => String(chip.props.type)),
                 clocks: snChips.map(chip => Number(chip.props.clock)),
                 ...(snRoutes.length ? { routes: snRoutes } : {}),
+                ...(auxiliaryAudioDevices.length
+                  ? { auxiliaryDevices: auxiliaryAudioDevices }
+                  : {}),
               };
             })()
           : pokeyChips.length

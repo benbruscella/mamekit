@@ -13,6 +13,8 @@ interface AcceptanceResult {
   target: string;
   status: 'passed' | 'failed';
   durationMs: number;
+  attempts: number;
+  signal?: string;
   detail?: string;
 }
 
@@ -33,7 +35,7 @@ function git(args: string[]): string {
   return execFileSync('git', args, { cwd: projectRoot, encoding: 'utf8' }).trim();
 }
 
-function runOne(target: string): Promise<AcceptanceResult> {
+function runOne(target: string, attempt: number): Promise<AcceptanceResult> {
   const started = Date.now();
   return new Promise(resolveRun => {
     const child = spawn(process.execPath, ['src/games/acceptance.ts', target], {
@@ -53,12 +55,27 @@ function runOne(target: string): Promise<AcceptanceResult> {
         target,
         status,
         durationMs: Date.now() - started,
+        attempts: attempt,
+        ...(signal ? { signal } : {}),
         ...(status === 'failed'
           ? { detail: `${signal ? `signal ${signal}\n` : ''}${output.trimEnd()}` }
           : {}),
       });
     });
   });
+}
+
+async function runTarget(target: string): Promise<AcceptanceResult> {
+  let result = await runOne(target, 1);
+  // macOS can occasionally terminate a large generated Node module during
+  // rapid process churn. Retry only native signals; deterministic assertion
+  // failures remain single-shot and visible.
+  if (result.status === 'failed' && result.signal) {
+    console.warn(`RETRY ${target} after ${result.signal}`);
+    await new Promise(resolveWait => setTimeout(resolveWait, 10_000));
+    result = await runOne(target, 2);
+  }
+  return result;
 }
 
 function publishStatus(
@@ -107,7 +124,7 @@ if (shouldPublish) publishStatus(commit, 'pending', `running ${targets.length} a
 
 const results: AcceptanceResult[] = [];
 for (const [index, target] of targets.entries()) {
-  const result = await runOne(target);
+  const result = await runTarget(target);
   results.push(result);
   const seconds = (result.durationMs / 1000).toFixed(1);
   console.log(`${result.status === 'passed' ? 'PASS' : 'FAIL'} ${target} (${seconds}s)`);

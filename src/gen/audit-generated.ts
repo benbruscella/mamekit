@@ -21,6 +21,27 @@ export interface GeneratedAudit {
   failures: string[];
 }
 
+interface GeneratedSoundSurface {
+  kind?: string;
+  auxiliaryDevices?: { type?: string; deviceTag?: string }[];
+}
+
+/** Ensure the shell/worklet receives every secondary stream the board emits. */
+export function auxiliarySoundConfigFailures(
+  target: string,
+  boardSound?: GeneratedSoundSurface,
+  appSound?: GeneratedSoundSurface,
+): string[] {
+  const app = new Set((appSound?.auxiliaryDevices ?? [])
+    .map(device => `${device.deviceTag}:${device.type}`));
+  return (boardSound?.auxiliaryDevices ?? []).flatMap(device => {
+    const key = `${device.deviceTag}:${device.type}`;
+    return app.has(key)
+      ? []
+      : [`${target}: board IR routes auxiliary sound ${key} but the app config omits it`];
+  });
+}
+
 export function auditGenerated(outRoot: string): GeneratedAudit {
   const failures: string[] = [];
   let callbacks = 0;
@@ -221,11 +242,12 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     const boardJsonPath = join(dir, 'generated/board.json');
     if (existsSync(configPath) && existsSync(boardJsonPath)) {
       const boardSound = (JSON.parse(readFileSync(boardJsonPath, 'utf8')) as {
-        sound?: { kind?: string };
+        sound?: GeneratedSoundSurface;
       }).sound;
       const appSound = (JSON.parse(readFileSync(configPath, 'utf8')) as {
-        sound?: { kind?: string; worklet?: string };
+        sound?: GeneratedSoundSurface & { worklet?: string };
       }).sound;
+      failures.push(...auxiliarySoundConfigFailures(target, boardSound, appSound));
       if (boardSound?.kind && boardSound.kind !== 'none') {
         if (!appSound?.kind || appSound.kind === 'none') {
           failures.push(

@@ -42,8 +42,11 @@ export const trackfld = sourceTarget({
       writes: 18309,
       nonzeroWrites: 14521,
       writeHash: 'ee50fc93',
-      pcmHash: '3597f277',
-      rms: 0.057509,
+      // VLM5030 commands remain in the exact source write trace but no longer
+      // mutate SN76489 registers. Speech stays an explicit generation gap
+      // until its own core is executable; invented PSG noise is not speech.
+      pcmHash: 'e9d18bb6',
+      rms: 0.029277,
     },
   },
 });
