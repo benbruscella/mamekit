@@ -43,6 +43,10 @@ jobs:
             runner: macos-15
     env:
       MAME_SRC: ${{ github.workspace }}/.mame
+      # Node's arm64 default stopped at 2 GB while tsc compiled the unified
+      # generated app. The hosted macOS VM has 7 GB; keep enough headroom for
+      # the OS while allowing the same build that succeeds on x64.
+      NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - name: Check out MAMEKIT
         uses: actions/checkout@v6
