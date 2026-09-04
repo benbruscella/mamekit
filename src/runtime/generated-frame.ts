@@ -100,15 +100,17 @@ export class GeneratedFrameRunner {
     this.eventPhase = options.eventPhase ?? 'after-processors';
     this.onEvent = options.onEvent;
     this.onLine = options.onLine;
-    const clocks = new Map(
-      options.machine.execution.cpus.map(cpu => [cpu.tag, cpu.cycleClock ?? cpu.clock]),
-    );
+    const clocks = new Map([
+      ...options.machine.execution.cpus.map(cpu => [cpu.tag, cpu.cycleClock ?? cpu.clock] as const),
+      ...(options.machine.execution.participants ?? []).map(participant =>
+        [participant.tag, participant.cycleClock ?? participant.clock] as const),
+    ]);
     const denominator =
       options.machine.execution.screen.refresh * options.machine.execution.screen.vtotal;
     this.processors = options.processors.map(processor => {
       const clock = processor.clock ?? clocks.get(processor.tag);
       if (clock === undefined) {
-        throw new Error(`generated frame plan has no CPU clock for "${processor.tag}"`);
+        throw new Error(`generated frame plan has no execute-participant clock for "${processor.tag}"`);
       }
       return { processor, cyclesPerLine: clock / denominator, carry: 0 };
     });

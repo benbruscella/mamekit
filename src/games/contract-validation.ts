@@ -13,8 +13,10 @@ function natural(value: number, label: string, allowZero = false): void {
 }
 
 function actionEnd(action: GameInputAction): number {
-  return 'code' in action
+  return 'heldFrames' in action
     ? action.atFrame + action.heldFrames + action.releasedFrames
+    : 'assertedFrames' in action
+      ? action.atFrame + action.assertedFrames
     : action.atFrame;
 }
 
@@ -76,6 +78,21 @@ export function validateGameContract(
       invariant(Boolean(action.code), `${prefix}: input action has no key code`);
       natural(action.heldFrames, `${prefix}: held frames`, true);
       natural(action.releasedFrames, `${prefix}: released frames`, true);
+    } else if ('codes' in action) {
+      invariant(action.codes.length > 1 && action.codes.every(Boolean),
+        `${prefix}: chord action needs at least two key codes`);
+      invariant(new Set(action.codes).size === action.codes.length,
+        `${prefix}: chord action has duplicate key codes`);
+      natural(action.heldFrames, `${prefix}: held frames`, true);
+      natural(action.releasedFrames, `${prefix}: released frames`, true);
+    } else if ('analog' in action) {
+      invariant(Boolean(action.analog), `${prefix}: analog action has no control`);
+      invariant(Number.isFinite(action.value) && action.value >= -1 && action.value <= 1,
+        `${prefix}: analog value must be between -1 and 1`);
+      natural(action.heldFrames, `${prefix}: held frames`, true);
+      natural(action.releasedFrames, `${prefix}: released frames`, true);
+    } else if ('signal' in action) {
+      natural(action.assertedFrames, `${prefix}: asserted frames`);
     }
     const end = actionEnd(action);
     invariant(end <= contract.frames, `${prefix}: input action exceeds frame count`);

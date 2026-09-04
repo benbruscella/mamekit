@@ -7,12 +7,39 @@ export interface GameKeyAction {
   releasedFrames: number;
 }
 
+export interface GameChordAction {
+  atFrame: number;
+  /** Keys held together, for keyboard matrices and multiplayer controls. */
+  codes: string[];
+  heldFrames: number;
+  releasedFrames: number;
+}
+
+export interface GameAnalogAction {
+  atFrame: number;
+  analog: string;
+  value: number;
+  heldFrames: number;
+  releasedFrames: number;
+}
+
+export interface GameMachineSignalAction {
+  atFrame: number;
+  signal: 'nmi' | 'reset' | 'break' | 'restore';
+  assertedFrames: number;
+}
+
 export interface GameResetAction {
   atFrame: number;
   reset: true;
 }
 
-export type GameInputAction = GameKeyAction | GameResetAction;
+export type GameInputAction =
+  | GameKeyAction
+  | GameChordAction
+  | GameAnalogAction
+  | GameMachineSignalAction
+  | GameResetAction;
 
 export interface GameCheckpointGolden {
   video: string;

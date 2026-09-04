@@ -47,6 +47,13 @@ export interface HandlerRegistry {
 // than making every NOP/unmapped range read high.
 const OPEN_BUS = 0x00;
 
+/** Convert a native MAME space address to the byte-indexed backing bus. */
+export function byteAddress(address: number, addressShift = 0): number {
+  if (!Number.isInteger(addressShift)) throw new Error('address shift must be an integer');
+  if (addressShift < 0) return Math.floor(address / 2 ** -addressShift);
+  return address * 2 ** addressShift;
+}
+
 function wordReadHandler(handler: ReadHandler, littleEndian = false): ReadHandler {
   return (address, offset) => {
     const lowByte = littleEndian ? (address & 1) === 0 : (address & 1) !== 0;

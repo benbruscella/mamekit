@@ -16,18 +16,25 @@ const SOUND_KINDS = new Set<GameSoundKind>([
   'ym2151', 'samples', 'berzerk', 'exidy', 'none',
 ]);
 
-function mediaFor(category: ReturnType<typeof gameCategory>): MediaCapability[] {
+function mediaFor(
+  category: ReturnType<typeof gameCategory>,
+  graph: KnowledgeGraph,
+): MediaCapability[] {
+  const softwareLists = graph.nodes
+    .filter(node => node.label === 'SoftwareList')
+    .map(node => String(node.props.name ?? ''));
+  const lists = (pattern: RegExp) => softwareLists.filter(name => pattern.test(name));
   if (category === 'arcade') return [{ kind: 'romset', status: 'candidate' }];
   if (category === 'consoles') return [
     { kind: 'bios', status: 'planned' },
-    { kind: 'cartridge', status: 'candidate' },
+    { kind: 'cartridge', status: 'candidate', ...(lists(/cart/i).length ? { softwareLists: lists(/cart/i) } : {}) },
   ];
   return [
     { kind: 'bios', status: 'candidate' },
-    { kind: 'cartridge', status: 'planned' },
-    { kind: 'quickload', status: 'planned' },
-    { kind: 'cassette', status: 'planned' },
-    { kind: 'floppy', status: 'planned' },
+    { kind: 'cartridge', status: 'planned', ...(lists(/cart/i).length ? { softwareLists: lists(/cart/i) } : {}) },
+    { kind: 'quickload', status: 'planned', ...(lists(/qui(?:k|ck)|prg/i).length ? { softwareLists: lists(/qui(?:k|ck)|prg/i) } : {}) },
+    { kind: 'cassette', status: 'planned', ...(lists(/cass|tape/i).length ? { softwareLists: lists(/cass|tape/i) } : {}) },
+    { kind: 'floppy', status: 'planned', ...(lists(/flop|disk/i).length ? { softwareLists: lists(/flop|disk/i) } : {}) },
   ];
 }
 
@@ -61,7 +68,7 @@ export function deriveCandidateContract(
         height: config.board.screen.height,
       },
       soundKind,
-      media: mediaFor(category),
+      media: mediaFor(category, graph),
     },
     scenarios: [{
       id: 'gameplay',

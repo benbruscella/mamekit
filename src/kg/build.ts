@@ -1135,7 +1135,15 @@ export function evaluateTimerSchedule(
   const callbackProgram = compileMameHandler(callback.body);
   if (resetProgram.diagnostics.length || callbackProgram.diagnostics.length) return undefined;
 
-  executeGeneratedHandler(resetProgram, bindings);
+  try {
+    executeGeneratedHandler(resetProgram, bindings);
+  } catch {
+    // Timer probing is best-effort static evaluation. A reset routine may
+    // touch unrelated structs/devices that the probe intentionally does not
+    // instantiate; retain the source callback and let runtime reporting name
+    // the unresolved schedule instead of aborting graph extraction.
+    return undefined;
+  }
   if (!Number.isFinite(adjustedLine)) return undefined;
   currentLine = Math.trunc(adjustedLine!);
   let currentParam = adjustedParam;
@@ -1144,7 +1152,11 @@ export function evaluateTimerSchedule(
     if (lines.includes(currentLine)) return lines.length > 1 ? { scanlines: lines } : undefined;
     lines.push(currentLine);
     adjustedLine = undefined;
-    executeGeneratedHandler(callbackProgram, bindings, { param: currentParam });
+    try {
+      executeGeneratedHandler(callbackProgram, bindings, { param: currentParam });
+    } catch {
+      return undefined;
+    }
     if (!Number.isFinite(adjustedLine)) return undefined;
     currentLine = Math.trunc(adjustedLine!);
     currentParam = adjustedParam;

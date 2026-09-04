@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { RuntimeReport } from './runtime-report.ts';
@@ -22,11 +22,40 @@ export interface CapabilityGapReport {
   peripheralMachines: { device: string; type: string; reason: string }[];
   sourceTemplates: { owner: string; method: string; parameters: string }[];
   generationGaps: string[];
+  nextSteps: { gap: string; owner: string }[];
   sharedGapCapabilities: { capability: string; games: string[] }[];
 }
 
 function text(value: unknown): string | undefined {
   return typeof value === 'string' && value ? value : undefined;
+}
+
+function sourceFunctionTemplates(graph: KnowledgeGraph): CapabilityGapReport['sourceTemplates'] {
+  if (!graph.meta.mameSrc) return [];
+  const found: CapabilityGapReport['sourceTemplates'] = [];
+  for (const node of graph.nodes.filter(node => node.label === 'SourceFile')) {
+    const relative = text(node.props.path);
+    const path = relative && join(graph.meta.mameSrc, relative);
+    if (!path || !existsSync(path)) continue;
+    const source = readFileSync(path, 'utf8');
+    for (const match of source.matchAll(
+      /template\s*<([^>]+)>\s*[\w:<>&*\s]+\s+(?:(\w+)::)?(\w+)\s*\(/g,
+    )) {
+      found.push({ owner: match[2] ?? '', method: match[3]!, parameters: match[1]!.trim() });
+    }
+  }
+  return found.filter((entry, index) => found.findIndex(candidate =>
+    candidate.owner === entry.owner && candidate.method === entry.method &&
+    candidate.parameters === entry.parameters) === index);
+}
+
+function gapOwner(gap: string): string {
+  if (/no supported CPU|TMS|CPU/i.test(gap)) return 'CPU compiler / address-space capability';
+  if (/screen|video|palette|shiftreg|scanline/i.test(gap)) return 'video compiler / display-device capability';
+  if (/sound|YM|DAC|OKI|SID/i.test(gap)) return 'audio compiler / sound-device capability';
+  if (/bank|board IR|callback/i.test(gap)) return 'machine lowering / typed BoardIR';
+  if (/template|DMA|blit/i.test(gap)) return 'function-template / DMA compiler';
+  return 'hardware capability closure';
 }
 
 export function buildCapabilityGapReport(
@@ -100,14 +129,18 @@ export function buildCapabilityGapReport(
       type: String(node.props.type),
       reason: 'media or bus device may require an independently executable peripheral capability',
     })),
-    sourceTemplates: graph.nodes.filter(node =>
-      node.label === 'Handler' && /(?:^|,)\s*(?:unsigned|int|size_t|bool)\s+\w+/.test(String(node.props.sourceParameters ?? '')),
-    ).map(node => ({
-      owner: String(node.props.ownerClass),
-      method: String(node.props.method),
-      parameters: String(node.props.sourceParameters),
-    })),
+    sourceTemplates: [
+      ...sourceFunctionTemplates(graph),
+      ...graph.nodes.filter(node =>
+        node.label === 'Handler' && /(?:^|,)\s*(?:unsigned|int|size_t|bool)\s+\w+/.test(String(node.props.sourceParameters ?? '')),
+      ).map(node => ({
+        owner: String(node.props.ownerClass),
+        method: String(node.props.method),
+        parameters: String(node.props.sourceParameters),
+      })),
+    ],
     generationGaps,
+    nextSteps: generationGaps.map(gap => ({ gap, owner: gapOwner(gap) })),
     sharedGapCapabilities: generationGaps.flatMap(capability => {
       const games = [...(peerGames.get(capability) ?? [])].filter(peer => peer !== game).sort();
       return games.length ? [{ capability, games }] : [];
@@ -129,11 +162,39 @@ export function capabilityGapMarkdown(report: CapabilityGapReport): string {
     '## Generation gaps', '',
     ...(report.generationGaps.length ? report.generationGaps.map(gap => `- ${gap}`) : ['- None reported']),
   ];
+  if (report.nextSteps.length) {
+    lines.push('', '## Next compiler work', '');
+    for (const step of report.nextSteps) lines.push(`- ${step.owner}: ${step.gap}`);
+  }
   if (report.sharedGapCapabilities.length) {
     lines.push('', '## Shared opportunities', '');
     for (const shared of report.sharedGapCapabilities) {
       lines.push(`- ${shared.capability} — also needed by ${shared.games.join(', ')}`);
     }
+  }
+  lines.push('', '## Machine capabilities', '');
+  for (const device of report.hardware) {
+    lines.push(`- \`${device.tag}\`: ${device.type}${device.clock ? ` @ ${device.clock} Hz` : ''}`);
+  }
+  if (report.addressSpaces.length) {
+    lines.push('', '## Address spaces', '');
+    for (const space of report.addressSpaces) {
+      lines.push(
+        `- \`${space.owner}.${space.name}\`: ${space.ranges} ranges` +
+        `${space.width ? `, ${space.width}-bit` : ''}${space.shift !== undefined ? `, shift ${space.shift}` : ''}` +
+        `${space.endianness ? `, ${space.endianness}-endian` : ''}`,
+      );
+    }
+  }
+  if (report.sourceTemplates.length) {
+    lines.push('', '## Source templates', '');
+    for (const template of report.sourceTemplates) {
+      lines.push(`- \`${template.owner ? `${template.owner}::` : ''}${template.method}<${template.parameters}>\``);
+    }
+  }
+  if (report.media.length) {
+    lines.push('', '## Software/media lists', '');
+    for (const medium of report.media) lines.push(`- \`${medium.tag}\`: ${medium.list}`);
   }
   return `${lines.join('\n')}\n`;
 }
@@ -142,13 +203,39 @@ export function writeCapabilityGapReport(
   outputDir: string,
   graph: KnowledgeGraph,
   peers: CapabilityGapReport[] = [],
+  additionalGaps: string[] = [],
 ): CapabilityGapReport {
   const runtimePath = join(outputDir, 'runtime-report.json');
   const runtime = existsSync(runtimePath)
     ? JSON.parse(readFileSync(runtimePath, 'utf8')) as RuntimeReport
     : undefined;
-  const report = buildCapabilityGapReport(graph, runtime, peers);
+  const report = buildCapabilityGapReport(
+    graph,
+    runtime ? {
+      ...runtime,
+      generationGaps: [...new Set([...runtime.generationGaps, ...additionalGaps])],
+    } : additionalGaps.length ? { generationGaps: additionalGaps } as RuntimeReport : undefined,
+    peers,
+  );
   writeFileSync(join(outputDir, 'capability-gap.json'), JSON.stringify(report, null, 2));
   writeFileSync(join(outputDir, 'CAPABILITY_GAP.md'), capabilityGapMarkdown(report));
   return report;
+}
+
+/** Read prior isolated candidate reports so platform work is visible across targets. */
+export function readCapabilityGapReports(root: string): CapabilityGapReport[] {
+  if (!existsSync(root)) return [];
+  const reports: CapabilityGapReport[] = [];
+  const pending = [root];
+  while (pending.length) {
+    const dir = pending.pop()!;
+    for (const entry of readdirSync(dir)) {
+      const path = join(dir, entry);
+      if (statSync(path).isDirectory()) pending.push(path);
+      else if (entry === 'capability-gap.json') {
+        reports.push(JSON.parse(readFileSync(path, 'utf8')) as CapabilityGapReport);
+      }
+    }
+  }
+  return reports;
 }

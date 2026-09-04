@@ -206,6 +206,12 @@ export interface GeneratedDevice {
   /** Source-declared slot option table/default from the machine config. */
   slotOptions?: string;
   slotDefault?: string;
+  /** Address spaces owned by an executing device rather than a board CPU. */
+  addressSpaces?: {
+    semantics: GeneratedAddressSpaceSemantics;
+    ranges: RangeSpec[];
+    globalMask?: number;
+  }[];
   source?: BoardSourceRef;
 }
 
@@ -385,6 +391,17 @@ export interface GeneratedAddressMap {
   source?: BoardSourceRef;
 }
 
+/** Electrical/addressing properties of one MAME address_space. */
+export interface GeneratedAddressSpaceSemantics {
+  /** Device that owns the space; not necessarily a CPU. */
+  ownerTag: string;
+  name: 'program' | 'io' | 'opcodes' | string;
+  dataWidth: 8 | 16 | 32 | 64;
+  /** MAME address shift: -3 means native addresses select individual bits. */
+  addressShift: number;
+  endianness: 'big' | 'little';
+}
+
 export interface GeneratedExecutionCpu {
   tag: string;
   type?: string;
@@ -396,6 +413,8 @@ export interface GeneratedExecutionCpu {
   /** Source handler mapped in the CPU's interrupt-acknowledge address space. */
   interruptAcknowledge?: string;
   region: string;
+  /** Explicit source CPU-space semantics; no runtime CPU-family inference required. */
+  space?: GeneratedAddressSpaceSemantics;
   ranges?: RangeSpec[];
   mask?: number;
   /** Optional AS_OPCODES map/region, distinct from program data reads. */
@@ -404,7 +423,7 @@ export interface GeneratedExecutionCpu {
     region: string;
     globalMask?: number;
   };
-  io?: { ranges: RangeSpec[]; globalMask?: number };
+  io?: { ranges: RangeSpec[]; globalMask?: number; space?: GeneratedAddressSpaceSemantics };
   interruptVectorWriters?: string[];
   source?: BoardSourceRef;
 }
@@ -424,6 +443,12 @@ export interface GeneratedScreen {
   /** Rendering cadence requested by MAME screen attributes or update_partial calls. */
   updateMode?: 'frame' | 'scanline' | 'partial';
   rotate: number;
+  /** SCREEN, CPU, or video device responsible for producing pixels. */
+  ownerTag?: string;
+  ownerKind?: 'screen' | 'cpu' | 'device';
+  pixelClock?: number;
+  scanlineCallback?: string;
+  shiftRegisterCallbacks?: { read?: string; write?: string };
   source?: BoardSourceRef;
 }
 
@@ -440,6 +465,17 @@ export interface GeneratedFrameEvent {
 
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /** Every independently clocked execute participant, CPUs included. */
+  participants?: {
+    tag: string;
+    kind: 'cpu' | 'device' | 'dma' | 'dsp' | 'peripheral';
+    clock: number;
+    cycleClock?: number;
+    space?: GeneratedAddressSpaceSemantics;
+    /** Participants this bus master may stall while it owns a shared bus. */
+    stallTargets?: string[];
+    arbitration?: 'fixed-priority' | 'round-robin' | 'source-callback';
+  }[];
   /**
    * MAME required/optional_region_ptr member -> ROM region tag, declared by the
    * driver's own state class. The video plan carries the same map for boards
@@ -1083,6 +1119,23 @@ export interface BoardIr {
   maps?: GeneratedAddressMap[];
   video?: GeneratedVideoPlan;
   sound?: GeneratedSoundBinding;
+  /** Optional host/peripheral topology and mountable media, kept separate from execution. */
+  composition?: {
+    machines: { id: string; role: 'host' | 'peripheral'; target?: string }[];
+    buses: {
+      id: string;
+      kind: string;
+      participants: string[];
+      arbitration?: 'fixed-priority' | 'round-robin' | 'source-callback';
+    }[];
+    media: {
+      id: string;
+      kind: 'bios' | 'romset' | 'device-rom' | 'cartridge' | 'quickload' | 'cassette' | 'floppy';
+      machine: string;
+      interface?: string;
+      required: boolean;
+    }[];
+  };
   /**
    * Direct JavaScript for handlers whose IR shape shows nested hot loops,
    * attached by the generated board module at load time.

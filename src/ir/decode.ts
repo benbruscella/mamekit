@@ -131,6 +131,7 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
   decodeStateMembers(reader, root.stateMembers);
   decodeVideo(reader, root.video);
   decodeSound(reader, root.sound);
+  decodeComposition(reader, root.composition);
 
   if (reader.diagnostics.length) {
     throw new BoardIrError(game || subject, reader.diagnostics);
@@ -361,6 +362,7 @@ function decodeExecution(reader: Reader, value: unknown): void {
     reader.optionalString(cpu.type, `${path}.type`, source);
     reader.number(cpu.clock, `${path}.clock`, source);
     reader.string(cpu.region, `${path}.region`, source);
+    if (cpu.space !== undefined) decodeAddressSpace(reader, cpu.space, `${path}.space`, source);
     if (cpu.ranges !== undefined) decodeRanges(reader, cpu.ranges, `${path}.ranges`, source);
     if (cpu.opcode !== undefined) {
       const opcode = reader.object(cpu.opcode, `${path}.opcode`, source);
@@ -371,6 +373,21 @@ function decodeExecution(reader: Reader, value: unknown): void {
     if (cpu.io !== undefined) {
       const io = reader.object(cpu.io, `${path}.io`, source);
       decodeRanges(reader, io.ranges, `${path}.io.ranges`, source);
+      if (io.space !== undefined) decodeAddressSpace(reader, io.space, `${path}.io.space`, source);
+    }
+  }
+
+  if (execution.participants !== undefined) {
+    for (const [index, entry] of reader.array(execution.participants, 'execution.participants').entries()) {
+      const path = `execution.participants[${index}]`;
+      const participant = reader.object(entry, path);
+      reader.string(participant.tag, `${path}.tag`);
+      reader.string(participant.kind, `${path}.kind`);
+      reader.number(participant.clock, `${path}.clock`);
+      reader.optionalNumber(participant.cycleClock, `${path}.cycleClock`);
+      if (participant.space !== undefined) {
+        decodeAddressSpace(reader, participant.space, `${path}.space`);
+      }
     }
   }
 
@@ -390,6 +407,10 @@ function decodeExecution(reader: Reader, value: unknown): void {
   for (const field of ['width', 'height', 'refresh', 'vtotal', 'vbstart', 'rotate']) {
     reader.number(screen[field], `execution.screen.${field}`, screenSource);
   }
+  reader.optionalString(screen.ownerTag, 'execution.screen.ownerTag', screenSource);
+  reader.optionalString(screen.ownerKind, 'execution.screen.ownerKind', screenSource);
+  reader.optionalNumber(screen.pixelClock, 'execution.screen.pixelClock', screenSource);
+  reader.optionalString(screen.scanlineCallback, 'execution.screen.scanlineCallback', screenSource);
 
   for (const [index, entry] of reader.array(
     execution.frameEvents, 'execution.frameEvents').entries()) {
@@ -453,6 +474,20 @@ function decodeExecution(reader: Reader, value: unknown): void {
   }
 }
 
+function decodeAddressSpace(
+  reader: Reader,
+  value: unknown,
+  path: string,
+  source?: BoardSourceRef,
+): void {
+  const space = reader.object(value, path, source);
+  reader.string(space.ownerTag, `${path}.ownerTag`, source);
+  reader.string(space.name, `${path}.name`, source);
+  reader.number(space.dataWidth, `${path}.dataWidth`, source);
+  reader.number(space.addressShift, `${path}.addressShift`, source);
+  reader.string(space.endianness, `${path}.endianness`, source);
+}
+
 function decodeRanges(
   reader: Reader,
   value: unknown,
@@ -500,6 +535,37 @@ function decodeDevices(reader: Reader, value: unknown): void {
     reader.optionalString(device.hostTag, `${path}.hostTag`, source);
     reader.optionalString(device.member, `${path}.member`, source);
     reader.optionalNumber(device.clock, `${path}.clock`, source);
+    if (device.addressSpaces !== undefined) {
+      for (const [position, raw] of reader.array(
+        device.addressSpaces, `${path}.addressSpaces`, source).entries()) {
+        const spacePath = `${path}.addressSpaces[${position}]`;
+        const space = reader.object(raw, spacePath, source);
+        decodeAddressSpace(reader, space.semantics, `${spacePath}.semantics`, source);
+        decodeRanges(reader, space.ranges, `${spacePath}.ranges`, source);
+      }
+    }
+  }
+}
+
+function decodeComposition(reader: Reader, value: unknown): void {
+  if (value === undefined) return;
+  const composition = reader.object(value, 'composition');
+  for (const [index, raw] of reader.array(composition.machines, 'composition.machines').entries()) {
+    const machine = reader.object(raw, `composition.machines[${index}]`);
+    reader.string(machine.id, `composition.machines[${index}].id`);
+    reader.string(machine.role, `composition.machines[${index}].role`);
+  }
+  for (const [index, raw] of reader.array(composition.buses, 'composition.buses').entries()) {
+    const bus = reader.object(raw, `composition.buses[${index}]`);
+    reader.string(bus.id, `composition.buses[${index}].id`);
+    reader.string(bus.kind, `composition.buses[${index}].kind`);
+    reader.array(bus.participants, `composition.buses[${index}].participants`);
+  }
+  for (const [index, raw] of reader.array(composition.media, 'composition.media').entries()) {
+    const medium = reader.object(raw, `composition.media[${index}]`);
+    reader.string(medium.id, `composition.media[${index}].id`);
+    reader.string(medium.kind, `composition.media[${index}].kind`);
+    reader.string(medium.machine, `composition.media[${index}].machine`);
   }
 }
 

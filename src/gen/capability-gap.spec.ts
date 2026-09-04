@@ -30,6 +30,7 @@ assert.equal(report.media[0]?.list, 'c64_flop');
 assert.equal(report.firmware[0]?.loads, 1);
 assert.equal(report.inputs.keyboardFields, 1);
 assert.deepEqual(report.sharedGapCapabilities[0]?.games, ['mk']);
+assert.match(report.nextSteps[0]?.owner ?? '', /hardware capability/);
 assert.match(capabilityGapMarkdown(report), /Shared opportunities/);
 
 console.log('capability-gap.spec: ambitious target report passed');

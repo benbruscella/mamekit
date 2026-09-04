@@ -1,4 +1,4 @@
-import { Bus, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
+import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
 import {
@@ -1176,9 +1176,9 @@ class IrBoard implements Board {
         rom,
         registry,
         this.shares,
-        generatedCpuDataWidth(type),
+        specification.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(type),
         regions,
-        generatedCpuEndianness(type),
+        specification.space?.endianness ?? generatedCpuEndianness(type),
       );
       this.cpuBuses.set(specification.tag, bus);
       // A cartridge's read taps observe the CPU's own space. They answer
@@ -1224,9 +1224,9 @@ class IrBoard implements Board {
           new Uint8Array(0),
           registry,
           this.shares,
-          generatedCpuDataWidth(type),
+          specification.io.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(type),
           undefined,
-          generatedCpuEndianness(type),
+          specification.io.space?.endianness ?? generatedCpuEndianness(type),
         );
         const mask = specification.io.globalMask ?? 0xffff;
         bus.in = port => ioBus.read(port & mask);
@@ -1246,25 +1246,27 @@ class IrBoard implements Board {
         calls[`${owner}.space`] = () => programSpace;
       }
       const mask = specification.mask ?? 0xffff;
+      const busAddress = (address: number) =>
+        byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       let previousTimingCycles = 0;
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       const cpu = createCpu(type, {
-        read: address => bus.read(address & mask),
+        read: address => bus.read(busAddress(address)),
         // Keep native 16-bit address-map handlers atomic. In particular,
         // Neo Geo's palette RAM self-test writes complete 68000 words; losing
         // these methods here makes the CPU fall back to two byte transactions
         // and the second byte overwrites the first handler value.
-        read16be: address => bus.read16be(address & mask),
+        read16be: address => bus.read16be(busAddress(address)),
         // A 68000 long access is two word accesses on the real bus, so keep
         // it that way: address-space taps must see the same two.
-        read32be: address => bus.read32be(address & mask),
+        read32be: address => bus.read32be(busAddress(address)),
         ...(bus.readOpcode ? {
           // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
           readOpcode: address => bus.readOpcode!(address),
         } : {}),
-        write: (address, data) => bus.write(address & mask, data),
-        write16be: (address, data) => bus.write16be(address & mask, data),
-        write32be: (address, data) => bus.write32be(address & mask, data),
+        write: (address, data) => bus.write(busAddress(address), data),
+        write16be: (address, data) => bus.write16be(busAddress(address), data),
+        write32be: (address, data) => bus.write32be(busAddress(address), data),
         in: bus.in,
         out: bus.out,
         ...(specification.interruptAcknowledge ? {

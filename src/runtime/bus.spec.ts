@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { Bus } from './bus.ts';
+import { Bus, byteAddress } from './bus.ts';
+
+assert.equal(byteAddress(0x28, -3), 5, 'bit-addressed spaces lower to byte storage');
+assert.equal(byteAddress(5, 1), 10, 'positive address shifts preserve word-addressed spaces');
 
 const rom = Uint8Array.of(0x11, 0x22, 0x33, 0x44);
 const reads: Array<[number, number]> = [];

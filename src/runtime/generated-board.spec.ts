@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
+import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   applyGeneratedCpuInputLine,
@@ -203,7 +204,7 @@ assert.equal(driverCalls.flip_screen!(), 0);
 
 let compositeCallbackValue = -1;
 const compositeMachine = {
-  schemaVersion: 3,
+  schemaVersion: BOARD_IR_SCHEMA_VERSION,
   game: 'composite-callback-fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',
@@ -323,7 +324,7 @@ registerGeneratedCpu({
   },
 });
 const opcodeMachine: BoardIr = {
-  schemaVersion: 3,
+  schemaVersion: BOARD_IR_SCHEMA_VERSION,
   game: 'opcode-bus-fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',

@@ -271,6 +271,23 @@ export async function runGameAcceptance(
       board.reset();
       continue;
     }
+    if ('codes' in action) {
+      pulseMany(eventTarget, action.codes, runFrame, action.heldFrames, action.releasedFrames);
+      continue;
+    }
+    if ('analog' in action) {
+      analog(eventTarget, action.analog, action.value, true);
+      for (let index = 0; index < action.heldFrames; index++) runFrame();
+      analog(eventTarget, action.analog, 0, false);
+      for (let index = 0; index < action.releasedFrames; index++) runFrame();
+      continue;
+    }
+    if ('signal' in action) {
+      signal(eventTarget, action.signal, true);
+      for (let index = 0; index < action.assertedFrames; index++) runFrame();
+      signal(eventTarget, action.signal, false);
+      continue;
+    }
     pulse(
       eventTarget,
       action.code,
@@ -732,6 +749,31 @@ function pulse(
   for (let index = 0; index < heldFrames; index++) frame();
   key(target, 'keyup', code);
   for (let index = 0; index < releasedFrames; index++) frame();
+}
+
+function pulseMany(
+  target: EventTarget,
+  codes: string[],
+  frame: () => void,
+  heldFrames: number,
+  releasedFrames: number,
+): void {
+  for (const code of codes) key(target, 'keydown', code);
+  for (let index = 0; index < heldFrames; index++) frame();
+  for (const code of [...codes].reverse()) key(target, 'keyup', code);
+  for (let index = 0; index < releasedFrames; index++) frame();
+}
+
+function analog(target: EventTarget, control: string, value: number, active: boolean): void {
+  target.dispatchEvent(new CustomEvent('mamekit-analog', {
+    detail: { control, value, active },
+  }));
+}
+
+function signal(target: EventTarget, name: string, asserted: boolean): void {
+  target.dispatchEvent(new CustomEvent('mamekit-signal', {
+    detail: { name, asserted },
+  }));
 }
 
 function key(target: EventTarget, type: 'keydown' | 'keyup', code: string): void {

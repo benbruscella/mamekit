@@ -69,6 +69,13 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       fail(`execution.cpus[${index}].tag`, `duplicate CPU tag "${cpu.tag}"`, cpu.source);
     }
     cpuTags.add(cpu.tag);
+    if (cpu.space && cpu.space.ownerTag !== cpu.tag) {
+      fail(
+        `execution.cpus[${index}].space.ownerTag`,
+        `program space owner "${cpu.space.ownerTag}" does not match CPU "${cpu.tag}"`,
+        cpu.source,
+      );
+    }
     // Every CPU is also a MAME device; the two lists describing the same chip
     // differently is how a board ends up wiring interrupts to nothing.
     if (!deviceTags.has(cpu.tag)) {
@@ -88,7 +95,30 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     );
   }
 
-  const tags = new Set([...deviceTags, ...cpuTags]);
+  const participantTags = new Set<string>();
+  for (const [index, participant] of (board.execution.participants ?? []).entries()) {
+    if (participantTags.has(participant.tag)) {
+      fail(`execution.participants[${index}].tag`, `duplicate participant "${participant.tag}"`);
+    }
+    participantTags.add(participant.tag);
+    if (!deviceTags.has(participant.tag)) {
+      fail(
+        `execution.participants[${index}].tag`,
+        `execute participant "${participant.tag}" has no matching device`,
+      );
+    }
+    if (!(participant.clock > 0)) {
+      fail(`execution.participants[${index}].clock`, 'execute participant clock must be positive');
+    }
+  }
+
+  const executableCpuTags = new Set([
+    ...cpuTags,
+    ...(board.execution.participants ?? [])
+      .filter(participant => participant.kind === 'cpu')
+      .map(participant => participant.tag),
+  ]);
+  const tags = new Set([...deviceTags, ...executableCpuTags]);
   const handlerKeys = new Set(
     (board.handlers ?? []).map(handler => `${handler.ownerClass}.${handler.method}`),
   );
@@ -187,7 +217,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     }
 
     const effect = connection.effect;
-    if (effect.kind === 'cpu-line' && !cpuTags.has(effect.tag)) {
+    if (effect.kind === 'cpu-line' && !executableCpuTags.has(effect.tag)) {
       fail(
         `${path}.effect.tag`,
         `CPU-line effect targets undeclared CPU "${effect.tag}"`,

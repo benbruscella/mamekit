@@ -306,4 +306,25 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   );
 }
 
-console.log('generated-frame.spec: 17 passed');
+// A video/DMA device can be a first-class execute participant without being
+// mislabeled as a CPU or supplying its clock through a handwritten adapter.
+{
+  let deviceCycles = 0;
+  const participantMachine: BoardIr = {
+    ...machine,
+    execution: {
+      ...machine.execution,
+      participants: [
+        { tag: 'maincpu', kind: 'cpu', clock: 600 },
+        { tag: 'vic', kind: 'device', clock: 300, stallTargets: ['maincpu'], arbitration: 'source-callback' },
+      ],
+    },
+  };
+  new GeneratedFrameRunner({
+    machine: participantMachine,
+    processors: [{ tag: 'vic', run: budget => { deviceCycles += budget; return budget; } }],
+  }).frame(new Uint32Array(1));
+  assert.equal(deviceCycles, 30, 'non-CPU participant receives its source clock budget');
+}
+
+console.log('generated-frame.spec: 18 passed');

@@ -11,6 +11,9 @@ const graph = {
     { id: 'machine:demo_state.demo', label: 'MachineConfig', props: {
       cls: 'demo_state', name: 'demo',
     } },
+    { id: 'soft:demo_cart', label: 'SoftwareList', props: {
+      name: 'demo_cart', tag: 'cart_list',
+    } },
   ],
   edges: [{ from: 'game:demo', to: 'machine:demo_state.demo', rel: 'USES_MACHINE' }],
   meta: { driverFile: 'src/mame/demo/demo.cpp' },
@@ -25,6 +28,10 @@ assert.equal(contract.target.category, 'computers');
 assert.deepEqual(contract.target.screen, { width: 403, height: 284 });
 assert.deepEqual(contract.scenarios[0]?.actions, []);
 assert.ok(contract.target.media?.some(medium => medium.kind === 'floppy'));
+assert.deepEqual(
+  contract.target.media?.find(medium => medium.kind === 'cartridge')?.softwareLists,
+  ['demo_cart'],
+);
 assert.match(renderCandidateModule(contract), /satisfies MachineTargetContract/);
 assert.match(renderCandidateSpec('demo'), /gameSourceGraph\(demo\.target\)/);
 assert.match(renderCandidateModule({ ...contract, target: { ...contract.target, game: '1942' } }),

@@ -593,28 +593,55 @@ if ('serve' in opts || argv.includes('--serve')) {
 }
 
 async function initializeGame(game: string): Promise<void> {
-  await pipeline(game, outRoot, false, true);
+  let generationFailure: unknown;
+  try {
+    await pipeline(game, outRoot, false, true);
+  } catch (error) {
+    generationFailure = error;
+  }
   const outputDir = existingGameOutputDir(outRoot, game);
   if (!outputDir) throw new Error(`${game}: generator did not create an output directory`);
   const graph = JSON.parse(readFileSync(join(outputDir, 'graph.json'), 'utf8'));
   const config = JSON.parse(readFileSync(join(outputDir, 'config.json'), 'utf8'));
   const { deriveCandidateContract, writeCandidateScaffold } = await import('./games/onboarding.ts');
   const written = writeCandidateScaffold(projectRoot, deriveCandidateContract(graph, config));
-  const { writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
-  writeCapabilityGapReport(outputDir, graph);
+  const { readCapabilityGapReports, writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
+  writeCapabilityGapReport(
+    outputDir,
+    graph,
+    readCapabilityGapReports(join(projectRoot, '.cache/dev')),
+    generationFailure ? [String((generationFailure as Error).message)] : [],
+  );
   console.log(`\nmamekit: candidate registered at ${written.modulePath}`);
   console.log(`mamekit: edit ${written.specPath} after play-testing the input scenario`);
+  if (generationFailure) {
+    console.log('mamekit: candidate scaffolded with unresolved generation work; see CAPABILITY_GAP.md');
+  }
 }
 
 async function developGame(game: string): Promise<void> {
   prepareGenCache();
-  await pipeline(game, outRoot, false, true);
-  await emitClosureFromGraphs([game], outRoot);
+  let generationFailure: unknown;
+  try {
+    await pipeline(game, outRoot, false, true);
+  } catch (error) {
+    generationFailure = error;
+  }
   const outputDir = existingGameOutputDir(outRoot, game);
   if (!outputDir) throw new Error(`${game}: generator did not create an output directory`);
   const graph = JSON.parse(readFileSync(join(outputDir, 'graph.json'), 'utf8'));
-  const { writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
-  const report = writeCapabilityGapReport(outputDir, graph);
+  const { readCapabilityGapReports, writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
+  const report = writeCapabilityGapReport(
+    outputDir,
+    graph,
+    readCapabilityGapReports(join(projectRoot, '.cache/dev')),
+    generationFailure ? [String((generationFailure as Error).message)] : [],
+  );
+  if (generationFailure) {
+    console.error(`mamekit: generation blocked; capability dossier written to ${join(outputDir, 'CAPABILITY_GAP.md')}`);
+    throw generationFailure;
+  }
+  await emitClosureFromGraphs([game], outRoot);
   const { buildApp } = await import('./gen/generate.ts');
   if (!await buildApp(outRoot, [game])) process.exitCode = 1;
   console.log(`\nmamekit: isolated build at ${outRoot}`);
