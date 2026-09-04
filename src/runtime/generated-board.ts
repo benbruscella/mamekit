@@ -303,7 +303,11 @@ function generatedCallValue(value: unknown): unknown {
 
 /** Address-map data width exposed by generated CPU families used here. */
 function generatedCpuDataWidth(type: string): 8 | 16 {
-  return ['m68000', 'm68010', 'z8002'].includes(type.toLowerCase()) ? 16 : 8;
+  return ['m68000', 'm68010', 'z8002', 'v30'].includes(type.toLowerCase()) ? 16 : 8;
+}
+
+function generatedCpuEndianness(type: string): 'big' | 'little' {
+  return type.toLowerCase() === 'v30' ? 'little' : 'big';
 }
 
 class IrBoard implements Board {
@@ -1174,6 +1178,7 @@ class IrBoard implements Board {
         this.shares,
         generatedCpuDataWidth(type),
         regions,
+        generatedCpuEndianness(type),
       );
       this.cpuBuses.set(specification.tag, bus);
       // A cartridge's read taps observe the CPU's own space. They answer
@@ -1214,7 +1219,15 @@ class IrBoard implements Board {
         bus.readOpcode = address => opcodeBus.read(address & opcodeMask);
       }
       if (specification.io) {
-        const ioBus = new Bus(specification.io.ranges, new Uint8Array(0), registry, this.shares);
+        const ioBus = new Bus(
+          specification.io.ranges,
+          new Uint8Array(0),
+          registry,
+          this.shares,
+          generatedCpuDataWidth(type),
+          undefined,
+          generatedCpuEndianness(type),
+        );
         const mask = specification.io.globalMask ?? 0xffff;
         bus.in = port => ioBus.read(port & mask);
         bus.out = (port, data) => ioBus.write(port & mask, data);
@@ -1323,15 +1336,7 @@ class IrBoard implements Board {
       const acknowledge = machine.callbacks.find(callback =>
         callback.ownerTag === specification.tag &&
         callback.signal === 'set_irq_acknowledge_callback');
-      const interruptVector = (): number => {
-        return acknowledge
-          ? executeGeneratedCallbackHandler(
-              machine,
-              acknowledge,
-              this.bindings,
-            ) ?? 0xff
-          : 0xff;
-      };
+      const interruptVector = (): number => this.interruptVector(specification.tag);
       // A CPU is a MAME device like any other, and a driver reaches into it by
       // name: the Game Boy's 0xffff register is `m_maincpu->set_ie(data)`, and
       // its interrupt enable lives nowhere else. Every method the core lowered
@@ -4348,6 +4353,27 @@ class IrBoard implements Board {
     };
   }
 
+  /** Resolve a CPU's acknowledge delegate at the instant the core accepts IRQ. */
+  private interruptVector(cpuTag: string): number {
+    const acknowledge = this.machine.callbacks.find(callback =>
+      callback.ownerTag === cpuTag &&
+      callback.signal === 'set_irq_acknowledge_callback');
+    if (!acknowledge) return 0xff;
+    // Acknowledge delegates often belong to a composed device (the 8259 PIC
+    // on Irem M72), so execute the lowered connection against that device's
+    // private state. A driver-owned callback retains the handler fallback.
+    const effect = this.effects.get(acknowledge.id);
+    const value = effect?.run(0);
+    if (value !== undefined) {
+      return applyBoardTransforms(Number(value) || 0, effect?.transforms) & 0xff;
+    }
+    return executeGeneratedCallbackHandler(
+      this.machine,
+      acknowledge,
+      this.bindings,
+    ) ?? 0xff;
+  }
+
   private effectBindings(sinks: BoardSinks, registry: HandlerRegistry): EffectBindings {
     return {
       // MAME scheduler::perfect_quantum, asked for by a devcb rather than by a
@@ -4423,7 +4449,14 @@ class IrBoard implements Board {
         // IRQ0. MAME's *_line_hold keeps the line asserted until the CPU
         // acknowledges it; assert and level leave it to the source to clear.
         return state => {
-          this.cpus.get(tag)?.setIrqLine(state !== 0, 0xff, delivery === 'hold' && state !== 0);
+          const acknowledge = this.machine.callbacks.some(callback =>
+            callback.ownerTag === tag &&
+            callback.signal === 'set_irq_acknowledge_callback');
+          this.cpus.get(tag)?.setIrqLine(
+            state !== 0,
+            acknowledge ? () => this.interruptVector(tag) : 0xff,
+            delivery === 'hold' && state !== 0,
+          );
         };
       },
       deviceMethod: (tag, method, ownerClass) => {
@@ -4724,9 +4757,15 @@ export function generatedStateSetters(
 ): Record<string, (value: number) => void> {
   const setters: Record<string, (value: number) => void> = {};
   for (const member of members) {
-    // An array member gets its width from the typed storage the runtime
-    // allocates for it on first write, not from a scalar store.
-    if (member.arrayLength) continue;
+    // C++ fixed arrays exist zero-initialized before their first write. A
+    // source handler may read one first (M72 screen_update reads m_scrollx/y
+    // while both are still zero); leaving it absent turns that read into an
+    // unresolved reference object and sends tilemaps off-screen.
+    if (member.arrayLength) {
+      state[member.name] ??= generatedStateArray(member);
+      continue;
+    }
+    state[member.name] ??= 0;
     setters[member.name] = value => {
       state[member.name] = generatedStateWidth(value, member.bits, member.signed);
     };
@@ -4868,7 +4907,7 @@ export function bindGeneratedShareState(
   if (!indexed) return;
   const member = `m_${indexed[1]}`;
   const values = Array.isArray(state[member]) ? state[member] as unknown[] : [];
-  values[Number(indexed[2])] = bytes;
+  values[Number(indexed[2])] = boundMemory;
   state[member] = values;
 }
 

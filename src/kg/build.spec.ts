@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   attotimeFrequency,
   derivedDeviceClock,
+  evaluateTimerSchedule,
   evaluateTimerScanlines,
   fromHzExpression,
   gameSubgraph,
@@ -35,6 +36,36 @@ assert.deepEqual(
   ),
   [128, 256],
   'driver timers retain their scheduled param when a reset helper starts the chain',
+);
+
+const scanlineTimerAst = new MameAstIndex(parseMameAst([{
+  file: 'scanline-timer.cpp',
+  source: `
+    void raster_state::machine_reset() {
+      m_scanline_timer->adjust(m_screen->time_until_pos(0));
+    }
+    TIMER_CALLBACK_MEMBER(raster_state::scanline_interrupt) {
+      int scanline = param;
+      if (scanline == m_raster_irq_position)
+        m_pic->ir2_w(1);
+      else
+        m_pic->ir2_w(0);
+      if (++scanline >= m_screen->height())
+        scanline = 0;
+      m_scanline_timer->adjust(m_screen->time_until_pos(scanline), scanline);
+    }
+  `,
+}]));
+assert.deepEqual(
+  evaluateTimerSchedule(
+    scanlineTimerAst,
+    scanlineTimerAst.findFunction('raster_state', 'scanline_interrupt')!,
+    scanlineTimerAst.findFunction('raster_state', 'machine_reset')!,
+    'm_scanline_timer',
+    {},
+  ),
+  { scanlineStart: 0, scanlineIncrement: 1 },
+  'screen-height timer loops must lower to a full scanline cadence',
 );
 
 const callback = (

@@ -531,11 +531,9 @@ export function lowerGeneratedMachine(
     ...(accessTaps.length ? { accessTaps } : {}),
     screen: {
       ...board.screen,
-      // Neo Geo's LSPC sprite-line timer requests one partial update per
-      // scanline, and both sprite/fixed renderers intentionally draw only the
-      // clip's first line. Timer-allocated callbacks are not frame events yet,
-      // so schedule that same one-line cadence directly; a frame-end partial
-      // call would render only the first visible line.
+      // Neo Geo's LSPC sprite renderer intentionally draws one clipped line at
+      // a time. Keep its screen update in step with the source timer cadence;
+      // a frame-end partial call would render only the first visible line.
       ...(family === 'neogeo' ? { updateMode: 'scanline' as const } : {}),
       // The device that carries the picture: SCREEN for a raster or LCD
       // panel, VECTOR for a beam display.
@@ -1768,14 +1766,30 @@ function lowerFrameEvents(
     }
   }
   for (const callback of callbacks.filter(candidate =>
-    candidate.signal === 'timer' && candidate.scanlines?.length)) {
-    for (const line of callback.scanlines ?? []) {
+    candidate.signal === 'timer' && (
+      candidate.scanlines?.length ||
+      (candidate.scanlineStart !== undefined &&
+        candidate.scanlineIncrement !== undefined &&
+        candidate.scanlineIncrement > 0)
+    ))) {
+    const lines = callback.scanlines ?? (() => {
+      const result: number[] = [];
+      for (
+        let line = callback.scanlineStart!;
+        line < vtotal;
+        line += callback.scanlineIncrement!
+      ) result.push(line);
+      return result;
+    })();
+    for (const line of lines) {
       events.push({
         callbackId: callback.id,
         ownerTag: callback.ownerTag,
         signal: callback.signal,
         line,
-        state: 1,
+        // TIMER_CALLBACK_MEMBER receives the scheduled timer parameter. For
+        // source scanline timers that parameter is the line just emitted.
+        state: line,
         ...(callback.source ? { source: callback.source } : {}),
       });
     }

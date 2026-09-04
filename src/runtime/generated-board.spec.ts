@@ -14,6 +14,7 @@ import {
   generatedCpuMemberBindings,
   generatedPromGateOpen,
   generatedSignalHandlerArguments,
+  generatedStateSetters,
 } from './generated-board.ts';
 import type { BoundEffect } from './generated-effects.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
@@ -35,6 +36,26 @@ assert.equal(state['m_spriteram[1]'], second);
 assert.deepEqual(state.m_spriteram, [first, second]);
 assert.equal((first as Uint8Array & { bytes(): number }).bytes(), 0x100);
 assert.equal(state.m_spyhunt_alpharam, first);
+
+const wordState: Record<string, unknown> = {};
+const wordBytes = Uint8Array.of(0x34, 0x12, 0xcd, 0xab);
+bindGeneratedShareState(wordState, 'videoram[1]', wordBytes, ['m_videoram'], 16);
+assert.deepEqual(
+  [...(wordState.m_videoram as Uint16Array[])[1]!],
+  [0x1234, 0xabcd],
+  'indexed 16-bit share finders must expose words rather than their backing bytes',
+);
+
+const declaredArrayState: Record<string, unknown> = {};
+generatedStateSetters(declaredArrayState, [{
+  name: 'm_scrollx', bits: 32, signed: true, arrayLength: 2,
+}, { name: 'm_raster_irq_position', bits: 32, signed: true }]);
+assert.deepEqual(
+  [...(declaredArrayState.m_scrollx as Int32Array)],
+  [0, 0],
+  'fixed driver arrays must exist zero-initialized before their first write',
+);
+assert.equal(declaredArrayState.m_raster_irq_position, 0);
 
 const inputState: Record<string, unknown> = {};
 bindGeneratedInputState(inputState, [{

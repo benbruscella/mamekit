@@ -217,6 +217,63 @@ assert.deepEqual(byteWrites, [
 assert.equal(byteDeviceBus.read16be(0x140400), 0x80a5);
 assert.equal(byteDeviceBus.read(0x140402), 0x33);
 
+// A V30 has a 16-bit little-endian bus. Native word handlers still count
+// word offsets, but byte accesses present the low lane at the even address.
+// R-Type programs its PIC this way and writes its palette through native u16
+// handlers, so treating the map as either 8-bit or big-endian loses both.
+const littleWrites: Array<[number, number, number, number | undefined]> = [];
+const littleWordBus = new Bus([{
+  start: 0x2000,
+  end: 0x2003,
+  kind: 'handler',
+  read: 'littleRead',
+  write: 'littleWrite',
+}], rom, {
+  read: { littleRead: () => 0x1234 },
+  write: {
+    littleWrite: (address, offset, data, memMask) => {
+      littleWrites.push([address, offset, data, memMask]);
+    },
+  },
+}, {}, 16, undefined, 'little');
+assert.equal(littleWordBus.read(0x2000), 0x34);
+assert.equal(littleWordBus.read(0x2001), 0x12);
+assert.equal(littleWordBus.read16be(0x2000), 0x3412);
+littleWordBus.write(0x2000, 0x56);
+littleWordBus.write(0x2001, 0x78);
+littleWordBus.write16be(0x2000, 0xabcd);
+assert.deepEqual(littleWrites, [
+  [0x2000, 0, 0x0056, 0x00ff],
+  [0x2001, 0, 0x7800, 0xff00],
+  [0x2000, 0, 0xcdab, 0xffff],
+]);
+
+// The low unit-mask lane is even on that little-endian bus. Consecutive even
+// ports select consecutive PIC offsets; odd ports are physically unwired.
+const littleLaneWrites: Array<[number, number, number]> = [];
+const littleLaneBus = new Bus([{
+  start: 0x40,
+  end: 0x43,
+  kind: 'handler',
+  umask: 0x00ff,
+  read: 'laneRead',
+  write: 'laneWrite',
+}], rom, {
+  read: { laneRead: (_address, offset) => 0xa0 | offset },
+  write: {
+    laneWrite: (address, offset, data) => {
+      littleLaneWrites.push([address, offset, data]);
+    },
+  },
+}, {}, 16, undefined, 'little');
+assert.equal(littleLaneBus.read(0x40), 0xa0);
+assert.equal(littleLaneBus.read(0x41), 0x00);
+assert.equal(littleLaneBus.read(0x42), 0xa1);
+littleLaneBus.write(0x40, 0x17);
+littleLaneBus.write(0x41, 0xff);
+littleLaneBus.write(0x42, 0x20);
+assert.deepEqual(littleLaneWrites, [[0x40, 0, 0x17], [0x42, 1, 0x20]]);
+
 // MAME `.umask16(0xff00)`: an 8-bit device wired to one byte lane of a 16-bit
 // bus (the MCR "Sounds Good" PIA at 0x060000). It answers only on its lane,
 // its offset counts whole words, and the byte arrives right-justified.
