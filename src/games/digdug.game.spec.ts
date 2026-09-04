@@ -25,6 +25,15 @@ for (const type of [
   assert.ok(types.has(type), `Dig Dug graph must extract ${type}`);
 }
 
+const cpu3Timer = graph.nodes.find(node =>
+  node.label === 'Callback' &&
+  node.props.targetClass === 'galaga_state' &&
+  node.props.targetMethod === 'cpu3_interrupt_callback');
+assert.ok(cpu3Timer, 'Dig Dug must retain its inherited third-CPU NMI timer');
+assert.equal(cpu3Timer.props.startClass, 'galaga_state');
+assert.equal(cpu3Timer.props.startMethod, 'machine_start');
+assert.deepEqual(cpu3Timer.props.scanlines, [64, 192]);
+
 const video = compileMameVideo(graph, mameSrc, machine.id);
 assert.ok(video, 'Dig Dug board-local MAME video source must lower to video IR');
 assert.equal(video.plan.source?.file, 'src/mame/namco/digdug.cpp');

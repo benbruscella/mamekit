@@ -10,6 +10,7 @@ import {
   assembleRegions,
   applyRomTransforms,
   checkRomSet,
+  unresolvedDependencyRomSets,
   type ShellConfig,
 } from '../runtime/shell.ts';
 import type { Board, BoardSnapshot, Regions } from '../runtime/types.ts';
@@ -63,6 +64,8 @@ export interface GameAcceptanceOptions {
   /** Read-only per-frame diagnostic hook for long-state-transition captures. */
   inspectFrame?: (frame: {
     number: number;
+    /** Exact public snapshot used by the checkpoint state fingerprint. */
+    snapshot: Readonly<BoardSnapshot>;
     framebuffer: Uint32Array;
     state: Readonly<Record<string, unknown>>;
     /** Read-only shared-memory view for locating stalled generated machines. */
@@ -108,11 +111,11 @@ export async function runGameAcceptance(
   // MAME commonised device ROMs into their own sets, so a board's parts come
   // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
   // names are the MAME device short names carried in the generated manifest.
-  for (const romSet of new Set(config.roms.flatMap(spec => spec.romSet ? [spec.romSet] : []))) {
+  for (const romSet of unresolvedDependencyRomSets(config.roms, contract.game, files)) {
     const devicePath = resolve(join(romsDir(root), contract.category, `${romSet}.zip`));
     assert.ok(
       existsSync(devicePath),
-      `${contract.game}: MAME device ROM set "${romSet}" is missing: ${devicePath}`,
+      `${contract.game}: MAME dependency ROM set "${romSet}" is missing: ${devicePath}`,
     );
     for (const [name, bytes] of await readZip(new Uint8Array(readFileSync(devicePath)))) {
       files.set(name, bytes);
@@ -207,6 +210,7 @@ export async function runGameAcceptance(
     const snapshot = board.snapshot();
     options.inspectFrame?.({
       number: snapshot.frame,
+      snapshot,
       framebuffer,
       state: (board as unknown as {
         state?: Record<string, unknown>;

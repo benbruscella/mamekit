@@ -55,6 +55,7 @@ const ramPalette = video.plan.ramPalette;
 assert.ok(ramPalette);
 assert.equal(ramPalette.tag, 'palette');
 assert.equal(ramPalette.extShare, 'palette_ext');
+assert.equal(ramPalette.endianness, 'big');
 assert.equal(ramPalette.entries, 256);
 assert.equal(ramPalette.bytesPerEntry, 2);
 assert.deepEqual(ramPalette.channels, [

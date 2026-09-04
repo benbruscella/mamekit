@@ -29,10 +29,37 @@ export function installSn76489Runtime(context: SoundRuntimeContext): void {
         context.soundWrite(offset, data, context.fraction(), name);
       };
       for (const alias of aliases) {
-        context.calls[`${alias}.${method}`] = (...args: number[]) => {
-          context.soundWrite(0, args.at(-1) ?? 0, context.fraction(), name);
-          return 0;
-        };
+        if (auxiliary.type === 'SAMPLES' && method === 'start') {
+          context.calls[`${alias}.${method}`] = (channel = 0, sample = 0, loop = 0) => {
+            context.soundWrite(
+              channel & 0xff,
+              (sample & 0x7f) | (loop ? 0x80 : 0),
+              context.fraction(),
+              name,
+            );
+            return 0;
+          };
+        } else if (auxiliary.type === 'SAMPLES' && method === 'stop') {
+          context.calls[`${alias}.${method}`] = (channel = 0) => {
+            context.soundWrite(channel & 0xff, 0, context.fraction(), name);
+            return 0;
+          };
+        } else if (auxiliary.type === 'SAMPLES' && method === 'set_volume') {
+          context.calls[`${alias}.${method}`] = (channel = 0, volume = 0) => {
+            context.soundWrite(
+              channel & 0xff,
+              Math.max(0, Math.min(255, Math.round(Number(volume) * 255))),
+              context.fraction(),
+              name,
+            );
+            return 0;
+          };
+        } else {
+          context.calls[`${alias}.${method}`] = (...args: number[]) => {
+            context.soundWrite(0, args.at(-1) ?? 0, context.fraction(), name);
+            return 0;
+          };
+        }
       }
     }
   }

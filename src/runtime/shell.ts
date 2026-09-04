@@ -77,6 +77,27 @@ export function dependencyRomSets(specs: RomRegionSpec[], game: string): string[
     .filter(set => set !== game);
 }
 
+/**
+ * External ROM archives still needed after inspecting the primary archive.
+ *
+ * Merged collections commonly bundle a clone's parent files in the same zip.
+ * Requiring `<parent>.zip` by name even when every required CRC is already
+ * present turns a complete set into an environment failure (Pac-Man's
+ * `pacman.zip` containing its `puckman` parent is the canonical example).
+ */
+export function unresolvedDependencyRomSets(
+  specs: RomRegionSpec[],
+  game: string,
+  files: Map<string, Uint8Array>,
+): string[] {
+  return dependencyRomSets(specs, game).filter(romSet => {
+    const owned = specs.filter(spec => spec.romSet === romSet);
+    const required = new Set(owned.map(spec => spec.region));
+    const check = checkRomSet(owned, files, required);
+    return check.missingCritical.length > 0 || check.crcMismatch.length > 0;
+  });
+}
+
 export interface SoundSpec {
   /** Generic SoundCore/AudioWorklet processor kind. */
   kind: string;

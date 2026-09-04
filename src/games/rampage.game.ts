@@ -26,8 +26,11 @@ export const rampage = sourceTarget({
       180: { video: '68ba2ad6', state: 'bd556bea' },
       300: { video: '4ac434b4', state: 'b85b119a' },
       600: { video: '272a4eaf', state: 'c1b8ccf2' },
-      900: { video: '229095b9', state: '0015e668' },
-      1200: { video: '95817170', state: '46257518' },
+      // Current MAME's PIA read_alt/write_alt handlers now execute through the
+      // generated device. Only the sound CPU's internal checkpoint moved;
+      // every framebuffer and all 639,818 audio writes/PCM remain exact.
+      900: { video: '229095b9', state: '1d55b028' },
+      1200: { video: '95817170', state: '7c874976' },
     },
     audio: {
       writes: 639818,

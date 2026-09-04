@@ -14,7 +14,8 @@
 //   node tools/blast-radius.ts --signal k_port_callback
 //   node tools/blast-radius.ts --multi-slot
 //   node tools/blast-radius.ts --read-transform
-//   node tools/blast-radius.ts                      # infer from git diff
+//   node tools/blast-radius.ts                      # infer from PR base..HEAD
+//   node tools/blast-radius.ts --base origin/main   # choose the comparison base
 //
 // It prints the machines and the command that exercises exactly them.
 
@@ -22,9 +23,11 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { discoverGameNames } from '../src/games/discovery.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const distRoot = join(projectRoot, 'dist');
+const acceptedGames = new Set(discoverGameNames());
 
 interface BoardConnection {
   effect?: { kind?: string; tag?: string; method?: string };
@@ -197,11 +200,29 @@ export function queriesForFiles(files: readonly string[]): { queries: Query[]; e
   return { queries, everything };
 }
 
-function changedFiles(): string[] {
-  const output = execFileSync('git', ['diff', '--name-only', 'HEAD'], {
-    cwd: projectRoot, encoding: 'utf8',
-  });
-  return output.split('\n').map(line => line.trim()).filter(Boolean);
+function gitOutput(args: string[]): string | undefined {
+  try {
+    return execFileSync('git', args, {
+      cwd: projectRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return undefined;
+  }
+}
+
+/** Committed PR changes plus any current working-tree edits. */
+export function changedFiles(baseRef?: string): string[] {
+  const requested = baseRef ?? process.env.MAMEKIT_BASE_SHA ?? process.env.MAMEKIT_BASE_REF;
+  const candidate = requested ?? (gitOutput(['rev-parse', '--verify', 'origin/main'])
+    ? 'origin/main'
+    : 'HEAD^');
+  const base = gitOutput(['merge-base', candidate, 'HEAD']) ?? candidate;
+  const committed = gitOutput(['diff', '--name-only', `${base}...HEAD`]) ?? '';
+  const working = gitOutput(['diff', '--name-only', 'HEAD']) ?? '';
+  return [...new Set(`${committed}\n${working}`.split('\n').map(line => line.trim()).filter(Boolean))]
+    .sort();
 }
 
 function report(machines: MachineBoard[], queries: Query[]): void {
@@ -217,17 +238,40 @@ function report(machines: MachineBoard[], queries: Query[]): void {
     }
   }
   const games = [...all.keys()].sort();
+  const accepted = games.filter(game => acceptedGames.has(game));
   console.log(`\n${games.length} machine${games.length === 1 ? '' : 's'} to check:`);
-  console.log(games.length ? `  MAMEKIT_E2E_GAMES=${games.join(',')} npm run test:e2e` : '  (none)');
+  if (accepted.length) {
+    console.log(`  MAMEKIT_ACCEPTANCE_GAMES=${accepted.join(',')} npm run test:games:matrix`);
+    console.log(`  MAMEKIT_E2E_GAMES=${accepted.join(',')} npm run test:e2e`);
+  } else {
+    console.log('  (no accepted real-ROM scenarios; run the target media/browser contract)');
+  }
+}
+
+function reportAll(machines: MachineBoard[], reason: string): void {
+  const games = machines.map(machine => machine.game);
+  const accepted = games.filter(game => acceptedGames.has(game));
+  console.log(`\n${reason}: ${games.length} machines`);
+  console.log(`  ${games.join(', ')}`);
+  console.log(`\n${games.length} machines to check:`);
+  console.log(`  MAMEKIT_ACCEPTANCE_GAMES=${accepted.join(',')} npm run test:games:matrix`);
+  console.log(`  MAMEKIT_E2E_GAMES=${accepted.join(',')} npm run test:e2e`);
+  if (accepted.length !== games.length) {
+    console.log(`  plus ${games.length - accepted.length} non-arcade machine media/browser contract(s)`);
+  }
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').at(-1) ?? '')) {
   const argv = process.argv.slice(2);
   const machines = loadMachines();
   const queries: Query[] = [];
+  let baseRef: string | undefined;
   for (let index = 0; index < argv.length; index++) {
     const flag = argv[index];
-    if (flag === '--multi-slot') queries.push({ kind: 'multi-slot' });
+    if (flag === '--base') {
+      baseRef = argv[++index];
+      if (!baseRef) throw new Error('--base needs a git ref');
+    } else if (flag === '--multi-slot') queries.push({ kind: 'multi-slot' });
     else if (flag === '--read-transform') queries.push({ kind: 'read-transform' });
     else if (flag?.startsWith('--')) {
       const kind = flag.slice(2) as Query['kind'];
@@ -239,19 +283,13 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').at(-1
   if (queries.length) {
     report(machines, queries);
   } else {
-    const files = changedFiles();
+    const files = changedFiles(baseRef);
     console.log(`changed files: ${files.length ? files.join(', ') : '(none)'}`);
     const { queries: inferred, everything } = queriesForFiles(files);
     if (everything.length) {
-      console.log(
-        `\nGeneric runtime/IR changed (${everything.join(', ')}) — every machine can be reached.\n` +
-        'Narrow it with a mechanism query, e.g.:\n' +
-        '  node tools/blast-radius.ts --device NAMCO_53XX\n' +
-        '  node tools/blast-radius.ts --multi-slot\n' +
-        '  node tools/blast-radius.ts --read-transform',
-      );
+      reportAll(machines, `generic runtime/IR changed (${everything.join(', ')})`);
     }
-    if (inferred.length) report(machines, inferred);
+    if (inferred.length && !everything.length) report(machines, inferred);
     else if (!everything.length) console.log('\nNo machine-facing change detected.');
   }
 }

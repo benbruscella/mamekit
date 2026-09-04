@@ -26,11 +26,13 @@ export const congo = sourceTarget({
       1200: { video: '184cbdf3', state: 'e24714f4' },
     },
     audio: {
-      writes: 2080,
-      nonzeroWrites: 2080,
-      writeHash: '0cc9270e',
-      pcmHash: '05a2309b',
-      rms: 0.027994,
+      // The SAMPLES stream is now mixed independently from the two PSGs.
+      // Previously these source-declared commands corrupted SN chip zero.
+      writes: 2251,
+      nonzeroWrites: 2161,
+      writeHash: 'bdde155f',
+      pcmHash: '847f68e7',
+      rms: 0.04839,
     },
   },
 });

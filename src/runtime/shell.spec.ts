@@ -4,7 +4,9 @@ import {
   assembleRegions,
   dependencyRomSets,
   requiredRomRegions,
+  unresolvedDependencyRomSets,
 } from './shell.ts';
+import { crc32 } from './zip.ts';
 import type { Regions } from './types.ts';
 
 const regions = assembleRegions(
@@ -30,6 +32,31 @@ const splitSetSpecs = [
 ];
 assert.deepEqual([...requiredRomRegions(splitSetSpecs, ['maincpu'])].sort(), ['io:mcu', 'maincpu']);
 assert.deepEqual(dependencyRomSets(splitSetSpecs, 'game'), ['deviceio']);
+const bundledDeviceRom = Uint8Array.of(0x42);
+const bundledSpecs = [{
+  region: 'io:mcu',
+  size: 1,
+  romSet: 'parent',
+  loads: [{
+    file: 'parent.bin',
+    offset: 0,
+    size: 1,
+    crc: crc32(bundledDeviceRom).toString(16).padStart(8, '0'),
+  }],
+}];
+assert.deepEqual(
+  unresolvedDependencyRomSets(
+    bundledSpecs,
+    'clone',
+    new Map([['parent.bin', bundledDeviceRom]]),
+  ),
+  [],
+  'a merged primary archive must satisfy parent-set dependencies by CRC',
+);
+assert.deepEqual(
+  unresolvedDependencyRomSets(bundledSpecs, 'clone', new Map()),
+  ['parent'],
+);
 const splitFile = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
 const splitRegions = assembleRegions(
   [{
