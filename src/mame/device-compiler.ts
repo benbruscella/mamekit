@@ -874,7 +874,7 @@ function specializeFunctionTemplate(
     return [{ ...method, parameters: methodParameters, body, templateParameters: undefined }];
   }
   return [...instances].map(([suffix, args]) => {
-    const marker = '\n__MAMEKIT_TEMPLATE_BODY__\n';
+    const marker = '__MAMEKIT_TEMPLATE_BODY__';
     const source =
       `template <${parameters.map(parameter => `int ${parameter}`).join(', ')}>\n` +
       method.parameters + marker + method.body;
@@ -889,7 +889,7 @@ function specializeFunctionTemplate(
     return {
       ...method,
       name: `${method.name}_${suffix}`,
-      parameters: methodParameters,
+      parameters: methodParameters.trim(),
       body,
       templateParameters: undefined,
     };

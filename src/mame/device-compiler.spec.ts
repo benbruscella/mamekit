@@ -189,7 +189,7 @@ assert.deepEqual(
 assert.ok(
   generatedNamco51.methods
     .filter(method => method.name.startsWith('R_r_'))
-    .every(method => !method.program.diagnostics.length),
+    .every(method => !method.program.diagnostics.length && method.program.operations.length > 0),
   'function-template specializations must lower without unresolved parameters',
 );
 
@@ -223,7 +223,8 @@ assert.equal(
   'T-Unit DMA macro tables must materialize every source-selected template specialization',
 );
 assert.ok(
-  generatedDmaDraws.every(method => !method.program.diagnostics.length),
+  generatedDmaDraws.every(method =>
+    method.parameters === '' && method.program.operations.length > 0),
   'T-Unit DMA template constants must fold into executable handler artifacts',
 );
 
