@@ -1420,15 +1420,23 @@ function numericConstants(source: string): Record<string, number> {
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
-  for (const declaration of source.matchAll(/\benum(?:\s+\w+)?\s*\{([^{}]+)\}/g)) {
+  // Both classic enums and scoped C++11 enums contribute executable values.
+  // Scoped enumerators keep their `type::name` spelling in handler IR, so
+  // retain that alias as well as the bare name used by initializer expressions.
+  for (const declaration of source.matchAll(
+    /\benum\s+(?:(class|struct)\s+)?(\w+)?(?:\s*:\s*[\w:]+)?\s*\{([^{}]+)\}/g,
+  )) {
+    const scoped = Boolean(declaration[1]);
+    const enumName = declaration[2];
     let previous: string | undefined;
-    for (const raw of splitMameArgs(declaration[1]!)) {
+    for (const raw of splitMameArgs(declaration[3]!)) {
       const entry = raw.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '').trim();
       if (!entry) continue;
       const match = /^(\w+)(?:\s*=\s*([\s\S]+))?$/.exec(entry);
       if (!match) continue;
       const expression = match[2]?.trim() ?? (previous ? `${previous} + 1` : '0');
       expressions.set(match[1]!, expression);
+      if (scoped && enumName) expressions.set(`${enumName}::${match[1]!}`, match[1]!);
       previous = match[1]!;
     }
   }

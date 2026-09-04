@@ -13,6 +13,7 @@ import {
   compileMameM6502,
   compileMameMcs48,
   compileMameRp2a03,
+  compileMameV30,
   compileMameZ8002,
   compileMameZ80,
 } from './cpu-compiler.ts';
@@ -205,6 +206,140 @@ i8088.invoke('fetch');
 assert.equal(i8088.get('m_ip'), 0);
 i8088.setInputLine(-1, 1);
 assert.equal(i8088.get('m_pending_irq') & 2, 2);
+
+// A segment override is one instruction spread across two generated steps:
+// the prefix sets m_seg_prefix_next, then execute_run promotes it before the
+// following opcode. Dropping that handoff makes ES:[SI] read through DS;
+// R-Type then scans zeroed video RAM forever while trying to print its boot
+// diagnostics and never releases the sound CPU from reset.
+const i8088Memory = new Uint8Array(0x30000);
+i8088Memory.set([0x26, 0xa0, 0x10, 0x00, 0x90], 0); // MOV AL,ES:[0010] ; NOP
+i8088Memory[0x10010] = 0x5a;
+i8088Memory[0x20010] = 0xa5;
+const prefixedI8088 = createCpu('I8088', {
+  read: address => i8088Memory[address] ?? 0,
+  write: (address, data) => { i8088Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+prefixedI8088.set('m_sregs.0', 0x1000); // ES
+prefixedI8088.set('m_sregs.1', 0); // CS
+prefixedI8088.set('m_sregs.3', 0x2000); // DS
+assert.ok(prefixedI8088.step() > 0);
+assert.equal(prefixedI8088.get('m_seg_prefix_next'), 1);
+assert.ok(prefixedI8088.step() > 0);
+assert.equal(prefixedI8088.get('m_regs.b.0'), 0x5a);
+assert.equal(prefixedI8088.get('m_seg_prefix_next'), 0);
+
+// A vectored x86 interrupt asks the board for its vector when the CPU accepts
+// the IRQ. Replacing standard_irq_callback with the reset-time m_int_vector
+// sent every M72 PIC interrupt to vector zero and left R-Type on "ROM OK".
+const irqMemory = new Uint8Array(0x10000);
+irqMemory[0x20 * 4] = 0x00;
+irqMemory[0x20 * 4 + 1] = 0x01;
+irqMemory[0x100] = 0x90;
+let i8088Acknowledgements = 0;
+const vectoredI8088 = createCpu('I8088', {
+  read: address => irqMemory[address] ?? 0,
+  write: (address, data) => { irqMemory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+vectoredI8088.set('m_sregs.1', 0);
+vectoredI8088.set('m_sregs.2', 0);
+vectoredI8088.set('m_regs.w.4', 0x200);
+vectoredI8088.set('m_ip', 0);
+vectoredI8088.set('m_IF', 1);
+vectoredI8088.setIrqLine(true, () => {
+  i8088Acknowledgements++;
+  return 0x20;
+});
+vectoredI8088.step();
+assert.equal(i8088Acknowledgements, 1, 'I8088 IRQ service must call the live vector delegate');
+assert.equal(vectoredI8088.get('m_ip'), 0x101);
+
+// NEC did not retain the original 8086's undocumented 60/61 aliases for
+// JO/JNO: V30 assigns those bytes to PUSHA/POPA. R-Type's first IRQ begins
+// with PUSHA, so using the 8086 alias corrupts the return stack and sends the
+// game back into its power-on diagnostics instead of starting attract mode.
+const v30Definition = compileMameV30(process.env.MAME_SRC ?? '../mame');
+assert.ok(v30Definition.sourceFiles.includes('src/devices/cpu/nec/necinstr.hxx'));
+clearGeneratedCpus();
+registerGeneratedCpu(v30Definition);
+const v30Memory = new Uint8Array(0x10000);
+v30Memory.set([0x60, 0x61], 0); // PUSHA ; POPA
+const v30 = createCpu('V30', {
+  read: address => v30Memory[address] ?? 0,
+  write: (address, data) => { v30Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+v30.set('m_sregs.1', 0);
+v30.set('m_sregs.2', 0);
+v30.set('m_regs.w.0', 0x1111);
+v30.set('m_regs.w.1', 0x2222);
+v30.set('m_regs.w.2', 0x3333);
+v30.set('m_regs.w.3', 0x4444);
+v30.set('m_regs.w.4', 0x0200);
+v30.set('m_regs.w.5', 0x5555);
+v30.set('m_regs.w.6', 0x6666);
+v30.set('m_regs.w.7', 0x7777);
+v30.step();
+assert.equal(v30.get('m_regs.w.4'), 0x01f0, 'V30 PUSHA must push all eight words');
+for (const index of [0, 1, 2, 3, 5, 6, 7]) v30.set(`m_regs.w.${index}`, 0);
+v30.step();
+assert.deepEqual(
+  Array.from({ length: 8 }, (_, index) => v30.get(`m_regs.w.${index}`)),
+  [0x1111, 0x2222, 0x3333, 0x4444, 0x0200, 0x5555, 0x6666, 0x7777],
+  'V30 POPA must restore the PUSHA frame while discarding its saved SP word',
+);
+
+// On NEC parts c0/c1 are immediate-count shifts, not the original 8086's
+// undocumented aliases for RET imm16 / RET. R-Type uses `c0 e1 02` in its
+// first IRQ; the wrong decode consumes a return address and destroys SP.
+const v30ShiftMemory = new Uint8Array(0x10000);
+v30ShiftMemory.set([0xc0, 0xe0, 0x02, 0xc1, 0xe0, 0x04]);
+const v30Shift = createCpu('V30', {
+  read: address => v30ShiftMemory[address] ?? 0,
+  write: (address, data) => { v30ShiftMemory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+v30Shift.set('m_sregs.1', 0);
+v30Shift.set('m_regs.w.0', 1);
+v30Shift.set('m_regs.w.4', 0x0200);
+v30Shift.step();
+assert.equal(v30Shift.get('m_regs.b.0'), 4, 'V30 c0 must shift a byte by its immediate count');
+assert.equal(v30Shift.get('m_regs.w.4'), 0x0200, 'V30 c0 must not consume the return stack');
+v30Shift.step();
+assert.equal(v30Shift.get('m_regs.w.0'), 0x0040, 'V30 c1 must shift a word by its immediate count');
+
+// NEC uses 0f as an opcode prefix rather than the original 8086's
+// undocumented POP CS. R-Type executes 0f 20 (ADD4S) when the first alien
+// wave starts awarding score; POP CS corrupts the code segment and re-enters
+// the destructive power-on tests.
+const v30BcdMemory = new Uint8Array(0x30000);
+v30BcdMemory.set([0x0f, 0x20], 0);
+v30BcdMemory.set([0x12, 0x34], 0x20010);
+v30BcdMemory.set([0x87, 0x65], 0x10020);
+const v30Bcd = createCpu('V30', {
+  read: address => v30BcdMemory[address] ?? 0,
+  write: (address, data) => { v30BcdMemory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+v30Bcd.set('m_sregs.0', 0x1000); // ES / NEC DS1
+v30Bcd.set('m_sregs.1', 0); // CS
+v30Bcd.set('m_sregs.3', 0x2000); // DS / NEC DS0
+v30Bcd.set('m_regs.b.2', 3); // CL: two packed-BCD bytes
+v30Bcd.set('m_regs.w.6', 0x0010); // SI / NEC IX
+v30Bcd.set('m_regs.w.7', 0x0020); // DI / NEC IY
+v30Bcd.step();
+assert.equal(v30Bcd.get('m_ip'), 2, 'V30 ADD4S must consume the NEC subopcode');
+assert.equal(v30Bcd.get('m_sregs.1'), 0, 'V30 0f must not pop CS');
+assert.deepEqual([...v30BcdMemory.slice(0x10020, 0x10022)], [0x99, 0x99]);
+assert.equal(v30Bcd.get('m_CarryVal'), 0);
+assert.equal(v30Bcd.get('m_ZeroVal'), 1);
 registerGeneratedCpu(definition);
 
 // Boards with an AS_OPCODES map fetch instructions from the separate bus

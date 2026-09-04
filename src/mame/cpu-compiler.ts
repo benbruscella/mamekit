@@ -2311,7 +2311,10 @@ export function compileMameKonami(mameSrc: string): GeneratedCpuDefinition {
 }
 
 /** Compile MAME's Intel 8088/8086 source switch and inline helpers. */
-export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
+export function compileMameI8088(
+  mameSrc: string,
+  variant: 'I8088' | 'V30' = 'I8088',
+): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/i86/i86.cpp';
   const headerFile = 'src/devices/cpu/i86/i86.h';
   const inlineFile = 'src/devices/cpu/i86/i86inline.h';
@@ -2342,10 +2345,15 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
     .replace(/\bAF\b/g, '(m_AuxVal != 0)')
     .replace(/\bOF\b/g, '(m_OverVal != 0)')
     .replace(/\baccess_to_be_redone\s*\(\s*\)/g, '0')
-    .replace(/\bstandard_irq_callback\s*\([^;]+/g, 'm_int_vector')
     .replace(/\btotal_cycles\s*\(\s*\)/g, '1')
     .replace(/\b(?:debugger_\w+|logerror|TRACE_NOOP)\s*\([^;]*\)\s*;/g, '')
     .replace(/\bm_(?:lock_handler|out_if_func|esc_opcode_handler|esc_data_handler)\s*\([^;]*\)\s*;/g, '')
+    // The declaration supplies `override = true`, while the out-of-class
+    // definition parsed into the method table cannot carry that default.
+    // Preserve it at each four-argument call; explicit stack accesses pass
+    // false as their fifth argument and remain unchanged.
+    .replace(/\bcalc_addr\(([^()]*)\)/g, (call, args: string) =>
+      splitMameArgs(args).length === 4 ? `calc_addr(${args}, true)` : call)
     .replace(/\bBIT\s*\(\s*([^,]+),\s*([^)]+)\)/g, '((($1) >> ($2)) & 1)');
   const methods: GeneratedCpuMethod[] = [];
   const add = (name: string, parameters: string, body: string, file: string, line: number) => {
@@ -2453,27 +2461,127 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
   };
   add('rotshft_bcl', '', rotateByCl('0xd2'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd2:')));
   add('rotshft_wcl', '', rotateByCl('0xd3'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd3:')));
+  if (variant === 'V30') {
+    // The 8086 treats 60/61 as aliases for JO/JNO, but NEC implements the
+    // 80186-compatible PUSHA/POPA pair there. R-Type executes PUSHA in its
+    // first IRQ handler; decoding it as JO changes SP and eventually returns
+    // into the power-on RAM test. These are the operations in necinstr.hxx,
+    // expressed against the already-lowered register and stack helpers.
+    add('v30_pusha', '', `
+      uint32_t tmp = m_regs.w[SP];
+      PUSH(m_regs.w[AX]);
+      PUSH(m_regs.w[CX]);
+      PUSH(m_regs.w[DX]);
+      PUSH(m_regs.w[BX]);
+      PUSH(tmp);
+      PUSH(m_regs.w[BP]);
+      PUSH(m_regs.w[SI]);
+      PUSH(m_regs.w[DI]);
+      CLK(NOP);
+    `, 'src/devices/cpu/nec/necinstr.hxx', 377);
+    add('v30_popa', '', `
+      uint32_t discarded_sp;
+      m_regs.w[DI] = POP();
+      m_regs.w[SI] = POP();
+      m_regs.w[BP] = POP();
+      discarded_sp = POP();
+      m_regs.w[BX] = POP();
+      m_regs.w[DX] = POP();
+      m_regs.w[CX] = POP();
+      m_regs.w[AX] = POP();
+      CLK(NOP);
+    `, 'src/devices/cpu/nec/necinstr.hxx', 390);
+    // NEC also assigns c0/c1 to the immediate-count rotate/shift operations;
+    // the 8086 source aliases those otherwise-unused bytes to RET/RETF. The
+    // operation bodies are identical to d2/d3 apart from fetching the count
+    // byte instead of reading CL, so retain the already source-extracted body
+    // and apply exactly that architectural difference from necinstr.hxx.
+    const immediateRotate = (body: string): string => body.replace(
+      /c\s*=\s*m_regs\.b\[CL\]\s*;/,
+      'c = fetch();',
+    );
+    add('v30_rotshft_bd8', '', immediateRotate(rotateByCl('0xd2')),
+      'src/devices/cpu/nec/necinstr.hxx', 581);
+    add('v30_rotshft_wd8', '', immediateRotate(rotateByCl('0xd3')),
+      'src/devices/cpu/nec/necinstr.hxx', 598);
+    // NEC reserves 0f as an extension prefix instead of retaining the
+    // original 8086's undocumented POP CS. R-Type reaches ADD4S when its
+    // first enemies award score; popping CS here sends execution through
+    // unmapped memory and eventually back into the power-on diagnostics.
+    // This is the V30 branch of necinstr.hxx's ADD4S macro, expressed with
+    // the compatible i8086 core's ES/DS and DI/SI register names.
+    add('v30_add4s', '', `
+      uint32_t count = (m_regs.b[CL] + 1) / 2;
+      uint32_t destination = m_regs.w[DI];
+      uint32_t source = m_regs.w[SI];
+      m_ZeroVal = 0;
+      m_CarryVal = 0;
+      while (count > 0) {
+        uint32_t source_bcd = read_byte((m_sregs[DS] << 4) + source);
+        uint32_t destination_bcd = read_byte((m_sregs[ES] << 4) + destination);
+        uint32_t source_value = ((source_bcd >> 4) * 10) + (source_bcd & 15);
+        uint32_t destination_value =
+          ((destination_bcd >> 4) * 10) + (destination_bcd & 15);
+        uint32_t result = source_value + destination_value + m_CarryVal;
+        m_CarryVal = result > 99;
+        result %= 100;
+        uint32_t packed = ((result / 10) << 4) | (result % 10);
+        write_byte((m_sregs[ES] << 4) + destination, packed);
+        if (packed) m_ZeroVal = 1;
+        source++;
+        destination++;
+        count--;
+        cycles += 19;
+      }
+      cycles += 7;
+    `, 'src/devices/cpu/nec/necmacro.h', 234);
+  }
 
   const step = compileMameHandler(normalize(`
     cycles = 0;
     m_icount = 1;
-    m_prev_ip = m_ip;
-    if (m_pending_irq && m_no_interrupt == 0) {
-      if (m_pending_irq & NMI_IRQ) {
-        interrupt(2);
-        m_pending_irq &= ~NMI_IRQ;
-        m_halt = false;
-      } else if (m_IF) {
-        interrupt(-1);
-        m_halt = false;
+    if (m_seg_prefix_next) {
+      m_seg_prefix = true;
+      m_seg_prefix_next = false;
+    } else {
+      m_prev_ip = m_ip;
+      m_seg_prefix = false;
+      if (m_pending_irq && m_no_interrupt == 0) {
+        if (m_pending_irq & NMI_IRQ) {
+          interrupt(2);
+          m_pending_irq &= ~NMI_IRQ;
+          m_halt = false;
+        } else if (m_IF) {
+          interrupt(-1);
+          m_halt = false;
+        }
       }
+      if (m_halt) { cycles += 1; return cycles; }
+      if (m_fire_trap) {
+        if (m_fire_trap >= 2 && m_no_interrupt == 0) {
+          m_fire_trap = 0;
+          interrupt(1);
+        } else {
+          m_fire_trap++;
+        }
+      }
+      if (m_no_interrupt) m_no_interrupt--;
     }
-    if (m_halt) { cycles += 1; return cycles; }
-    if (m_no_interrupt) m_no_interrupt--;
     uint8_t op = fetch_op();
-    if (op == 0x0f) {
+    if (${variant === 'V30' ? 'op == 0x0f' : 'false'}) {
+      uint8_t nec_op = fetch();
+      if (nec_op == 0x20) v30_add4s();
+    } else if (op == 0x0f) {
       m_sregs[CS] = POP();
       CLK(POP_SEG);
+    } else if (${variant === 'V30' ? 'op == 0x60' : 'false'}) {
+      v30_pusha();
+    } else if (${variant === 'V30' ? 'op == 0x61' : 'false'}) {
+      v30_popa();
+    } else if (${variant === 'V30' ? 'op == 0xc0' : 'false'}) {
+      v30_rotshft_bd8();
+    } else if (${variant === 'V30' ? 'op == 0xc1' : 'false'}) {
+      v30_rotshft_wd8();
     } else if (op == 0xd2) {
       rotshft_bcl();
     } else if (op == 0xd3) {
@@ -2554,7 +2662,7 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
  * recording the NEC implementation sources that define the selected device.
  */
 export function compileMameV30(mameSrc: string): GeneratedCpuDefinition {
-  const compatible = compileMameI8088(mameSrc);
+  const compatible = compileMameI8088(mameSrc, 'V30');
   return {
     ...compatible,
     type: 'V30',
@@ -3286,7 +3394,16 @@ export function normalizeMameExecutionSource(source: string): string {
       /\bstd::make_unique\s*<\s*(?:u8|uint8_t)\s*\[\s*\]\s*>\s*\(/g,
       'ALLOC(',
     )
-    .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(');
+    .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(')
+    // A default-constructed local std::vector is an empty, growable array.
+    // Keeping it as an uninitialised declaration materialises numeric zero,
+    // so push_back silently does nothing and a later reverse walk is empty
+    // (M72 builds its complete sprite draw order this way each frame).
+    .replace(
+      /\bstd::vector\s*<[^;{}>]+>\s+(\w+)\s*;/g,
+      'auto $1 = ARRAY();',
+    )
+    .replace(/\.push_back\s*\(/g, '.push(');
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
   )) {

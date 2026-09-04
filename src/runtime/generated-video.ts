@@ -2818,9 +2818,13 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       if (!Object.hasOwn(state, member)) state[member] = bytes;
     }
     for (const [member, value] of Object.entries(machine.video?.initialState ?? {})) {
-      if (!Object.hasOwn(state, member)) {
-        state[member] = Array.isArray(value) ? [...value] : value;
-      }
+      // Driver-state scalars are materialised as zero before video setup so
+      // handlers can safely read them before their first write.  That storage
+      // value is not an initialization decision: video_start and machine
+      // configuration assignments compiled into initialState must still win.
+      // M72, for example, selects tile gfx 1/2 here; preserving the earlier
+      // zero makes both tilemaps decode their codes as sprite graphics.
+      state[member] = Array.isArray(value) ? [...value] : value;
     }
     const bitmapPlan = machine.video?.bitmap;
     if (bitmapPlan && !ArrayBuffer.isView(state[bitmapPlan.member])) {

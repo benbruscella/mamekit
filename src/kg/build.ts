@@ -448,6 +448,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
     const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
+    const timerStartHandlers = new Set(resolveMachineLifecycle(
+      ast,
+      cfg.cls,
+      cfg.name,
+      'start',
+    ).map(fn => `${fn.className}.${fn.name}`));
     const installedHandlers = machineStart
       ? parseInstalledHandlers(machineStart.body, consts)
       : [];
@@ -537,6 +543,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (callback.label !== 'Callback' || callback.props.signal !== 'timer') continue;
       const targetClass = String(callback.props.targetClass ?? '');
       const targetMethod = String(callback.props.targetMethod ?? '');
+      const startHandler = `${String(callback.props.startClass ?? '')}.${String(callback.props.startMethod ?? '')}`;
+      if (!timerStartHandlers.has(startHandler)) continue;
       const resolved = ast.findFunctionInHierarchy(cfg.cls, targetMethod);
       if (resolved?.className === targetClass) g.edge(cfgId, callback.id, 'HAS_CALLBACK');
     }
@@ -969,6 +977,8 @@ function emitSourceTimerCallbacks(
       timer: match[1],
       ownerClass: match[2],
       method: match[3],
+      startClass: fn.className,
+      startMethod: fn.name,
     })),
   );
 
@@ -982,14 +992,14 @@ function emitSourceTimerCallbacks(
         body => body.includes(`${allocation.timer}->adjust`),
       ));
     if (!callback || !reset) continue;
-    const scanlines = evaluateTimerScanlines(
+    const schedule = evaluateTimerSchedule(
       ast,
       callback,
       reset,
       allocation.timer,
       constants,
     );
-    if (!scanlines.length) continue;
+    if (!schedule) continue;
 
     const callbackId = `callback:timer/${allocation.ownerClass}.${allocation.method}`;
     const props: Record<string, PropValue> = {
@@ -998,7 +1008,9 @@ function emitSourceTimerCallbacks(
       operation: 'adjust',
       targetClass: allocation.ownerClass,
       targetMethod: allocation.method,
-      scanlines,
+      startClass: allocation.startClass,
+      startMethod: allocation.startMethod,
+      ...schedule,
       ...spanProps(callback.span),
     };
     g.node('Callback', callbackId, props);
@@ -1038,13 +1050,25 @@ function functionClosureContains(
   return false;
 }
 
-export function evaluateTimerScanlines(
+export interface SourceTimerSchedule {
+  scanlines?: number[];
+  scanlineStart?: number;
+  scanlineIncrement?: number;
+}
+
+/**
+ * Execute a source timer far enough to recover either its finite sequence or
+ * a scanline cadence. The large synthetic screen height keeps callbacks that
+ * wrap at screen().height() advancing while their increment is measured; the
+ * real vtotal is applied later when the machine's frame events are emitted.
+ */
+export function evaluateTimerSchedule(
   ast: MameAstIndex,
   callback: MameFunction,
   reset: MameFunction,
   timer: string,
   constants: Record<string, number>,
-): number[] {
+): SourceTimerSchedule | undefined {
   const programs = new Map(
     ast.ast.units
       .flatMap(unit => unit.functions)
@@ -1059,6 +1083,7 @@ export function evaluateTimerScanlines(
   const calls: Record<string, (...args: number[]) => unknown> = {
     'm_screen.vpos': () => currentLine,
     'm_screen.time_until_pos': line => line,
+    'm_screen.height': () => 0x10000,
     'machine().time': () => 0,
     [`${timer}.adjust`]: (...args) => {
       adjustedLine = args[0];
@@ -1108,23 +1133,40 @@ export function evaluateTimerScanlines(
   };
   const resetProgram = compileMameHandler(reset.body);
   const callbackProgram = compileMameHandler(callback.body);
-  if (resetProgram.diagnostics.length || callbackProgram.diagnostics.length) return [];
+  if (resetProgram.diagnostics.length || callbackProgram.diagnostics.length) return undefined;
 
   executeGeneratedHandler(resetProgram, bindings);
-  if (!Number.isFinite(adjustedLine)) return [];
+  if (!Number.isFinite(adjustedLine)) return undefined;
   currentLine = Math.trunc(adjustedLine!);
   let currentParam = adjustedParam;
   const lines: number[] = [];
   for (let iteration = 0; iteration < 32; iteration++) {
-    if (lines.includes(currentLine)) break;
+    if (lines.includes(currentLine)) return lines.length > 1 ? { scanlines: lines } : undefined;
     lines.push(currentLine);
     adjustedLine = undefined;
     executeGeneratedHandler(callbackProgram, bindings, { param: currentParam });
-    if (!Number.isFinite(adjustedLine)) return [];
+    if (!Number.isFinite(adjustedLine)) return undefined;
     currentLine = Math.trunc(adjustedLine!);
     currentParam = adjustedParam;
   }
-  return lines.length > 1 ? lines : [];
+  const increment = lines[1]! - lines[0]!;
+  const linear = increment > 0 && lines.slice(2).every(
+    (line, index) => line - lines[index + 1]! === increment,
+  );
+  if (linear && /->height\s*\(\s*\)/.test(callback.body)) {
+    return { scanlineStart: lines[0]!, scanlineIncrement: increment };
+  }
+  return undefined;
+}
+
+export function evaluateTimerScanlines(
+  ast: MameAstIndex,
+  callback: MameFunction,
+  reset: MameFunction,
+  timer: string,
+  constants: Record<string, number>,
+): number[] {
+  return evaluateTimerSchedule(ast, callback, reset, timer, constants)?.scanlines ?? [];
 }
 
 function emitInputPorts(

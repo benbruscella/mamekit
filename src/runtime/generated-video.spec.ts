@@ -330,6 +330,26 @@ const machine: BoardIr = {
   },
 };
 
+// The board materialises declared C++ scalars as zero before constructing the
+// video host.  Source-derived video_start values must replace that storage
+// default (M72 uses 1/2 to choose its foreground/background gfx regions).
+{
+  const initializedState: Record<string, unknown> = { m_gfx_source: 0 };
+  new GeneratedMameVideoPrimitives({
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: { m_gfx_source: 2 },
+    },
+  }, {}, initializedState, {});
+  assert.equal(
+    initializedState.m_gfx_source,
+    2,
+    'compiled video initialization must override materialized zero storage',
+  );
+}
+
 // Universal's Lady Bug hardware inverts each PROM output before its RGB
 // resistor network. A zero PROM byte must therefore produce the bright color,
 // while an all-one byte produces black.

@@ -47,20 +47,22 @@ export interface HandlerRegistry {
 // than making every NOP/unmapped range read high.
 const OPEN_BUS = 0x00;
 
-function wordReadHandler(handler: ReadHandler): ReadHandler {
+function wordReadHandler(handler: ReadHandler, littleEndian = false): ReadHandler {
   return (address, offset) => {
+    const lowByte = littleEndian ? (address & 1) === 0 : (address & 1) !== 0;
     const value = handler(
       address,
       offset >>> 1,
-      address & 1 ? 0x00ff : 0xff00,
+      lowByte ? 0x00ff : 0xff00,
     ) & 0xffff;
-    return address & 1 ? value & 0xff : value >>> 8;
+    return lowByte ? value & 0xff : value >>> 8;
   };
 }
 
-function wordWriteHandler(handler: WriteHandler): WriteHandler {
+function wordWriteHandler(handler: WriteHandler, littleEndian = false): WriteHandler {
   return (address, offset, data) => {
-    if (address & 1) handler(address, offset >>> 1, data & 0xff, 0x00ff);
+    const lowByte = littleEndian ? (address & 1) === 0 : (address & 1) !== 0;
+    if (lowByte) handler(address, offset >>> 1, data & 0xff, 0x00ff);
     else handler(address, offset >>> 1, (data & 0xff) << 8, 0xff00);
   };
 }
@@ -79,14 +81,27 @@ function isByteLane(umask: number | undefined): umask is number {
   return umask === HIGH_BYTE_LANE || umask === LOW_BYTE_LANE;
 }
 
-function laneReadHandler(handler: ReadHandler, umask: number): ReadHandler {
-  const lane = umask === HIGH_BYTE_LANE ? 0 : 1;
+function byteLane(umask: number, littleEndian: boolean): number {
+  if (littleEndian) return umask === LOW_BYTE_LANE ? 0 : 1;
+  return umask === HIGH_BYTE_LANE ? 0 : 1;
+}
+
+function laneReadHandler(
+  handler: ReadHandler,
+  umask: number,
+  littleEndian = false,
+): ReadHandler {
+  const lane = byteLane(umask, littleEndian);
   return (address, offset) =>
     (address & 1) === lane ? handler(address, offset >>> 1) & 0xff : OPEN_BUS;
 }
 
-function laneWordReadHandler(handler: ReadHandler, umask: number): WordReadHandler {
-  const shift = umask === HIGH_BYTE_LANE ? 8 : 0;
+function laneWordReadHandler(
+  handler: ReadHandler,
+  umask: number,
+  littleEndian = false,
+): WordReadHandler {
+  const shift = byteLane(umask, littleEndian) === 0 ? 8 : 0;
   // Nothing is wired to the other lane, so it reads as unmapped space.
   const idle = umask === HIGH_BYTE_LANE ? OPEN_BUS : OPEN_BUS << 8;
   return (address, offset) => ((handler(address, offset >>> 1) & 0xff) << shift) | idle;
@@ -98,15 +113,23 @@ function laneWordReadHandler(handler: ReadHandler, umask: number): WordReadHandl
 // generated-board shift a byte that is already in place.
 const LANE_MEM_MASK = 0xff;
 
-function laneWriteHandler(handler: WriteHandler, umask: number): WriteHandler {
-  const lane = umask === HIGH_BYTE_LANE ? 0 : 1;
+function laneWriteHandler(
+  handler: WriteHandler,
+  umask: number,
+  littleEndian = false,
+): WriteHandler {
+  const lane = byteLane(umask, littleEndian);
   return (address, offset, data) => {
     if ((address & 1) === lane) handler(address, offset >>> 1, data & 0xff, LANE_MEM_MASK);
   };
 }
 
-function laneWordWriteHandler(handler: WriteHandler, umask: number): WordWriteHandler {
-  const shift = umask === HIGH_BYTE_LANE ? 8 : 0;
+function laneWordWriteHandler(
+  handler: WriteHandler,
+  umask: number,
+  littleEndian = false,
+): WordWriteHandler {
+  const shift = byteLane(umask, littleEndian) === 0 ? 8 : 0;
   return (address, offset, data) =>
     handler(address, offset >>> 1, (data >>> shift) & 0xff, LANE_MEM_MASK);
 }
@@ -166,6 +189,7 @@ export class Bus {
     shares: Record<string, Uint8Array> = {},
     dataWidth: 8 | 16 = 8,
     regions?: Readonly<Record<string, Uint8Array>>,
+    endianness: 'big' | 'little' = 'big',
   ) {
     this.shares = shares;
     this.addressMask = ranges.some(range => (range.end | (range.mirror ?? 0)) > 0xffff)
@@ -182,26 +206,30 @@ export class Bus {
       // as with the K051960's byte-addressed sprite RAM on a 68000.
       const lane = dataWidth === 16 && isByteLane(r.umask) ? r.umask : undefined;
       const byteHandler = dataWidth === 16 && r.handlerWidth === 8;
+      const littleEndian = dataWidth === 16 && endianness === 'little';
       // A bank window is storage, so its handler is byte-addressed at every
       // bus width, exactly like the rom and ram ranges beside it. Only a MAME
       // device handler is native to the bus and indexed by word.
       const adaptRead = (h: ReadHandler): ReadHandler =>
         r.bank ? h
-          : lane !== undefined ? laneReadHandler(h, lane)
+          : lane !== undefined ? laneReadHandler(h, lane, littleEndian)
           : byteHandler ? h
-          : dataWidth === 16 ? wordReadHandler(h)
+          : dataWidth === 16 ? wordReadHandler(h, littleEndian)
             : h;
       const adaptWordRead = (h: ReadHandler): WordReadHandler | null =>
         r.bank ? (dataWidth === 16 ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff : null)
-          : lane !== undefined ? laneWordReadHandler(h, lane)
+          : lane !== undefined ? laneWordReadHandler(h, lane, littleEndian)
           : byteHandler ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff
-          : dataWidth === 16 ? (a, off) => h(a, off >>> 1, 0xffff) & 0xffff
+          : dataWidth === 16 ? (a, off) => {
+              const value = h(a, off >>> 1, 0xffff) & 0xffff;
+              return littleEndian ? ((value & 0xff) << 8) | (value >>> 8) : value;
+            }
             : null;
       const adaptWrite = (h: WriteHandler): WriteHandler =>
         r.bank ? h
-          : lane !== undefined ? laneWriteHandler(h, lane)
+          : lane !== undefined ? laneWriteHandler(h, lane, littleEndian)
           : byteHandler ? h
-          : dataWidth === 16 ? wordWriteHandler(h)
+          : dataWidth === 16 ? wordWriteHandler(h, littleEndian)
             : h;
       const adaptWordWrite = (h: WriteHandler): WordWriteHandler | null =>
         r.bank
@@ -211,12 +239,17 @@ export class Bus {
               h(a, off + 1, data & 0xff, 0xffff);
             }
             : null)
-          : lane !== undefined ? laneWordWriteHandler(h, lane)
+          : lane !== undefined ? laneWordWriteHandler(h, lane, littleEndian)
           : byteHandler ? (a, off, data) => {
             h(a, off, (data >>> 8) & 0xff, LANE_MEM_MASK);
             h(a + 1, off + 1, data & 0xff, LANE_MEM_MASK);
           }
-          : dataWidth === 16 ? (a, off, data) => h(a, off >>> 1, data & 0xffff, 0xffff)
+          : dataWidth === 16 ? (a, off, data) => {
+              const value = littleEndian
+                ? ((data & 0xff) << 8) | ((data >>> 8) & 0xff)
+                : data;
+              h(a, off >>> 1, value & 0xffff, 0xffff);
+            }
             : null;
 
       if (r.kind === 'rom') {
@@ -230,15 +263,27 @@ export class Bus {
           : new Uint8Array(size);
         if (dataWidth === 16) {
           const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
-          read = (_a, off) => off & 1 ? words[off >>> 1]! : words[off >>> 1]! >>> 8;
+          read = (_a, off) => littleEndian
+            ? (off & 1 ? words[off >>> 1]! >>> 8 : words[off >>> 1]! & 0xff)
+            : (off & 1 ? words[off >>> 1]! & 0xff : words[off >>> 1]! >>> 8);
           write = (_a, off, d) => {
             const index = off >>> 1;
-            words[index] = off & 1
-              ? (words[index]! & 0xff00) | (d & 0xff)
-              : (words[index]! & 0x00ff) | ((d & 0xff) << 8);
+            words[index] = littleEndian
+              ? (off & 1
+                ? (words[index]! & 0x00ff) | ((d & 0xff) << 8)
+                : (words[index]! & 0xff00) | (d & 0xff))
+              : (off & 1
+                ? (words[index]! & 0xff00) | (d & 0xff)
+                : (words[index]! & 0x00ff) | ((d & 0xff) << 8));
           };
-          wordRead = (_a, off) => words[off >>> 1]!;
-          wordWrite = (_a, off, data) => { words[off >>> 1] = data & 0xffff; };
+          wordRead = (_a, off) => littleEndian
+            ? ((words[off >>> 1]! & 0xff) << 8) | (words[off >>> 1]! >>> 8)
+            : words[off >>> 1]!;
+          wordWrite = (_a, off, data) => {
+            words[off >>> 1] = littleEndian
+              ? ((data & 0xff) << 8) | ((data >>> 8) & 0xff)
+              : data & 0xffff;
+          };
         } else {
           read = (_a, off) => bytes[off];
           write = (_a, off, d) => { bytes[off] = d; };

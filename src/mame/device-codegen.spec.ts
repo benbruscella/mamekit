@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { dereferenceGeneratedValue } from '../ir/execute.ts';
 import type { GeneratedDeviceDefinition } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
+import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
 
 const definition: GeneratedDeviceDefinition = {
@@ -530,6 +532,36 @@ assert.equal(
   };
   assert.equal(built.sentinel!(runtime), 299,
     'direct local arrays must preserve their source-declared signed width');
+}
+
+// Empty local vectors need a real array in emitted hot handlers too. M72's
+// draw_sprites pushes every sprite offset, then walks this list backwards.
+{
+  const vectorLocals: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['sprite_order'],
+    methods: [{
+      name: 'sprite_order',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler(normalizeMameExecutionSource(`
+        std::vector<int> order;
+        order.push_back(4);
+        order.push_back(9);
+        return order[1] + order.size();
+      `)),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(vectorLocals);
+  assert.match(emitted.source, /\(order\)\.push\(4\)/);
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown) => unknown>;
+  assert.equal(built.sprite_order!({
+    members: {},
+    add: (a: number, b: number) => a + b,
+    dereference: dereferenceGeneratedValue,
+    readIndex: (memory: ArrayLike<number>, index: number) => memory[index] ?? 0,
+  }), 11);
 }
 
 console.log('device-codegen.spec: IR selection, dependency closure, case scoping, host services and pointer calls passed');

@@ -68,6 +68,32 @@ assert.equal(soundLatch.call('pending_r'), 1);
 assert.equal(soundLatch.call('read'), 0xa5);
 assert.equal(soundLatch.call('pending_r'), 0);
 
+const picDefinition = hardware.get('PIC8259');
+assert.ok(picDefinition, 'MAME hardware index should resolve PIC8259');
+const generatedPic = compileMameDevice(mameSrc, picDefinition);
+assert.deepEqual(
+  Object.fromEntries(Object.entries(generatedPic.constants)
+    .filter(([name]) => name.startsWith('state_t::'))),
+  {
+    'state_t::ICW1': 0,
+    'state_t::ICW2': 1,
+    'state_t::ICW3': 2,
+    'state_t::ICW4': 3,
+    'state_t::READY': 4,
+  },
+  'scoped enum values must retain the qualified names used by device methods',
+);
+registerGeneratedDevice(generatedPic);
+const pic = createDevice('PIC8259');
+assert.equal(pic.get('m_state'), generatedPic.constants['state_t::READY']);
+pic.call('write', 0, 0x17);
+assert.equal(pic.get('m_state'), generatedPic.constants['state_t::ICW2']);
+pic.call('write', 1, 0x20);
+assert.equal(pic.get('m_state'), generatedPic.constants['state_t::ICW4']);
+pic.call('write', 1, 0x0f);
+assert.equal(pic.get('m_state'), generatedPic.constants['state_t::READY']);
+assert.equal(pic.get('m_base'), 0x20);
+
 const earomDefinition = hardware.get('ER2055');
 assert.ok(earomDefinition, 'MAME hardware index should resolve ER2055');
 const generatedEarom = compileMameDevice(mameSrc, earomDefinition);
