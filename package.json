@@ -20,7 +20,7 @@
     "blast-radius": "node tools/blast-radius.ts",
     "deploy": "bash scripts/deploy-pages.sh",
     "test": "npm run test:unit && npm run test:current && npm run test:blast-radius",
-    "test:unit": "tsc --noEmit && find src -name '*.spec.ts' -type f -print0 | xargs -0 -P \"${SPEC_JOBS:-4}\" -I{} sh -c 'node \"$1\" > /dev/null 2>&1 || { echo \"FAIL $1\"; exit 255; }' _ {} && echo \"all colocated specs passed\"",
+    "test:unit": "tsc --noEmit && node src/test/run-specs.ts",
     "test:current": "npm run gen:all && npm run audit:generated",
     "test:generation": "node src/gen/test-generation.ts",
     "test:games": "for game in $(node src/games/acceptance.ts --list); do node src/games/acceptance.ts \"$game\" || exit 1; sleep 5; done",

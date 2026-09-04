@@ -37,7 +37,7 @@ interface GameEntry {
   /** canonical generated artifact directory, e.g. games/arcade/pacman */
   dataPath: string;
   /** consoles get their own tab + room; absent means arcade */
-  kind?: 'arcade' | 'console';
+  kind?: 'arcade' | 'console' | 'computer';
   hasRom: boolean;
   hasArt: boolean;
   /** a promotional flyer exists in the covers tree; absent on an older manifest */
@@ -55,6 +55,12 @@ interface GameEntry {
   historyCredit?: string;
 }
 
+export type MenuTab = 'arcade' | 'console' | 'computer';
+
+function entryTab(entry: Pick<GameEntry, 'kind'>): MenuTab {
+  return entry.kind === 'console' || entry.kind === 'computer' ? entry.kind : 'arcade';
+}
+
 /**
  * Game categories the manifest actually contains, in shelf order.
  *
@@ -63,17 +69,17 @@ interface GameEntry {
  */
 export function menuTabs(
   games: readonly Pick<GameEntry, 'kind'>[],
-): ('arcade' | 'console')[] {
-  return (['arcade', 'console'] as const).filter(tab =>
-    games.some(game => (game.kind === 'console' ? 'console' : 'arcade') === tab));
+): MenuTab[] {
+  return (['arcade', 'console', 'computer'] as const).filter(tab =>
+    games.some(game => entryTab(game) === tab));
 }
 
 export function matchesMenuEntry(
   entry: Pick<GameEntry, 'game' | 'title' | 'manufacturer' | 'year' | 'kind'>,
-  tab: 'arcade' | 'console',
+  tab: MenuTab,
   query: string,
 ): boolean {
-  const kind = entry.kind === 'console' ? 'console' : 'arcade';
+  const kind = entryTab(entry);
   const haystack = `${entry.title} ${entry.manufacturer} ${entry.year} ${entry.game}`.toLowerCase();
   return kind === tab && (!query || haystack.includes(query.trim().toLowerCase()));
 }
@@ -88,7 +94,7 @@ export function browseSlug(value: string): string {
     .replace(/-{2,}/g, '-') || 'unknown';
 }
 
-export function menuShelfMaxWidth(tab: 'arcade' | 'console'): string {
+export function menuShelfMaxWidth(tab: MenuTab): string {
   // 4 × 320px tiles + 3 × 26px gaps + 72px horizontal padding.
   return tab === 'arcade' ? '1470px' : '1280px';
 }
@@ -138,7 +144,7 @@ export async function runMenu(): Promise<void> {
     color:#f2c200;text-shadow:0 0 18px rgba(242,194,0,.55), 0 2px 0 #7a5c00;font-family:ui-monospace,monospace`);
   title.textContent = 'MAME History';
   const sub = el('div', 'color:#7f8ac9;letter-spacing:6px;font-size:11px;font-weight:600');
-  sub.textContent = 'Arcade · Consoles';
+  sub.textContent = 'Arcade · Consoles · Computers';
   marquee.append(title, sub);
 
   // corner sash to the source — band centered on the viewport's top-right
@@ -185,12 +191,14 @@ export async function runMenu(): Promise<void> {
   const populatedTabs = menuTabs(games);
   // active tab from ?tab=consoles (deep-linkable, Pages-safe); switching
   // rewrites the query via replaceState so reload/share lands on the same tab
-  const requestedTab: 'arcade' | 'console' =
-    new URLSearchParams(location.search).get('tab') === 'consoles' ? 'console' : 'arcade';
-  let activeTab: 'arcade' | 'console' =
+  const requested = new URLSearchParams(location.search).get('tab');
+  const requestedTab: MenuTab = requested === 'consoles'
+    ? 'console'
+    : requested === 'computers' ? 'computer' : 'arcade';
+  let activeTab: MenuTab =
     populatedTabs.includes(requestedTab) ? requestedTab : populatedTabs[0] ?? 'arcade';
   const tabsBar = el('div', 'display:flex;gap:14px;justify-content:center;padding:24px 36px 0');
-  const pills = new Map<'arcade' | 'console', HTMLElement>();
+  const pills = new Map<MenuTab, HTMLElement>();
   const stylePills = () => {
     for (const [tab, pill] of pills) {
       const active = tab === activeTab;
@@ -199,21 +207,29 @@ export async function runMenu(): Promise<void> {
       pill.style.borderColor = active ? '#f2c200' : '#2a3160';
     }
   };
-  const setTab = (tab: 'arcade' | 'console') => {
+  const setTab = (tab: MenuTab) => {
     if (tab === activeTab) return;
     activeTab = tab;
-    history.replaceState(null, '', tab === 'console' ? '?tab=consoles' : location.pathname);
+    history.replaceState(null, '', tab === 'console'
+      ? '?tab=consoles'
+      : tab === 'computer' ? '?tab=computers' : location.pathname);
     stylePills();
     const shelf = document.querySelector<HTMLElement>('[data-game-wall]');
     if (shelf) shelf.style.maxWidth = menuShelfMaxWidth(tab);
     applyFilter();
   };
-  for (const [tab, text] of ([['arcade', 'ARCADE'], ['console', 'CONSOLES']] as const)
+  for (const [tab, text] of ([
+    ['arcade', 'ARCADE'],
+    ['console', 'CONSOLES'],
+    ['computer', 'COMPUTERS'],
+  ] as const)
     .filter(([tab]) => populatedTabs.length > 1 && populatedTabs.includes(tab))) {
     const pill = el('button', `padding:9px 26px;border-radius:20px;border:2px solid #2a3160;
       font:inherit;font-weight:800;letter-spacing:2px;font-size:12px;cursor:pointer`);
     pill.textContent = text;
-    pill.setAttribute('data-tab', tab === 'console' ? 'consoles' : 'arcade');
+    pill.setAttribute('data-tab', tab === 'console'
+      ? 'consoles'
+      : tab === 'computer' ? 'computers' : 'arcade');
     pill.addEventListener('click', () => setTab(tab));
     pills.set(tab, pill);
     tabsBar.appendChild(pill);
@@ -228,7 +244,7 @@ export async function runMenu(): Promise<void> {
   root.appendChild(wall);
 
   const empty = el('div', 'text-align:center;color:#7f8ac9;padding:60px;display:none;width:100%');
-  empty.textContent = 'Console support coming soon!';
+  empty.textContent = 'No machines match this shelf.';
   wall.appendChild(empty);
 
   const hint = el('div', 'text-align:center;color:#4b5384;padding:28px 28px 8px;font-size:12px');
@@ -298,7 +314,9 @@ export async function runMenu(): Promise<void> {
   // consoles skip the learn modal: the console's story lives in the room's
   // own About button, so the tile navigates straight to the room
   const openEntry = (entry: GameEntry) => {
-    if (entry.kind === 'console') location.href = `g/${encodeURIComponent(entry.game)}/`;
+    if (entry.kind === 'console' || entry.kind === 'computer') {
+      location.href = `g/${encodeURIComponent(entry.game)}/`;
+    }
     else void openLearnModal(entry);
   };
 

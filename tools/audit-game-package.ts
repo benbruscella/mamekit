@@ -13,8 +13,8 @@ for (const game of games) await auditGame(game);
 console.log(`game package audit passed: ${games.join(', ')}`);
 
 async function auditGame(game: string): Promise<void> {
-  requireFile(`src/games/${game}.ts`);
-  requireFile(`src/games/${game}.spec.ts`);
+  requireFile(`src/games/${game}.game.ts`);
+  requireFile(`src/games/${game}.game.spec.ts`);
 
   const category = ['arcade', 'consoles'].find(candidate =>
     existsSync(join(root, `dist/games/${candidate}/${game}/config.json`)));

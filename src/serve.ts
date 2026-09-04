@@ -4,7 +4,7 @@
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
-import { buildClosureFailures } from './gen/build-manifest.ts';
+import { buildClosureFailures, readBuildManifest } from './gen/build-manifest.ts';
 import { ROM_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
 import {
   GAME_CATEGORIES,
@@ -49,6 +49,7 @@ const MIME: Record<string, string> = {
  * all -- the former is `supported` and `silent`. */
 export async function gamesManifest(outRoot: string, artDir: string): Promise<string> {
   const games: unknown[] = [];
+  const published = new Set(readBuildManifest(outRoot)?.publishedTargets ?? []);
   // Fail CLOSED on a mixed build too. Scanning dist for game directories will
   // happily find a target left over from an earlier --targets run, whose board
   // is registered against a hardware closure that was never built for it.
@@ -81,6 +82,7 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
   for (const category of GAME_CATEGORIES) {
     const entries = await readdir(join(outRoot, 'games', category)).catch(() => [] as string[]);
     for (const entry of entries) {
+      if (!published.has(entry)) continue;
       try {
         const dir = gameOutputDir(outRoot, category, entry);
         const meta = JSON.parse(await readFile(join(dir, 'meta.json'), 'utf8'));

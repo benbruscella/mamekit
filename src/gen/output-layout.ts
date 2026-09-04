@@ -1,11 +1,15 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-export const GAME_CATEGORIES = ['arcade', 'consoles'] as const;
+export const GAME_CATEGORIES = ['arcade', 'consoles', 'computers'] as const;
 export type GameCategory = (typeof GAME_CATEGORIES)[number];
+export type MachineKind = 'arcade' | 'console' | 'system' | 'computer';
 
 export function gameCategory(kind: unknown): GameCategory {
-  return kind === 'arcade' ? 'arcade' : 'consoles';
+  if (kind === 'arcade') return 'arcade';
+  if (kind === 'console' || kind === 'system') return 'consoles';
+  if (kind === 'computer') return 'computers';
+  throw new Error(`unsupported generated machine kind: ${String(kind)}`);
 }
 
 export function gamesRoot(outRoot: string): string {

@@ -62,6 +62,7 @@ import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
 import {
   GAME_CATEGORIES,
+  gameCategory,
   gameDataPath,
   gameOutputDir,
 } from './output-layout.ts';
@@ -693,8 +694,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       })));
     }
   }
-  const kind: 'console' | undefined = game.props.kind === 'console' ? 'console' : undefined;
-  const category = game.props.kind === 'arcade' ? 'arcade' : 'consoles';
+  const sourceKind = String(game.props.kind);
+  const kind: 'console' | 'computer' | undefined = sourceKind === 'console' || sourceKind === 'system'
+    ? 'console'
+    : sourceKind === 'computer'
+      ? 'computer'
+      : undefined;
+  const category = gameCategory(sourceKind);
   const dataPath = gameDataPath(category, opts.game);
   const byTag = new Map(devices.map(d => [String(d.props.tag), d]));
 
@@ -2533,7 +2539,11 @@ async function shipWebArtwork(outRoot: string): Promise<void> {
   }
 }
 
-export async function buildApp(outRoot: string): Promise<boolean> {
+export async function buildApp(
+  outRoot: string,
+  includedTargets?: readonly string[],
+): Promise<boolean> {
+  const included = includedTargets ? new Set(includedTargets) : undefined;
   const appDir = join(outRoot, 'app');
   const runtimeCoreDir = join(outRoot, 'runtime/core');
   const buildDir = join(outRoot, '.build');
@@ -2599,6 +2609,7 @@ export async function buildApp(outRoot: string): Promise<boolean> {
     const categoryDir = join(outRoot, 'games', category);
     if (!existsSync(categoryDir)) continue;
     for (const entry of readdirSync(categoryDir).sort()) {
+      if (included && !included.has(entry)) continue;
       const generatedDir = join(gameOutputDir(outRoot, category, entry), 'generated');
       if (!existsSync(join(generatedDir, 'board.ts'))) continue;
       const target = join(srcDir, gameDataPath(category, entry), 'generated');
@@ -2668,7 +2679,7 @@ if (game) {
   if (!dataPath) fail(new Error(\`no generated board for "\${game}"\`));
   else fetch(\`../\${dataPath}/config.json\`)
     .then(r => { if (!r.ok) throw new Error(\`no generated config for "\${game}" — run: mamekit \${game}\`); return r.json(); })
-    .then(cfg => (cfg as ShellConfig).kind === 'console'
+    .then(cfg => (cfg as ShellConfig).kind === 'console' || (cfg as ShellConfig).kind === 'computer'
       ? runConsole(cfg as ShellConfig)   // console room: cart shelf, drop zone, per-cart boot
       : runShell(cfg as ShellConfig))
     .catch(fail);
@@ -2718,6 +2729,7 @@ if (game) {
     const categoryDir = join(outRoot, 'games', category);
     if (!existsSync(categoryDir)) continue;
     for (const entry of readdirSync(categoryDir)) {
+      if (included && !included.has(entry)) continue;
       const gameDir = gameOutputDir(outRoot, category, entry);
       if (!existsSync(join(gameDir, 'meta.json'))) continue;
       let title = entry;
@@ -2796,7 +2808,7 @@ if (game) {
       filter: source => !source.endsWith('.js') && !source.endsWith('.js.map'),
     });
   }
-  const archive = emitArchiveRoutes(outRoot, appDir);
+  const archive = emitArchiveRoutes(outRoot, appDir, included);
   await shipWebArtwork(outRoot);
   rmSync(buildDir, { recursive: true, force: true });
   console.log(

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { generatedGameOutputs } from './output-layout.ts';
+import { generatedGameOutputs, type GameCategory } from './output-layout.ts';
 import {
   machineDossierHtml,
   type DossierData,
@@ -33,7 +33,7 @@ export interface ArchiveGame {
   game: string;
   title: string;
   fullname: string;
-  category: 'arcade' | 'consoles';
+  category: GameCategory;
   year?: string;
   manufacturer?: string;
   driverFile?: string;
@@ -152,7 +152,7 @@ function contributions(meta: MetaShape): AuthorContribution[] {
 }
 
 export function archiveGame(
-  category: 'arcade' | 'consoles',
+  category: GameCategory,
   fallbackGame: string,
   meta: MetaShape,
   config: ConfigShape,
@@ -212,9 +212,13 @@ export function aggregateArchive(games: ArchiveGame[]): ArchiveIndex {
   return { games: sortedGames, facets };
 }
 
-export function readArchive(outRoot: string): ArchiveIndex {
+export function readArchive(
+  outRoot: string,
+  includedTargets?: ReadonlySet<string>,
+): ArchiveIndex {
   const games: ArchiveGame[] = [];
   for (const output of generatedGameOutputs(outRoot)) {
+    if (includedTargets && !includedTargets.has(output.game)) continue;
     try {
       const meta = JSON.parse(readFileSync(join(output.dir, 'meta.json'), 'utf8')) as MetaShape;
       const config = JSON.parse(readFileSync(join(output.dir, 'config.json'), 'utf8')) as ConfigShape;
@@ -334,8 +338,12 @@ export interface EmittedArchive {
   dossiers: number;
 }
 
-export function emitArchiveRoutes(outRoot: string, appDir: string): EmittedArchive {
-  const index = readArchive(outRoot);
+export function emitArchiveRoutes(
+  outRoot: string,
+  appDir: string,
+  includedTargets?: ReadonlySet<string>,
+): EmittedArchive {
+  const index = readArchive(outRoot, includedTargets);
   const browseDir = join(appDir, 'browse');
   mkdirSync(browseDir, { recursive: true });
   writeFileSync(join(browseDir, 'index.html'), archiveIndexHtml(index));

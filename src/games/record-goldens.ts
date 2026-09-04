@@ -3,7 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { GameAcceptanceGolden } from './types.ts';
 import { runGameAcceptance } from './acceptance-harness.ts';
-import { loadGameContracts } from './contracts.ts';
+import { loadRegisteredGameContracts } from './contracts.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -58,7 +58,8 @@ function property(name: string): string {
 const AUDIO_WRITE_SWING = 0.05;
 
 async function record(games: readonly string[], formatOnly = false): Promise<void> {
-  const contracts = await loadGameContracts();
+  const loaded = await loadRegisteredGameContracts(['accepted', 'candidate']);
+  const contracts = loaded.map(entry => entry.contract);
   const selected = games.length
     ? contracts.filter(contract => games.includes(contract.game))
     : contracts;
@@ -89,7 +90,8 @@ async function record(games: readonly string[], formatOnly = false): Promise<voi
         );
       }
     }
-    const sourcePath = join(projectRoot, 'src/games', `${contract.game}.ts`);
+    const sourcePath = loaded.find(entry => entry.contract.game === contract.game)!
+      .registration.modulePath;
     const source = readFileSync(sourcePath, 'utf8');
     const updated = replaceGolden(source, golden);
     if (updated !== source) writeFileSync(sourcePath, updated);

@@ -398,7 +398,7 @@ if (generateAll) {
   // One pass over every required target, then one hardware closure and app
   // build across exactly those targets. Most are discovered from acceptance
   // contracts; consoles may temporarily contribute synthetic-only targets.
-  const { GENERATION_TARGETS } = await import('./gen/targets.ts');
+  const { GENERATION_TARGETS, PUBLISHED_TARGETS } = await import('./gen/targets.ts');
   // Quick cache pre-step: verify every entry against the current MAME
   // revision + mamekit source before anything is reused.
   prepareGenCache();
@@ -408,11 +408,17 @@ if (generateAll) {
   await generateTargetsInParallel(GENERATION_TARGETS);
   await emitClosureFromGraphs(GENERATION_TARGETS);
   const { buildApp } = await import('./gen/generate.ts');
-  if (!await buildApp(outRoot)) process.exitCode = 1;
+  if (!await buildApp(outRoot, PUBLISHED_TARGETS)) process.exitCode = 1;
   else {
     const { gamesManifest } = await import('./serve.ts');
     const { writeBuildManifest } = await import('./gen/build-manifest.ts');
-    writeBuildManifest(outRoot, GENERATION_TARGETS, mameSrc, String(process.hrtime.bigint()));
+    writeBuildManifest(
+      outRoot,
+      GENERATION_TARGETS,
+      mameSrc,
+      String(process.hrtime.bigint()),
+      PUBLISHED_TARGETS,
+    );
     writeFileSync(join(outRoot, 'games.json'),
       await gamesManifest(outRoot, artworkDir(projectRoot)));
     console.log(`\nmamekit: distribution generated at ${outRoot}`);
@@ -432,7 +438,7 @@ if (generateAll) {
   await emitClosureFromGraphs(targets);
   if (!buildAppOnly) process.exit(0);
   const { buildApp } = await import('./gen/generate.ts');
-  if (!await buildApp(outRoot)) {
+  if (!await buildApp(outRoot, targets)) {
     process.exitCode = 1;
   } else {
     const { writeBuildManifest } = await import('./gen/build-manifest.ts');

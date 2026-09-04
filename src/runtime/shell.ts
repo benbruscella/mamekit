@@ -231,7 +231,7 @@ export interface ShellConfig {
   title: string;
   family: string;
   /** 'console' machines route to the console room first (default arcade) */
-  kind?: 'arcade' | 'console';
+  kind?: 'arcade' | 'console' | 'computer';
   /** canonical generated artifact directory relative to the distribution root */
   dataPath: string;
   board: BoardConfig;

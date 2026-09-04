@@ -22,6 +22,8 @@ export const BUILD_MANIFEST_FILE = 'build-manifest.json';
 export interface BuildManifest {
   /** Exact target set this dist was generated from. */
   targets: string[];
+  /** Targets intentionally exposed through the app, routes, and catalog. */
+  publishedTargets: string[];
   /** Capability packages that lowered hardware for it. */
   capabilities: string[];
   boardIrSchemaVersion: number;
@@ -46,6 +48,7 @@ export function writeBuildManifest(
   targets: readonly string[],
   mameSource: string,
   buildId: string,
+  publishedTargets: readonly string[] = targets,
 ): BuildManifest {
   const hardwarePath = join(outRoot, 'runtime/generated/hardware-manifest.json');
   const capabilities: string[] = existsSync(hardwarePath)
@@ -54,6 +57,7 @@ export function writeBuildManifest(
   const revision = mameRevision(mameSource);
   const manifest: BuildManifest = {
     targets: [...targets].sort(),
+    publishedTargets: [...publishedTargets].sort(),
     capabilities,
     boardIrSchemaVersion: BOARD_IR_SCHEMA_VERSION,
     graphSchemaVersion: GRAPH_SCHEMA_VERSION,
@@ -68,7 +72,9 @@ export function writeBuildManifest(
 export function readBuildManifest(outRoot: string): BuildManifest | undefined {
   const path = join(outRoot, BUILD_MANIFEST_FILE);
   if (!existsSync(path)) return undefined;
-  return JSON.parse(readFileSync(path, 'utf8')) as BuildManifest;
+  const manifest = JSON.parse(readFileSync(path, 'utf8')) as BuildManifest;
+  manifest.publishedTargets ??= [...manifest.targets];
+  return manifest;
 }
 
 /**
