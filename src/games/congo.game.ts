@@ -31,8 +31,8 @@ export const congo = sourceTarget({
       writes: 2251,
       nonzeroWrites: 2161,
       writeHash: 'bdde155f',
-      pcmHash: '847f68e7',
-      rms: 0.04839,
+      pcmHash: '3c9944aa',
+      rms: 0.031724,
     },
   },
 });
