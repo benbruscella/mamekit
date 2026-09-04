@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const mpatrol: GameTestContract = {
+export const mpatrol = sourceTarget({
   game: 'mpatrol',
-  category: 'arcade',
   driver: 'src/mame/irem/m52.cpp',
   machine: { className: 'm52_state', name: 'm52' },
-  romEnvironment: 'MAMEKIT_MPATROL_ROM',
   screen: { width: 240, height: 252 },
   soundKind: 'ay8910',
   frames: 1800,
@@ -64,4 +62,4 @@ export const mpatrol: GameTestContract = {
       rms: 0.157579,
     },
   },
-};
+});

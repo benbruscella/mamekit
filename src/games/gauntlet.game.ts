@@ -28,6 +28,10 @@ export const gauntlet = sourceTarget({
       minimumDistinctValues: 32,
     },
   ],
+  // Issue #119 intentionally re-recorded this contract after removing the
+  // synthetic YM coin tone and duplicate devcb listener. The video and real
+  // POKEY/TMS5220 PCM hashes remain stable; only source-visible state ordering
+  // and the removed synthetic register writes change.
   golden: {
     regions: {
       audiocpu: '75097668',
@@ -41,15 +45,15 @@ export const gauntlet = sourceTarget({
       60: { video: 'ca3d891c', state: '45623a66' },
       300: { video: 'ca3d891c', state: '806c9f97' },
       500: { video: 'e8944774', state: '9c8e05b5' },
-      700: { video: 'c2f6e6a0', state: 'e2bc0224' },
-      1000: { video: '0b719ef8', state: 'a46cf1aa' },
-      1400: { video: 'c76ef848', state: 'ce0d4852' },
-      1800: { video: 'de79fa5d', state: '76f3892b' },
+      700: { video: 'c2f6e6a0', state: '859e1cb2' },
+      1000: { video: '0b719ef8', state: 'a2573291' },
+      1400: { video: 'c76ef848', state: '751752b5' },
+      1800: { video: 'de79fa5d', state: '71f86a3e' },
     },
     audio: {
-      writes: 284438,
-      nonzeroWrites: 252877,
-      writeHash: 'e3ec15dd',
+      writes: 284414,
+      nonzeroWrites: 252854,
+      writeHash: '907b8493',
       pcmHash: '6b9ec0b6',
       rms: 0.049667,
     },

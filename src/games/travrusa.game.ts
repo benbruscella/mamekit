@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const travrusa: GameTestContract = {
+export const travrusa = sourceTarget({
   game: 'travrusa',
-  category: 'arcade',
   driver: 'src/mame/irem/travrusa.cpp',
   machine: { className: 'travrusa_state', name: 'travrusa' },
-  romEnvironment: 'MAMEKIT_TRAVRUSA_ROM',
   screen: { width: 240, height: 256 },
   soundKind: 'ay8910',
   frames: 1800,
@@ -45,4 +43,4 @@ export const travrusa: GameTestContract = {
       rms: 0.169532,
     },
   },
-};
+});

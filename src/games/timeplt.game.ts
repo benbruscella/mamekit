@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const timeplt: GameTestContract = {
+export const timeplt = sourceTarget({
   game: 'timeplt',
-  category: 'arcade',
   driver: 'src/mame/konami/timeplt.cpp',
   machine: { className: 'timeplt_state', name: 'timeplt' },
-  romEnvironment: 'MAMEKIT_TIMEPLT_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1200,
@@ -39,4 +37,4 @@ export const timeplt: GameTestContract = {
       rms: 0.028155,
     },
   },
-};
+});

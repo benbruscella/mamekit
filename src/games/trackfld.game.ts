@@ -3,14 +3,12 @@
 // Verified against MAME 0.289 in attract mode with no input at all: our
 // frame 600 is 0 differing pixels out of 57344 against MAME's.
 
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const trackfld: GameTestContract = {
+export const trackfld = sourceTarget({
   game: 'trackfld',
-  category: 'arcade',
   driver: 'src/mame/konami/trackfld.cpp',
   machine: { className: 'trackfld_state', name: 'trackfld' },
-  romEnvironment: 'MAMEKIT_TRACKFLD_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'sn76489',
   frames: 1200,
@@ -48,4 +46,4 @@ export const trackfld: GameTestContract = {
       rms: 0.057509,
     },
   },
-};
+});

@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const tutankhm: GameTestContract = {
+export const tutankhm = sourceTarget({
   game: 'tutankhm',
-  category: 'arcade',
   driver: 'src/mame/konami/tutankhm.cpp',
   machine: { className: 'tutankhm_state', name: 'tutankhm' },
-  romEnvironment: 'MAMEKIT_TUTANKHM_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1200,
@@ -39,4 +37,4 @@ export const tutankhm: GameTestContract = {
       rms: 0.009608,
     },
   },
-};
+});

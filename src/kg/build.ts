@@ -448,12 +448,30 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
     const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
-    const timerStartHandlers = new Set(resolveMachineLifecycle(
+    const timerStartHandlers = new Set<string>();
+    const pendingTimerStarts = resolveMachineLifecycle(
       ast,
       cfg.cls,
       cfg.name,
       'start',
-    ).map(fn => `${fn.className}.${fn.name}`));
+    );
+    while (pendingTimerStarts.length) {
+      const fn = pendingTimerStarts.shift()!;
+      const key = `${fn.className}.${fn.name}`;
+      if (timerStartHandlers.has(key)) continue;
+      timerStartHandlers.add(key);
+      // Drivers commonly allocate their scanline timers in a helper called
+      // by machine_start (Berzerk uses create_irq_timer/create_nmi_timer).
+      // The timer callback is part of the selected machine whenever that
+      // allocation helper is in the lifecycle closure, not only when the
+      // timer_alloc expression appears in machine_start itself.
+      for (const statement of fn.statements) {
+        for (const call of statement.calls) {
+          const target = ast.findFunctionInHierarchy(fn.className, call.name);
+          if (target) pendingTimerStarts.push(target);
+        }
+      }
+    }
     const installedHandlers = machineStart
       ? parseInstalledHandlers(machineStart.body, consts)
       : [];

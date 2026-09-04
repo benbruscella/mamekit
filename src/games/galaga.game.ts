@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const galaga: GameTestContract = {
+export const galaga = sourceTarget({
   game: 'galaga',
-  category: 'arcade',
   driver: 'src/mame/namco/galaga.cpp',
   machine: { className: 'galaga_state', name: 'galaga' },
-  romEnvironment: 'MAMEKIT_GALAGA_ROM',
   screen: { width: 288, height: 224 },
   soundKind: 'wsg',
   // Galaga's three-CPU self-test runs ~12 s before the game will take a coin,
@@ -77,4 +75,4 @@ export const galaga: GameTestContract = {
       rms: 0.078376,
     },
   },
-};
+});

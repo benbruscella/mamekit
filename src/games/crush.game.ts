@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const crush: GameTestContract = {
+export const crush = sourceTarget({
   game: 'crush',
-  category: 'arcade',
   driver: 'src/mame/pacman/pacman.cpp',
   machine: { className: 'pacman_state', name: 'korosuke' },
-  romEnvironment: 'MAMEKIT_CRUSH_ROM',
   screen: { width: 288, height: 224 },
   soundKind: 'wsg',
   frames: 2400,
@@ -43,4 +41,4 @@ export const crush: GameTestContract = {
       rms: 0.08608,
     },
   },
-};
+});

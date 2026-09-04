@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const rygar: GameTestContract = {
+export const rygar = sourceTarget({
   game: 'rygar',
-  category: 'arcade',
   driver: 'src/mame/tecmo/tecmo.cpp',
   machine: { className: 'tecmo_state', name: 'rygar' },
-  romEnvironment: 'MAMEKIT_RYGAR_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ym2203',
   // Rygar's attract cycle reaches "PUSH ONLY 1PLAYER BUTTON" around frame 600,
@@ -51,4 +49,4 @@ export const rygar: GameTestContract = {
       rms: 0.070909,
     },
   },
-};
+});

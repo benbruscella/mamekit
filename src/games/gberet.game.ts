@@ -4,14 +4,12 @@
 // frame 200 and frame 600 are both 0 differing pixels out of 53760 against
 // the same frames of MAME's own snapshot.
 
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const gberet: GameTestContract = {
+export const gberet = sourceTarget({
   game: 'gberet',
-  category: 'arcade',
   driver: 'src/mame/konami/gberet.cpp',
   machine: { className: 'gberet_state', name: 'gberet' },
-  romEnvironment: 'MAMEKIT_GBERET_ROM',
   screen: { width: 240, height: 224 },
   soundKind: 'sn76489',
   frames: 1200,
@@ -47,4 +45,4 @@ export const gberet: GameTestContract = {
       rms: 0.021515,
     },
   },
-};
+});

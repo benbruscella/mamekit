@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const pacman: GameTestContract = {
+export const pacman = sourceTarget({
   game: 'pacman',
-  category: 'arcade',
   driver: 'src/mame/pacman/pacman.cpp',
   machine: { className: 'pacman_state', name: 'pacman' },
-  romEnvironment: 'MAMEKIT_PACMAN_ROM',
   screen: { width: 288, height: 224 },
   soundKind: 'wsg',
   frames: 600,
@@ -38,4 +36,4 @@ export const pacman: GameTestContract = {
       rms: 0.170261,
     },
   },
-};
+});

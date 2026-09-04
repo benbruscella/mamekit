@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const junglek: GameTestContract = {
+export const junglek = sourceTarget({
   game: 'junglek',
-  category: 'arcade',
   driver: 'src/mame/taito/taitosj.cpp',
   machine: { className: 'taitosj_state', name: 'nomcu' },
-  romEnvironment: 'MAMEKIT_JUNGLEK_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   shareRequirements: [{ share: 'collision_reg', minimumNonzeroBytes: 1 }],
@@ -42,4 +40,4 @@ export const junglek: GameTestContract = {
       rms: 0.361654,
     },
   },
-};
+});

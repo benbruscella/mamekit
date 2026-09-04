@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const pooyan: GameTestContract = {
+export const pooyan = sourceTarget({
   game: 'pooyan',
-  category: 'arcade',
   driver: 'src/mame/konami/pooyan.cpp',
   machine: { className: 'pooyan_state', name: 'pooyan' },
-  romEnvironment: 'MAMEKIT_POOYAN_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 600,
@@ -39,4 +37,4 @@ export const pooyan: GameTestContract = {
       rms: 0.020753,
     },
   },
-};
+});

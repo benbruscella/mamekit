@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const gunsmoke: GameTestContract = {
+export const gunsmoke = sourceTarget({
   game: 'gunsmoke',
-  category: 'arcade',
   driver: 'src/mame/capcom/gunsmoke.cpp',
   machine: { className: 'gunsmoke_state', name: 'gunsmoke' },
-  romEnvironment: 'MAMEKIT_GUNSMOKE_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ym2203',
   // Gunsmoke ignores the fire buttons until its level intro finishes around
@@ -55,4 +53,4 @@ export const gunsmoke: GameTestContract = {
       rms: 0.084883,
     },
   },
-};
+});

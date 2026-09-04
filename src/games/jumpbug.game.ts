@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const jumpbug: GameTestContract = {
+export const jumpbug = sourceTarget({
   game: 'jumpbug',
-  category: 'arcade',
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'galaxian_state', name: 'jumpbug' },
-  romEnvironment: 'MAMEKIT_JUMPBUG_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1200,
@@ -40,4 +38,4 @@ export const jumpbug: GameTestContract = {
       rms: 0.114613,
     },
   },
-};
+});

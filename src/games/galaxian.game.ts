@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const galaxian: GameTestContract = {
+export const galaxian = sourceTarget({
   game: 'galaxian',
-  category: 'arcade',
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'galaxian_state', name: 'galaxian' },
-  romEnvironment: 'MAMEKIT_GALAXIAN_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'discrete',
   frames: 900,
@@ -41,4 +39,4 @@ export const galaxian: GameTestContract = {
       rms: 0.101085,
     },
   },
-};
+});

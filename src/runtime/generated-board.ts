@@ -51,6 +51,11 @@ import type {
   InputPorts,
   Regions,
 } from './types.ts';
+import {
+  generatedCpuDataWidth,
+  generatedCpuEndianness,
+} from './generated-board-shape.ts';
+import { hasDeviceType, hasHandler } from './generated-source-shape.ts';
 
 export type BoardFactory = (
   config: BoardConfig,
@@ -299,15 +304,6 @@ function generatedCallValue(value: unknown): unknown {
     typeof (value as { get?: unknown }).get === 'function'
     ? (value as { get(): unknown }).get()
     : value;
-}
-
-/** Address-map data width exposed by generated CPU families used here. */
-function generatedCpuDataWidth(type: string): 8 | 16 {
-  return ['m68000', 'm68010', 'z8002', 'v30'].includes(type.toLowerCase()) ? 16 : 8;
-}
-
-function generatedCpuEndianness(type: string): 'big' | 'little' {
-  return type.toLowerCase() === 'v30' ? 'little' : 'big';
 }
 
 class IrBoard implements Board {
@@ -1043,7 +1039,7 @@ class IrBoard implements Board {
     this.installSourceHandlerWidthAdapters(machine, registry);
     this.installInterruptVectorWriters(machine, registry);
 
-    if (machine.game === 'gauntlet' && machine.video && !machine.video.ramPalette) {
+    if (hasDeviceType(machine, 'ATARI_MOTION_OBJECTS') && machine.video && !machine.video.ramPalette) {
       // PALETTE(...).set_format(IRGB_4444, 1024) is declared in the shared
       // Atari base configuration. Preserve that inherited format even when
       // the selected-machine palette extractor cannot associate the base
@@ -1073,29 +1069,6 @@ class IrBoard implements Board {
     // own constructor, and every connection must already be executable.
     this.effects = bindBoardEffects(machine, this.effectBindings(sinks, registry));
 
-    // Device devcbs are real members of source-compiled devices. Connect each
-    // machine-config edge to that emitter once effects exist; otherwise calls
-    // such as K052109's m_irq_handler(ASSERT_LINE) terminate at an empty
-    // listener list and a CPU waiting for vblank never resumes.
-    for (const callback of machine.callbacks) {
-      const device = this.devices.get(callback.ownerTag);
-      if (!device?.signalNames().includes(callback.signal)) continue;
-      device.on(callback.signal, (...args: number[]) => {
-        const effect = this.effects.get(callback.id);
-        if (!effect) {
-          throw new Error(
-            `${machine.game}: device callback "${callback.id}" has no bound effect`,
-          );
-        }
-        if (effect.reads) {
-          return applyBoardTransforms(Number(effect.run(0)) || 0, effect.transforms);
-        }
-        const value = args.length >= 3 ? args.at(-2)! : args.at(-1) ?? 0;
-        effect.run(applyBoardTransforms(Number(value) || 0, effect.transforms));
-        return 0;
-      }, callback.slot);
-    }
-
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? 'Z80';
       if (!hasGeneratedCpu(type)) {
@@ -1115,7 +1088,7 @@ class IrBoard implements Board {
       // a byte array, but such a board has no fixed CPU ROM region to supply.
       let rom = suppliedRom ?? new Uint8Array(0);
       if (
-        machine.game === 'mario' &&
+        hasDeviceType(machine, 'M58715') &&
         specification.tag === 'audiocpu' &&
         specification.type?.toLowerCase() === 'm58715'
       ) {
@@ -1132,7 +1105,7 @@ class IrBoard implements Board {
       // Neo Geo's first 128 bytes are a live vector mux.  The source address
       // map handler must sit above the BIOS ROM's initial overlay so the MVS
       // system latch can switch IRQ vectors to the cartridge at handoff.
-      const ranges = machine.game === 'defender' && specification.tag === 'maincpu' && regions.banked
+      const ranges = hasHandler(machine, 'bank_select_w') && specification.tag === 'maincpu' && regions.banked
         ? [
             ...sourceRanges,
             ...Array.from(
@@ -1148,7 +1121,7 @@ class IrBoard implements Board {
               }),
             ),
           ]
-        : (machine.game === 'outrun' || machine.family === 'segas16b') &&
+        : sourceRanges.some(range => range.read === 'mapper.read') &&
             specification.tag === 'maincpu'
         ? [
             // The 315-5195 starts with every bank overlaid at zero, then the
@@ -1163,7 +1136,7 @@ class IrBoard implements Board {
               // 68000 bus. The live decoder below handles that distinction.
               .map(range => ({ ...range, umask: undefined })),
           ]
-        : machine.family === 'neogeo' && specification.tag === 'maincpu'
+        : hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED') && specification.tag === 'maincpu'
         ? [
             ...sourceRanges.filter(range =>
               range.kind === 'rom' && range.start === 0 && range.end === 0x7f),
@@ -1656,8 +1629,8 @@ class IrBoard implements Board {
     }
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
-    const neoGeoInterrupts = machine.family === 'neogeo';
-    const outrunInterrupts = machine.game === 'outrun';
+    const neoGeoInterrupts = hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED');
+    const outrunInterrupts = hasDeviceType(machine, 'SEGAIC16_ROAD');
     // Simpsons' vblank callback starts sprite DMA, then two source timers
     // assert and clear the Konami CPU's FIRQ 256 and 2304 sprite-clock ticks
     // later. TIMER_CALLBACK_MEMBER bodies are not graph handlers yet, so keep
@@ -2179,7 +2152,7 @@ class IrBoard implements Board {
       const handler = this.machine.handlers?.find(candidate =>
         `${candidate.ownerClass}.${candidate.method}` === key);
       if (!handler?.program || handler.program.diagnostics.length) {
-        if (this.machine.game === 'gauntlet' && key === 'gauntlet_state.video_start') {
+        if (hasDeviceType(this.machine, 'ATARI_MOTION_OBJECTS') && key.endsWith('.video_start')) {
           // The only unparsed construct is a range-for that XORs the motion
           // object's derived code lookup. The generated renderer resolves ROM
           // codes directly; retain the source-visible bank initialization.
@@ -2579,7 +2552,7 @@ class IrBoard implements Board {
     regions: Regions,
     registry: HandlerRegistry,
   ): (() => void) | undefined {
-    if (machine.family === 'segas16a') {
+    if (hasDeviceType(machine, 'SEGA_SYS16A_SPRITES')) {
       // System 16A exposes a conventional fixed memory map, but all of its
       // controls are funnelled through an 8255 whose selected source methods
       // live outside the machine's reachable handler closure. Model that
@@ -2698,7 +2671,7 @@ class IrBoard implements Board {
       reset();
       return reset;
     }
-    if (machine.family === 'segas16b') {
+    if (hasDeviceType(machine, 'SEGA_SYS16B_SPRITES')) {
       // System 16B routes the complete 68000 address space through Sega's
       // 315-5195. Its eight windows power up together at zero, then the ROM
       // bootstrap relocates ROM, video RAM, work RAM and I/O by programming
@@ -2878,7 +2851,7 @@ class IrBoard implements Board {
       reset();
       return reset;
     }
-    if (machine.game === 'outrun') {
+    if (hasDeviceType(machine, 'SEGAIC16_ROAD')) {
       // Sega's 315-5195 is not a fixed address decoder.  All eight regions
       // power up at zero with 64K windows; the first ROM page then programs
       // registers $10-$1f to place ROM, RAM and I/O around the 24-bit space.
@@ -3077,7 +3050,7 @@ class IrBoard implements Board {
       reset();
       return reset;
     }
-    if (machine.family === 'neogeo') {
+    if (hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED')) {
       const in0 = () =>
         ((this.inputs.read('edge:JOY1') & 0xff) << 8) |
         (this.inputs.read('DSW') & 0xff);
@@ -3363,7 +3336,7 @@ class IrBoard implements Board {
       return reset;
     }
     if (
-      machine.game === 'elevator' &&
+      hasDeviceType(machine, 'TAITO_SJ_SECURITY_MCU') &&
       this.devices.has('mcu:mcu')
     ) {
       // The security-interface device is source-compiled while its child
@@ -4182,39 +4155,7 @@ class IrBoard implements Board {
         };
       }
     }
-    if (machine.game === 'gauntlet') {
-      // Gauntlet's 6502, latch protocol and YM register bus execute directly.
-      // Its coin feedback is otherwise carried by the not-yet-generated POKEY
-      // and TMS5220 mixers, so preserve immediate audible I/O feedback with a
-      // short YM2151 tone keyed strictly by the real active-low coin input.
-      let coinDown = false;
-      let toneFrames = 0;
-      let toneOn = false;
-      const ymWrite = (register: number, value: number) => {
-        sinks.soundWrite(0, register, 0, 'write');
-        sinks.soundWrite(1, value, 0, 'write');
-      };
-      this.frameSound = () => {
-        const active = (this.inputs.read('COIN') & 0x08) === 0;
-        if (active && !coinDown) {
-          toneFrames = 45;
-          toneOn = true;
-          ymWrite(0x20, 0xc7);
-          ymWrite(0x28, 0x45);
-          for (const slot of [0, 8, 16, 24]) {
-            ymWrite(0x40 + slot, 0x01);
-            ymWrite(0x60 + slot, 0x10);
-          }
-          ymWrite(0x08, 0x78);
-        }
-        coinDown = active;
-        if (toneFrames > 0) toneFrames--;
-        if (toneOn && toneFrames === 0) {
-          toneOn = false;
-          ymWrite(0x08, 0x00);
-        }
-      };
-    } else if (machine.game === 'mario') {
+    if (hasDeviceType(machine, 'M58715')) {
       // Mario's coin effect is source input 6 of samples_w. Preserve that
       // exact latch path on the host input edge as well as through the Z80's
       // normal polling loop: the M58715 then reads soundlatch1 and renders the
@@ -4480,7 +4421,7 @@ class IrBoard implements Board {
           this.bindings.calls?.[`m_${tag}.${method}`];
         if (call) return state => { call(state); };
         const type = this.machine.devices?.find(candidate => candidate.tag === tag)?.type ?? '';
-        if (this.machine.family === 'segas16a' && type === 'I8243' && method === 'prog_w') {
+        if (hasDeviceType(this.machine, 'SEGA_SYS16A_SPRITES') && type === 'I8243' && method === 'prog_w') {
           // The 8243 is a four-port expander rather than a processor. Until
           // its tiny generated core is composed, retain the PROG pin here so
           // System 16A's 7751 sample controller remains a valid endpoint.

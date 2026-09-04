@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const digdug: GameTestContract = {
+export const digdug = sourceTarget({
   game: 'digdug',
-  category: 'arcade',
   driver: 'src/mame/namco/galaga.cpp',
   machine: { className: 'digdug_state', name: 'digdug' },
-  romEnvironment: 'MAMEKIT_DIGDUG_ROM',
   screen: { width: 288, height: 224 },
   soundKind: 'wsg',
   // Dig Dug does not accept input or produce nonzero WSG data until its
@@ -53,4 +51,4 @@ export const digdug: GameTestContract = {
       rms: 0.079417,
     },
   },
-};
+});

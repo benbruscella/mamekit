@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const bankp: GameTestContract = {
+export const bankp = sourceTarget({
   game: 'bankp',
-  category: 'arcade',
   driver: 'src/mame/sanritsu/bankp.cpp',
   machine: { className: 'bankp_state', name: 'bankp' },
-  romEnvironment: 'MAMEKIT_BANKP_ROM',
   screen: { width: 224, height: 224 },
   soundKind: 'sn76489',
   frames: 1600,
@@ -52,4 +50,4 @@ export const bankp: GameTestContract = {
       rms: 0.082498,
     },
   },
-};
+});

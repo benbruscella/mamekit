@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const pengo: GameTestContract = {
+export const pengo = sourceTarget({
   game: 'pengo',
-  category: 'arcade',
   driver: 'src/mame/pacman/pengo.cpp',
   machine: { className: 'pengo_state', name: 'pengou' },
-  romEnvironment: 'MAMEKIT_PENGO_ROM',
   screen: { width: 288, height: 224 },
   soundKind: 'wsg',
   frames: 1200,
@@ -41,4 +39,4 @@ export const pengo: GameTestContract = {
       rms: 0.112674,
     },
   },
-};
+});

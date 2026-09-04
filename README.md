@@ -81,6 +81,10 @@ under `src/runtime`, `src/ir` or `src/hardware`. `npm run serve:build`
 recompiles the app shell from the working tree first, which is what you want
 after editing runtime source without a full `gen:all`.
 
+To add a target, start with `npm run game:init -- <shortname>` and follow the
+canonical [adding-a-game workflow](docs/ADDING_A_GAME.md). Candidates generate
+in isolation without being accepted or published.
+
 ## REPOSITORY MAP
 
 ```

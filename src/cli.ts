@@ -36,6 +36,7 @@ import {
   existingGameOutputDir,
   gameCategory,
   gameOutputDir,
+  isGameCategory,
 } from './gen/output-layout.ts';
 import { artworkDir } from './paths.ts';
 
@@ -243,10 +244,10 @@ async function generateTargetsInParallel(targets: readonly string[]): Promise<vo
     const entryDir = join(genCacheRoot(), 'targets', target);
     const entry = cacheId ? readEntry(entryDir, cacheId) : undefined;
     if (entry && existsSync(entryTree(entryDir))) {
-      copyTree(
-        entryTree(entryDir),
-        gameOutputDir(outRoot, entry.category === 'consoles' ? 'consoles' : 'arcade', target),
-      );
+      if (!isGameCategory(entry.category)) {
+        throw new Error(`${target}: cached target has unknown category ${String(entry.category)}`);
+      }
+      copyTree(entryTree(entryDir), gameOutputDir(outRoot, entry.category, target));
       restored++;
     } else {
       pending.push(target);

@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const invaders: GameTestContract = {
+export const invaders = sourceTarget({
   game: 'invaders',
-  category: 'arcade',
   driver: 'src/mame/midw8080/mw8080bw.cpp',
   machine: { className: 'invaders_state', name: 'invaders' },
-  romEnvironment: 'MAMEKIT_INVADERS_ROM',
   screen: { width: 260, height: 224 },
   soundKind: 'discrete',
   frames: 600,
@@ -38,4 +36,4 @@ export const invaders: GameTestContract = {
       rms: 0.035225,
     },
   },
-};
+});

@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const gyruss: GameTestContract = {
+export const gyruss = sourceTarget({
   game: 'gyruss',
-  category: 'arcade',
   driver: 'src/mame/konami/gyruss.cpp',
   machine: { className: 'gyruss_state', name: 'gyruss' },
-  romEnvironment: 'MAMEKIT_GYRUSS_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1800,
@@ -44,4 +42,4 @@ export const gyruss: GameTestContract = {
       rms: 0.097712,
     },
   },
-};
+});

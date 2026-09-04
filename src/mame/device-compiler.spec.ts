@@ -212,6 +212,21 @@ assert.ok(
   'source-installed child firmware callbacks must be selected for direct execution',
 );
 
+const tunitVideoDefinition = hardware.get('MIDTUNIT_VIDEO');
+assert.ok(tunitVideoDefinition, 'MAME hardware index should resolve MIDTUNIT_VIDEO');
+const generatedTunitVideo = compileMameDevice(mameSrc, tunitVideoDefinition);
+const generatedDmaDraws = generatedTunitVideo.methods.filter(method =>
+  method.name.startsWith('dma_draw_') && method.name !== 'dma_draw_none');
+assert.equal(
+  generatedDmaDraws.length,
+  512,
+  'T-Unit DMA macro tables must materialize every source-selected template specialization',
+);
+assert.ok(
+  generatedDmaDraws.every(method => !method.program.diagnostics.length),
+  'T-Unit DMA template constants must fold into executable handler artifacts',
+);
+
 const cnromDefinition = hardware.get('NES_CNROM');
 assert.ok(cnromDefinition, 'MAME hardware index should resolve NES_CNROM');
 const generatedCnrom = compileMameDevice(mameSrc, cnromDefinition);

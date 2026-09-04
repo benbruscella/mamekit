@@ -43,8 +43,8 @@ legally contain those ROMs; green CI alone is therefore not a release gate.
 ```
 src/mame/video-compiler.ts
 src/mame/...generic compiler specs...
-src/games/pooyan.ts
-src/games/pooyan.spec.ts
+src/games/pooyan.game.ts
+src/games/pooyan.game.spec.ts
 ```
 
 These specs cover source parsing, graph construction, IR lowering, generated
@@ -198,28 +198,28 @@ The `src/games` directory is the supported-machine QA inventory. Each machine
 has one deliberately small token:
 
 ```
-src/games/pacman.ts
-src/games/pacman.spec.ts
-src/games/pooyan.ts
-src/games/pooyan.spec.ts
-src/games/timeplt.ts
-src/games/timeplt.spec.ts
-src/games/invaders.ts
-src/games/invaders.spec.ts
-src/games/galaxian.ts
-src/games/galaxian.spec.ts
-src/games/galaga.ts
-src/games/galaga.spec.ts
-src/games/digdug.ts
-src/games/digdug.spec.ts
-src/games/mpatrol.ts
-src/games/mpatrol.spec.ts
-src/games/rocnrope.ts
-src/games/rocnrope.spec.ts
-src/games/junofrst.ts
-src/games/junofrst.spec.ts
-src/games/gyruss.ts
-src/games/gyruss.spec.ts
+src/games/pacman.game.ts
+src/games/pacman.game.spec.ts
+src/games/pooyan.game.ts
+src/games/pooyan.game.spec.ts
+src/games/timeplt.game.ts
+src/games/timeplt.game.spec.ts
+src/games/invaders.game.ts
+src/games/invaders.game.spec.ts
+src/games/galaxian.game.ts
+src/games/galaxian.game.spec.ts
+src/games/galaga.game.ts
+src/games/galaga.game.spec.ts
+src/games/digdug.game.ts
+src/games/digdug.game.spec.ts
+src/games/mpatrol.game.ts
+src/games/mpatrol.game.spec.ts
+src/games/rocnrope.game.ts
+src/games/rocnrope.game.spec.ts
+src/games/junofrst.game.ts
+src/games/junofrst.game.spec.ts
+src/games/gyruss.game.ts
+src/games/gyruss.game.spec.ts
 ```
 
 The token declares only:
@@ -260,7 +260,7 @@ generic video compiler in isolation. A growing list of game-named files under
 `src/mame` would hide which games are intentionally supported and scatter each
 game's acceptance evidence across unrelated packages.
 
-The assertions were not discarded. They now live in `src/games/pooyan.spec.ts`
+The assertions were not discarded. They now live in `src/games/pooyan.game.spec.ts`
 beside the Pooyan token, while generic video lowering remains in
 `src/mame/video-compiler.ts`. This preserves colocated tests without confusing
 generic compiler ownership with the supported-game inventory.
@@ -334,7 +334,7 @@ output path:
 ```sh
 MAMEKIT_CAPTURE_FRAME=/tmp/digdug.ppm \
 MAMEKIT_UPDATE_GOLDENS=1 \
-node -e "import { runGameAcceptance } from './src/games/acceptance-harness.ts'; import { digdug } from './src/games/digdug.ts'; await runGameAcceptance(digdug)"
+node -e "import { runGameAcceptance } from './src/games/acceptance-harness.ts'; import { digdug } from './src/games/digdug.game.ts'; await runGameAcceptance(digdug)"
 ```
 
 Review the diff and keep only the affected token changes. Then rerun
@@ -349,25 +349,9 @@ changes point toward generated synthesis or resampling.
 
 ## 6. ADDING A SUPPORTED GAME
 
-1. Add `src/games/<game>.ts` using an existing token as the schema example.
-2. Add `src/games/<game>.spec.ts` for source facts and lowering rules that are
-   essential to that machine.
-3. Keep the token free of emulation behavior; the token/spec pair is
-   auto-discovered, so no central registry or `gen:all` list needs editing.
-4. Generate only the new game while bringing it up.
-5. Verify ROM loading, coin/start, gameplay, video and audio manually.
-6. For sound-capable games, optionally run `npm run audio:compare -- <game>
-   --mame /path/to/mame` to compare clean power-on WAVs from the generated
-   worklet and MAME's `-wavwrite`.
-7. Add the local bezel, flyer, cabinet, marquee and Gaming History data
-   described in [CONTRIBUTING](CONTRIBUTING.md), then run
-   `npm run audit:game-package -- <game>`.
-8. Run `test:games:record`, review the candidate baseline, and add it.
-9. Run `npm test` and `npm run test:games`.
-10. Record the browser baseline with
-    `MAMEKIT_E2E_GAMES=<game> npm run test:e2e:record`, then run
-    `npm run test:e2e`. Browser QA needs no registration: the machine is
-    discovered from its token like every other gate.
+Use the canonical [adding-a-game workflow](ADDING_A_GAME.md). It starts from a
+MAME short name, creates a staged candidate, and keeps generation, acceptance,
+and publication readiness separate.
 
 If a new title requires changes to `acceptance-harness.ts`, first decide
 whether the requirement is a reusable hardware category or an accidental

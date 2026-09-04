@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const frogger: GameTestContract = {
+export const frogger = sourceTarget({
   game: 'frogger',
-  category: 'arcade',
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'galaxian_state', name: 'frogger' },
-  romEnvironment: 'MAMEKIT_FROGGER_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 900,
@@ -41,4 +39,4 @@ export const frogger: GameTestContract = {
       rms: 0.013756,
     },
   },
-};
+});

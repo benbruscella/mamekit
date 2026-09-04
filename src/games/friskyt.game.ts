@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const friskyt: GameTestContract = {
+export const friskyt = sourceTarget({
   game: 'friskyt',
-  category: 'arcade',
   driver: 'src/mame/nichibutsu/seicross.cpp',
   machine: { className: 'seicross_state', name: 'nvram' },
-  romEnvironment: 'MAMEKIT_FRISKYT_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1800,
@@ -42,4 +40,4 @@ export const friskyt: GameTestContract = {
       rms: 0.076886,
     },
   },
-};
+});

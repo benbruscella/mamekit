@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const scramble: GameTestContract = {
+export const scramble = sourceTarget({
   game: 'scramble',
-  category: 'arcade',
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'galaxian_state', name: 'scramble' },
-  romEnvironment: 'MAMEKIT_SCRAMBLE_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 900,
@@ -44,4 +42,4 @@ export const scramble: GameTestContract = {
       rms: 0.034885,
     },
   },
-};
+});

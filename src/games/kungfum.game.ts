@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const kungfum: GameTestContract = {
+export const kungfum = sourceTarget({
   game: 'kungfum',
-  category: 'arcade',
   driver: 'src/mame/irem/m62.cpp',
   machine: { className: 'm62_state', name: 'kungfum' },
-  romEnvironment: 'MAMEKIT_KUNGFUM_ROM',
   screen: { width: 256, height: 256 },
   soundKind: 'ay8910',
   frames: 1800,
@@ -70,4 +68,4 @@ export const kungfum: GameTestContract = {
       rms: 0.035128,
     },
   },
-};
+});

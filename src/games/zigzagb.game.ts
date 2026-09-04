@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const zigzagb: GameTestContract = {
+export const zigzagb = sourceTarget({
   game: 'zigzagb',
-  category: 'arcade',
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'zigzagb_state', name: 'zigzag' },
-  romEnvironment: 'MAMEKIT_ZIGZAGB_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 900,
@@ -43,4 +41,4 @@ export const zigzagb: GameTestContract = {
       rms: 0.100738,
     },
   },
-};
+});

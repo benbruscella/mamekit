@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const rocnrope: GameTestContract = {
+export const rocnrope = sourceTarget({
   game: 'rocnrope',
-  category: 'arcade',
   driver: 'src/mame/konami/rocnrope.cpp',
   machine: { className: 'rocnrope_state', name: 'rocnrope' },
-  romEnvironment: 'MAMEKIT_ROCNROPE_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1200,
@@ -42,4 +40,4 @@ export const rocnrope: GameTestContract = {
       rms: 0.019606,
     },
   },
-};
+});

@@ -146,6 +146,7 @@ const segaScreenBody = `
 assert.equal(
   generatedDirectScreenShape({
     family: 'segas16a',
+    devices: [{ id: 'sprites', tag: 'sprites', type: 'SEGA_SYS16A_SPRITES' }],
     execution: { screenUpdate: { handler: 'segas16a_state.screen_update' } },
     handlers: [{
       ownerClass: 'segas16a_state',
@@ -158,6 +159,7 @@ assert.equal(
 assert.equal(
   generatedDirectScreenShape({
     family: 'segas16b',
+    devices: [{ id: 'sprites', tag: 'sprites', type: 'SEGA_SYS16B_SPRITES' }],
     execution: { screenUpdate: { handler: 'segas16b_state.screen_update' } },
     handlers: [{
       ownerClass: 'segas16b_state',

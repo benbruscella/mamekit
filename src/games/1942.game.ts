@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const _1942: GameTestContract = {
+export const _1942 = sourceTarget({
   game: '1942',
-  category: 'arcade',
   driver: 'src/mame/capcom/1942.cpp',
   machine: { className: '_1942_state', name: '_1942' },
-  romEnvironment: 'MAMEKIT_1942_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1200,
@@ -53,7 +51,7 @@ export const _1942: GameTestContract = {
       rms: 0.048245,
     },
   },
-};
+});
 
 // ECMAScript string-named export: discovery keys contracts by MAME short name,
 // including numeric names that cannot be JavaScript identifiers.

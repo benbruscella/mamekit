@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const dkongjr: GameTestContract = {
+export const dkongjr = sourceTarget({
   game: 'dkongjr',
-  category: 'arcade',
   driver: 'src/mame/nintendo/dkong.cpp',
   machine: { className: 'dkong_state', name: 'dkongjr' },
-  romEnvironment: 'MAMEKIT_DKONGJR_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'discrete',
   frames: 1800,
@@ -43,4 +41,4 @@ export const dkongjr: GameTestContract = {
       rms: 0.091032,
     },
   },
-};
+});

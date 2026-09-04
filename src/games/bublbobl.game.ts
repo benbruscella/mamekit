@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const bublbobl: GameTestContract = {
+export const bublbobl = sourceTarget({
   game: 'bublbobl',
-  category: 'arcade',
   driver: 'src/mame/taito/bublbobl.cpp',
   machine: { className: 'bublbobl_state', name: 'bublbobl' },
-  romEnvironment: 'MAMEKIT_BUBLBOBL_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ym2203',
   frames: 1800,
@@ -47,4 +45,4 @@ export const bublbobl: GameTestContract = {
       rms: 0.037758,
     },
   },
-};
+});

@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const commando: GameTestContract = {
+export const commando = sourceTarget({
   game: 'commando',
-  category: 'arcade',
   driver: 'src/mame/capcom/commando.cpp',
   machine: { className: 'commando_state', name: 'commando' },
-  romEnvironment: 'MAMEKIT_COMMANDO_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ym2203',
   frames: 1800,
@@ -46,4 +44,4 @@ export const commando: GameTestContract = {
       rms: 0.029165,
     },
   },
-};
+});

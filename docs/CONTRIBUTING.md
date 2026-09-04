@@ -104,10 +104,10 @@ npm run audit:game-package -- <target>  # after adding local presentation assets
 npm run serve                            # verify ROM, input, video and audio
 ```
 
-Do not add the adjacent game token while the target is still being brought up.
-First fix graph, IR and generated-hardware gaps in isolation. The token is the
-registration: discovery adds it to `gen:all` only when both
-`src/games/<target>.ts` and its colocated spec exist.
+Register bring-up work as an explicit candidate. It joins clean generation
+without joining release acceptance or the public catalog. Discovery adds it
+only when both `src/games/candidates/<target>.game.ts` and its colocated spec
+exist; an orphaned file is an error.
 
 The reverse holds for a target that regresses: move the module and its spec
 into `src/games/disabled/` with a header note saying what play-testing found,
@@ -216,9 +216,12 @@ Never solve a gap by:
 Add adjacent files:
 
 ```text
-src/games/<target>.ts
-src/games/<target>.spec.ts
+src/games/candidates/<target>.game.ts
+src/games/candidates/<target>.game.spec.ts
 ```
+
+Create these with `npm run game:init -- <target>` and follow the canonical
+[adding-a-game workflow](ADDING_A_GAME.md). Do not hand-copy a registration.
 
 Use an existing token only as a schema example. The token may declare:
 
@@ -232,9 +235,10 @@ It must not implement emulation behavior. The adjacent spec should assert the
 MAME source facts and generated lowering essential to this machine. Generic
 compiler behavior remains tested beside its compiler.
 
-The token/spec pair is auto-discovered and joins `gen:all` and the real-ROM
-acceptance run. Extend `acceptance-harness.ts` only for a reusable machine
-capability, never for game logic.
+The candidate pair is auto-discovered and joins clean generation, but remains
+outside the real-ROM sweep and public catalog until `game:promote` verifies its
+golden, runtime report, and package. Extend `acceptance-harness.ts` only for a
+reusable machine capability, never for game logic.
 
 ### STEP 5: VERIFY WITH REAL ROMS
 
@@ -666,7 +670,7 @@ and minimum fps pass, coin/start/gameplay/video/audio have been checked against
 MAME and in the browser, its local artwork/history package is complete,
 existing game goldens remain unchanged, and every new compiler rule has a
 colocated reusable test. At that point the checked-in game-specific surface
-should still be only `src/games/<target>.ts` and its adjacent spec.
+should still be only `src/games/<target>.game.ts` and its adjacent spec.
 
 ## 5. TEST AND REVIEW REQUIREMENTS
 

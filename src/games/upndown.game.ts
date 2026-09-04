@@ -6,14 +6,12 @@
 // frame 600 is 0 differing pixels out of 114688 against MAME's, once ours
 // is rotated 270 degrees to match the presented ROT270 image.
 
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const upndown: GameTestContract = {
+export const upndown = sourceTarget({
   game: 'upndown',
-  category: 'arcade',
   driver: 'src/mame/sega/system1.cpp',
   machine: { className: 'system1_state', name: 'upndown' },
-  romEnvironment: 'MAMEKIT_UPNDOWN_ROM',
   screen: { width: 512, height: 224 },
   soundKind: 'sn76489',
   frames: 1200,
@@ -51,4 +49,4 @@ export const upndown: GameTestContract = {
       rms: 0.050361,
     },
   },
-};
+});

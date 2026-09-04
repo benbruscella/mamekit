@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const junofrst: GameTestContract = {
+export const junofrst = sourceTarget({
   game: 'junofrst',
-  category: 'arcade',
   driver: 'src/mame/konami/junofrst.cpp',
   machine: { className: 'junofrst_state', name: 'junofrst' },
-  romEnvironment: 'MAMEKIT_JUNOFIRST_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1200,
@@ -45,4 +43,4 @@ export const junofrst: GameTestContract = {
       rms: 0.194024,
     },
   },
-};
+});

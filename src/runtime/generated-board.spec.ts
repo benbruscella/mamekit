@@ -656,6 +656,10 @@ const system16bMachine: BoardIr = {
   ...opcodeMachine,
   game: 'system16b-mapper-fixture',
   family: 'segas16b',
+  devices: [
+    { id: 'device:maincpu', tag: 'maincpu', type: 'M68010' },
+    { id: 'device:sprites', tag: 'sprites', type: 'SEGA_SYS16B_SPRITES' },
+  ],
   execution: {
     ...opcodeMachine.execution,
     cpus: [{

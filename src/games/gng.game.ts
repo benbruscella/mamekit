@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const gng: GameTestContract = {
+export const gng = sourceTarget({
   game: 'gng',
-  category: 'arcade',
   driver: 'src/mame/capcom/gng.cpp',
   machine: { className: 'gng_state', name: 'gng' },
-  romEnvironment: 'MAMEKIT_GNG_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ym2203',
   frames: 3000,
@@ -49,4 +47,4 @@ export const gng: GameTestContract = {
       rms: 0.067009,
     },
   },
-};
+});

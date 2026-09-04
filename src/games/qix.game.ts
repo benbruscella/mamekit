@@ -1,11 +1,9 @@
-import type { GameTestContract } from './types.ts';
+import { sourceTarget } from './source-contract.ts';
 
-export const qix: GameTestContract = {
+export const qix = sourceTarget({
   game: 'qix',
-  category: 'arcade',
   driver: 'src/mame/taito/qix.cpp',
   machine: { className: 'qix_state', name: 'qix' },
-  romEnvironment: 'MAMEKIT_QIX_ROM',
   screen: { width: 256, height: 256 },
   soundKind: 'discrete',
   frames: 900,
@@ -52,4 +50,4 @@ export const qix: GameTestContract = {
       rms: 0.176022,
     },
   },
-};
+});
