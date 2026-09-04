@@ -2504,6 +2504,37 @@ export function compileMameI8088(
       'src/devices/cpu/nec/necinstr.hxx', 581);
     add('v30_rotshft_wd8', '', immediateRotate(rotateByCl('0xd3')),
       'src/devices/cpu/nec/necinstr.hxx', 598);
+    // NEC reserves 0f as an extension prefix instead of retaining the
+    // original 8086's undocumented POP CS. R-Type reaches ADD4S when its
+    // first enemies award score; popping CS here sends execution through
+    // unmapped memory and eventually back into the power-on diagnostics.
+    // This is the V30 branch of necinstr.hxx's ADD4S macro, expressed with
+    // the compatible i8086 core's ES/DS and DI/SI register names.
+    add('v30_add4s', '', `
+      uint32_t count = (m_regs.b[CL] + 1) / 2;
+      uint32_t destination = m_regs.w[DI];
+      uint32_t source = m_regs.w[SI];
+      m_ZeroVal = 0;
+      m_CarryVal = 0;
+      while (count > 0) {
+        uint32_t source_bcd = read_byte((m_sregs[DS] << 4) + source);
+        uint32_t destination_bcd = read_byte((m_sregs[ES] << 4) + destination);
+        uint32_t source_value = ((source_bcd >> 4) * 10) + (source_bcd & 15);
+        uint32_t destination_value =
+          ((destination_bcd >> 4) * 10) + (destination_bcd & 15);
+        uint32_t result = source_value + destination_value + m_CarryVal;
+        m_CarryVal = result > 99;
+        result %= 100;
+        uint32_t packed = ((result / 10) << 4) | (result % 10);
+        write_byte((m_sregs[ES] << 4) + destination, packed);
+        if (packed) m_ZeroVal = 1;
+        source++;
+        destination++;
+        count--;
+        cycles += 19;
+      }
+      cycles += 7;
+    `, 'src/devices/cpu/nec/necmacro.h', 234);
   }
 
   const step = compileMameHandler(normalize(`
@@ -2537,7 +2568,10 @@ export function compileMameI8088(
       if (m_no_interrupt) m_no_interrupt--;
     }
     uint8_t op = fetch_op();
-    if (op == 0x0f) {
+    if (${variant === 'V30' ? 'op == 0x0f' : 'false'}) {
+      uint8_t nec_op = fetch();
+      if (nec_op == 0x20) v30_add4s();
+    } else if (op == 0x0f) {
       m_sregs[CS] = POP();
       CLK(POP_SEG);
     } else if (${variant === 'V30' ? 'op == 0x60' : 'false'}) {

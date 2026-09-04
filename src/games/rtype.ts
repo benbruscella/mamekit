@@ -1,5 +1,20 @@
 import { sourceTarget } from './source-contract.ts';
 
+const firstWaveActions = Array.from({ length: 48 }, (_, index) => [
+  {
+    atFrame: 780 + index * 18,
+    code: 'Space',
+    heldFrames: 3,
+    releasedFrames: 3,
+  },
+  {
+    atFrame: 786 + index * 18,
+    code: index % 24 < 12 ? 'ArrowDown' : 'ArrowUp',
+    heldFrames: 6,
+    releasedFrames: 6,
+  },
+]).flat();
+
 export const rtype = sourceTarget({
   game: 'rtype',
   driver: 'src/mame/irem/m72.cpp',
@@ -9,15 +24,15 @@ export const rtype = sourceTarget({
   // The generated V30 completes R-Type's destructive power-on RAM tests at
   // roughly frame 550. Inputs from the standard frame-300 schedule are gone
   // before the game starts polling its ports, leaving attract mode silent.
-  // Exercise the post-boot coin/start path so acceptance covers the sound Z80
-  // upload, reset release, YM2151 programming and live player controls.
-  frames: 1400,
-  checkpoints: [1, 60, 180, 300, 600, 900, 1200, 1400],
+  // Exercise the post-boot coin/start path and play into the first alien wave.
+  // Destroying an enemy runs V30 ADD4S to update the packed-BCD score, so this
+  // schedule guards the NEC 0f prefix as well as sound, sprites and controls.
+  frames: 1680,
+  checkpoints: [1, 60, 180, 300, 600, 900, 1200, 1400, 1600, 1680],
   actions: [
     { atFrame: 650, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 700, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
-    { atFrame: 800, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },
-    { atFrame: 980, code: 'Space', heldFrames: 30, releasedFrames: 20 },
+    ...firstWaveActions,
   ],
   golden: {
     regions: {
@@ -34,16 +49,18 @@ export const rtype = sourceTarget({
       180: { video: '802fae47', state: '1dd2eda9' },
       300: { video: '802fae47', state: 'b8cd7fb3' },
       600: { video: '9179e471', state: 'efba8f4e' },
-      900: { video: '78e538b9', state: '03fb4816' },
-      1200: { video: '252071c5', state: '05006177' },
-      1400: { video: '67b67f6d', state: '0577a0ba' },
+      900: { video: '78e538b9', state: '5462e913' },
+      1200: { video: '016dbaf3', state: 'def8b868' },
+      1400: { video: 'a61ab8a5', state: '411fcb86' },
+      1600: { video: '7656768d', state: '86651ce5' },
+      1680: { video: '7d2e15bc', state: '16a7295f' },
     },
     audio: {
-      writes: 12808,
-      nonzeroWrites: 12322,
-      writeHash: '58bea931',
-      pcmHash: '8e15fcb1',
-      rms: 0.039055,
+      writes: 25926,
+      nonzeroWrites: 23778,
+      writeHash: '8296bdba',
+      pcmHash: 'a859eeed',
+      rms: 0.048711,
     },
   },
 });

@@ -313,6 +313,33 @@ assert.equal(v30Shift.get('m_regs.b.0'), 4, 'V30 c0 must shift a byte by its imm
 assert.equal(v30Shift.get('m_regs.w.4'), 0x0200, 'V30 c0 must not consume the return stack');
 v30Shift.step();
 assert.equal(v30Shift.get('m_regs.w.0'), 0x0040, 'V30 c1 must shift a word by its immediate count');
+
+// NEC uses 0f as an opcode prefix rather than the original 8086's
+// undocumented POP CS. R-Type executes 0f 20 (ADD4S) when the first alien
+// wave starts awarding score; POP CS corrupts the code segment and re-enters
+// the destructive power-on tests.
+const v30BcdMemory = new Uint8Array(0x30000);
+v30BcdMemory.set([0x0f, 0x20], 0);
+v30BcdMemory.set([0x12, 0x34], 0x20010);
+v30BcdMemory.set([0x87, 0x65], 0x10020);
+const v30Bcd = createCpu('V30', {
+  read: address => v30BcdMemory[address] ?? 0,
+  write: (address, data) => { v30BcdMemory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+v30Bcd.set('m_sregs.0', 0x1000); // ES / NEC DS1
+v30Bcd.set('m_sregs.1', 0); // CS
+v30Bcd.set('m_sregs.3', 0x2000); // DS / NEC DS0
+v30Bcd.set('m_regs.b.2', 3); // CL: two packed-BCD bytes
+v30Bcd.set('m_regs.w.6', 0x0010); // SI / NEC IX
+v30Bcd.set('m_regs.w.7', 0x0020); // DI / NEC IY
+v30Bcd.step();
+assert.equal(v30Bcd.get('m_ip'), 2, 'V30 ADD4S must consume the NEC subopcode');
+assert.equal(v30Bcd.get('m_sregs.1'), 0, 'V30 0f must not pop CS');
+assert.deepEqual([...v30BcdMemory.slice(0x10020, 0x10022)], [0x99, 0x99]);
+assert.equal(v30Bcd.get('m_CarryVal'), 0);
+assert.equal(v30Bcd.get('m_ZeroVal'), 1);
 registerGeneratedCpu(definition);
 
 // Boards with an AS_OPCODES map fetch instructions from the separate bus
