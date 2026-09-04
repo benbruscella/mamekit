@@ -224,8 +224,25 @@ const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
   sf2ce: CPS1_SIX_BUTTON,
 };
 
+// Shared cabinet input blocks sometimes expose spare switches that an
+// individual game never fitted. R-Type inherits four M72 action bits but its
+// panel has only Fire and Force; advertising BUTTON3 as C suggests a control
+// the game cannot respond to.
+const UNUSED_GAME_INPUTS: Record<string, ReadonlySet<string>> = {
+  rtype: new Set(['IPT_BUTTON3']),
+};
+
+const GAME_INPUT_LABELS: Record<string, Record<string, string>> = {
+  rtype: { IPT_BUTTON2: 'Force' },
+};
+
 export function inputKeys(game: string, type: string): string[] | undefined {
+  if (UNUSED_GAME_INPUTS[game]?.has(type)) return undefined;
   return GAME_KEYMAP[game]?.[type] ?? KEYMAP[type];
+}
+
+export function inputLabel(game: string, type: string): string | undefined {
+  return GAME_INPUT_LABELS[game]?.[type];
 }
 
 /** Whether a source input field belongs to the one keyboard-driven player. */
@@ -1952,7 +1969,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           port: tag,
           mask,
           keys,
-          label: named ?? type,
+          label: named ?? inputLabel(opts.game, type) ?? type,
           activeLow,
           ...(/^IPT_PEDAL\d*$/.test(type)
             ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
@@ -1994,7 +2011,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             port: tag,
             mask,
             keys,
-            label: named ?? type,
+            label: named ?? inputLabel(opts.game, type) ?? type,
             activeLow,
             ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
           });
