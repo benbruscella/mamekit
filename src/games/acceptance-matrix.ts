@@ -93,6 +93,16 @@ if (unknown.length) throw new Error(`unknown accepted contract(s): ${unknown.joi
 
 const commit = git(['rev-parse', 'HEAD']);
 const shouldPublish = process.argv.includes('--publish-status');
+if (shouldPublish && requested.length) {
+  throw new Error(
+    'refusing to publish a partial acceptance status; unset MAMEKIT_ACCEPTANCE_GAMES',
+  );
+}
+if (shouldPublish && git(['status', '--porcelain', '--untracked-files=no'])) {
+  throw new Error(
+    'refusing to publish results from a dirty source tree; commit the tested code first',
+  );
+}
 if (shouldPublish) publishStatus(commit, 'pending', `running ${targets.length} accepted contracts`);
 
 const results: AcceptanceResult[] = [];

@@ -24,16 +24,18 @@ source forms, generated hardware contracts, and named supported machines.
 | Gate | Command | MAME source | ROMs | CI |
 |---|---|---:|---:|---:|
 | Type and colocated specs | `npm run test:unit` | yes | no | yes |
-| Current clean generation | `npm run test:current` | yes | no | yes |
+| Current clean generation + semantic drift | `npm run test:current` | yes | no | yes |
 | All registered target generation | `npm run test:generation` | yes | no | manual |
-| Generated game behavior | `npm run test:games` | no after generation | yes | local |
+| Generated game behavior | `npm run test:games:matrix` | no after generation | yes | required commit status |
 | Shared-core blast radius | `npm run test:blast-radius` | no after generation | yes | local |
 | Browser presentation | `npm run test:e2e` | no after generation | yes | local |
 
 `npm test` runs every colocated spec, clean generation/audit, and then every
 real-ROM game contract. It is the local shared-core gate and requires the ROMs
 under `.data/roms`. CI runs the first two gates separately because it cannot
-legally contain those ROMs; green CI alone is therefore not a release gate.
+legally contain those ROMs. The separately published `ROM-backed accepted
+contracts` commit status is required on `main`; green public CI alone is not a
+release gate.
 
 ### TYPE AND COLOCATED SPECS
 
@@ -65,9 +67,13 @@ canvas, audio and interaction behavior remains part of browser QA.
 
 `test:current` invokes `gen:all`, which deletes `dist`, generates every
 auto-discovered supported-game contract from MAME, builds their shared
-hardware closure and app, then runs the generated-output audit. It detects stale-output masking,
+hardware closure and app, then runs the generated-output and semantic-baseline
+audits. It detects stale-output masking,
 missing modules, unsupported hardware, duplicate trees, embedded machine JSON,
-imports from `src`, and blocked catalog entries.
+imports from `src`, blocked catalog entries, and ROM-free BoardIR drift across
+all supported targets. Source locations are excluded from the semantic digest;
+callbacks, frame events, devices, handlers, maps, palette configuration and
+the rest of executable BoardIR are not.
 
 ### ALL-TARGET GENERATION
 
@@ -77,7 +83,7 @@ before broad parser, KG, IR schema, hardware closure, or app registry changes.
 
 ### GENERATED GAME BEHAVIOR
 
-`test:games` imports the compiled modules from `dist`, loads local ROMs, and
+`test:games:matrix` imports the compiled modules from `dist`, loads local ROMs, and
 executes each generated board for the frame count declared by its token. For
 each supported game it checks:
 
@@ -106,6 +112,25 @@ contracts lets macOS reclaim JIT mappings for the unusually large generated
 CPU modules; without it, rapid process churn can end in a native Node signal
 instead of a useful emulator assertion. This isolation does not affect the
 generated browser runtime.
+
+The matrix is deliberately non-fail-fast. It writes
+`.cache/acceptance-report.json`, including the tested commit and every target's
+result, so one early failure cannot hide the rest of the regression set. An
+accepted suite is green only at 100%. A mismatch is never waived merely because
+it also occurs at the PR base: either identify the last proven-green commit and
+fix the regression, or move an honestly unsupported target out of the accepted
+inventory with a linked issue.
+
+Maintainers publish the required GitHub status from a clean committed tree:
+
+```sh
+npm run test:games:publish
+```
+
+That command clean-generates first, runs every accepted contract, and publishes
+`ROM-backed accepted contracts` on the exact HEAD SHA. The publisher refuses a
+dirty tree and refuses `MAMEKIT_ACCEPTANCE_GAMES`, so a focused pass cannot mark
+the full suite green.
 
 The throughput measurement includes CPU execution, generated video, checkpoint
 hashing and deterministic audio probing. It is not the browser's presentation
@@ -156,8 +181,10 @@ Every other part of the page — input, board, audio, blit — is unchanged.
 machine at a time, so a failure can be watched rather than inferred. Narrow it
 with `MAMEKIT_E2E_GAMES=<game>`.
 
-To decide *which* machines to narrow to after a runtime or compiler change, use
-`npm run blast-radius` rather than sweeping. It derives the affected set from
+To decide *which* machines to exercise in the browser after a runtime or compiler
+change, use `npm run blast-radius` rather than guessing. It compares the PR
+merge-base (from `MAMEKIT_BASE_SHA`, `MAMEKIT_BASE_REF`, or `origin/main`) plus
+working-tree edits, then derives the affected set from
 the generated artifacts — each `board.json` names the devices, callbacks,
 handlers and CPUs its machine composes — and prints the matching
 `MAMEKIT_E2E_GAMES=...` command. See
@@ -271,7 +298,7 @@ Generate a clean current distribution first:
 
 ```sh
 npm run test:current
-npm run test:games
+npm run test:games:matrix
 ```
 
 The default ROM locations, under the gitignored `.data/` tree, are:
@@ -304,7 +331,7 @@ MAMEKIT_MPATROL_ROM=/path/mpatrol.zip \
 MAMEKIT_ROCNROPE_ROM=/path/rocnrope.zip \
 MAMEKIT_JUNOFIRST_ROM=/path/junofrst.zip \
 MAMEKIT_GYRUSS_ROM=/path/gyruss.zip \
-npm run test:games
+npm run test:games:matrix
 ```
 
 ROMs are copyrighted, gitignored, never copied into `dist`, and never placed
@@ -338,8 +365,14 @@ node -e "import { runGameAcceptance } from './src/games/acceptance-harness.ts'; 
 ```
 
 Review the diff and keep only the affected token changes. Then rerun
-`npm run test:games` without the recording flag. A review should be able to
+`npm run test:games:matrix` without the recording flag. A review should be able to
 explain every changed region, frame-state, video, write, or PCM hash.
+
+If executable BoardIR intentionally changes, `npm run test:current` will also
+reject the semantic baseline. Update it only after the affected real-ROM and
+browser contracts pass, using `npm run record:semantics`, and include the
+source-derived reason in the PR. A source-line movement alone never requires a
+baseline update.
 
 Region hash changes normally mean a different ROM set or patch and require
 special scrutiny. A framebuffer-only change points toward video or timing. A
@@ -365,10 +398,14 @@ it must not gain game logic.
 1. checks out MAMEKIT;
 2. sparse-checks out the pinned MAME source commit used to establish these
    contracts;
-3. installs the locked npm dependencies on Node.js 24;
+3. installs the locked npm dependencies on the repository's Node version;
 4. runs every colocated spec;
-5. deletes `dist`, regenerates Pac-Man, Pooyan, Time Pilot, Space Invaders,
-   Galaxian, Galaga and Dig Dug, and audits the result.
+5. deletes `dist`, regenerates every discovered accepted/candidate machine,
+   and audits both generated structure and semantic BoardIR.
+
+GitHub branch protection additionally requires `ROM-backed accepted contracts`,
+published by a maintainer with the local legal ROM inventory. Public runners do
+not receive ROMs.
 
 The MAME commit is pinned deliberately. Updating it is a source migration and
 must be reviewed separately from a MAMEKIT implementation change. Run all
