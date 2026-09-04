@@ -783,6 +783,38 @@ assert.deepEqual(
   assert.equal(palette.colors[0], 0xff7733aa);
 }
 
+// Split palette RAM is two independent memory_array instances. Endianness is
+// applied within each share; extmem remains the high half of the raw entry.
+// GNG uses one byte in each half on an MC6809 bus.
+{
+  const splitBigEndianMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      ramPalette: {
+        tag: 'palette',
+        extShare: 'palette_ext',
+        endianness: 'big',
+        entries: 1,
+        bytesPerEntry: 2,
+        channels: [
+          { channel: 'r', bits: 4, shift: 12 },
+          { channel: 'g', bits: 4, shift: 8 },
+          { channel: 'b', bits: 4, shift: 4 },
+        ],
+      },
+    },
+  };
+  const state: Record<string, unknown> = {};
+  const primitives = new GeneratedMameVideoPrimitives(splitBigEndianMachine, {}, state, {});
+  const palette = state.m_palette as { colors: Uint32Array };
+  primitives.writePaletteRam(0, 0x70);
+  primitives.writePaletteRam(0, 0xa3, true);
+  assert.equal(palette.colors[0], 0xff7733aa);
+}
+
 // Packed-framebuffer machines such as Juno First still receive their palette
 // bytes through palette_device::write8; those writes must update the bitmap
 // palette rather than only the tile/sprite RAM-palette implementation.

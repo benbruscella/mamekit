@@ -684,16 +684,20 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
   /** palette_device::read_entry, honoring the configured device byte order. */
   private entry(pen: number): number {
     let raw = 0;
-    const totalBytes = this.bytesPerEntry * (this.ext ? 2 : 1);
-    const shiftFor = (byte: number): number =>
-      8 * (this.plan.endianness === 'big' ? totalBytes - byte - 1 : byte);
+    // MAME represents a split palette as two independent memory_array
+    // instances, then appends extmem above basemem in read_entry(). Reverse
+    // bytes within each share for big-endian buses, never across the split.
+    const shiftFor = (byte: number, half: number): number =>
+      8 * (half + (this.plan.endianness === 'big'
+        ? this.bytesPerEntry - byte - 1
+        : byte));
     for (let byte = 0; byte < this.bytesPerEntry; byte++) {
-      raw |= (this.ram[pen * this.bytesPerEntry + byte] ?? 0) << shiftFor(byte);
+      raw |= (this.ram[pen * this.bytesPerEntry + byte] ?? 0) << shiftFor(byte, 0);
     }
     if (this.ext) {
       for (let byte = 0; byte < this.bytesPerEntry; byte++) {
         raw |= (this.ext[pen * this.bytesPerEntry + byte] ?? 0) <<
-          shiftFor(this.bytesPerEntry + byte);
+          shiftFor(byte, this.bytesPerEntry);
       }
     }
     return raw >>> 0;

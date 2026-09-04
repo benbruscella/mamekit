@@ -936,13 +936,7 @@ export function derivedDeviceClock(
     : undefined;
 }
 
-/**
- * Resolve a legacy MAME lifecycle override in base-first execution order.
- *
- * MACHINE_RESET_CALL_MEMBER is deliberately removed from the executable
- * handler body by the AST parser. Its source spelling still determines this
- * ordered plan, preventing the macro from becoming an unresolved runtime call.
- */
+/** Resolve a MAME lifecycle override in base-first execution order. */
 export function resolveMachineLifecycle(
   ast: MameAstIndex,
   className: string,
@@ -964,6 +958,18 @@ export function resolveMachineLifecycle(
     const unit = ast.ast.units.find(candidate =>
       candidate.file === fn.bodySpan.file);
     const rawBody = unit?.source.slice(fn.bodySpan.start, fn.bodySpan.end) ?? '';
+    // Modern drivers spell the inherited lifecycle call directly. Resolve the
+    // declaring class exactly: hierarchy lookup from the derived class would
+    // rediscover this override and silently omit the base setup.
+    const qualifiedCallRe = new RegExp(
+      `\\b([A-Za-z_]\\w*(?:::[A-Za-z_]\\w*)*)::machine_${kind}\\s*\\(`,
+      'g',
+    );
+    for (const call of rawBody.matchAll(qualifiedCallRe)) {
+      const owner = call[1]!.split('::').at(-1)!;
+      const dependency = ast.findFunction(owner, `machine_${kind}`);
+      if (dependency) visit(dependency);
+    }
     const callRe = new RegExp(
       `\\bMACHINE_${kind.toUpperCase()}_CALL_MEMBER\\s*\\(\\s*(\\w+)\\s*\\)`,
       'g',

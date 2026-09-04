@@ -261,4 +261,27 @@ assert.deepEqual(
   'modern virtual machine_reset overrides must apply to every selected machine config',
 );
 
+const inheritedLifecycleAst = new MameAstIndex(parseMameAst([{
+  file: 'inherited.cpp',
+  source: `
+class base_state { };
+class derived_state : public base_state { };
+void base_state::machine_start()
+{
+  m_interrupt_timer = timer_alloc(FUNC(base_state::interrupt_callback), this);
+}
+void derived_state::machine_start()
+{
+  base_state::machine_start();
+  initialise_derived_hardware();
+}
+`,
+}]));
+assert.deepEqual(
+  resolveMachineLifecycle(inheritedLifecycleAst, 'derived_state', 'derived', 'start')
+    .map(fn => `${fn.className}.${fn.name}`),
+  ['base_state.machine_start', 'derived_state.machine_start'],
+  'qualified base lifecycle calls must retain inherited setup in base-first order',
+);
+
 console.log('build.spec: derived callback shadowing and device patch composition passed');
