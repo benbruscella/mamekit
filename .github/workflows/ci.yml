@@ -20,7 +20,7 @@ jobs:
     # The gates share only their setup and run as independent matrix jobs so a
     # PR waits for the slowest gate rather than their sum.
     name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -29,12 +29,18 @@ jobs:
           - name: Unit and lowering specs
             command: npm run test:unit
             acceptance: false
+            runner: ubuntu-latest
           - name: Clean generation and audit
             command: npm run test:current
             acceptance: false
+            runner: ubuntu-latest
           - name: ROM-backed accepted contracts
             command: npm run test:games:ci
             acceptance: true
+            # CPS1 clears the exact 50 fps contract comfortably on the target
+            # arm64 architecture; the x64 hosted VM measured 45.1-49.4 fps.
+            # Keep the contract strict by selecting capacity, not lowering it.
+            runner: macos-15
     env:
       MAME_SRC: ${{ github.workspace }}/.mame
     steps:
