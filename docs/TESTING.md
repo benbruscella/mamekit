@@ -26,16 +26,17 @@ source forms, generated hardware contracts, and named supported machines.
 | Type and colocated specs | `npm run test:unit` | yes | no | yes |
 | Current clean generation + semantic drift | `npm run test:current` | yes | no | yes |
 | All registered target generation | `npm run test:generation` | yes | no | manual |
-| Generated game behavior | `npm run test:games:matrix` | no after generation | yes | required commit status |
+| Generated game behavior | `npm run test:games:matrix` | no after generation | yes | required Actions job |
 | Shared-core blast radius | `npm run test:blast-radius` | no after generation | yes | local |
 | Browser presentation | `npm run test:e2e` | no after generation | yes | local |
 
 `npm test` runs every colocated spec, clean generation/audit, and then every
 real-ROM game contract. It is the local shared-core gate and requires the ROMs
-under `.data/roms`. CI runs the first two gates separately because it cannot
-legally contain those ROMs. The separately published `ROM-backed accepted
-contracts` commit status is required on `main`; green public CI alone is not a
-release gate.
+under `.data/roms`. CI also runs the complete ROM-backed gate without storing
+archives in git or Actions: it downloads only the accepted set closure from the
+same public, immutable mirror used by the application, then verifies every file
+against MAME's declared size and CRC. `ROM-backed accepted contracts` is a real
+Actions check required on `main`.
 
 ### TYPE AND COLOCATED SPECS
 
@@ -121,16 +122,16 @@ it also occurs at the PR base: either identify the last proven-green commit and
 fix the regression, or move an honestly unsupported target out of the accepted
 inventory with a linked issue.
 
-Maintainers publish the required GitHub status from a clean committed tree:
+Run the same complete path used by GitHub Actions with:
 
 ```sh
-npm run test:games:publish
+npm run test:games:ci
 ```
 
-That command clean-generates first, runs every accepted contract, and publishes
-`ROM-backed accepted contracts` on the exact HEAD SHA. The publisher refuses a
-dirty tree and refuses `MAMEKIT_ACCEPTANCE_GAMES`, so a focused pass cannot mark
-the full suite green.
+That command clean-generates first, runs both generated audits, fetches any
+missing accepted primary/parent/device sets, and runs the non-fail-fast matrix.
+The Actions job uploads `.cache/acceptance-report.json` even on failure, so a
+focused local pass cannot masquerade as the required full-suite check.
 
 The throughput measurement includes CPU execution, generated video, checkpoint
 hashing and deterministic audio probing. It is not the browser's presentation
@@ -401,11 +402,13 @@ it must not gain game logic.
 3. installs the locked npm dependencies on the repository's Node version;
 4. runs every colocated spec;
 5. deletes `dist`, regenerates every discovered accepted/candidate machine,
-   and audits both generated structure and semantic BoardIR.
+   and audits both generated structure and semantic BoardIR;
+6. in the ROM-backed job, downloads the exact accepted ROM closure from the
+   application's public mirror, verifies it against MAME metadata, runs every
+   contract, and uploads the complete report even when one or more fail.
 
-GitHub branch protection additionally requires `ROM-backed accepted contracts`,
-published by a maintainer with the local legal ROM inventory. Public runners do
-not receive ROMs.
+GitHub branch protection additionally requires the actual Actions check named
+`ROM-backed accepted contracts`; a manually created commit status is not used.
 
 The MAME commit is pinned deliberately. Updating it is a source migration and
 must be reviewed separately from a MAMEKIT implementation change. Run all
