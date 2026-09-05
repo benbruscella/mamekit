@@ -70,5 +70,54 @@ assert.match(transpiled.outputText, /class GeneratedSn76489Mixer/);
 assert.match(transpiled.outputText, /"type": "SN76489A"/);
 assert.match(transpiled.outputText, /"type": "SN76489"/);
 assert.match(transpiled.outputText, /planByType/);
+assert.match(transpiled.outputText, /GeneratedSn76489SamplesCore/);
+assert.match(transpiled.outputText, /this\.mixer\.write\(write\.offset, write\.data, write\.method\)/);
+
+const globals = globalThis as Record<string, unknown>;
+globals.sampleRate = 48_000;
+globals.AudioWorkletProcessor = class { port = { onmessage: undefined }; };
+globals.registerProcessor = () => {};
+const generated = await import(
+  `data:text/javascript;base64,${Buffer.from(transpiled.outputText).toString('base64')}`
+) as {
+  GeneratedSn76489Mixer: new (
+    clock: number,
+    chips: number,
+    outputRate: number,
+    routes?: unknown[],
+    deviceTypes?: string[],
+    clocks?: number[],
+    auxiliaryDevices?: unknown[],
+  ) => { write(chip: number, data: number, method?: string): void; sample(): number };
+};
+const plainMixer = new generated.GeneratedSn76489Mixer(
+  4_000_000, 1, 48_000, [], ['SN76489A'], [4_000_000],
+);
+const protectedMixer = new generated.GeneratedSn76489Mixer(
+  4_000_000, 1, 48_000, [], ['SN76489A'], [4_000_000],
+);
+protectedMixer.write(3, 0x85, 'samples.start');
+for (let index = 0; index < 32; index++) {
+  assert.equal(
+    protectedMixer.sample(),
+    plainMixer.sample(),
+    'an unmatched auxiliary command must not become an SN register write',
+  );
+}
+const samplesMixer = new generated.GeneratedSn76489Mixer(
+  4_000_000,
+  1,
+  48_000,
+  [],
+  ['SN76489A'],
+  [4_000_000],
+  [{ type: 'SAMPLES', deviceTag: 'samples', gain: 0.25, writeMethods: ['start'] }],
+);
+samplesMixer.write(3, 0x85, 'samples.start');
+assert.notEqual(
+  samplesMixer.sample(),
+  new generated.GeneratedSn76489Mixer(4_000_000, 1, 48_000).sample(),
+  'a declared samples stream must be mixed independently',
+);
 
 console.log('sn76489-compiler.spec: source-derived SN76489/SN76489A plans and worklet passed');

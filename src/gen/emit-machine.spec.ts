@@ -1,6 +1,7 @@
 import {
   generatedBoardSource,
   generatedCpuCycleClock,
+  generatedCpuAddressSpace,
   generatedScanlineTriggers,
   inferredMemberIndexRank,
   lowerAudioRoutes,
@@ -43,6 +44,10 @@ import type { BoardConfig } from '../runtime/types.ts';
 
 if (generatedCpuCycleClock('i8085a', 5_500_000) !== 2_750_000) {
   throw new Error('I8085A must use MAME\'s divide-by-two execution clock');
+}
+const tmsSpace = generatedCpuAddressSpace('tms34010', 'maincpu');
+if (tmsSpace.addressShift !== -3 || tmsSpace.dataWidth !== 16 || tmsSpace.endianness !== 'little') {
+  throw new Error(`TMS34010 bit-addressed program space was not preserved: ${JSON.stringify(tmsSpace)}`);
 }
 
 const graph: KnowledgeGraph = {

@@ -131,16 +131,16 @@ check(
 );
 
 const templatedMethod = parseMameSource('template.cpp', `
-template<int N>
+template <int N, bool Enabled, video_device::op_type_t Operation>
 uint8_t input_device::port_r()
 {
-  return m_in[N]();
+  return Enabled ? m_in[N]() : Operation;
 }
 `);
 check(
   'function template parameters are retained',
   templatedMethod.functions[0]?.templateParameters,
-  ['N'],
+  ['N', 'Enabled', 'Operation'],
 );
 
 const memberMacros = parseMameSource('timer.cpp', `

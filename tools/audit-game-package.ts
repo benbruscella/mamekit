@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { discoverGameNames } from '../src/games/discovery.ts';
+import { discoverGameNames, gameRegistration } from '../src/games/discovery.ts';
 import { readZip } from '../src/runtime/zip.ts';
 import { DATA_DIR } from '../src/paths.ts';
 
 const root = resolve(import.meta.dirname, '..');
+const outRoot = resolve(process.env.MAMEKIT_OUT_ROOT ?? join(root, 'dist'));
 const requested = process.argv.slice(2);
 const games = requested.length ? requested : discoverGameNames(join(root, 'src/games'));
 
@@ -13,14 +14,16 @@ for (const game of games) await auditGame(game);
 console.log(`game package audit passed: ${games.join(', ')}`);
 
 async function auditGame(game: string): Promise<void> {
-  requireFile(`src/games/${game}.ts`);
-  requireFile(`src/games/${game}.spec.ts`);
+  const registration = gameRegistration(game, join(root, 'src/games'));
+  assert.ok(registration, `${game}: no game registration`);
+  requireFile(registration.modulePath.slice(root.length + 1));
+  requireFile(registration.specPath.slice(root.length + 1));
 
-  const category = ['arcade', 'consoles'].find(candidate =>
-    existsSync(join(root, `dist/games/${candidate}/${game}/config.json`)));
+  const category = ['arcade', 'consoles', 'computers'].find(candidate =>
+    existsSync(join(outRoot, `games/${candidate}/${game}/config.json`)));
   assert.ok(category, `${game}: generate the game before auditing its package`);
-  const dataPath = `dist/games/${category}/${game}`;
-  const meta = JSON.parse(readFileSync(join(root, dataPath, 'meta.json'), 'utf8')) as {
+  const dataPath = join(outRoot, `games/${category}/${game}`);
+  const meta = JSON.parse(readFileSync(join(dataPath, 'meta.json'), 'utf8')) as {
     game?: string;
     hasHistory?: boolean;
   };
@@ -31,7 +34,7 @@ async function auditGame(game: string): Promise<void> {
     `${game}: no Gaming History entry was extracted from ${DATA_DIR}/artwork/data/history/history.xml`,
   );
   for (const file of ['config.json', 'DOSSIER.md', 'history.txt']) {
-    requireFile(`${dataPath}/${file}`);
+    assert.ok(existsSync(join(dataPath, file)), `missing ${join(dataPath, file)}`);
   }
 
   for (const path of [

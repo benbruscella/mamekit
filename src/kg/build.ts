@@ -448,12 +448,30 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
     const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
-    const timerStartHandlers = new Set(resolveMachineLifecycle(
+    const timerStartHandlers = new Set<string>();
+    const pendingTimerStarts = resolveMachineLifecycle(
       ast,
       cfg.cls,
       cfg.name,
       'start',
-    ).map(fn => `${fn.className}.${fn.name}`));
+    );
+    while (pendingTimerStarts.length) {
+      const fn = pendingTimerStarts.shift()!;
+      const key = `${fn.className}.${fn.name}`;
+      if (timerStartHandlers.has(key)) continue;
+      timerStartHandlers.add(key);
+      // Drivers commonly allocate their scanline timers in a helper called
+      // by machine_start (Berzerk uses create_irq_timer/create_nmi_timer).
+      // The timer callback is part of the selected machine whenever that
+      // allocation helper is in the lifecycle closure, not only when the
+      // timer_alloc expression appears in machine_start itself.
+      for (const statement of fn.statements) {
+        for (const call of statement.calls) {
+          const target = ast.findFunctionInHierarchy(fn.className, call.name);
+          if (target) pendingTimerStarts.push(target);
+        }
+      }
+    }
     const installedHandlers = machineStart
       ? parseInstalledHandlers(machineStart.body, consts)
       : [];
@@ -918,13 +936,7 @@ export function derivedDeviceClock(
     : undefined;
 }
 
-/**
- * Resolve a legacy MAME lifecycle override in base-first execution order.
- *
- * MACHINE_RESET_CALL_MEMBER is deliberately removed from the executable
- * handler body by the AST parser. Its source spelling still determines this
- * ordered plan, preventing the macro from becoming an unresolved runtime call.
- */
+/** Resolve a MAME lifecycle override in base-first execution order. */
 export function resolveMachineLifecycle(
   ast: MameAstIndex,
   className: string,
@@ -946,6 +958,18 @@ export function resolveMachineLifecycle(
     const unit = ast.ast.units.find(candidate =>
       candidate.file === fn.bodySpan.file);
     const rawBody = unit?.source.slice(fn.bodySpan.start, fn.bodySpan.end) ?? '';
+    // Modern drivers spell the inherited lifecycle call directly. Resolve the
+    // declaring class exactly: hierarchy lookup from the derived class would
+    // rediscover this override and silently omit the base setup.
+    const qualifiedCallRe = new RegExp(
+      `\\b([A-Za-z_]\\w*(?:::[A-Za-z_]\\w*)*)::machine_${kind}\\s*\\(`,
+      'g',
+    );
+    for (const call of rawBody.matchAll(qualifiedCallRe)) {
+      const owner = call[1]!.split('::').at(-1)!;
+      const dependency = ast.findFunction(owner, `machine_${kind}`);
+      if (dependency) visit(dependency);
+    }
     const callRe = new RegExp(
       `\\bMACHINE_${kind.toUpperCase()}_CALL_MEMBER\\s*\\(\\s*(\\w+)\\s*\\)`,
       'g',
@@ -1135,7 +1159,15 @@ export function evaluateTimerSchedule(
   const callbackProgram = compileMameHandler(callback.body);
   if (resetProgram.diagnostics.length || callbackProgram.diagnostics.length) return undefined;
 
-  executeGeneratedHandler(resetProgram, bindings);
+  try {
+    executeGeneratedHandler(resetProgram, bindings);
+  } catch {
+    // Timer probing is best-effort static evaluation. A reset routine may
+    // touch unrelated structs/devices that the probe intentionally does not
+    // instantiate; retain the source callback and let runtime reporting name
+    // the unresolved schedule instead of aborting graph extraction.
+    return undefined;
+  }
   if (!Number.isFinite(adjustedLine)) return undefined;
   currentLine = Math.trunc(adjustedLine!);
   let currentParam = adjustedParam;
@@ -1144,7 +1176,11 @@ export function evaluateTimerSchedule(
     if (lines.includes(currentLine)) return lines.length > 1 ? { scanlines: lines } : undefined;
     lines.push(currentLine);
     adjustedLine = undefined;
-    executeGeneratedHandler(callbackProgram, bindings, { param: currentParam });
+    try {
+      executeGeneratedHandler(callbackProgram, bindings, { param: currentParam });
+    } catch {
+      return undefined;
+    }
     if (!Number.isFinite(adjustedLine)) return undefined;
     currentLine = Math.trunc(adjustedLine!);
     currentParam = adjustedParam;

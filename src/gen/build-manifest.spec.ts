@@ -40,7 +40,22 @@ check('the manifest records the schema and compiler versions', () => {
   assert.equal(manifest.boardIrSchemaVersion, BOARD_IR_SCHEMA_VERSION);
   assert.equal(manifest.graphSchemaVersion, GRAPH_SCHEMA_VERSION);
   assert.equal(manifest.compilerVersion, COMPILER_VERSION);
+  assert.deepEqual(manifest.publishedTargets, []);
   assert.deepEqual(readBuildManifest(root), manifest);
+  rmSync(root, { recursive: true, force: true });
+});
+
+check('the manifest records a publication subset independently', () => {
+  const root = dist(['candidate', 'pacman'], []);
+  const manifest = writeBuildManifest(
+    root,
+    ['candidate', 'pacman'],
+    '',
+    'test',
+    ['pacman'],
+  );
+  assert.deepEqual(manifest.targets, ['candidate', 'pacman']);
+  assert.deepEqual(manifest.publishedTargets, ['pacman']);
   rmSync(root, { recursive: true, force: true });
 });
 

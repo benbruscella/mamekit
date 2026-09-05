@@ -2,6 +2,10 @@ import { pathToFileURL } from 'node:url';
 import { runGameAcceptance } from './acceptance-harness.ts';
 import { loadGameContracts } from './contracts.ts';
 
+function contractKey(contract: Awaited<ReturnType<typeof loadGameContracts>>[number]): string {
+  return contract.scenarioId ? `${contract.game}:${contract.scenarioId}` : contract.game;
+}
+
 export async function verifySupportedGames(): Promise<void> {
   for (const contract of await loadGameContracts()) {
     await runGameAcceptance(contract);
@@ -10,7 +14,7 @@ export async function verifySupportedGames(): Promise<void> {
 }
 
 async function verifyGame(game: string): Promise<void> {
-  const contract = (await loadGameContracts()).find(candidate => candidate.game === game);
+  const contract = (await loadGameContracts()).find(candidate => contractKey(candidate) === game);
   if (!contract) throw new Error(`unknown supported game: ${game}`);
   await runGameAcceptance(contract);
   console.log(`${contract.game}: ROM/input/video/audio/timing contract passed`);
@@ -19,7 +23,7 @@ async function verifyGame(game: string): Promise<void> {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const game = process.argv[2];
   if (game === '--list') {
-    for (const contract of await loadGameContracts()) console.log(contract.game);
+    for (const contract of await loadGameContracts()) console.log(contractKey(contract));
   } else if (game) await verifyGame(game);
   else await verifySupportedGames();
 }

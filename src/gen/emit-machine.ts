@@ -37,6 +37,21 @@ export function generatedCpuCycleClock(type: string | undefined, clock: number):
   ) return clock / 15;
   return clock;
 }
+
+/** Explicit address-space facts emitted once instead of rediscovered by the runtime. */
+export function generatedCpuAddressSpace(type: string | undefined, ownerTag: string) {
+  const normalized = type?.toLowerCase() ?? '';
+  const dataWidth = ['m68000', 'm68010', 'z8002', 'v30', 'tms34010'].includes(normalized)
+    ? 16 as const
+    : 8 as const;
+  return {
+    ownerTag,
+    name: 'program' as const,
+    dataWidth,
+    addressShift: normalized === 'tms34010' ? -3 : 0,
+    endianness: ['v30', 'tms34010'].includes(normalized) ? 'little' as const : 'big' as const,
+  };
+}
 import type {
   GeneratedAuxiliaryAudioDevice,
   GeneratedBiquadStage,
@@ -480,48 +495,67 @@ export function lowerGeneratedMachine(
       existsSync(driverPath)
     ? sourceRegionBindings(readFileSync(driverPath, 'utf8'))
     : {};
+  const executionCpus = board.cpus.map(cpu => {
+    const interruptVectorWriters = inferInterruptVectorWriters(
+      cpu.tag,
+      cpu.io?.ranges ?? [],
+      callbacks,
+      handlers,
+    );
+    const interruptMixer = deviceByTag.get(cpu.tag)?.configuration?.find(
+      configuration => configuration.method === 'set_interrupt_mixer',
+    )?.args[0];
+    const cpuDeviceId = deviceByTag.get(cpu.tag)?.id;
+    const cpuSpaceMapId = graph.edges.find(edge =>
+      edge.from === cpuDeviceId &&
+      edge.rel === 'HAS_MAP' &&
+      String(edge.props?.space ?? '').includes('AS_CPU_SPACE'),
+    )?.to;
+    const interruptAcknowledge = maps.find(map => map.id === cpuSpaceMapId)
+      ?.ranges.find(range => range.read)?.read;
+    const space = generatedCpuAddressSpace(cpu.type, cpu.tag);
+    return {
+      ...cpu,
+      ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
+        ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
+        : {}),
+      ...(cpu.mask === undefined && ['m68000', 'm68010'].includes(cpu.type?.toLowerCase() ?? '')
+        ? { mask: 0xffffff }
+        : {}),
+      ...(cpu.mask === undefined && ['i8088', 'v30'].includes(cpu.type?.toLowerCase() ?? '')
+        ? { mask: 0xfffff }
+        : {}),
+      space,
+      ...(cpu.io ? { io: { ...cpu.io, space: { ...space, name: 'io' } } } : {}),
+      cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
+      ...(interruptMixer !== undefined ? { interruptMixer: Boolean(interruptMixer) } : {}),
+      ...(interruptAcknowledge ? { interruptAcknowledge } : {}),
+      ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
+      ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
+    };
+  });
+  const sourceCpuTags = new Set(devices.filter(device => graph.edges.some(edge =>
+    edge.from === device.id && edge.rel === 'HAS_MAP' &&
+    String(edge.props?.space ?? '').includes('AS_PROGRAM'),
+  ) || /(?:^|:)maincpu$|(?:^|:)\w*cpu$/i.test(device.tag)).map(device => device.tag));
+  for (const cpu of executionCpus) sourceCpuTags.add(cpu.tag);
+  const executionParticipants = devices.flatMap(device => {
+    if (!sourceCpuTags.has(device.tag) || !(device.clock && device.clock > 0)) return [];
+    const runtimeCpu = executionCpus.find(cpu => cpu.tag === device.tag);
+    return [{
+      tag: device.tag,
+      kind: 'cpu' as const,
+      clock: device.clock,
+      cycleClock: runtimeCpu?.cycleClock ?? generatedCpuCycleClock(device.type.toLowerCase(), device.clock),
+      space: generatedCpuAddressSpace(device.type, device.tag),
+    }];
+  });
   const execution: GeneratedExecutionPlan = {
     ...(Object.keys(driverRegionBindings).length
       ? { regionBindings: driverRegionBindings }
       : {}),
-    cpus: board.cpus.map(cpu => {
-      const interruptVectorWriters = inferInterruptVectorWriters(
-        cpu.tag,
-        cpu.io?.ranges ?? [],
-        callbacks,
-        handlers,
-      );
-      const interruptMixer = deviceByTag.get(cpu.tag)?.configuration?.find(
-        configuration => configuration.method === 'set_interrupt_mixer',
-      )?.args[0];
-      const cpuDeviceId = deviceByTag.get(cpu.tag)?.id;
-      const cpuSpaceMapId = graph.edges.find(edge =>
-        edge.from === cpuDeviceId &&
-        edge.rel === 'HAS_MAP' &&
-        String(edge.props?.space ?? '').includes('AS_CPU_SPACE'),
-      )?.to;
-      const interruptAcknowledge = maps.find(map => map.id === cpuSpaceMapId)
-        ?.ranges.find(range => range.read)?.read;
-      return {
-        ...cpu,
-        ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
-          ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
-          : {}),
-        ...(cpu.mask === undefined && ['m68000', 'm68010'].includes(cpu.type?.toLowerCase() ?? '')
-          ? { mask: 0xffffff }
-          : {}),
-        ...(cpu.mask === undefined && ['i8088', 'v30'].includes(cpu.type?.toLowerCase() ?? '')
-          ? { mask: 0xfffff }
-          : {}),
-        cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
-        ...(interruptMixer !== undefined
-          ? { interruptMixer: Boolean(interruptMixer) }
-          : {}),
-        ...(interruptAcknowledge ? { interruptAcknowledge } : {}),
-        ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
-        ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
-      };
-    }),
+    cpus: executionCpus,
+    participants: executionParticipants,
     ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
@@ -531,6 +565,24 @@ export function lowerGeneratedMachine(
     ...(accessTaps.length ? { accessTaps } : {}),
     screen: {
       ...board.screen,
+      ownerTag: screenUpdateDeviceTag ?? videoOutputDevice?.tag ?? 'screen',
+      ownerKind: screenUpdateDeviceTag
+        ? (executionCpus.some(cpu => cpu.tag === screenUpdateDeviceTag) ? 'cpu' as const : 'device' as const)
+        : 'screen' as const,
+      ...(videoOutputDevice?.clock ? { pixelClock: videoOutputDevice.clock } : {}),
+      ...(callbacks.find(callback => /scanline/i.test(callback.signal))?.targetMethod
+        ? { scanlineCallback: callbacks.find(callback => /scanline/i.test(callback.signal))!.targetMethod }
+        : {}),
+      ...(callbacks.some(callback => /shiftreg/i.test(callback.signal)) ? {
+        shiftRegisterCallbacks: {
+          ...(callbacks.find(callback => /shiftreg_in/i.test(callback.signal))?.targetMethod
+            ? { read: callbacks.find(callback => /shiftreg_in/i.test(callback.signal))!.targetMethod }
+            : {}),
+          ...(callbacks.find(callback => /shiftreg_out/i.test(callback.signal))?.targetMethod
+            ? { write: callbacks.find(callback => /shiftreg_out/i.test(callback.signal))!.targetMethod }
+            : {}),
+        },
+      } : {}),
       // Neo Geo's LSPC sprite renderer intentionally draws one clipped line at
       // a time. Keep its screen update in step with the source timer cadence;
       // a frame-end partial call would render only the first visible line.
@@ -851,7 +903,9 @@ export function lowerGeneratedMachine(
     callback.signal !== 'palette_init' &&
     !callback.delegate);
   const lowered = lowerConnections(effectCallbacks, {
-    cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
+    cpuTags: new Set((execution.participants ?? [])
+      .filter(participant => participant.kind === 'cpu')
+      .map(participant => participant.tag)),
     deviceTags: new Set(devices.map(device => device.tag)),
     handlerKeys: new Set(handlers.map(handler => `${handler.ownerClass}.${handler.method}`)),
     ...(sound

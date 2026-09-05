@@ -12,6 +12,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { isRuntimeCertified } from './runtime-certification.ts';
 import type { BoardIr } from '../ir/board.ts';
 import { generatedDirectScreenShape } from '../runtime/generated-video.ts';
+import { audioLimitations, SYNTHESIZED_SAMPLES_NOTE, type AudioFidelitySurface } from '../runtime/audio-fidelity.ts';
 
 interface RuntimeRange {
   kind: string;
@@ -27,6 +28,7 @@ interface RuntimeCpu {
 }
 
 export interface RuntimeConfigShape {
+  sound?: AudioFidelitySurface;
   game: string;
   family: string;
   dataPath?: string;
@@ -72,6 +74,8 @@ export interface RuntimeRequirement {
 }
 
 export interface RuntimeReport {
+  /** Known audible approximations, independent of whether the machine runs. */
+  audioLimitations: string[];
   schemaVersion: 2;
   game: string;
   family: string;
@@ -373,6 +377,7 @@ export function buildRuntimeReport(
 
   return {
     schemaVersion: 2,
+    audioLimitations: audioLimitations(config.sound),
     game: config.game,
     family: config.family,
     boardMode,
@@ -460,6 +465,9 @@ export function runtimeReportMarkdown(report: RuntimeReport): string {
     lines.push('- None');
   }
 
+  if (report.audioLimitations.length) {
+    lines.push('', '## Audio accuracy', '', SYNTHESIZED_SAMPLES_NOTE);
+  }
   lines.push('', '## Parser gaps', '');
   if (report.parserGaps.length) {
     for (const gap of report.parserGaps) {

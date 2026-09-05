@@ -189,7 +189,7 @@ assert.deepEqual(
 assert.ok(
   generatedNamco51.methods
     .filter(method => method.name.startsWith('R_r_'))
-    .every(method => !method.program.diagnostics.length),
+    .every(method => !method.program.diagnostics.length && method.program.operations.length > 0),
   'function-template specializations must lower without unresolved parameters',
 );
 
@@ -210,6 +210,22 @@ assert.ok(
   ['K_r', 'O_w', 'P_w', 'R_r_0', 'R_r_1', 'R_r_2', 'R_r_3']
     .every(method => generatedNamco53.hotMethods?.includes(method)),
   'source-installed child firmware callbacks must be selected for direct execution',
+);
+
+const tunitVideoDefinition = hardware.get('MIDTUNIT_VIDEO');
+assert.ok(tunitVideoDefinition, 'MAME hardware index should resolve MIDTUNIT_VIDEO');
+const generatedTunitVideo = compileMameDevice(mameSrc, tunitVideoDefinition);
+const generatedDmaDraws = generatedTunitVideo.methods.filter(method =>
+  method.name.startsWith('dma_draw_') && method.name !== 'dma_draw_none');
+assert.equal(
+  generatedDmaDraws.length,
+  512,
+  'T-Unit DMA macro tables must materialize every source-selected template specialization',
+);
+assert.ok(
+  generatedDmaDraws.every(method =>
+    method.parameters === '' && method.program.operations.length > 0),
+  'T-Unit DMA template constants must fold into executable handler artifacts',
 );
 
 const cnromDefinition = hardware.get('NES_CNROM');

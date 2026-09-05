@@ -3,13 +3,16 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { buildGraph, gameSubgraph } from '../kg/build.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
-import type { GameTestContract } from './types.ts';
+import type { GameTestContract, MachineTargetDefinition } from './types.ts';
+import { validateGameContract } from './contract-validation.ts';
 
 export function mameSourceRoot(): string {
   return resolve(process.env.MAME_SRC ?? '../mame');
 }
 
-export function gameSourceGraph(contract: GameTestContract): KnowledgeGraph {
+export function gameSourceGraph(
+  contract: Pick<GameTestContract, 'game' | 'driver' | 'machine'> | MachineTargetDefinition,
+): KnowledgeGraph {
   const mameSrc = mameSourceRoot();
   const driver = join(mameSrc, contract.driver);
   assert.ok(existsSync(driver), `${contract.game}: MAME driver is missing: ${driver}`);
@@ -27,36 +30,5 @@ export function gameSourceGraph(contract: GameTestContract): KnowledgeGraph {
 }
 
 export function assertGameContract(contract: GameTestContract): void {
-  assert.match(contract.game, /^[a-z0-9_]+$/);
-  assert.ok(contract.checkpoints.length > 0);
-  assert.ok(contract.minimumFps > 0);
-  assert.equal(contract.checkpoints.at(-1), contract.frames);
-  assert.equal(new Set(contract.checkpoints).size, contract.checkpoints.length);
-  assert.ok(contract.golden, `${contract.game}: supported game has no recorded golden`);
-  assert.deepEqual(
-    Object.keys(contract.golden.checkpoints).map(Number),
-    contract.checkpoints,
-    `${contract.game}: golden checkpoints do not match its schedule`,
-  );
-  assert.ok(Object.keys(contract.golden.regions).length > 0);
-  assert.ok(contract.golden.audio.writes > 0);
-  if (contract.minimumAudioRms !== undefined) {
-    assert.ok(contract.minimumAudioRms > 0);
-  }
-  for (const requirement of contract.shareRequirements ?? []) {
-    assert.match(requirement.share, /^\S+$/);
-    assert.ok(requirement.minimumNonzeroBytes >= 0);
-    if (requirement.maximumNonzeroBytes !== undefined) {
-      assert.ok(requirement.maximumNonzeroBytes >= requirement.minimumNonzeroBytes);
-    }
-  }
-  let previousEnd = 0;
-  for (const action of contract.actions) {
-    assert.ok(action.atFrame >= previousEnd, `${contract.game}: input actions overlap`);
-    const end = 'code' in action
-      ? action.atFrame + action.heldFrames + action.releasedFrames
-      : action.atFrame;
-    assert.ok(end <= contract.frames);
-    previousEnd = end;
-  }
+  validateGameContract(contract, 'accepted');
 }

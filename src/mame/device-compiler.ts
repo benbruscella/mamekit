@@ -20,6 +20,7 @@ import {
   type MemberAliasMacro,
 } from './preprocessor.ts';
 import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
+import { monomorphizeFunctionTemplate } from './function-template.ts';
 
 export interface GeneratedDeviceMember {
   name: string;
@@ -335,6 +336,12 @@ export function compileMameDevice(
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
   const functionMacros = sources.flatMap(({ source }) => collectFunctionMacros(source));
+  // Template tables are often assembled through forwarding macros whose body
+  // is another macro call rather than a statement yet. Keep this broader set
+  // isolated from executable-body expansion: it exists only to discover the
+  // concrete specializations selected by source.
+  const templateDiscoveryMacros = sources.flatMap(({ source }) =>
+    collectFunctionMacros(source, { includeForwarders: true }));
   // Object-like `#define`s that name a register inside the device's own state
   // (`#define CURLINE m_vid_regs[0x04]`). The name stands for nothing but the
   // subscript, so it has to become the subscript before lowering.
@@ -429,14 +436,18 @@ export function compileMameDevice(
   const sourceMethods = ast.units.flatMap(unit => unit.functions);
   for (const className of hierarchy) {
     for (const method of sourceMethods.filter(candidate => candidate.className === className)) {
-      for (const specialized of specializeFunctionTemplate(method, sources)) {
+      for (const specialized of specializeFunctionTemplate(
+        method, sources, templateDiscoveryMacros, constants,
+      )) {
         replaceOrAppend(specialized);
       }
     }
     const declaration = classes.get(className);
     if (!declaration) continue;
     for (const method of inlineMethods(declaration)) {
-      for (const specialized of specializeFunctionTemplate(method, sources)) {
+      for (const specialized of specializeFunctionTemplate(
+        method, sources, templateDiscoveryMacros, constants,
+      )) {
         replaceOrAppend(specialized);
       }
     }
@@ -810,6 +821,8 @@ function specializeMethod(
 function specializeFunctionTemplate(
   method: MameFunction,
   sources: readonly { file: string; source: string }[],
+  functionMacros: readonly FunctionMacro[],
+  constants: Record<string, number>,
 ): MameFunction[] {
   const parameters = method.templateParameters ?? [];
   if (!parameters.length) return [method];
@@ -821,10 +834,24 @@ function specializeFunctionTemplate(
   );
   const instances = new Map<string, string[]>();
   for (const { source } of sources) {
-    for (const match of source.matchAll(pattern)) {
-      const args = splitMameArgs(match[1]!).map(argument => argument.trim());
-      if (args.length !== parameters.length || !args.every(arg => /^\d+$/.test(arg))) continue;
-      instances.set(args.join('_'), args);
+    // A specialization may be named only after several layers of statement
+    // macros. Midway's T-Unit tables are the canonical example: four calls in
+    // device_start expand into hundreds of dma_draw<Bpp, XFlip, ...> entries.
+    // Search the bounded preprocessor expansion so those source-selected
+    // instances become ordinary generated methods instead of a platform
+    // exception.
+    const expanded = expandFunctionMacros(source, functionMacros);
+    for (const match of expanded.matchAll(pattern)) {
+      const supplied = splitMameArgs(match[1]!).map(argument => argument.trim());
+      if (supplied.length !== parameters.length) continue;
+      const args = supplied.map(argument => {
+        const normalized = argument
+          .replace(/\btrue\b/g, '1')
+          .replace(/\bfalse\b/g, '0');
+        return evalExpr(normalized, constants);
+      });
+      if (args.some(argument => argument === undefined || !Number.isInteger(argument))) continue;
+      instances.set(args.join('_'), args.map(String));
     }
   }
   // A template with no fully numeric instantiation is still executable code,
@@ -847,18 +874,22 @@ function specializeFunctionTemplate(
     return [{ ...method, parameters: methodParameters, body, templateParameters: undefined }];
   }
   return [...instances].map(([suffix, args]) => {
-    let body = method.body;
-    let methodParameters = method.parameters;
-    parameters.forEach((parameter, index) => {
-      const replacement = args[index]!;
-      const pattern = new RegExp(`\\b${parameter}\\b`, 'g');
-      body = body.replace(pattern, replacement);
-      methodParameters = methodParameters.replace(pattern, replacement);
-    });
+    const marker = '__MAMEKIT_TEMPLATE_BODY__';
+    const source =
+      `template <${parameters.map(parameter => `int ${parameter}`).join(', ')}>\n` +
+      method.parameters + marker + method.body;
+    const [monomorphized] = monomorphizeFunctionTemplate(source, [{
+      id: `${method.name}<${args.join(',')}>`,
+      arguments: Object.fromEntries(parameters.map((parameter, index) => [
+        parameter,
+        Number(args[index]),
+      ])),
+    }]);
+    const [methodParameters = '', body = ''] = monomorphized!.source.split(marker);
     return {
       ...method,
       name: `${method.name}_${suffix}`,
-      parameters: methodParameters,
+      parameters: methodParameters.trim(),
       body,
       templateParameters: undefined,
     };

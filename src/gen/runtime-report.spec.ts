@@ -1,5 +1,6 @@
 import { buildRuntimeReport, runtimeReportMarkdown } from './runtime-report.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
+import assert from 'node:assert/strict';
 
 const graph: KnowledgeGraph = {
   meta: {
@@ -156,4 +157,15 @@ if (markdown.includes('handwritten') || markdown.includes('Runtime primitives'))
   throw new Error('report should only describe source-generation stages');
 }
 
-console.log('runtime-report.spec: 13 passed, 0 failed');
+const fidelityConfig = { game: 'test', family: 'pacman', board: { cpus: [], ranges: [] } };
+const originalAudio = buildRuntimeReport(graph, { ...fidelityConfig, sound: { kind: 'sn76489' } });
+const approximateAudio = buildRuntimeReport(graph, {
+  ...fidelityConfig,
+  sound: { kind: 'sn76489', auxiliaryDevices: [{ type: 'SAMPLES' }] },
+});
+assert.deepEqual(approximateAudio.audioLimitations, ['synthesized-samples']);
+assert.equal(approximateAudio.playable, originalAudio.playable);
+assert.equal(approximateAudio.playabilityBasis, originalAudio.playabilityBasis);
+assert.deepEqual(approximateAudio.generationGaps, originalAudio.generationGaps);
+assert.match(runtimeReportMarkdown(approximateAudio), /original recorded samples are not played/);
+console.log('runtime-report.spec: generation and audio-fidelity reporting passed');

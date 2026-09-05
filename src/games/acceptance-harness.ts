@@ -10,6 +10,7 @@ import {
   assembleRegions,
   applyRomTransforms,
   checkRomSet,
+  unresolvedDependencyRomSets,
   type ShellConfig,
 } from '../runtime/shell.ts';
 import type { Board, BoardSnapshot, Regions } from '../runtime/types.ts';
@@ -18,6 +19,8 @@ import type {
   GameAcceptanceGolden,
   GameTestContract,
 } from './types.ts';
+import { assertExecutableActions } from './input-actions.ts';
+import { audioLimitations } from '../runtime/audio-fidelity.ts';
 
 export interface SoundWrite {
   offset: number;
@@ -40,6 +43,10 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const PROBE_OUTPUT_RATE = 48_000;
 
 export interface GameAcceptanceOptions {
+  /** Generated tree to exercise, including an isolated candidate build. */
+  outRoot?: string;
+  /** Explicitly register an unpublished candidate for offline recording. */
+  registerCandidate?: boolean;
   /**
    * Diagnostic mode for an audio capture. It records from frame zero, writes
    * PCM to this path, and skips the normal gameplay golden assertions.
@@ -63,6 +70,8 @@ export interface GameAcceptanceOptions {
   /** Read-only per-frame diagnostic hook for long-state-transition captures. */
   inspectFrame?: (frame: {
     number: number;
+    /** Exact public snapshot used by the checkpoint state fingerprint. */
+    snapshot: Readonly<BoardSnapshot>;
     framebuffer: Uint32Array;
     state: Readonly<Record<string, unknown>>;
     /** Read-only shared-memory view for locating stalled generated machines. */
@@ -83,13 +92,14 @@ export async function runGameAcceptance(
   root = projectRoot,
   options: GameAcceptanceOptions = {},
 ): Promise<GameAcceptanceGolden> {
+  assertExecutableActions(contract);
   if (process.env.MAMEKIT_PROFILE_HANDLERS === '1') {
     (globalThis as { __mamekitHandlerCounts?: Map<string, number> })
       .__mamekitHandlerCounts = new Map();
   }
   const diagnosticCapture = options.captureAudio !== undefined;
   const framesToRun = options.frames ?? contract.frames;
-  const outRoot = join(root, 'dist');
+  const outRoot = resolve(options.outRoot ?? process.env.MAMEKIT_OUT_ROOT ?? join(root, 'dist'));
   const gameDir = gameOutputDir(outRoot, contract.category, contract.game);
   const romPath = resolve(
     process.env[contract.romEnvironment]
@@ -103,16 +113,21 @@ export async function runGameAcceptance(
   ) as ShellConfig;
   assert.equal(config.game, contract.game);
   assert.equal(config.sound.kind, contract.soundKind);
+  assert.deepEqual(
+    [...(contract.acceptedAudioLimitations ?? [])].sort(),
+    audioLimitations(config.sound).sort(),
+    `${contract.game}: explicitly review and declare the renderer's audio limitations before recording or accepting PCM`,
+  );
 
   const files = await readZip(new Uint8Array(readFileSync(romPath)));
   // MAME commonised device ROMs into their own sets, so a board's parts come
   // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
   // names are the MAME device short names carried in the generated manifest.
-  for (const romSet of new Set(config.roms.flatMap(spec => spec.romSet ? [spec.romSet] : []))) {
+  for (const romSet of unresolvedDependencyRomSets(config.roms, contract.game, files)) {
     const devicePath = resolve(join(romsDir(root), contract.category, `${romSet}.zip`));
     assert.ok(
       existsSync(devicePath),
-      `${contract.game}: MAME device ROM set "${romSet}" is missing: ${devicePath}`,
+      `${contract.game}: MAME dependency ROM set "${romSet}" is missing: ${devicePath}`,
     );
     for (const [name, bytes] of await readZip(new Uint8Array(readFileSync(devicePath)))) {
       files.set(name, bytes);
@@ -144,6 +159,7 @@ export async function runGameAcceptance(
   const generatedRuntime = await import(
     moduleUrl(join(outRoot, 'runtime/core/generated-board.js'))
   ) as {
+    registerGeneratedBoard(game: string, factory: unknown): void;
     createBoard(
       boardConfig: ShellConfig['board'],
       regions: Regions,
@@ -151,6 +167,14 @@ export async function runGameAcceptance(
       sinks: { soundWrite(offset: number, data: number, frac?: number, method?: string): void },
     ): Board;
   };
+  // Register the selected compiled machine explicitly for offline acceptance.
+  // Public registry membership is a publishing decision, not test readiness.
+  if (options.registerCandidate) {
+    assert.ok(options.recording, 'candidate registration is only allowed during offline recording');
+    const selected = await import(moduleUrl(join(gameDir, 'generated/board.js')));
+    assert.equal(selected.default.machine.game, contract.game);
+    generatedRuntime.registerGeneratedBoard(contract.game, selected.default.createBoard);
+  }
 
   const eventTarget = new EventTarget();
   const input = new KeyboardInput(config.bindings, config.dipDefaults, config.ports);
@@ -207,6 +231,7 @@ export async function runGameAcceptance(
     const snapshot = board.snapshot();
     options.inspectFrame?.({
       number: snapshot.frame,
+      snapshot,
       framebuffer,
       state: (board as unknown as {
         state?: Record<string, unknown>;
@@ -270,6 +295,13 @@ export async function runGameAcceptance(
     if ('reset' in action) {
       board.reset();
       continue;
+    }
+    if ('codes' in action) {
+      pulseMany(eventTarget, action.codes, runFrame, action.heldFrames, action.releasedFrames);
+      continue;
+    }
+    if ('analog' in action || 'signal' in action) {
+      throw new Error(`${contract.game}: unsupported input action`);
     }
     pulse(
       eventTarget,
@@ -537,14 +569,14 @@ export async function runGameAcceptance(
   return result;
 }
 
-function verifyInputBindings(
+export function verifyInputBindings(
   contract: GameTestContract,
   config: ShellConfig,
   input: KeyboardInput,
   target: EventTarget,
 ): void {
   for (const code of new Set(contract.actions.flatMap(action =>
-    'code' in action ? [action.code] : []))) {
+    'code' in action ? [action.code] : 'codes' in action ? action.codes : []))) {
     const binding = config.bindings.find(candidate => candidate.keys.includes(code));
     assert.ok(binding, `${contract.game}: ${code} has no generated input binding`);
     const released = input.read(binding.port);
@@ -731,6 +763,19 @@ function pulse(
   key(target, 'keydown', code);
   for (let index = 0; index < heldFrames; index++) frame();
   key(target, 'keyup', code);
+  for (let index = 0; index < releasedFrames; index++) frame();
+}
+
+function pulseMany(
+  target: EventTarget,
+  codes: string[],
+  frame: () => void,
+  heldFrames: number,
+  releasedFrames: number,
+): void {
+  for (const code of codes) key(target, 'keydown', code);
+  for (let index = 0; index < heldFrames; index++) frame();
+  for (const code of [...codes].reverse()) key(target, 'keyup', code);
   for (let index = 0; index < releasedFrames; index++) frame();
 }
 

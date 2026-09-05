@@ -1,0 +1,65 @@
+import { sourceTarget } from './source-contract.ts';
+
+export const mpatrol = sourceTarget({
+  game: 'mpatrol',
+  driver: 'src/mame/irem/m52.cpp',
+  machine: { className: 'm52_state', name: 'm52' },
+  screen: { width: 240, height: 252 },
+  soundKind: 'ay8910',
+  frames: 1800,
+  minimumFps: 45,
+  checkpoints: [1, 120, 300, 600, 900, 1200, 1500, 1800],
+  actions: [
+    { atFrame: 600, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 630, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 780, code: 'ArrowRight', heldFrames: 60, releasedFrames: 20 },
+    { atFrame: 900, code: 'KeyZ', heldFrames: 20, releasedFrames: 20 },
+    { atFrame: 1020, code: 'Space', heldFrames: 20, releasedFrames: 20 },
+    { atFrame: 1140, code: 'ArrowLeft', heldFrames: 40, releasedFrames: 20 },
+  ],
+  audioRequirements: [
+    {
+      method: 'irem_audio:msm1.data_w',
+      fromFrame: 120,
+      minimumNonzeroWrites: 100,
+    },
+    {
+      method: 'irem_audio:msm1.vck',
+      fromFrame: 120,
+      minimumNonzeroWrites: 100,
+    },
+  ],
+  golden: {
+    regions: {
+      bg_pal: '6a57eff2',
+      bg0: '9fbb1c40',
+      bg1: 'cfe4476e',
+      bg2: '1eab9376',
+      'irem_audio:iremsound': '901ecdbf',
+      maincpu: '04bda62b',
+      sp: '27464bd3',
+      spr_clut: '7ae4cd97',
+      spr_pal: '26979b13',
+      tx: 'b4bf3ba1',
+      tx_pal: '07f99284',
+      unkprom: 'cf1fd9d0',
+    },
+    checkpoints: {
+      1: { video: 'eb760de7', state: '4f4677cd' },
+      120: { video: '4c07c91c', state: '194e0d7f' },
+      300: { video: '14b5d890', state: '157a98af' },
+      600: { video: '5bb50abe', state: '02871986' },
+      900: { video: '40d4e310', state: '03ade0c2' },
+      1200: { video: 'ac106980', state: 'abd30dc1' },
+      1500: { video: '32610308', state: '670ca1a0' },
+      1800: { video: '4e862096', state: 'cb9efbf1' },
+    },
+    audio: {
+      writes: 429069,
+      nonzeroWrites: 429022,
+      writeHash: '84803969',
+      pcmHash: 'af12cf45',
+      rms: 0.157579,
+    },
+  },
+});

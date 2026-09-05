@@ -38,7 +38,10 @@ const TRACING = /^(?:LOG[A-Z0-9_]*|VPRINTF|PRINTF)$/;
  * Line continuations are joined first, so a multi-line macro body -- which is
  * what a statement macro almost always is -- arrives as one string.
  */
-export function collectFunctionMacros(source: string): FunctionMacro[] {
+export function collectFunctionMacros(
+  source: string,
+  options: { includeForwarders?: boolean } = {},
+): FunctionMacro[] {
   const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
   const macros: FunctionMacro[] = [];
   for (const match of joined.matchAll(/^[ \t]*#define[ \t]+(\w+)\(([^)]*)\)[ \t]*(.*)$/gm)) {
@@ -50,7 +53,10 @@ export function collectFunctionMacros(source: string): FunctionMacro[] {
     // reaches its worklet input. Expanding `NAMCO_54XX_0_DATA(base)` to
     // `NODE_RELATIVE(base, 0)` discards the very name the sound runtime routes
     // on, and silenced Galaga and Dig Dug outright.
-    if (!/[;{]/.test(body)) continue;
+    if (
+      !/[;{]/.test(body) &&
+      !(options.includeForwarders && /\b[A-Z_][A-Z0-9_]*\s*\(/.test(body))
+    ) continue;
     macros.push({
       name,
       parameters: parameters!.split(',').map(parameter => parameter.trim()).filter(Boolean),

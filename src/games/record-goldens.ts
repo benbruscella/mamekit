@@ -3,24 +3,67 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { GameAcceptanceGolden } from './types.ts';
 import { runGameAcceptance } from './acceptance-harness.ts';
-import { loadGameContracts } from './contracts.ts';
+import { loadRegisteredGameContracts } from './contracts.ts';
+import ts from 'typescript';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
-export function replaceGolden(source: string, golden: GameAcceptanceGolden): string {
-  const marker = '  golden: ';
-  const markerAt = source.indexOf(marker);
-  if (markerAt < 0) {
-    const end = Math.max(source.lastIndexOf('\n});'), source.lastIndexOf('\n};'));
-    if (end < 0) throw new Error('game contract has no object terminator');
-    const rendered = renderGolden(golden).replace(/\n/g, '\n  ');
-    return `${source.slice(0, end)}\n  golden: ${rendered},${source.slice(end)}`;
+export function replaceGolden(
+  source: string,
+  golden: GameAcceptanceGolden,
+  scenarioId?: string,
+): string {
+  const file = ts.createSourceFile('contract.ts', source, ts.ScriptTarget.Latest, true);
+  const object = (value: ts.Expression): ts.ObjectLiteralExpression | undefined => {
+    if (ts.isObjectLiteralExpression(value)) return value;
+    if (ts.isSatisfiesExpression(value) || ts.isAsExpression(value) || ts.isParenthesizedExpression(value)) {
+      return object(value.expression);
+    }
+    if (ts.isCallExpression(value) && value.arguments[0]) return object(value.arguments[0]);
+    return undefined;
+  };
+  const property = (value: ts.ObjectLiteralExpression, name: string) => value.properties.find(
+    (entry): entry is ts.PropertyAssignment => ts.isPropertyAssignment(entry) &&
+      (ts.isIdentifier(entry.name) || ts.isStringLiteral(entry.name)) && entry.name.text === name,
+  );
+  const contracts = file.statements.flatMap(statement => ts.isVariableStatement(statement)
+    ? statement.declarationList.declarations.flatMap(declaration => {
+      const value = declaration.initializer && object(declaration.initializer);
+      return value && (property(value, 'game') || property(value, 'scenarios')) ? [value] : [];
+    }) : []);
+  if (contracts.length !== 1) throw new Error('expected one literal game contract');
+  let target = contracts[0]!;
+  const scenarios = property(target, 'scenarios');
+  if (scenarios) {
+    if (!ts.isArrayLiteralExpression(scenarios.initializer)) {
+      throw new Error('recording requires a literal scenarios array');
+    }
+    const entries = scenarios.initializer.elements.map(element => object(element));
+    if (entries.some(entry => !entry)) throw new Error('recording requires literal scenario objects');
+    const selected = scenarioId ? entries.filter(entry => {
+      const id = property(entry!, 'id')?.initializer;
+      return id && ts.isStringLiteral(id) && id.text === scenarioId;
+    }) : entries;
+    if (selected.length !== 1) throw new Error('select exactly one scenario by id before recording');
+    target = selected[0]!;
+  } else if (scenarioId) {
+    const id = property(target, 'scenarioId')?.initializer;
+    if (!id || !ts.isStringLiteral(id) || id.text !== scenarioId) {
+      throw new Error(`contract has no scenario "${scenarioId}"`);
+    }
   }
-  const start = source.indexOf('{', markerAt + marker.length);
-  if (start < 0) throw new Error('game contract has a malformed golden property');
-  const end = objectEnd(source, start);
-  const rendered = renderGolden(golden).replace(/\n/g, '\n  ');
-  return `${source.slice(0, start)}${rendered}${source.slice(end + 1)}`;
+  const existing = property(target, 'golden');
+  const lineStart = source.lastIndexOf('\n', target.getStart(file)) + 1;
+  const indent = /^\s*/.exec(source.slice(lineStart, target.getStart(file)))![0] + '  ';
+  const rendered = renderGolden(golden).replace(/\n/g, `\n${indent}`);
+  if (existing) {
+    return source.slice(0, existing.initializer.getStart(file)) + rendered + source.slice(existing.initializer.end);
+  }
+  const position = target.properties.at(-1)?.end ?? target.getStart(file) + 1;
+  // Insert after the last property rather than the closing brace: this also
+  // handles satisfies/type assertions and preserves trailing comments.
+  return source.slice(0, position) + `${target.properties.length ? ',' : ''}\n${indent}golden: ${rendered}` +
+    source.slice(position);
 }
 
 function renderGolden(golden: GameAcceptanceGolden): string {
@@ -58,18 +101,23 @@ function property(name: string): string {
 const AUDIO_WRITE_SWING = 0.05;
 
 async function record(games: readonly string[], formatOnly = false): Promise<void> {
-  const contracts = await loadGameContracts();
+  const loaded = await loadRegisteredGameContracts(['accepted', 'candidate']);
+  const contracts = loaded.map(entry => entry.contract);
   const selected = games.length
-    ? contracts.filter(contract => games.includes(contract.game))
+    ? contracts.filter(contract => games.includes(contract.game) || games.includes(contractKey(contract)))
     : contracts;
-  const missing = games.filter(game => !selected.some(contract => contract.game === game));
+  const missing = games.filter(game => !selected.some(contract => contract.game === game || contractKey(contract) === game));
   if (missing.length) throw new Error(`unknown supported game(s): ${missing.join(', ')}`);
 
   const swings: { game: string; before: number; after: number }[] = [];
   for (const contract of selected) {
+    const registration = loaded.find(entry => entry.contract === contract)!.registration;
     const golden = formatOnly
       ? contract.golden
-      : await runGameAcceptance(contract, projectRoot, { recording: true });
+      : await runGameAcceptance(contract, projectRoot, {
+          recording: true,
+          registerCandidate: registration.lifecycle === 'candidate',
+        });
     if (!golden) throw new Error(`${contract.game}: no acceptance golden is recorded`);
     // A re-record is how a real regression gets blessed. Gyruss lost half its
     // sound writes to a scheduling change and Juno First a third, and both
@@ -89,11 +137,11 @@ async function record(games: readonly string[], formatOnly = false): Promise<voi
         );
       }
     }
-    const sourcePath = join(projectRoot, 'src/games', `${contract.game}.ts`);
+    const sourcePath = registration.modulePath;
     const source = readFileSync(sourcePath, 'utf8');
-    const updated = replaceGolden(source, golden);
+    const updated = replaceGolden(source, golden, contract.scenarioId);
     if (updated !== source) writeFileSync(sourcePath, updated);
-    console.log(`${contract.game}: ${formatOnly ? 'formatted' : 'recorded'}`);
+    console.log(`${contractKey(contract)}: ${formatOnly ? 'formatted' : 'recorded'}`);
   }
 
   // The per-game warning above scrolls past in a fifty-target run, and it only
@@ -118,23 +166,8 @@ async function record(games: readonly string[], formatOnly = false): Promise<voi
   }
 }
 
-function objectEnd(source: string, start: number): number {
-  let depth = 0;
-  let quoted = false;
-  let escaped = false;
-  for (let index = start; index < source.length; index++) {
-    const char = source[index]!;
-    if (quoted) {
-      if (escaped) escaped = false;
-      else if (char === '\\') escaped = true;
-      else if (char === '"') quoted = false;
-      continue;
-    }
-    if (char === '"') quoted = true;
-    else if (char === '{') depth++;
-    else if (char === '}' && --depth === 0) return index;
-  }
-  throw new Error('unterminated object');
+function contractKey(contract: { game: string; scenarioId?: string }): string {
+  return contract.scenarioId ? `${contract.game}:${contract.scenarioId}` : contract.game;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

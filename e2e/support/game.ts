@@ -150,9 +150,11 @@ export async function replayContract(page: Page, plan: ReplayPlan): Promise<Repl
         mamekit.board.reset();
         continue;
       }
-      key('keydown', action.code!);
+      const codes = action.codes ?? (action.code ? [action.code] : []);
+      if (!codes.length) throw new Error('replay action has no executable input binding');
+      for (const code of codes) key('keydown', code);
       runTo(frame() + (action.heldFrames ?? 0));
-      key('keyup', action.code!);
+      for (const code of [...codes].reverse()) key('keyup', code);
       runTo(frame() + (action.releasedFrames ?? 0));
     }
     runTo(input.frames);

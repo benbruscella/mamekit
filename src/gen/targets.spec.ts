@@ -5,7 +5,14 @@ import { fileURLToPath } from 'node:url';
 import { loadGameContracts } from '../games/contracts.ts';
 import { readBuildManifest } from './build-manifest.ts';
 import { generatedGameOutputs } from './output-layout.ts';
-import { ACCEPTED_TARGETS, GENERATION_TARGETS, REQUIRED_TARGETS } from './targets.ts';
+import {
+  ACCEPTED_TARGETS,
+  CANDIDATE_TARGETS,
+  GENERATION_TARGETS,
+  PUBLISHED_TARGETS,
+  REQUIRED_TARGETS,
+  SYSTEM_TARGETS,
+} from './targets.ts';
 
 // The issue's contract: target discovery, the generated catalog and the
 // acceptance contracts must name the same set. They used to be three hand-kept
@@ -20,13 +27,13 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const contracts = await loadGameContracts();
 
 check('the accepted set is exactly the games with acceptance contracts', () => {
-  assert.deepEqual([...ACCEPTED_TARGETS].sort(), contracts.map(c => c.game).sort());
+  assert.deepEqual([...ACCEPTED_TARGETS].sort(), [...new Set(contracts.map(c => c.game))].sort());
 });
 
 // Discovery must find a real contract for every module it picks up, and every
 // contract's module name must match its game.
 check('every discovered module exports a matching contract', () => {
-  assert.equal(contracts.length, ACCEPTED_TARGETS.length);
+  assert.equal(new Set(contracts.map(contract => contract.game)).size, ACCEPTED_TARGETS.length);
   for (const contract of contracts) assert.ok(ACCEPTED_TARGETS.includes(contract.game));
 });
 
@@ -34,12 +41,25 @@ check('every accepted target is a required target', () => {
   assert.deepEqual(ACCEPTED_TARGETS.filter(target => !REQUIRED_TARGETS.includes(target)), []);
 });
 
+check('candidate targets generate but are not accepted or published', () => {
+  assert.deepEqual(CANDIDATE_TARGETS.filter(target => !GENERATION_TARGETS.includes(target)), []);
+  assert.deepEqual(CANDIDATE_TARGETS.filter(target => ACCEPTED_TARGETS.includes(target)), []);
+  assert.deepEqual(CANDIDATE_TARGETS.filter(target => PUBLISHED_TARGETS.includes(target)), []);
+});
+
+check('published targets are accepted games plus software-driven systems', () => {
+  assert.deepEqual(
+    [...PUBLISHED_TARGETS].sort(),
+    [...ACCEPTED_TARGETS, ...SYSTEM_TARGETS].sort(),
+  );
+});
+
 // Disabling a game is a move into src/games/disabled, so the guarantee worth
 // testing is that parking a contract there actually takes it out of the build.
 check('disabled contracts are not generated', () => {
   const disabled = readdirSync(join(projectRoot, 'src/games/disabled'))
-    .filter(name => name.endsWith('.ts') && !name.endsWith('.spec.ts'))
-    .map(name => name.replace(/\.ts$/, ''));
+    .filter(name => name.endsWith('.game.ts') && !name.endsWith('.game.spec.ts'))
+    .map(name => name.replace(/\.game\.ts$/, ''));
   assert.ok(disabled.length > 0, 'issue #53 parked broken games in src/games/disabled');
   for (const game of disabled) {
     assert.ok(!REQUIRED_TARGETS.includes(game), `disabled game "${game}" is still built`);

@@ -468,9 +468,16 @@ function functionTemplateParameters(
   const header = masked.slice(functionIndex, masked.indexOf('{', functionIndex));
   const escapedClass = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   if (new RegExp(`\\b${escapedClass}\\s*<`).test(header)) return [];
-  const classIndex = header.search(new RegExp(`\\b${escapedClass}\\s*::`));
+  // A template parameter type can itself be scoped through the owner class
+  // (`device::op_type_t Zero`). The member qualifier is the final occurrence
+  // before the method name; selecting the first truncates the template list.
+  const classMatches = [...header.matchAll(new RegExp(`\\b${escapedClass}\\s*::`, 'g'))];
+  const classIndex = classMatches.at(-1)?.index ?? -1;
   if (classIndex < 0) return [];
-  const match = /template\s*<([^<>]*)>[\s\S]*$/.exec(header.slice(0, classIndex));
+  const match = /template\s*<([^<>]*)>[\s\S]*$/.exec(header.slice(0, classIndex)) ??
+    /template\s*<([^<>]*)>\s*$/.exec(
+      masked.slice(Math.max(0, functionIndex - 2048), functionIndex),
+    );
   if (!match) return [];
   return splitMameArgs(match[1]!).flatMap(parameter => {
     const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(parameter.trim())?.[1];

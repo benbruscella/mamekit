@@ -1,5 +1,19 @@
 import { discoverGameNames } from '../games/discovery.ts';
 
+export const ACCEPTED_TARGETS: readonly string[] = discoverGameNames();
+export const CANDIDATE_TARGETS: readonly string[] = discoverGameNames(
+  undefined,
+  ['candidate'],
+);
+
+/** Generated system targets whose software arrives separately. */
+export const SYSTEM_TARGETS: readonly string[] = [
+  'nes',
+  'coleco',
+  'a2600',
+  'gameboy',
+];
+
 /**
  * Every target the all-target generation contract must produce.
  *
@@ -8,24 +22,9 @@ import { discoverGameNames } from '../games/discovery.ts';
  * with a contract is by definition one that must generate and pass.
  */
 export const REQUIRED_TARGETS: readonly string[] = [
-  ...discoverGameNames(),
-  // Consoles have no real-ROM acceptance contract yet, so they are listed here
-  // until they do. A console's software arrives on cartridges the visitor
-  // supplies, so there is no romset a contract module could name; the console
-  // room is covered by the browser suite instead (e2e/specs/console.spec.ts).
-  'nes',
-  // The ColecoVision differs from the NES in one way that matters here: its
-  // BIOS is a romset of its own, so it can hold a real contract as soon as
-  // that dump is available. Until then it sits with the NES.
-  'coleco',
-  // The Atari 2600 has no BIOS at all -- the cartridge is the whole machine --
-  // so like the NES it is covered by the browser suite rather than a romset
-  // contract.
-  'a2600',
-  // The Game Boy is the ColecoVision case again: its 256-byte DMG boot ROM is
-  // a romset of its own, so it can hold a real contract once that dump is
-  // available. Until then the browser suite covers it.
-  'gameboy',
+  ...ACCEPTED_TARGETS,
+  ...CANDIDATE_TARGETS,
+  ...SYSTEM_TARGETS,
 ];
 
 /**
@@ -38,6 +37,9 @@ export const REQUIRED_TARGETS: readonly string[] = [
 export const GENERATION_TARGETS: readonly string[] = REQUIRED_TARGETS;
 
 /**
- * Targets with real-ROM acceptance contracts.
+ * Targets included in the generated public app/catalog.
  */
-export const ACCEPTED_TARGETS: readonly string[] = discoverGameNames();
+export const PUBLISHED_TARGETS: readonly string[] = [
+  ...ACCEPTED_TARGETS,
+  ...SYSTEM_TARGETS,
+];

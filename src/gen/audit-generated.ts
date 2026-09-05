@@ -5,7 +5,7 @@ import type { BoardIr } from '../ir/board.ts';
 import { decodeBoardIr } from '../ir/decode.ts';
 import { validateBoardIr } from '../ir/validate.ts';
 import { generatedDirectScreenShape } from '../runtime/generated-video.ts';
-import { buildClosureFailures } from './build-manifest.ts';
+import { buildClosureFailures, readBuildManifest } from './build-manifest.ts';
 import { gameDataPath, generatedGameOutputs } from './output-layout.ts';
 
 export { REQUIRED_TARGETS } from './targets.ts';
@@ -21,6 +21,27 @@ export interface GeneratedAudit {
   failures: string[];
 }
 
+interface GeneratedSoundSurface {
+  kind?: string;
+  auxiliaryDevices?: { type?: string; deviceTag?: string }[];
+}
+
+/** Ensure the shell/worklet receives every secondary stream the board emits. */
+export function auxiliarySoundConfigFailures(
+  target: string,
+  boardSound?: GeneratedSoundSurface,
+  appSound?: GeneratedSoundSurface,
+): string[] {
+  const app = new Set((appSound?.auxiliaryDevices ?? [])
+    .map(device => `${device.deviceTag}:${device.type}`));
+  return (boardSound?.auxiliaryDevices ?? []).flatMap(device => {
+    const key = `${device.deviceTag}:${device.type}`;
+    return app.has(key)
+      ? []
+      : [`${target}: board IR routes auxiliary sound ${key} but the app config omits it`];
+  });
+}
+
 export function auditGenerated(outRoot: string): GeneratedAudit {
   const failures: string[] = [];
   let callbacks = 0;
@@ -29,6 +50,9 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
   let sourceMapHandlers = 0;
   let familyAdapters = 0;
   const generatedTargets = generatedGameOutputs(outRoot);
+  const publishedTargets = new Set(
+    readBuildManifest(outRoot)?.publishedTargets ?? generatedTargets.map(target => target.game),
+  );
   if (!generatedTargets.length) failures.push('no generated games found');
   const registryPath = join(outRoot, 'app/registry.js');
   const registry = existsSync(registryPath) ? readFileSync(registryPath, 'utf8') : '';
@@ -185,7 +209,8 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     for (const file of required) {
       if (!existsSync(join(dir, file))) failures.push(`${target}: missing ${file}`);
     }
-    if (!existsSync(join(outRoot, `app/g/${target}/dossier/index.html`))) {
+    if (publishedTargets.has(target) &&
+      !existsSync(join(outRoot, `app/g/${target}/dossier/index.html`))) {
       failures.push(`${target}: styled dossier route is missing`);
     }
     if (!existsSync(join(dir, 'generated/board.json'))) continue;
@@ -217,11 +242,12 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     const boardJsonPath = join(dir, 'generated/board.json');
     if (existsSync(configPath) && existsSync(boardJsonPath)) {
       const boardSound = (JSON.parse(readFileSync(boardJsonPath, 'utf8')) as {
-        sound?: { kind?: string };
+        sound?: GeneratedSoundSurface;
       }).sound;
       const appSound = (JSON.parse(readFileSync(configPath, 'utf8')) as {
-        sound?: { kind?: string; worklet?: string };
+        sound?: GeneratedSoundSurface & { worklet?: string };
       }).sound;
+      failures.push(...auxiliarySoundConfigFailures(target, boardSound, appSound));
       if (boardSound?.kind && boardSound.kind !== 'none') {
         if (!appSound?.kind || appSound.kind === 'none') {
           failures.push(
@@ -390,8 +416,10 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     }
 
     const boardImport = `../${gameDataPath(category, target)}/generated/board.js`;
-    if (!registry.includes(boardImport)) {
+    if (publishedTargets.has(target) && !registry.includes(boardImport)) {
       failures.push(`${target}: missing from unified generated registry`);
+    } else if (!publishedTargets.has(target) && registry.includes(boardImport)) {
+      failures.push(`${target}: candidate leaked into the unified generated registry`);
     }
   }
   const appDir = join(outRoot, 'app');

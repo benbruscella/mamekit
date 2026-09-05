@@ -1,0 +1,53 @@
+import { sourceTarget } from './source-contract.ts';
+
+export const bankp = sourceTarget({
+  game: 'bankp',
+  driver: 'src/mame/sanritsu/bankp.cpp',
+  machine: { className: 'bankp_state', name: 'bankp' },
+  screen: { width: 224, height: 224 },
+  soundKind: 'sn76489',
+  frames: 1600,
+  minimumFps: 45,
+  checkpoints: [1, 60, 180, 300, 600, 700, 1200, 1304, 1320, 1360, 1500, 1560, 1600],
+  actions: [
+    { atFrame: 600, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 630, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 700, code: 'KeyZ', heldFrames: 10, releasedFrames: 120 },
+    { atFrame: 1100, code: 'KeyZ', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1130, code: 'KeyX', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1160, code: 'KeyC', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1250, code: 'ArrowLeft', heldFrames: 120, releasedFrames: 20 },
+    { atFrame: 1420, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },
+  ],
+  golden: {
+    regions: {
+      bgtiles: '649fb90c',
+      fgtiles: '666a6012',
+      maincpu: '8f1d866c',
+      proms: '23233dd2',
+      user1: 'f998e2a4',
+    },
+    checkpoints: {
+      1: { video: '44c40437', state: 'b08f25c3' },
+      60: { video: '62aeee31', state: '6d4e9635' },
+      180: { video: '91ff7c4a', state: '3d4665dc' },
+      300: { video: 'b083296d', state: '95591f09' },
+      600: { video: 'dfa01607', state: 'e570d5d7' },
+      700: { video: 'a8afcc86', state: '2c14acbd' },
+      1200: { video: '9ae235db', state: '397784ca' },
+      1304: { video: 'c8a208db', state: '79601fed' },
+      1320: { video: '2339ef31', state: '2bc0e7fd' },
+      1360: { video: '2c978989', state: '520e70e9' },
+      1500: { video: '80930139', state: '58afd5b6' },
+      1560: { video: '340dc1c4', state: '4aa3a4cd' },
+      1600: { video: 'a05c1d4f', state: '7b017bd9' },
+    },
+    audio: {
+      writes: 1299,
+      nonzeroWrites: 1219,
+      writeHash: '9fc6f0b1',
+      pcmHash: 'd4b089dc',
+      rms: 0.082498,
+    },
+  },
+});

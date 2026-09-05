@@ -1,0 +1,39 @@
+import { sourceTarget } from './source-contract.ts';
+
+export const pacman = sourceTarget({
+  game: 'pacman',
+  driver: 'src/mame/pacman/pacman.cpp',
+  machine: { className: 'pacman_state', name: 'pacman' },
+  screen: { width: 288, height: 224 },
+  soundKind: 'wsg',
+  frames: 600,
+  minimumFps: 45,
+  checkpoints: [1, 60, 180, 300, 420, 600],
+  actions: [
+    { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 330, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+  ],
+  golden: {
+    regions: {
+      gfx1: '0be015aa',
+      maincpu: '332838db',
+      namco: '3f2ff826',
+      proms: 'c1e7e6a7',
+    },
+    checkpoints: {
+      1: { video: '1556d338', state: '0e2ea5f3' },
+      60: { video: '1556d338', state: '3665b638' },
+      180: { video: '7e928035', state: '1e93e277' },
+      300: { video: '189e0035', state: '201babd2' },
+      420: { video: '06b7df05', state: '70b06825' },
+      600: { video: '1f0c4e15', state: 'd4e273cc' },
+    },
+    audio: {
+      writes: 5831,
+      nonzeroWrites: 2375,
+      writeHash: '56f27f1f',
+      pcmHash: 'a64d8fb6',
+      rms: 0.170261,
+    },
+  },
+});

@@ -3,7 +3,7 @@ name: CI
 on:
   # A push to a PR branch already gets a pull_request run, so pushes are only
   # interesting for the trunk itself; without this filter every PR commit ran
-  # the 45-minute job twice.
+  # the long-running jobs twice.
   push:
     branches: [main]
   pull_request:
@@ -17,22 +17,36 @@ concurrency:
 
 jobs:
   test:
-    # The two gates share only their setup: colocated specs never read the
-    # generated tree, and generation never runs a spec. Running them as one job
-    # made every PR wait for their sum rather than the longer of the two.
+    # The gates share only their setup and run as independent matrix jobs so a
+    # PR waits for the slowest gate rather than their sum.
     name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Unit and lowering specs
             command: npm run test:unit
+            acceptance: false
+            runner: ubuntu-latest
           - name: Clean generation and audit
             command: npm run test:current
+            acceptance: false
+            runner: ubuntu-latest
+          - name: ROM-backed accepted contracts
+            command: npm run test:games:ci
+            acceptance: true
+            # CPS1 clears the exact 50 fps contract comfortably on the target
+            # arm64 architecture; the x64 hosted VM measured 45.1-49.4 fps.
+            # Keep the contract strict by selecting capacity, not lowering it.
+            runner: macos-15
     env:
       MAME_SRC: ${{ github.workspace }}/.mame
+      # Node's arm64 default stopped at 2 GB while tsc compiled the unified
+      # generated app. The hosted macOS VM has 7 GB; keep enough headroom for
+      # the OS while allowing the same build that succeeds on x64.
+      NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - name: Check out MAMEKIT
         uses: actions/checkout@v6
@@ -41,7 +55,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: mamedev/mame
-          ref: b8f3d94f9904e1068d6b44fa6b3915e4bf90fd83
+          ref: f34f02505e32c1993c6a782b6814232cbfc74e36
           path: .mame
           sparse-checkout: |
             src
@@ -66,3 +80,11 @@ jobs:
         env:
           SPEC_JOBS: 4
         run: ${{ matrix.command }}
+
+      - name: Upload complete acceptance report
+        if: always() && matrix.acceptance
+        uses: actions/upload-artifact@v4
+        with:
+          name: rom-acceptance-report
+          path: .cache/acceptance-report.json
+          if-no-files-found: warn
