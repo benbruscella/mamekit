@@ -65,9 +65,10 @@ export function normalizeGameContractExport(
 
 export async function loadRegisteredGameContracts(
   lifecycles: readonly Exclude<GameLifecycle, 'disabled'>[] = ['accepted'],
+  root?: string,
 ): Promise<LoadedGameContract[]> {
   const loaded: LoadedGameContract[] = [];
-  for (const registration of discoverGames(undefined, lifecycles)) {
+  for (const registration of discoverGames(root, lifecycles)) {
     const module = await import(pathToFileURL(registration.modulePath).href) as Record<string, unknown>;
     const normalized = normalizeGameContractExport(module[registration.game], registration);
     if (normalized.target.game !== registration.game) {
@@ -85,7 +86,7 @@ export async function loadRegisteredGameContracts(
       const contract: GameTestContract = {
         ...normalized.target,
         ...scenario,
-        ...(id !== 'default' ? { scenarioId: id } : {}),
+        ...(scenario.id !== undefined || normalized.scenarios.length > 1 ? { scenarioId: id } : {}),
       };
       validateGameContract(contract, registration.lifecycle as 'accepted' | 'candidate');
       loaded.push({ registration, contract, target: normalized.target, scenario });

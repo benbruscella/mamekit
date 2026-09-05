@@ -6,6 +6,7 @@ import { readZip } from '../src/runtime/zip.ts';
 import { DATA_DIR } from '../src/paths.ts';
 
 const root = resolve(import.meta.dirname, '..');
+const outRoot = resolve(process.env.MAMEKIT_OUT_ROOT ?? join(root, 'dist'));
 const requested = process.argv.slice(2);
 const games = requested.length ? requested : discoverGameNames(join(root, 'src/games'));
 
@@ -19,10 +20,10 @@ async function auditGame(game: string): Promise<void> {
   requireFile(registration.specPath.slice(root.length + 1));
 
   const category = ['arcade', 'consoles', 'computers'].find(candidate =>
-    existsSync(join(root, `dist/games/${candidate}/${game}/config.json`)));
+    existsSync(join(outRoot, `games/${candidate}/${game}/config.json`)));
   assert.ok(category, `${game}: generate the game before auditing its package`);
-  const dataPath = `dist/games/${category}/${game}`;
-  const meta = JSON.parse(readFileSync(join(root, dataPath, 'meta.json'), 'utf8')) as {
+  const dataPath = join(outRoot, `games/${category}/${game}`);
+  const meta = JSON.parse(readFileSync(join(dataPath, 'meta.json'), 'utf8')) as {
     game?: string;
     hasHistory?: boolean;
   };
@@ -33,7 +34,7 @@ async function auditGame(game: string): Promise<void> {
     `${game}: no Gaming History entry was extracted from ${DATA_DIR}/artwork/data/history/history.xml`,
   );
   for (const file of ['config.json', 'DOSSIER.md', 'history.txt']) {
-    requireFile(`${dataPath}/${file}`);
+    assert.ok(existsSync(join(dataPath, file)), `missing ${join(dataPath, file)}`);
   }
 
   for (const path of [

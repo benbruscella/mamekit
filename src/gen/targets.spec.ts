@@ -27,13 +27,13 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const contracts = await loadGameContracts();
 
 check('the accepted set is exactly the games with acceptance contracts', () => {
-  assert.deepEqual([...ACCEPTED_TARGETS].sort(), contracts.map(c => c.game).sort());
+  assert.deepEqual([...ACCEPTED_TARGETS].sort(), [...new Set(contracts.map(c => c.game))].sort());
 });
 
 // Discovery must find a real contract for every module it picks up, and every
 // contract's module name must match its game.
 check('every discovered module exports a matching contract', () => {
-  assert.equal(contracts.length, ACCEPTED_TARGETS.length);
+  assert.equal(new Set(contracts.map(contract => contract.game)).size, ACCEPTED_TARGETS.length);
   for (const contract of contracts) assert.ok(ACCEPTED_TARGETS.includes(contract.game));
 });
 

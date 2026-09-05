@@ -6,6 +6,9 @@ export const congo = sourceTarget({
   machine: { className: 'zaxxon_state', name: 'congo' },
   screen: { width: 256, height: 224 },
   soundKind: 'sn76489',
+  // PSG routing is corrected; the sample effects still use synthesized
+  // approximations, not MAME's gorilla/drum recordings. PCM guards stability.
+  acceptedAudioLimitations: ['synthesized-samples'],
   golden: {
     regions: {
       audiocpu: '5024e673',

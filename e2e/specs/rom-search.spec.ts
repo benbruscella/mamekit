@@ -9,14 +9,14 @@
 // Enable with MAMEKIT_E2E_ROMSEARCH=1, and narrow it with MAMEKIT_E2E_GAMES.
 
 import { expect, test } from '@playwright/test';
-import { selectedContracts } from '../support/contracts.ts';
+import { contractKey, selectedContracts } from '../support/contracts.ts';
 import { watchFaults } from '../support/game.ts';
 
 test.describe('rom web search', () => {
   test.skip(!process.env.MAMEKIT_E2E_ROMSEARCH, 'set MAMEKIT_E2E_ROMSEARCH=1 to fetch real romsets');
 
   for (const contract of selectedContracts()) {
-    test(`${contract.game} is findable on the web and boots`, async ({ page }) => {
+    test(`${contractKey(contract)} is findable on the web and boots`, async ({ page }) => {
       const faults = watchFaults(page);
       await page.goto(`/app/g/${contract.game}/?qa=1`);
       await page.locator('[data-dropzone]').waitFor({ state: 'visible' });

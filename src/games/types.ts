@@ -89,6 +89,8 @@ export interface MachineTargetDefinition {
 
 /** One deterministic way to exercise a target and its selected media. */
 export interface GameAcceptanceScenario {
+  /** Reviewed renderer limitations; these goldens verify stability, not fidelity to MAME PCM. */
+  acceptedAudioLimitations?: string[];
   id?: string;
   kind?: 'cold-boot' | 'gameplay' | 'keyboard' | 'media' | 'peripheral';
   romEnvironment: string;
@@ -114,6 +116,7 @@ export interface MachineTargetContract {
  * It contains no emulation behavior; the shared harness executes `dist`.
  */
 export interface GameTestContract extends MachineTargetDefinition {
+  acceptedAudioLimitations?: string[];
   /** Stable key when one machine has more than one deterministic scenario. */
   scenarioId?: string;
   romEnvironment: string;

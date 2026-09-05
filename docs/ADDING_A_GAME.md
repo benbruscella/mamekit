@@ -25,6 +25,10 @@ published.
    deterministic scenarios. Computers can stage BIOS, cartridge, quickload,
    cassette, floppy, and peripheral support independently; a scenario should
    claim only the media it actually verifies.
+   Keyboard chords are executable now. Analog and machine-signal actions are
+   planned vocabulary: acceptance and promotion reject them until a generated
+   input binding is implemented. Use the existing `reset: true` action for a
+   board reset; a declared `signal: 'reset'` is not a reset implementation.
 4. Keep source-shape assertions in the adjacent `.game.spec.ts`. Put reusable
    parser, compiler, CPU, device, or renderer assertions beside the owning
    implementation.
@@ -51,6 +55,19 @@ npm run audit:game-package -- <shortname>
 npm run game:promote -- <shortname>
 ```
 
+To record one scenario, use `<shortname>:<scenario-id>`; a bare machine name
+records each scenario into its own golden. Recording also works against the
+isolated tree with `MAMEKIT_OUT_ROOT=.cache/dev/<shortname>`. The full build
+compiles candidates for offline tests while excluding them from public routes
+and the app registry. Promotion rebases the moved pair's relative imports.
+
+Sample-based effects currently use synthesized approximations in the SAMPLES
+and SN76489/SAMPLES renderers. Their contracts must explicitly acknowledge
+`acceptedAudioLimitations: ['synthesized-samples']` before recording or accepting
+PCM. These goldens check deterministic behavior, not agreement with MAME's
+original sample recordings. The runtime report and game's sound details show
+the same limitation; it does not change machine playability.
+
 Review every golden change. Region changes imply ROM or patch changes; early
 state changes imply execution/lifecycle changes; framebuffer changes imply
 video/timing changes; audio write changes imply routing or scheduling; PCM-only
@@ -59,9 +76,9 @@ failure disappear. Promotion requires accepted-level contract validation, a
 playable runtime report, and a complete package audit before moving the pair
 into `src/games/`.
 
-Goldens remain inline for now. They are small, strongly typed, reviewed beside
-the scenario that produces them, and the recorder already replaces the object
-safely. Move them to JSON only if multi-scenario machines make payload size a
+Goldens remain inline for now. They are strongly typed and reviewed beside
+the scenario that produces them; the recorder locates the selected scenario
+using the TypeScript syntax tree. Move them to JSON only if payload size becomes a
 measured maintenance problem; doing so now would add loading/schema indirection
 without reducing onboarding work.
 

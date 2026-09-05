@@ -5,12 +5,12 @@
 // MAMEKIT_E2E_GAMES=pacman,galaga while bringing a machine up.
 
 import { expect, test } from '@playwright/test';
-import { readyFrame, selectedContracts, startDelayFrames } from '../support/contracts.ts';
+import { contractKey, readyFrame, selectedContracts, snapshotKey, startDelayFrames } from '../support/contracts.ts';
 import { knownIssue } from '../support/known-issues.ts';
 import { audioPeak, bootGame, keysFor, replayContract, screenPng, screenRefresh, secondsToFrame, trackAudioPeak } from '../support/game.ts';
 
 for (const contract of selectedContracts()) {
-  test.describe(contract.game, () => {
+  test.describe(contractKey(contract), () => {
     const known = knownIssue(contract.game);
     test.skip(Boolean(known), `known issue #54: ${known}`);
 
@@ -43,7 +43,7 @@ for (const contract of selectedContracts()) {
 
       // Hashes come from the framebuffer; this is the canvas that was actually
       // presented, so a shell that stopped blitting still fails here.
-      expect(await screenPng(page)).toMatchSnapshot(`${contract.game}-final.png`);
+      expect(await screenPng(page)).toMatchSnapshot(`${snapshotKey(contract)}-final.png`);
       expect(faults.errors).toEqual([]);
     });
 

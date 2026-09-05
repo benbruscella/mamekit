@@ -6,6 +6,8 @@ export const panic = sourceTarget({
   machine: { className: 'cosmic_state', name: 'panic' },
   screen: { width: 256, height: 192 },
   soundKind: 'samples',
+  // Existing synthesized effects do not reproduce the original sample pack.
+  acceptedAudioLimitations: ['synthesized-samples'],
   minimumAudioRms: 0.02,
   golden: {
     regions: {

@@ -406,6 +406,8 @@ if (generateAll) {
   // build across exactly those targets. Most are discovered from acceptance
   // contracts; consoles may temporarily contribute synthetic-only targets.
   const { GENERATION_TARGETS, PUBLISHED_TARGETS } = await import('./gen/targets.ts');
+  const { loadGenerationGameContracts } = await import('./games/contracts.ts');
+  await loadGenerationGameContracts();
   // Quick cache pre-step: verify every entry against the current MAME
   // revision + mamekit source before anything is reused.
   prepareGenCache();
@@ -477,7 +479,10 @@ if (generateAll) {
     );
   } else {
     const { buildApp } = await import('./gen/generate.ts');
-    await buildApp(outRoot);
+    const { readBuildManifest } = await import('./gen/build-manifest.ts');
+    const manifest = readBuildManifest(outRoot);
+    if (!manifest) throw new Error('generate a build manifest before serving the app');
+    if (!await buildApp(outRoot, manifest.publishedTargets)) process.exit(1);
   }
   const { serve } = await import('./serve.ts');
   const port = await serve(
@@ -617,6 +622,8 @@ async function initializeGame(game: string): Promise<void> {
   console.log(`mamekit: edit ${written.specPath} after play-testing the input scenario`);
   if (generationFailure) {
     console.log('mamekit: candidate scaffolded with unresolved generation work; see CAPABILITY_GAP.md');
+  } else {
+    await finishIsolatedBuild(game);
   }
 }
 
@@ -642,11 +649,22 @@ async function developGame(game: string): Promise<void> {
     console.error(`mamekit: generation blocked; capability dossier written to ${join(outputDir, 'CAPABILITY_GAP.md')}`);
     throw generationFailure;
   }
+  await finishIsolatedBuild(game);
+  console.log(`mamekit: ${report.generationGaps.length} capability gaps; see ${join(outputDir, 'CAPABILITY_GAP.md')}`);
+}
+
+async function finishIsolatedBuild(game: string): Promise<void> {
   await emitClosureFromGraphs([game], outRoot);
   const { buildApp } = await import('./gen/generate.ts');
-  if (!await buildApp(outRoot, [game])) process.exitCode = 1;
+  if (!await buildApp(outRoot, [game])) {
+    process.exitCode = 1;
+    return;
+  }
+  const { writeBuildManifest } = await import('./gen/build-manifest.ts');
+  const { gamesManifest } = await import('./serve.ts');
+  writeBuildManifest(outRoot, [game], mameSrc, String(process.hrtime.bigint()), [game]);
+  writeFileSync(join(outRoot, 'games.json'), await gamesManifest(outRoot, artworkDir(projectRoot)));
   console.log(`\nmamekit: isolated build at ${outRoot}`);
-  console.log(`mamekit: ${report.generationGaps.length} capability gaps; see ${join(outputDir, 'CAPABILITY_GAP.md')}`);
 }
 
 async function checkGame(game: string): Promise<void> {
@@ -696,6 +714,7 @@ async function promoteGameCommand(game: string): Promise<void> {
   const audit = spawnSync(process.execPath, [join(projectRoot, 'tools/audit-game-package.ts'), game], {
     cwd: projectRoot,
     stdio: 'inherit',
+    env: { ...process.env, MAMEKIT_OUT_ROOT: outRoot },
   });
   if (audit.status !== 0) throw new Error(`${game}: package audit failed; candidate was not promoted`);
   const { promoteCandidate } = await import('./games/onboarding.ts');

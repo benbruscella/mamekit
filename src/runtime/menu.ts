@@ -55,6 +55,8 @@ interface GameEntry {
   historyCredit?: string;
 }
 
+import { audioLimitations, SYNTHESIZED_SAMPLES_NOTE } from './audio-fidelity.ts';
+
 export type MenuTab = 'arcade' | 'console' | 'computer';
 
 function entryTab(entry: Pick<GameEntry, 'kind'>): MenuTab {
@@ -561,6 +563,7 @@ export async function runMenu(): Promise<void> {
       const soundFact = `${s.kind === 'none' ? 'Discrete analog board' : String(s.kind).toUpperCase()}${s.chips ? ` × ${s.chips}` : ''}`;
       const soundDetail = `${soundFact}${s.clock ? ` @ ${(s.clock / 1e6).toFixed(3)} MHz` : ''}`;
       row(hw, 'Sound', soundDetail, browseUrl('sound', soundFact));
+      if (audioLimitations(s).length) row(hw, 'Sound accuracy', SYNTHESIZED_SAMPLES_NOTE);
       const sc = cfg.board.screen;
       const screenFact = `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`;
       row(hw, 'Screen', screenFact, browseUrl('screen', screenFact));

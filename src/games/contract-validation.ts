@@ -1,6 +1,7 @@
 import { GAME_CATEGORIES } from '../gen/output-layout.ts';
 import type { GameLifecycle } from './discovery.ts';
 import type { GameInputAction, GameTestContract } from './types.ts';
+import { assertExecutableActions } from './input-actions.ts';
 
 function invariant(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -26,6 +27,13 @@ export function validateGameContract(
   lifecycle: Exclude<GameLifecycle, 'disabled'>,
 ): GameTestContract {
   const prefix = contract.game || '<unnamed game>';
+  if (lifecycle === 'accepted') assertExecutableActions(contract);
+  if (contract.acceptedAudioLimitations) {
+    invariant(contract.acceptedAudioLimitations.every(value => value === 'synthesized-samples'),
+      `${prefix}: unknown acknowledged audio limitation`);
+    invariant(new Set(contract.acceptedAudioLimitations).size === contract.acceptedAudioLimitations.length,
+      `${prefix}: duplicate acknowledged audio limitation`);
+  }
   invariant(/^[a-z0-9_]+$/.test(contract.game), `${prefix}: invalid MAME short name`);
   invariant(GAME_CATEGORIES.includes(contract.category),
     `${prefix}: invalid category ${contract.category}`);

@@ -113,6 +113,7 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
             playableWithoutSound?: boolean;
             silentGaps?: string[];
             generationGaps?: string[];
+            audioLimitations?: string[];
           }, () => null);
         const generationGaps = hardware === null
           ? ['hardware-manifest.json missing or unreadable']
@@ -131,6 +132,7 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         meta.silent = report?.playable !== true && report?.playableWithoutSound === true;
         if (report?.silentGaps?.length) meta.silentGaps = report.silentGaps;
         meta.generationGaps = generationGaps;
+        meta.audioLimitations = report?.audioLimitations ?? [];
         games.push(meta);
       } catch { /* not a generated game dir */ }
     }

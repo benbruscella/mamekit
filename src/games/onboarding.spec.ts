@@ -1,5 +1,12 @@
 import assert from 'node:assert/strict';
-import { deriveCandidateContract, renderCandidateModule, renderCandidateSpec } from './onboarding.ts';
+import { deriveCandidateContract, renderCandidateModule, renderCandidateSpec, promoteCandidate, writeCandidateScaffold } from './onboarding.ts';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { loadRegisteredGameContracts } from './contracts.ts';
+import { invaders } from './invaders.game.ts';
+import { machineTargetContract } from './types.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { ShellConfig } from '../runtime/shell.ts';
 
@@ -37,4 +44,27 @@ assert.match(renderCandidateSpec('demo'), /gameSourceGraph\(demo\.target\)/);
 assert.match(renderCandidateModule({ ...contract, target: { ...contract.target, game: '1942' } }),
   /export \{ _1942 as '1942' \}/);
 
-console.log('onboarding.spec: source-derived candidate scaffold passed');
+const root = mkdtempSync(join(tmpdir(), 'mamekit-promotion-'));
+try {
+  const games = join(root, 'src/games');
+  mkdirSync(games, { recursive: true });
+  writeFileSync(join(games, 'types.ts'), 'export type MachineTargetContract = unknown;');
+  writeFileSync(join(games, 'test-support.ts'),
+    'export function gameSourceGraph(target) { if (target.game !== "invaders") throw new Error("wrong target"); }');
+  const nested = machineTargetContract(invaders);
+  const multi = { ...nested, scenarios: [
+    { ...nested.scenarios[0], id: 'default' },
+    { ...nested.scenarios[0], id: 'gameplay' },
+  ] };
+  writeCandidateScaffold(root, multi);
+  assert.equal((await loadRegisteredGameContracts(['candidate'], games)).length, 2);
+  promoteCandidate(root, 'invaders');
+  const loaded = await loadRegisteredGameContracts(['accepted'], games);
+  assert.deepEqual(loaded.map(entry => entry.contract.scenarioId), ['default', 'gameplay']);
+  assert.equal(new Set(loaded.map(entry => entry.target.game)).size, 1);
+  assert.match(readFileSync(join(games, 'invaders.game.ts'), 'utf8'), /from "\.\/types.ts"/);
+  await import(pathToFileURL(join(games, 'invaders.game.spec.ts')).href);
+} finally {
+  rmSync(root, { recursive: true, force: true });
+}
+console.log('onboarding.spec: scaffold, multi-scenario load and executable promoted spec passed');

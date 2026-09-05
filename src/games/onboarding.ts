@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
+import ts from 'typescript';
 import type { KnowledgeGraph } from '../kg/types.ts';
 import { gameCategory } from '../gen/output-layout.ts';
 import type { ShellConfig } from '../runtime/shell.ts';
@@ -93,9 +94,7 @@ function identifier(game: string): string {
 export function renderCandidateModule(contract: MachineTargetContract): string {
   const game = contract.target.game;
   const local = identifier(game);
-  const value = JSON.stringify(contract, null, 2)
-    .replace(/"([^"\\]+)":/g, (_, key: string) => /^[A-Za-z_$][\w$]*$/.test(key) ? `${key}:` : `"${key}":`)
-    .replace(/"/g, "'");
+  const value = JSON.stringify(contract, null, 2);
   const declaration = `export const ${local} = ${value} satisfies MachineTargetContract;`;
   return `import type { MachineTargetContract } from '../types.ts';\n\n${declaration}\n` +
     (local === game ? '' : `export { ${local} as '${game}' };\n`);
@@ -135,10 +134,62 @@ export function promoteCandidate(projectRoot: string, game: string): void {
     throw new Error(`${game}: no candidate registration exists`);
   }
   const source = readFileSync(registration.modulePath, 'utf8');
-  if (!/\bgolden\s*:/.test(source)) {
+  if (!/(?:\bgolden|["']golden["'])\s*:/.test(source)) {
     throw new Error(`${game}: candidate has no reviewed golden`);
   }
   const gamesDir = join(projectRoot, 'src/games');
-  renameSync(registration.modulePath, join(gamesDir, basename(registration.modulePath)));
-  renameSync(registration.specPath, join(gamesDir, basename(registration.specPath)));
+  const moves = new Map([registration.modulePath, registration.specPath].map(path =>
+    [path, join(gamesDir, basename(path))]));
+  const files = [...moves].map(([from, to]) => {
+    if (existsSync(to)) throw new Error(`${game}: promotion would overwrite ${to}`);
+    const original = readFileSync(from, 'utf8');
+    return { from, to, original, updated: rebaseModuleImports(original, from, to, moves) };
+  });
+  const moved: typeof files = [];
+  try {
+    for (const file of files) {
+      renameSync(file.from, file.to);
+      moved.push(file);
+      writeFileSync(file.to, file.updated);
+    }
+  } catch (error) {
+    for (const file of moved.reverse()) {
+      writeFileSync(file.to, file.original);
+      renameSync(file.to, file.from);
+    }
+    throw error;
+  }
+}
+
+/** Preserve module dependencies when moving the registration pair together. */
+export function rebaseModuleImports(
+  source: string,
+  from: string,
+  to: string,
+  moves: ReadonlyMap<string, string>,
+): string {
+  const file = ts.createSourceFile(from, source, ts.ScriptTarget.Latest, true);
+  const edits: { start: number; end: number; value: string }[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isStringLiteral(node) && node.text.startsWith('.')) {
+      const parent = node.parent;
+      const moduleReference = (ts.isImportDeclaration(parent) || ts.isExportDeclaration(parent)) &&
+        parent.moduleSpecifier === node ||
+        ts.isCallExpression(parent) && parent.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        ts.isLiteralTypeNode(parent) && ts.isImportTypeNode(parent.parent);
+      if (moduleReference) {
+        const original = resolve(dirname(from), node.text);
+        const destination = moves.get(original) ?? original;
+        let path = relative(dirname(to), destination).replaceAll('\\', '/');
+        if (!path.startsWith('.')) path = `./${path}`;
+        edits.push({ start: node.getStart(file), end: node.end, value: JSON.stringify(path) });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  for (const edit of edits.sort((a, b) => b.start - a.start)) {
+    source = source.slice(0, edit.start) + edit.value + source.slice(edit.end);
+  }
+  return source;
 }

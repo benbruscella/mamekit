@@ -19,6 +19,7 @@ export const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..'
 export interface GameAction {
   atFrame: number;
   code?: string;
+  codes?: string[];
   heldFrames?: number;
   releasedFrames?: number;
   reset?: boolean;
@@ -31,6 +32,7 @@ export interface GameCheckpoint {
 
 export interface GameContract {
   game: string;
+  scenarioId?: string;
   category: string;
   screen: { width: number; height: number };
   soundKind: string;
@@ -47,6 +49,14 @@ export interface GameContract {
 }
 
 let cached: GameContract[] | undefined;
+
+export function contractKey(contract: GameContract): string {
+  return contract.scenarioId ? `${contract.game}:${contract.scenarioId}` : contract.game;
+}
+
+export function snapshotKey(contract: GameContract): string {
+  return contract.scenarioId ? `${contract.game}-${contract.scenarioId}` : contract.game;
+}
 
 /** Every discovered game contract, in discovery order. */
 export function loadContracts(): GameContract[] {
@@ -76,7 +86,7 @@ export function selectedContracts(): GameContract[] {
     ?.split(',').map(name => name.trim()).filter(Boolean);
   const contracts = loadContracts()
     .filter(contract => contract.category === 'arcade')
-    .filter(contract => !selected || selected.includes(contract.game));
+    .filter(contract => !selected || selected.includes(contract.game) || selected.includes(contractKey(contract)));
   if (!contracts.length) {
     throw new Error(`no arcade contract matched MAMEKIT_E2E_GAMES=${selected?.join(',')}`);
   }
