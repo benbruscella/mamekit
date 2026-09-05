@@ -21,6 +21,7 @@ import type { BoundEffect } from './generated-effects.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
 import {
   registerGeneratedDevice,
+  createDevice,
   type Device,
 } from './generated-device.ts';
 
@@ -394,13 +395,14 @@ registerGeneratedDevice({
   members: [
     { name: 'm_height', valueType: 'int', bits: 32, initial: 0 },
     { name: 'm_frame', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_seconds', valueType: 'double', initial: 0 },
   ],
   callbacks: [],
   methods: [{
     name: 'capture_screen',
     parameters: '',
     program: compileMameHandler(
-      'm_height = screen().height(); m_frame = screen().frame_number();',
+      'm_height = screen().height(); m_frame = screen().frame_number(); m_seconds = machine().time().as_double();',
     ),
   }],
   start: 'capture_screen',
@@ -413,6 +415,7 @@ const screenHostMachine: BoardIr = {
     id: 'device:screen-host-fixture',
     tag: 'timing',
     type: 'SCREEN_HOST_FIXTURE',
+    member: 'm_timing',
   }],
   execution: {
     ...opcodeMachine.execution,
@@ -452,6 +455,92 @@ assert.equal(timingDevice.get('m_frame'), 0);
 screenHostBoard.frame(new Uint32Array(screenHostBoard.fbWidth * screenHostBoard.fbHeight));
 timingDevice.invoke('capture_screen');
 assert.equal(timingDevice.get('m_frame'), 1, 'screen().frame_number() must follow board frames');
+const finder = (screenHostBoard as unknown as { state: Record<string, { capture_screen(): void }> }).state.m_timing;
+assert.equal(typeof finder.capture_screen, 'function', 'source device finders must survive copying into a local pointer');
+finder.capture_screen();
+assert.equal(timingDevice.get('m_frame'), 1);
+screenHostBoard.frame(new Uint32Array(screenHostBoard.fbWidth * screenHostBoard.fbHeight));
+finder.capture_screen();
+assert.ok(timingDevice.get('m_seconds') > 0, 'source as_double() must observe advancing machine time');
+const clockHost = screenHostBoard as unknown as {
+  cpuSliceCycles: Map<string, number>;
+};
+clockHost.cpuSliceCycles.set('maincpu', 10);
+finder.capture_screen();
+const busWriteTime = timingDevice.get('m_seconds');
+clockHost.cpuSliceCycles.set('maincpu', 8);
+finder.capture_screen();
+assert.equal(timingDevice.get('m_seconds'), busWriteTime,
+  'a delayed timer must not observe time earlier than an already delivered bus write');
+clockHost.cpuSliceCycles.set('maincpu', 11);
+finder.capture_screen();
+assert.ok(timingDevice.get('m_seconds') > busWriteTime);
+screenHostBoard.reset();
+finder.capture_screen();
+assert.equal(timingDevice.get('m_seconds'), 0, 'reset starts a fresh scheduler clock');
+
+let clockedPeripheral: Device | undefined;
+const instructionObservations: number[][] = [];
+registerGeneratedCpu({
+  type: 'CLOCK_OBSERVER_FIXTURE', summary: { diagnostics: 0 },
+  create(bus) {
+    return {
+      reset() {}, step() { return 1; },
+      run(cycles) {
+        const samples: number[] = [];
+        for (let elapsed = 0; elapsed < cycles; elapsed++) {
+          bus.timing?.(elapsed, cycles);
+          samples.push(clockedPeripheral?.get('m_counter') ?? 0);
+        }
+        bus.timing?.(cycles, cycles);
+        instructionObservations.push(samples);
+        return cycles;
+      },
+      setIrqLine() {}, setInputLine() {}, nmi() {}, get() { return 0; },
+      stateInt() { return 0; }, set() {}, invoke() { return 0; }, hasMethod() { return false; },
+    };
+  },
+});
+registerGeneratedDevice({
+  type: 'CLOCKED_COUNTER_FIXTURE', constants: {}, callbacks: [],
+  members: ['m_counter', 'm_icount'].map(name => ({ name, valueType: 'int', bits: 32, initial: 0 })),
+  methods: [{ name: 'execute_run', parameters: '',
+    program: compileMameHandler('m_counter += m_icount; m_icount = 0;') }],
+  summary: { diagnostics: 0 },
+});
+const clockedMachine: BoardIr = {
+  ...screenHostMachine, game: 'clocked-counter-fixture',
+  devices: [{ id: 'clocked-counter', tag: 'counter', type: 'CLOCKED_COUNTER_FIXTURE', clock: 6000 }],
+  execution: { ...screenHostMachine.execution,
+    cpus: [{ ...screenHostMachine.execution.cpus[0]!, type: 'CLOCK_OBSERVER_FIXTURE', clock: 6000 }],
+    screen: { ...screenHostMachine.execution.screen, vtotal: 1, height: 1 } },
+};
+const clockedBoard = createGeneratedBoard(clockedMachine,
+  { game: clockedMachine.game, family: 'fixture', cpus: [], ranges: [],
+    screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 }, clocks: { namco06: 0, wsg: 0 } },
+  { maincpu: Uint8Array.of(0) }, { read: () => 0xff }, { soundWrite() {} });
+clockedPeripheral = (clockedBoard as unknown as { devices: Map<string, Device> }).devices.get('counter');
+clockedBoard.frame(new Uint32Array(1));
+clockedBoard.frame(new Uint32Array(1));
+assert.ok(instructionObservations.some(samples => new Set(samples).size > 1),
+  'clocked peripheral counters must advance between CPU instructions within one scanline');
+
+registerGeneratedDevice({
+  type: 'HOSTED_MEMORY_FIXTURE', constants: {}, callbacks: [],
+  members: ['m_cache', 'm_data'].map(name => ({ name, valueType: 'address_space', initial: 0 })),
+  methods: [{ name: 'probe', parameters: '', program: compileMameHandler(
+    'm_data.write_byte(3, 29); return m_cache.read_byte(1) * 16 + m_data.read_byte(3);') }],
+  summary: { diagnostics: 0 },
+});
+const hostedMemory = createDevice('HOSTED_MEMORY_FIXTURE');
+const hostedOwner = createDevice('HOSTED_MEMORY_FIXTURE');
+(clockedBoard as unknown as {
+  configureHostedProcessor(tag: string, device: Device, host: Device, firmware: Uint8Array,
+    sinks: { soundWrite(): void }): unknown;
+}).configureHostedProcessor('firmware-fixture', hostedMemory, hostedOwner, Uint8Array.of(2, 3), { soundWrite() {} });
+assert.equal(hostedMemory.call('probe'), 61, 'expanded cache/data calls must reach hosted firmware and RAM');
+assert.equal(hostedMemory.call('READOP', 1), 3);
+assert.equal(hostedMemory.call('RDMEM', 3), 13, 'named memory macros and expanded calls share storage');
 
 let cpuSignalRead = -1;
 let cpuHandlerSignalRead = -1;

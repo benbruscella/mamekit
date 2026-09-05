@@ -72,6 +72,8 @@ const CPU_INPUT_LINES: Record<string, CpuLine> = {
   M6502_IRQ_LINE: 'irq',
   'm6502_device::IRQ_LINE': 'irq',
   'm6502_device::NMI_LINE': 'nmi',
+  'm6510_device::IRQ_LINE': 'irq',
+  'm6510_device::NMI_LINE': 'nmi',
   M6808_IRQ_LINE: 'irq',
   M6802_IRQ_LINE: 'irq',
   M6801_IRQ1_LINE: 'irq',

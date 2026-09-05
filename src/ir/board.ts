@@ -203,9 +203,13 @@ export interface GeneratedDevice {
   memberValues?: Record<string, number>;
   /** Constructor-configured shared-pointer member -> board share bindings. */
   memoryShares?: Record<string, string>;
+  /** Host-owned storage lowered from source device allocation/configuration. */
+  memoryAllocations?: Record<string, { bytes: number; fill: number }>;
   /** Source-declared slot option table/default from the machine config. */
   slotOptions?: string;
   slotDefault?: string;
+  /** Machine-config overrides for a device's source-declared address spaces. */
+  addressMaps?: { index: number; ranges: RangeSpec[] }[];
   /** Address spaces owned by an executing device rather than a board CPU. */
   addressSpaces?: {
     semantics: GeneratedAddressSpaceSemantics;
@@ -294,7 +298,7 @@ export type GeneratedExpression =
       pointer?: boolean;
       operand: GeneratedExpression;
     }
-  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression }
+  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression; precision?: 64 }
   | {
       kind: 'assignment';
       target: GeneratedExpression;
@@ -1095,6 +1099,8 @@ export interface GeneratedAudioRoute {
  */
 export interface GeneratedStateMember {
   name: string;
+  /** Constant scalar initializer from the source constructor/declaration. */
+  initial?: number;
   /** 1 for `bool`; otherwise the declared integer width. */
   bits: 1 | 8 | 16 | 32;
   signed?: boolean;

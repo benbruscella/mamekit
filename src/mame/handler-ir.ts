@@ -181,6 +181,21 @@ class HandlerParser {
         operator: expression.operator,
         value: expression.value,
       }];
+      // A C++ prefix update is an lvalue (`++cursor &= mask`). JavaScript
+      // assignment expressions are values, so retain the update as a separate
+      // operation. Evaluate the RHS first, as C++17 assignment requires.
+      if (expression.target.kind === 'assignment' && !expression.target.postfix &&
+          expression.target.target.kind === 'identifier') {
+        let temporary = `__mame_assignment_${this.index}`;
+        while (this.tokens.some(token => token.text === temporary)) temporary += '_';
+        assignments.splice(0, 1,
+          { op: 'declare', name: temporary, value: expression.value },
+          { op: 'assign', target: expression.target.target,
+            operator: expression.target.operator, value: expression.target.value },
+          { op: 'assign', target: expression.target.target,
+            operator: expression.operator, value: { kind: 'identifier', name: temporary } },
+        );
+      }
       while (this.consume(',')) {
         const next = this.parseExpression();
         if (!next || next.kind !== 'assignment') {
@@ -760,6 +775,15 @@ class HandlerParser {
   }
 
   private parseUnary(): GeneratedExpression | undefined {
+    if (this.atText('new')) {
+      this.take();
+      const value = this.parsePostfix();
+      if (value?.kind !== 'call' || value.callee.kind !== 'identifier') {
+        this.diagnostics.push('unsupported allocation; expected a named constructor call');
+        return undefined;
+      }
+      return { ...value, callee: { kind: 'identifier', name: `new::${value.callee.name}` } };
+    }
     if (this.atText('(') && this.isCast()) {
       this.take();
       const valueType: string[] = [];

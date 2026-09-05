@@ -24,6 +24,8 @@ export interface BuildManifest {
   targets: string[];
   /** Targets intentionally exposed through the app, routes, and catalog. */
   publishedTargets: string[];
+  /** Local development can expose unfinished, compiled machines for testing. */
+  development?: boolean;
   /** Capability packages that lowered hardware for it. */
   capabilities: string[];
   boardIrSchemaVersion: number;
@@ -75,6 +77,17 @@ export function readBuildManifest(outRoot: string): BuildManifest | undefined {
   const manifest = JSON.parse(readFileSync(path, 'utf8')) as BuildManifest;
   manifest.publishedTargets ??= [...manifest.targets];
   return manifest;
+}
+
+/** Change the app selection after rebuilding it without rewriting hardware provenance. */
+export function updateAppTargets(outRoot: string, targets: readonly string[], development = false): BuildManifest {
+  const manifest = readBuildManifest(outRoot);
+  if (!manifest) throw new Error('generate a build manifest before rebuilding the app');
+  const unknown = targets.filter(target => !manifest.targets.includes(target));
+  if (unknown.length) throw new Error(`app targets were not generated: ${unknown.join(', ')}`);
+  const updated = { ...manifest, publishedTargets: [...new Set(targets)].sort(), development };
+  writeFileSync(join(outRoot, BUILD_MANIFEST_FILE), JSON.stringify(updated, null, 2));
+  return updated;
 }
 
 /**

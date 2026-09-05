@@ -18,6 +18,7 @@ import type {
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
 import { sourceRegionBindings } from '../mame/video-compiler.ts';
+import { lowerRamAllocation } from '../mame/ram-compiler.ts';
 
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
@@ -314,6 +315,7 @@ export function lowerGeneratedMachine(
         ? { configuration: deviceConfiguration(node.props) }
         : {}),
       ...deviceConstructorComposition(node.props),
+      ...lowerRamAllocation(node.props, String(graph.meta.mameSrc ?? '')),
       ...(typeof node.props.slotOptions === 'string'
         ? { slotOptions: node.props.slotOptions }
         : {}),
@@ -420,6 +422,27 @@ export function lowerGeneratedMachine(
         }),
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
+  for (const device of devices) {
+    const configured = graph.edges.filter(edge => edge.from === device.id &&
+      edge.rel === 'HAS_MAP' && /^\d+$/.test(String(edge.props?.space ?? '')) &&
+      // ROM-only device spaces are bound by their image/region resources.
+      // These overrides route live driver handlers back through the board.
+      maps.find(map => map.id === edge.to)?.ranges.some(range => range.read || range.write));
+    if (!configured.length) continue;
+    device.addressMaps = configured.map(edge => {
+      const map = maps.find(candidate => candidate.id === edge.to);
+      if (!map) throw new Error(`${device.tag}: configured map ${edge.to} is missing`);
+      return { index: Number(edge.props!.space), ranges: map.ranges.map(range => {
+        if (!range.read && !range.write) {
+          throw new Error(`${device.tag}: configured device range requires executable handlers`);
+        }
+        return { start: range.start, end: range.end, kind: 'handler' as const,
+          ...(range.read ? { read: range.read } : {}),
+          ...(range.write ? { write: range.write } : {}),
+          ...(range.props?.mirror ? { mirror: Number(range.props.mirror) } : {}) };
+      }) };
+    });
+  }
   const deviceByTag = new Map(devices.map(device => [device.tag, device]));
   const videoOutputDevice = devices.find(device => device.type === 'SCREEN')
     ?? devices.find(device => device.type === 'VECTOR');
@@ -491,10 +514,17 @@ export function lowerGeneratedMachine(
   // The driver's own region_ptr finders, read straight from its source. These
   // reach the runtime whether or not the board compiles a video plan.
   const driverPath = join(String(graph.meta.mameSrc ?? ''), String(graph.meta.driverFile ?? ''));
-  const driverRegionBindings = graph.meta.mameSrc && graph.meta.driverFile &&
+  const driverRegionBindings: Record<string, string> = {};
+  // The host publishes assembled regions under their leaf-name member. Make
+  // that existing binding visible to AOT handler compilation as well.
+  for (const region of graph.nodes.filter(node => node.label === 'RomRegion')) {
+    const tag = String(region.props.tag);
+    driverRegionBindings[`m_${tag.split(':').at(-1)}`] ??= tag;
+  }
+  Object.assign(driverRegionBindings, graph.meta.mameSrc && graph.meta.driverFile &&
       existsSync(driverPath)
     ? sourceRegionBindings(readFileSync(driverPath, 'utf8'))
-    : {};
+    : {});
   const executionCpus = board.cpus.map(cpu => {
     const interruptVectorWriters = inferInterruptVectorWriters(
       cpu.tag,
@@ -1552,6 +1582,7 @@ function deviceConfigLines(props?: Record<string, unknown>): string[] {
 }
 
 function deviceMember(props: Record<string, unknown>): string | undefined {
+  if (typeof props.member === 'string') return props.member;
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
   return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
 }

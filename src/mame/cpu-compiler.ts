@@ -68,6 +68,8 @@ export interface GeneratedCpuDefinition {
   aliases: Record<string, GeneratedCpuAlias>;
   members: GeneratedCpuMember[];
   methods: GeneratedCpuMethod[];
+  /** Source callback members mapped to their machine-configuration binders. */
+  callbacks?: Record<string, string>;
   start: GeneratedHandlerProgram;
   reset: GeneratedHandlerProgram;
   input: GeneratedHandlerProgram;
@@ -292,6 +294,10 @@ export function compileMameM6502(mameSrc: string): GeneratedCpuDefinition {
   return compileMameM6502Variant(mameSrc, 'M6502');
 }
 
+export function compileMameM6510(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameM6502Variant(mameSrc, 'M6510');
+}
+
 /**
  * The 6507: an NMOS 6502 in a 28-pin package with a narrowed address bus.
  *
@@ -318,21 +324,19 @@ export function compileMameM6507(mameSrc: string): GeneratedCpuDefinition {
 
 function compileMameM6502Variant(
   mameSrc: string,
-  variant: 'M6502' | 'RP2A03',
+  variant: 'M6502' | 'RP2A03' | 'M6510',
 ): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/m6502/m6502.cpp';
   const headerFile = 'src/devices/cpu/m6502/m6502.h';
-  const variantFile = 'src/devices/cpu/m6502/rp2a03.cpp';
-  const variantHeaderFile = 'src/devices/cpu/m6502/rp2a03.h';
+  const variantFile = `src/devices/cpu/m6502/${variant.toLowerCase()}.cpp`;
+  const variantHeaderFile = `src/devices/cpu/m6502/${variant.toLowerCase()}.h`;
   const operationsFile = 'src/devices/cpu/m6502/om6502.lst';
-  const variantOperationsFile = 'src/devices/cpu/m6502/orp2a03.lst';
-  const dispatchFile = variant === 'RP2A03'
-    ? 'src/devices/cpu/m6502/drp2a03.lst'
-    : 'src/devices/cpu/m6502/dm6502.lst';
+  const variantOperationsFile = `src/devices/cpu/m6502/o${variant.toLowerCase()}.lst`;
+  const dispatchFile = `src/devices/cpu/m6502/d${variant.toLowerCase()}.lst`;
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
   const operationsSource = readFileSync(join(mameSrc, operationsFile), 'utf8');
-  const variantOperationsSource = variant === 'RP2A03'
+  const variantOperationsSource = variant !== 'M6502'
     ? readFileSync(join(mameSrc, variantOperationsFile), 'utf8')
     : '';
   const dispatchSource = readFileSync(join(mameSrc, dispatchFile), 'utf8');
@@ -350,7 +354,9 @@ function compileMameM6502Variant(
     .replace(/\bread_9\s*\(/g, 'READ(')
     .replace(/\bread\s*\(/g, 'READ(')
     .replace(/\bwrite_9\s*\(/g, 'WRITE(')
-    .replace(/\bwrite\s*\(/g, 'WRITE(');
+    .replace(/\bwrite\s*\(/g, 'WRITE(')
+    .replace(/\b(READ|ARG|OPCODE|WRITE)\(/g, (call, name: string) =>
+      variant === 'M6510' ? `memory_${name.toLowerCase()}(` : call);
 
   const commonBlocks = parseM6502OpcodeBlocks(operationsFile, operationsSource);
   const variantBlocks = parseM6502OpcodeBlocks(
@@ -491,7 +497,7 @@ function compileMameM6502Variant(
       m_IR = 0;
     } else {
       m_irq_taken = false;
-      m_IR = OPCODE(m_PC);
+      m_IR = ${variant === 'M6510' ? 'memory_opcode' : 'OPCODE'}(m_PC);
       m_PC++;
     }
     m_ref = m_IR << 16;
@@ -551,6 +557,42 @@ function compileMameM6502Variant(
     F_Z: 0x02,
     F_C: 0x01,
   };
+  const callbacks: Record<string, string> = {};
+  if (variant === 'M6510') {
+    const variantSource = readFileSync(join(mameSrc, variantFile), 'utf8');
+    const variantHeader = readFileSync(join(mameSrc, variantHeaderFile), 'utf8');
+    const variantUnit = parseMameSource(variantFile, variantSource);
+    for (const binding of variantHeader.matchAll(
+      /auto\s+(\w+)\(\)\s*\{\s*return\s+(m_\w+)\.bind\(\);\s*\}/g,
+    )) callbacks[binding[2]!] = binding[1]!;
+    const portMembers = /uint8_t\s+(m_pullup[^;]*);/.exec(variantHeader)?.[1];
+    if (!portMembers) throw new Error('MAME M6510 port state declaration is missing');
+    for (const name of portMembers.split(',').map(value => value.trim())) {
+      members.push({ name, bits: 8 });
+    }
+    const portMethods = ['set_pulls', 'update_port', 'get_port', 'dir_r', 'port_r', 'dir_w', 'port_w'];
+    for (const name of portMethods) {
+      const method = variantUnit.functions.find(fn => fn.className === 'm6510_device' && fn.name === name);
+      if (!method) throw new Error(`MAME M6510 port method ${name} is missing`);
+      methods.push({ name, parameters: method.parameters,
+        program: compileMameHandler(method.body), source: sourceRef(variantFile, method.span.line) });
+    }
+    for (const [name, primitive] of Object.entries({ read: 'READ', read_sync: 'OPCODE', read_arg: 'ARG', write: 'WRITE' })) {
+      const method = variantUnit.functions.find(fn => fn.className === 'm6510_device::mi_6510' && fn.name === name);
+      if (!method) throw new Error(`MAME M6510 memory-interface method ${name} is missing`);
+      const body = method.body.replace(/\bm_base->/g, '')
+        .replace(/\bm_(?:csprogram|cprogram|program)\.(?:read|write)_interruptible\s*\(/g, `${primitive}(`);
+      methods.push({ name: `memory_${primitive.toLowerCase()}`, parameters: method.parameters,
+        program: compileMameHandler(body), source: sourceRef(variantFile, method.span.line) });
+    }
+    const portReset = variantUnit.functions.find(fn => fn.className === 'm6510_device' && fn.name === 'device_reset');
+    if (!portReset) throw new Error('MAME M6510 reset is missing');
+    const portProgram = compileMameHandler(portReset.body.replace(/m6502_device::device_reset\(\);/, ''));
+    // device_reset establishes the port before the operation-list reset fetches
+    // the vector. The latter executes when MAME next schedules the processor.
+    reset.operations.unshift(...portProgram.operations);
+    reset.diagnostics.push(...portProgram.diagnostics);
+  }
   const programs = [
     start,
     reset,
@@ -567,15 +609,16 @@ function compileMameM6502Variant(
     sourceFiles: [
       cppFile,
       headerFile,
-      ...(variant === 'RP2A03' ? [variantFile, variantHeaderFile] : []),
+      ...(variant !== 'M6502' ? [variantFile, variantHeaderFile] : []),
       operationsFile,
-      ...(variant === 'RP2A03' ? [variantOperationsFile] : []),
+      ...(variant !== 'M6502' ? [variantOperationsFile] : []),
       dispatchFile,
     ],
     constants,
     aliases: {},
     members,
     methods,
+    ...(Object.keys(callbacks).length ? { callbacks } : {}),
     start,
     reset,
     input,
@@ -3486,17 +3529,17 @@ function stripTracingCalls(source: string): string {
   return output + source.slice(cursor);
 }
 
-function stripInactivePreprocessorBranches(source: string): string {
+export function stripInactivePreprocessorBranches(source: string): string {
   let normalized = source;
   const branch =
-    /^[ \t]*#(ifdef|ifndef)\s+\w+[^\r\n]*\r?\n([\s\S]*?)(?:^[ \t]*#else[^\r\n]*\r?\n([\s\S]*?))?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm;
+    /^[ \t]*#(ifdef\s+\w+|ifndef\s+\w+|if\s+[01])[^\r\n]*\r?\n([\s\S]*?)(?:^[ \t]*#else[^\r\n]*\r?\n([\s\S]*?))?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm;
   for (let pass = 0; pass < 8; pass++) {
     let changed = false;
     normalized = normalized.replace(
       branch,
       (_match, directive: string, primary: string, alternate = '') => {
         changed = true;
-        return directive === 'ifndef' ? primary : alternate;
+        return /^ifndef\b|^if\s+1$/.test(directive) ? primary : alternate;
       },
     );
     if (!changed) break;

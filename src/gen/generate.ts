@@ -306,6 +306,17 @@ export function portCodeKeys(modifiers: readonly string[]): string[] | undefined
   return named[code] ? [named[code]] : undefined;
 }
 
+/** Physical keyboard matrix bindings, including keys reserved by the browser. */
+export function computerKeyboardKeys(modifiers: readonly string[]): string[] | undefined {
+  const code = modifiers.map(modifier => /PORT_CODE\s*\(\s*KEYCODE_(\w+)\s*\)/.exec(modifier)?.[1]).find(Boolean);
+  // Keep Escape/Tab available to the shell, and never consume browser Control
+  // shortcuts. These keys remain reachable through the machine's key legend.
+  const reserved: Record<string, string> = {
+    ESC: 'F9', TAB: 'F10', LCONTROL: 'Pause', RCONTROL: 'Pause', CAPSLOCK: 'CapsLock',
+  };
+  return code && reserved[code] ? [reserved[code]!] : portCodeKeys(modifiers);
+}
+
 /**
  * Does a field's PORT_CONDITION hold for the machine as configured?
  *
@@ -708,7 +719,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -1955,6 +1966,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // a raw port rather than shadowing the first.
         let keys = type === 'IPT_KEYPAD'
           ? keypadKeys(named)
+          : type === 'IPT_KEYBOARD' ? computerKeyboardKeys(mods)
           : inputKeys(opts.game, type);
         if (type === 'IPT_KEYPAD') {
           if (boundKeypad && boundKeypad !== tag) keys = undefined;
@@ -1979,7 +1991,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           port: tag,
           mask,
           keys,
-          label: named ?? inputLabel(opts.game, type) ?? type,
+          label: named ?? (type === 'IPT_KEYBOARD' ? keys[0]?.replace(/^(Key|Digit)/, '') : undefined)
+            ?? inputLabel(opts.game, type) ?? type,
           activeLow,
           ...(/^IPT_PEDAL\d*$/.test(type)
             ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
@@ -2666,7 +2679,7 @@ if (game) {
   if (!dataPath) fail(new Error(\`no generated board for "\${game}"\`));
   else fetch(\`../\${dataPath}/config.json\`)
     .then(r => { if (!r.ok) throw new Error(\`no generated config for "\${game}" — run: mamekit \${game}\`); return r.json(); })
-    .then(cfg => (cfg as ShellConfig).kind === 'console' || (cfg as ShellConfig).kind === 'computer'
+    .then(cfg => (cfg as ShellConfig).kind === 'console'
       ? runConsole(cfg as ShellConfig)   // console room: cart shelf, drop zone, per-cart boot
       : runShell(cfg as ShellConfig))
     .catch(fail);

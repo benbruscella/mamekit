@@ -4,6 +4,7 @@ import { evalExpr } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
   parseMameAst,
+  parseMameConstructors,
   splitMameArgs,
   type MameClass,
   type MameFunction,
@@ -13,6 +14,9 @@ import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions } from '../ir/walk.ts';
 import {
   collectFunctionMacros,
+  collectDynamicMacros,
+  expandDynamicMacros,
+  collectBitAliasMacros,
   collectMemberAliasMacros,
   expandFunctionMacros,
   expandMemberAliasMacros,
@@ -116,6 +120,9 @@ export interface GeneratedDeviceDefinition {
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
+  /** Source constructors for dynamically allocated helper objects. */
+  allocations?: Record<string, GeneratedDeviceDefinition>;
+  construct?: string;
   /**
    * Every struct type the device declares, keyed by type name.
    *
@@ -171,6 +178,8 @@ export interface GeneratedDeviceDefinition {
   };
   /** Cross-device address-space calls resolved by a composition role. */
   role?: string;
+  imageFormats?: { extension: string; definition: GeneratedDeviceDefinition;
+    sizeMethod: string; fillMethod: string; mountMethod: string; sampleRate: number }[];
   links?: {
     call: string;
     targetRole: string;
@@ -236,6 +245,8 @@ export interface GeneratedDeviceDefinition {
 }
 
 export type GeneratedDeviceResource =
+  | { kind: 'owner' }
+  | { kind: 'sample-image'; region: string; sampleRate: number }
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
   // MAME's `memory_region *`: the bytes plus the size questions asked of them.
@@ -313,7 +324,8 @@ export function compileMameDevice(
     return specialized;
   };
   const constants = Object.assign(
-    {},
+    // C stdio ABI, supplied by the host rather than a MAME device header.
+    { SEEK_SET: 0, SEEK_CUR: 1, SEEK_END: 2 },
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
     ...sources.map(({ source }) => numericConstants(source)),
@@ -336,6 +348,11 @@ export function compileMameDevice(
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
   const functionMacros = sources.flatMap(({ source }) => collectFunctionMacros(source));
+  const liveParameters = new Set(ast.units.flatMap(unit => unit.functions)
+    .filter(method => method.className && hierarchy.includes(method.className))
+    .flatMap(method => splitMameArgs(method.parameters).map(parameterName))
+    .filter(name => /^\w+$/.test(name)));
+  const dynamicMacros = collectDynamicMacros(sources.map(({ source }) => source).join('\n'), liveParameters);
   // Template tables are often assembled through forwarding macros whose body
   // is another macro call rather than a statement yet. Keep this broader set
   // isolated from executable-body expansion: it exists only to discover the
@@ -345,7 +362,7 @@ export function compileMameDevice(
   // Object-like `#define`s that name a register inside the device's own state
   // (`#define CURLINE m_vid_regs[0x04]`). The name stands for nothing but the
   // subscript, so it has to become the subscript before lowering.
-  const memberAliases = sources.flatMap(({ source }) => collectMemberAliasMacros(source));
+  const memberAliases = sources.flatMap(({ source }) => [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
   const interruptCallbacks = sources.flatMap(({ source }) => [...source.matchAll(
     /\b(m_\w+)->set_input_line\s*\(\s*(INPUT_LINE_\w+)/g,
   )].map(match => ({
@@ -390,6 +407,7 @@ export function compileMameDevice(
   const methodBodies = new Map<string, string>();
   const replaceOrAppend = (method: MameFunction): void => {
     const specialized = specializeMethod(method, specialize);
+    specialized.body = expandDynamicMacros(specialized.body, dynamicMacros);
     // Recorded even for an ignored method: `memory_space_config` is not
     // executable device behaviour, but it is where the space indices are said.
     methodBodies.set(specialized.name, specialized.body);
@@ -560,7 +578,7 @@ export function compileMameDevice(
     0,
   );
   const source = sources.map(candidate => candidate.source).join('\n');
-  const clockDivider = executionClockDivider(source);
+  const clockDivider = executionClockDivider(methodBodies.get('execute_cycles_to_clocks') ?? '');
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
   const spaces = deviceAddressSpaces(definition.className, hierarchy, source, constants, methodBodies);
 
@@ -608,7 +626,7 @@ export function compileMameDevice(
       delegates[setter[1]!] = resolvedMemberName(className, setter[2]!);
     }
   }
-  return {
+  const result: GeneratedDeviceDefinition = {
     schemaVersion: 1,
     type,
     className: definition.className,
@@ -643,6 +661,51 @@ export function compileMameDevice(
       diagnostics,
     },
   };
+  const constructors = sources.flatMap(({ file, source }) => parseMameConstructors(file, source));
+  const allocations: Record<string, GeneratedDeviceDefinition> = {};
+  for (const method of methods) walkExpressions(method.program.operations, expression => {
+    if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
+    const name = expression.callee.name.slice(5);
+    if (allocations[name]) return;
+    const qualified = classes.has(`${definition.className}::${name}`) ? `${definition.className}::${name}` : name;
+    if (!classes.has(qualified) || compiling.has(qualified)) throw new Error(`cannot resolve allocated MAME class ${qualified}`);
+    const child = compileMameDevice(mameSrc, { ...definition, className: qualified }, qualified, new Set([...compiling, qualified]));
+    const constructor = constructors.find(candidate => candidate.className === qualified);
+    if (!constructor) throw new Error(`missing source constructor for ${qualified}`);
+    addSourceConstructor(child, constructor, true);
+    allocations[name] = child;
+    result.summary.diagnostics += child.summary.diagnostics;
+  });
+  if (Object.keys(allocations).length) result.allocations = allocations;
+  return result;
+}
+
+/** Lower a selected C++ constructor, including field initializers, to ordinary method IR. */
+export function addSourceConstructor(
+  device: GeneratedDeviceDefinition,
+  constructor: ReturnType<typeof parseMameConstructors>[number],
+  includeInitializers = false,
+): void {
+  let body = constructor.body;
+  // device_t::interface(T *&) is an RTTI lookup with an output reference.
+  // The host proxy exposes the same lookup by the source-declared type name.
+  body = body.replace(/\b(\w+)->interface\s*\(\s*(m_\w+)\s*\)/g, (call, receiver: string, field: string) => {
+    const type = device.members.find(member => member.name === field)?.valueType.replace(/\*$/, '').trim();
+    return type ? `${field} = ${receiver}->interface("${type}")` : call;
+  });
+  if (includeInitializers) body = constructor.initializers
+    .filter(initializer => device.members.some(member => member.name === initializer.name))
+    .map(initializer => {
+      if (initializer.args.length !== 1) throw new Error(`unsupported constructor initializer ${initializer.name}`);
+      return `${initializer.name} = ${initializer.args[0]};`;
+    }).join('\n') + '\n' + body;
+  const method = compileMethod({ ...constructor, name: '__construct', body });
+  device.methods.push(method);
+  device.construct = method.name;
+  device.summary = { methods: device.methods.length,
+    compiledMethods: device.methods.filter(method => !method.program.diagnostics.length).length,
+    diagnostics: device.methods.reduce((sum, method) => sum + method.program.diagnostics.length, 0)
+      + Object.values(device.allocations ?? {}).reduce((sum, child) => sum + child.summary.diagnostics, 0) };
 }
 
 function methodSignature(name: string, parameters: string): string {
@@ -690,7 +753,7 @@ export function mameDeviceShortName(
 }
 
 function executionClockDivider(source: string): number | undefined {
-  const match = /execute_cycles_to_clocks\s*\([^)]*\)[^{]*\{[^}]*return\s*\([^;]*\*\s*(\d+)\s*\)/s
+  const match = /return\s*\(?\s*\w+\s*\*\s*(\d+)\s*\)?\s*;/s
     .exec(source);
   const divider = Number(match?.[1]);
   return Number.isInteger(divider) && divider > 0 ? divider : undefined;
@@ -1034,7 +1097,7 @@ function compileMethod(
     // A table this method declares itself is a local, and the execution-source
     // normalizer folds those together with their declaration. Substituting
     // here as well leaves `static const double TABLE(...) = {...}` behind.
-    if (new RegExp(`\\bstatic\\s+(?:const|constexpr)[^;{]*\\b${name}\\s*\\[`).test(body)) {
+    if (new RegExp(`\\bstatic\\s+[^;{]*\\b${name}\\s*\\[`).test(body)) {
       continue;
     }
     body = table.columns === undefined
@@ -1063,8 +1126,8 @@ function compileMethod(
 function inlineMethods(declaration: MameClass): MameFunction[] {
   const methods: MameFunction[] = [];
   const source = declaration.body;
-  const masked = source.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, match =>
-    match.replace(/[^\r\n]/g, ' '));
+  const masked = maskNestedClasses(source.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, match =>
+    match.replace(/[^\r\n]/g, ' ')));
   // MAME declares pointer-returning accessors as `Type *buffer()`, so the
   // sigils sit against the method name rather than the return type.
   const pattern =
@@ -1126,6 +1189,7 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
 export function memberDeclarations(
   declaration: MameClass,
 ): { name: string; valueType: string; arrayLength?: number; arrayShape?: number[] }[] {
+  declaration = { ...declaration, body: maskNestedClasses(declaration.body) };
   const members: {
     name: string; valueType: string; arrayLength?: number; arrayShape?: number[];
   }[] = [];
@@ -1142,12 +1206,16 @@ export function memberDeclarations(
   // C++ commonly groups scalar members (`int m_base, m_mask;`). Treat every
   // declarator as its own field before the single-declarator patterns below.
   for (const match of declaration.body.matchAll(
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?)\s+(m_\w+(?:\s*,\s*m_\w+)+)\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?)\s+(m_\w+(?:\s*\[[^\]]+\])?(?:\s*,\s*m_\w+(?:\s*\[[^\]]+\])?)+)\s*;/gm,
   )) {
     const valueType = match[1]!.replace(/\s+/g, ' ').trim();
-    for (const name of match[2]!.split(',').map(value => value.trim())) {
+    for (const declarator of match[2]!.split(',').map(value => value.trim())) {
+      const parsed = /^(m_\w+)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
+      const name = parsed[1]!;
+      const arrayLength = parsed[2] === undefined ? undefined : Number(parsed[2]);
       if (!members.some(member => member.name === name)) {
-        members.push({ valueType, name });
+        members.push({ valueType, name,
+          ...(arrayLength !== undefined && Number.isInteger(arrayLength) ? { arrayLength } : {}) });
       }
     }
   }
@@ -1171,7 +1239,7 @@ export function memberDeclarations(
     // compositor unemittable and every 2600 frame in the interpreter.
     /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(\w+)(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>(?:::\w+)*)\s+(\w+)(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
   ];
   for (const pattern of patterns) {
@@ -1216,6 +1284,20 @@ export function memberDeclarations(
     }
   }
   return members;
+}
+
+function maskNestedClasses(source: string): string {
+  const pattern = /\bclass\s+\w+\s*(?::[^;{]+)?\{/g;
+  let match: RegExpExecArray | null;
+  let result = source;
+  while ((match = pattern.exec(source))) {
+    const brace = source.indexOf('{', match.index);
+    const end = matchingBrace(source, brace);
+    if (end < 0) continue;
+    result = result.slice(0, match.index) + result.slice(match.index, end + 1).replace(/[^\r\n]/g, ' ') + result.slice(end + 1);
+    pattern.lastIndex = end + 1;
+  }
+  return result;
 }
 
 function finderBinding(
@@ -1548,8 +1630,15 @@ function constantTables(source: string): Record<string, ConstantTable> {
     tables[match[1]!] = { values, columns };
   }
   for (const match of source.matchAll(
-    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+    /\bstatic\s+(?:const\s+)?\w+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
   )) {
+    if (!/^static\s+const\b/.test(match[0])) {
+      const uses = source.replace(match[0], '');
+      const name = match[1]!;
+      if (new RegExp(`\\b${name}\\s*\\[[^\\]]+\\]\\s*(?:[+*/&|^-]?=|\\+\\+|--)`).test(uses) ||
+          new RegExp(`(?:&|\\+\\+|--)\\s*${name}\\b`).test(uses) ||
+          new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(uses)) continue;
+    }
     tables[match[1]!] = {
       values: splitMameArgs(match[2]!).map(value => value.trim()),
     };
@@ -1627,7 +1716,7 @@ function deviceAddressSpaces(
   for (const pair of vector.matchAll(
     /std::make_pair\s*\(\s*(\w+)\s*,\s*&\s*(m_\w+)\s*\)/g,
   )) {
-    const index = Number(constants[pair[1]!]);
+    const index = Number(evalExpr(pair[1]!, constants));
     const config = configs.get(pair[2]!);
     if (config === undefined || !Number.isInteger(index)) continue;
     const map = methodBodies.get(config.map);

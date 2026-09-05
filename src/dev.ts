@@ -2,12 +2,13 @@
 // repository sources change. Rebuilds happen in a child process so the HTTP
 // server and filesystem watcher remain responsive while TypeScript compiles.
 import { spawn, type ChildProcess } from 'node:child_process';
-import { watch, type FSWatcher } from 'node:fs';
+import { watch, writeFileSync, type FSWatcher } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildApp } from './gen/generate.ts';
+import { readBuildManifest, updateAppTargets } from './gen/build-manifest.ts';
 import { artworkDir } from './paths.ts';
-import { serve } from './serve.ts';
+import { gamesManifest, serve } from './serve.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '..');
@@ -106,7 +107,15 @@ async function runDev(): Promise<void> {
 
 if (process.argv.includes(buildOnceFlag)) {
   try {
-    if (!await buildApp(outRoot)) process.exitCode = 1;
+    const manifest = readBuildManifest(outRoot);
+    if (!manifest) throw new Error('run npm run gen:all before starting development');
+    // Local development already compiles candidates; expose the same target
+    // set in the menu. Distribution generation retains its accepted subset.
+    if (!await buildApp(outRoot, manifest.targets)) process.exitCode = 1;
+    else {
+      updateAppTargets(outRoot, manifest.targets, true);
+      writeFileSync(join(outRoot, 'games.json'), await gamesManifest(outRoot, artworkDir(projectRoot)));
+    }
   } catch (error) {
     console.error(error);
     process.exitCode = 1;

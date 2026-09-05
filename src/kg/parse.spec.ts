@@ -21,6 +21,7 @@ import {
   parseEnumConstants,
   parseRomSets,
   parseTextMacros,
+  stripComments,
 } from './parse.ts';
 
 let totalPass = 0;
@@ -35,6 +36,53 @@ function eq(label: string, actual: unknown, expected: unknown): void {
     totalFail++;
     console.log(`  FAIL ${label}: got ${a}, want ${e}`);
   }
+}
+
+{
+  const macros = { CPU_TAG: 'u7', PLA_TAG: 'u17' };
+  eq('finder tags resolve header string constants',
+    parseMemberTags('m_maincpu(*this, CPU_TAG)', macros), { m_maincpu: 'u7' });
+  eq('ROM regions resolve header string constants', parseRomSets(`
+ROM_START(c64)
+  ROM_REGION(0x100, PLA_TAG, 0)
+ROM_END`, {}, macros)[0]?.regions[0]?.tag, 'u17');
+  const [config] = parseMachineConfigs(`
+void board_state::machine(machine_config &config) {
+  serial_slot::add(config, m_bus, "drive");
+}`, { m_bus: 'iec_bus' }, {}, [{
+    className: 'serial_slot', name: 'add',
+    parameters: 'machine_config &config, T &&bus_tag, const char *default_drive',
+    body: 'CBM_IEC_SLOT(config, "iec8", 8, cbm_iec_devices, default_drive); CBM_IEC(config, std::forward<T>(bus_tag), 0);',
+  }]);
+  eq('static config helpers contribute slot and bus devices',
+    config?.devices.map(device => [device.type, device.tag]),
+    [['CBM_IEC_SLOT', 'iec8'], ['CBM_IEC', 'iec_bus']]);
+  eq('helper substitution preserves the configured drive',
+    config?.devices[0]?.config[0]?.includes('"drive"'), true);
+  eq('addressed slots retain their selected disk drive',
+    [config?.devices[0]?.slotOptions, config?.devices[0]?.slotDefault, config?.devices[0]?.clock],
+    ['cbm_iec_devices', 'drive', null]);
+}
+
+// The C64 keyboard declares a double-quote character before its machine
+// configuration. Treating it as a string opener hid the CPU behind comments.
+{
+  const source = String.raw`
+PORT_CHAR('"') PORT_CHAR('\'') PORT_CHAR('\\') PORT_CHAR('//')
+void c64_state::ntsc(machine_config &config)
+{
+  // basic hardware
+  M6510(config, m_maincpu, XTAL(14'318'181)/14);
+  /* video hardware */
+  mos6567_device &vic(MOS6567(config, "u19", XTAL(14'318'181)/14));
+}
+`;
+  const stripped = stripComments(source);
+  eq('character literals survive comment stripping', stripped.includes(String.raw`PORT_CHAR('"') PORT_CHAR('\'') PORT_CHAR('\\') PORT_CHAR('//')`), true);
+  eq('comments after keyboard characters are removed', /basic hardware|video hardware/.test(stripped), false);
+  const [config] = parseMachineConfigs(stripped, { m_maincpu: 'maincpu' }, {});
+  eq('keyboard characters do not hide later machine devices', config.devices.map(device => device.type), ['M6510', 'MOS6567']);
+  eq('clock digit separators survive comment stripping', config.devices[0].clock, 14_318_181 / 14);
 }
 
 eq('RAM graphics entries retain their live-memory source and table order',
@@ -925,6 +973,27 @@ ROM_END
 `).map(set => ({ name: set.name, region: set.regions[0]?.tag })), [
   { name: 'coleco', region: 'maincpu' },
 ]);
+
+eq('ROM_DEFAULT_BIOS selects the declared revision instead of index zero', parseRomSets(`
+ROM_START(test)
+ROM_REGION(0x2000, "kernal", 0)
+ROM_DEFAULT_BIOS("r3")
+ROM_SYSTEM_BIOS(0, "r1", "Revision 1")
+ROMX_LOAD("r1.bin", 0, 0x2000, CRC(11111111), ROM_BIOS(0))
+ROM_SYSTEM_BIOS(2, "r3", "Revision 3")
+ROMX_LOAD("r3.bin", 0, 0x2000, CRC(33333333), ROM_BIOS(2))
+ROM_END
+`)[0].regions[0].loads.map(load => load.file), ['r3.bin']);
+
+const aliasedFirmware = parseRomSets(`
+#define rom_pal rom_base
+ROM_START(base)
+ROM_REGION(0x2000, "kernal", 0)
+ROM_LOAD("kernal.bin", 0, 0x2000, CRC(12345678))
+ROM_END
+`);
+eq('ROM symbol aliases preserve PAL firmware requirements', aliasedFirmware.find(set => set.name === 'pal')?.regions,
+  aliasedFirmware.find(set => set.name === 'base')?.regions);
 
 console.log(`\nparse.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

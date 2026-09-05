@@ -1,5 +1,5 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
-import { isFloatingExpression } from '../ir/execute.ts';
+import { applyGeneratedMacro, isFloatingExpression } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS } from '../ir/board.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
@@ -33,6 +33,7 @@ export interface CodegenScope {
   hotMethods?: string[];
   /** Source-declared calls that reach another generated component. */
   links?: { call: string }[];
+  spaces?: { index: number }[];
   /**
    * This scope is a driver board rather than a device.
    *
@@ -42,6 +43,8 @@ export interface CodegenScope {
    * without those rules, so they keep their established forms.
    */
   boardScope?: boolean;
+  /** Configured hardware finders cannot resolve through unrelated driver methods. */
+  concreteDeviceMembers?: readonly string[];
 }
 
 interface EmitContext {
@@ -117,6 +120,9 @@ export function generatedDeviceMethodsSource(
       // shape rules below to notice, so the ColecoVision's Z80 drove every VDP
       // port write through the interpreter -- 41% of a frame at 33 fps.
       isBusEntryPoint(method) ||
+      // device_execute_interface entry points run every device clock, even
+      // when their loop only calls helpers and has no switch of its own.
+      method.name === 'execute_run' ||
       isStreamRenderer(method) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
@@ -230,6 +236,10 @@ function generatedDeviceAssignments(
       `${target}.children![${index}]!.definition`,
     ));
   }
+  for (const [index, format] of (definition.imageFormats ?? []).entries()) {
+    assignments.push(...generatedDeviceAssignments(format.definition,
+      `${target}.imageFormats![${index}]!.definition`));
+  }
   return assignments;
 }
 
@@ -329,10 +339,11 @@ function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
   return /^offs_t\s+offset$/.test(first);
 }
 
-function supportsMethod(
+export function supportsMethod(
   method: GeneratedDeviceMethod,
   definition: CodegenScope,
   compiled: Set<string>,
+  onUnsupported?: (expression: GeneratedExpression) => void,
 ): boolean {
   const parameters = tryParseParameters(method.parameters);
   if (!parameters) return false;
@@ -421,9 +432,11 @@ function supportsMethod(
           // device_gfx_interface::gfx(index) is a host-bound object lookup;
           // calls on the returned gfx_element are safe value-method calls.
           inner.callee.name === 'gfx' ||
+          (inner.callee.name === 'space' && Boolean(definition.spaces?.length)) ||
           definition.methods.some(candidate => candidate.name ===
             (inner.callee as { name: string }).name);
       }
+      if (!supported) onUnsupported?.(expression);
     });
   });
   return supported;
@@ -532,8 +545,9 @@ function emitOperation(
   if (operation.op === 'break') return `${pad}break;`;
   if (operation.op === 'continue') return `${pad}continue;`;
   if (operation.op === 'if') {
+    const condition = emitExpression(operation.condition, context);
     const lines = [
-      `${pad}if (${emitExpression(operation.condition, context)}) {`,
+      `${pad}if (${operation.condition.kind === 'string' ? `Boolean(${condition})` : condition}) {`,
       emitOperations(operation.then, context, indentation + 2),
       `${pad}}`,
     ];
@@ -711,9 +725,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // Resolved by the operand's shape at run time, exactly as the interpreter
     // resolves it — and evaluated once, because the operand can be a call.
     if (expression.operator === '*') {
-      return context.boardScope
-        ? `runtime.dereference(${operand})`
-        : `(${operand}).source[(${operand}).offset]`;
+      return `runtime.dereference(${operand})`;
     }
     return expression.operator === '!' ? `((${operand}) ? 0 : 1)` : `(${expression.operator}${operand})`;
   }
@@ -728,7 +740,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // the same exact evaluator the interpreter uses -- only the operands stay
     // compiled. MAME's Game Boy PPU interleaves two bit planes this way, and
     // computing it in floating point drew a blank screen.
-    if (containsWideLiteral([expression])) {
+    if (expression.precision === 64 || containsWideLiteral([expression])) {
       return `runtime.wide(${JSON.stringify(expression.operator)}, ` +
         `${emitExpression(expression.left, context)}, ` +
         `${emitExpression(expression.right, context)})`;
@@ -807,7 +819,10 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       `(${emitExpression(expression.whenFalse, context)}))`;
   }
   if (expression.kind === 'member') {
-    return `${emitExpression(expression.object, context)}.${expression.property}`;
+    const object = emitExpression(expression.object, context);
+    return expressionValueType(expression.object, context)?.includes('*') && structFieldsOf(expression.object, context)
+      ? `runtime.dereference(${object}).${expression.property}`
+      : `${object}.${expression.property}`;
   }
   if (expression.kind === 'index') {
     const object = emitExpression(expression.object, context);
@@ -943,6 +958,10 @@ function emitCall(
       const bits = args.slice(1);
       return `(${bits.map((bit, index) =>
         `(((${source}) >>> (${bit})) & 1) << ${bits.length - index - 1}`).join(' | ') || '0'})`;
+    }
+    if (name === 'rgb_t' && expression.args.every(argument => argument.kind === 'number')) {
+      return String(applyGeneratedMacro(name, expression.args.map(argument =>
+        (argument as { value: number }).value)));
     }
     if (name === 'TABLE') {
       const index = args[0] ?? '0';
@@ -1082,6 +1101,10 @@ function emitCall(
     const onValue = emitValueMemberCall(expression, object, args);
     if (boundName) {
       const lookup = `runtime.calls[${JSON.stringify(boundName)}]`;
+      if (context.definition.concreteDeviceMembers?.includes(expressionName(expression.callee.object))) {
+        return `(${lookup} ? ${lookup}(${args.join(', ')}) : ` +
+          `(${object}) != null ? ${onValue} : 0)`;
+      }
       // The interpreter's own order, and the reason all three arms exist: a
       // board binding wins; otherwise the value answers; and a member the
       // board declared but never materialised (an optional device with no
@@ -1528,7 +1551,7 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
     // in a loop that runs forty thousand times a frame.
     const field = structFieldOf(expression, context);
     return {
-      code: `${emitExpression(expression.object, context)}.${expression.property}`,
+      code: emitExpression(expression, context),
       ...(field?.bits ? { bits: field.bits, signed: field.signed } : {}),
     };
   }
@@ -1701,7 +1724,7 @@ function wrapType(value: string, valueType?: string): string {
   if (normalized === 'u16' || normalized === 'uint16_t') return `((${value}) & 0xffff)`;
   if (normalized === 's16' || normalized === 'int16_t') return `((${value}) << 16 >> 16)`;
   if (normalized === 'u32' || normalized === 'uint32_t') return `((${value}) >>> 0)`;
-  if (normalized === 's32' || normalized === 'int32_t') return `((${value}) | 0)`;
+  if (normalized === 'int' || normalized === 's32' || normalized === 'int32_t') return `((${value}) | 0)`;
   return value;
 }
 

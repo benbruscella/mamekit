@@ -7,7 +7,7 @@ import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig } from './types.ts';
+import type { Regions, BoardConfig, CassetteMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
@@ -738,12 +738,13 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   // Match MAME's soft-reset key. This is needed by boards such as Qix whose
   // first-boot operator flow stores a language in NVRAM and asks for a reset.
   addEventListener('keydown', event => {
-    if (event.code !== 'F3' || event.repeat) return;
+    if (cfg.kind === 'computer' || event.code !== 'F3' || event.repeat) return;
     event.preventDefault();
     input.releaseAll();
     board.reset();
   });
   ui.setNative(board.fbWidth, board.fbHeight); // the board owns true geometry
+  for (const media of board.media?.() ?? []) ui.addControls(cassetteControls(media, () => input.releaseAll()));
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
@@ -851,8 +852,21 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     fastForward = on;
     audio.setVolume(on ? 0 : masterVolume);
   };
+  if (cfg.kind === 'computer') {
+    const controls = document.createElement('div');
+    controls.style.cssText = 'display:flex;gap:8px';
+    const reset = document.createElement('button');
+    reset.textContent = 'Reset computer';
+    reset.onclick = () => { input.releaseAll(); board.reset(); reset.blur(); };
+    const fast = document.createElement('button');
+    fast.textContent = 'Fast-forward';
+    fast.setAttribute('aria-pressed', 'false');
+    fast.onclick = () => { input.releaseAll(); setFastForward(!fastForward); fast.setAttribute('aria-pressed', String(fastForward)); fast.blur(); };
+    controls.append(reset, fast);
+    ui.addControls(controls);
+  }
   addEventListener('keydown', event => {
-    if (event.code !== 'KeyF' || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (cfg.kind === 'computer' || event.code !== 'KeyF' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
     event.preventDefault();
     setFastForward(!fastForward);
   });
@@ -889,7 +903,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     if (now - fpsWindowStart >= 1000) {
       const snap = board.snapshot();
       const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];
-      if (fastForward) parts.unshift('▶▶ FAST-FORWARD (F)');
+      if (fastForward) parts.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
       if (snap.cpus.length > 1) parts.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
       if (snap.credits !== undefined) parts.push(`credits=${snap.credits}`);
       if (input.debug) parts.push(input.dump());
@@ -1055,6 +1069,10 @@ function controlsHelp(cfg: ShellConfig): string {
     parts.push(line);
   }
   const head: string[] = [];
+  if (cfg.kind === 'computer') {
+    const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
+    return ['Keyboard: type directly', ...specialKeys, 'Esc: menu'].join(' · ');
+  }
   if (dirKeys.size) {
     const order = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
     const arrows = order.every(k => dirKeys.has(k))
@@ -1156,6 +1174,7 @@ function buildDom(cfg: ShellConfig) {
 
   return {
     overlay,
+    addControls: (controls: HTMLElement) => root.appendChild(controls),
     status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none' && !overlay.querySelector('[data-dropzone]')) overlay.textContent = text; },
     overlayHide: () => { overlay.style.display = 'none'; },
     /** adopt the board's real framebuffer size when it differs from config */
@@ -1509,4 +1528,71 @@ function waitForZip(
       else zone.idle();
     });
   });
+}
+
+/** Local image selection and transport controls; the generated device owns playback. */
+function cassetteControls(media: CassetteMedia, releaseKeys: () => void): HTMLElement {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;max-width:800px';
+  row.setAttribute('aria-label', `Cassette ${media.tag}`);
+  for (const type of ['keydown', 'keyup']) row.addEventListener(type, event => event.stopPropagation());
+  row.addEventListener('focusin', releaseKeys);
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = ['.zip', ...media.extensions.map(extension => `.${extension}`)].join(',');
+  picker.setAttribute('aria-label', 'Open tape image or ZIP');
+  const side = document.createElement('select');
+  side.setAttribute('aria-label', 'Tape image');
+  side.hidden = true;
+  const status = document.createElement('span');
+  status.setAttribute('role', 'status');
+  status.textContent = 'Open a tape, enter the computer’s load command, then press Play.';
+  const buttons = ['Play', 'Stop', 'Rewind'].map(label => {
+    const button = document.createElement('button');
+    button.type = 'button'; button.textContent = label; button.disabled = true;
+    button.onclick = () => {
+      try {
+        if (label === 'Play') media.play();
+        else if (label === 'Stop') media.stop();
+        else media.rewind();
+        status.textContent = label === 'Play' ? 'Play pressed — the computer controls the tape motor.'
+          : label === 'Stop' ? 'Tape stopped.' : 'Tape rewound.';
+      } catch (error) { status.textContent = String(error); }
+      button.blur();
+    };
+    return button;
+  });
+  let images = new Map<string, Uint8Array>();
+  const mount = () => {
+    const name = side.value;
+    const bytes = images.get(name);
+    if (!bytes) return;
+    try {
+      media.stop();
+      media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      for (const button of buttons) button.disabled = false;
+      status.textContent = `${name} mounted. Enter the computer’s load command, then press Play.`;
+    } catch (error) {
+      for (const button of buttons) button.disabled = true;
+      status.textContent = String(error);
+    }
+  };
+  side.onchange = mount;
+  picker.onchange = async () => {
+    const file = picker.files?.[0];
+    if (!file) return;
+    picker.disabled = true;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const files = /\.zip$/i.test(file.name) ? await readZip(bytes) : new Map([[file.name, bytes]]);
+      images = new Map([...files].filter(([name]) => media.extensions.includes(name.split('.').pop()!.toLowerCase())));
+      if (!images.size) throw new Error(`No supported tape image found (${media.extensions.join(', ')}).`);
+      side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
+      side.hidden = images.size < 2;
+      mount();
+    } catch (error) { status.textContent = String(error); }
+    finally { picker.disabled = false; picker.value = ''; picker.blur(); }
+  };
+  row.append(picker, side, ...buttons, status);
+  return row;
 }

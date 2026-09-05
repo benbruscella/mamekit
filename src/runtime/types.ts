@@ -159,7 +159,18 @@ export interface BoardSnapshot {
 }
 
 /** A composed machine: CPUs + devices + video, stepped one frame at a time. */
+export interface CassetteMedia {
+  tag: string;
+  extensions: string[];
+  mount(extension: string, bytes: Uint8Array): void;
+  play(): void;
+  stop(): void;
+  rewind(): void;
+  position(): number;
+}
+
 export interface Board {
+  media?(): CassetteMedia[];
   readonly fbWidth: number;
   readonly fbHeight: number;
   frame(fb: Uint32Array): void;
