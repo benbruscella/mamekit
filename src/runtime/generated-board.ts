@@ -339,6 +339,7 @@ class IrBoard implements Board {
    * three lines black and the picture flickering.
    */
   private readonly cpuSliceCycles = new Map<string, number>();
+  private observedMachineSeconds = 0;
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
   /**
@@ -572,7 +573,11 @@ class IrBoard implements Board {
           tag: specification.tag,
           shares: this.shares,
           inputs,
-          ...(Object.keys(configuredMembers).length ? { members: configuredMembers } : {}),
+          members: {
+            ...configuredMembers,
+            ...Object.fromEntries(Object.entries(specification.memoryAllocations ?? {}).map(([name, allocation]) =>
+              [name, new Uint8Array(allocation.bytes).fill(allocation.fill)])),
+          },
           ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
           selectors: cartSelectors(config.cart),
           finder: (rawTag, member) => {
@@ -991,12 +996,17 @@ class IrBoard implements Board {
     }
     for (const [tag, device] of this.devices) {
       const specification = machine.devices?.find(candidate => candidate.tag === tag);
+      const referent: Record<string, unknown> = {};
       for (const method of device.methodNames()) {
         const invoke = (...args: unknown[]) =>
           device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]);
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
+        // A driver may copy a finder into a local pointer before calling it.
+        // The named call table alone cannot represent that pointer identity.
+        referent[method] = (...args: unknown[]) =>
+          calls[`${specification?.member ?? tag}.${method}`]!(...args as number[]);
         // Tilemap callbacks are recorded by their declaring C++ class rather
         // than by the machine-config tag. When exactly one device of that
         // class is composed, preserve that source identity so its callback
@@ -1008,6 +1018,15 @@ class IrBoard implements Board {
         ) {
           this.bindings.referenceCalls![`${specification.className}.${method}`] = invoke;
         }
+      }
+      referent.found = () => 1;
+      referent.tag = () => tag;
+      referent.reset = () => device.reset();
+      if (specification?.member && (this.state[specification.member] === device || this.state[specification.member] == null)) {
+        this.state[specification.member] = referent;
+        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(specification.member);
+        const values = indexed && this.state[indexed[1]!];
+        if (Array.isArray(values) && values[Number(indexed![2])] === device) values[Number(indexed![2])] = referent;
       }
     }
     // The same clock the `machine()` object answers with -- the scheduler's,
@@ -1038,6 +1057,17 @@ class IrBoard implements Board {
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installSourceHandlerWidthAdapters(machine, registry);
     this.installInterruptVectorWriters(machine, registry);
+    for (const specification of machine.devices ?? []) {
+      for (const map of specification.addressMaps ?? []) {
+        const device = this.devices.get(specification.tag);
+        if (!device?.bindAddressSpace) {
+          throw new Error(`${specification.tag}: configured device address space is not executable`);
+        }
+        const bus = new Bus(map.ranges, new Uint8Array(), registry, this.shares, 8, regions);
+        device.bindAddressSpace(map.index, address => bus.read(address),
+          (address, data) => bus.write(address, data));
+      }
+    }
 
     if (hasDeviceType(machine, 'ATARI_MOTION_OBJECTS') && machine.video && !machine.video.ramPalette) {
       // PALETTE(...).set_format(IRGB_4444, 1024) is declared in the shared
@@ -1303,6 +1333,9 @@ class IrBoard implements Board {
       if (specification.interruptMixer !== undefined) {
         cpu.set('m_interrupt_mixer', Number(specification.interruptMixer));
       }
+      for (const configuration of machine.devices?.find(device => device.tag === specification.tag)?.configuration ?? []) {
+        if (cpu.hasMethod(configuration.method)) cpu.invoke(configuration.method, ...configuration.args);
+      }
       this.cpus.set(specification.tag, cpu);
       this.cpuCycles.set(specification.tag, 0);
       this.cpuStalls.set(specification.tag, 0);
@@ -1492,16 +1525,35 @@ class IrBoard implements Board {
         },
       }];
     });
-    // Firmware MCUs share elapsed board time with the primary CPU. Running
-    // them only after the primary CPU's whole scanline lets that CPU assert a
-    // chip-select and read the stale response before the child executes once.
-    // Accumulate each hosted processor's source clock at instruction
-    // boundaries so short handshakes (Namco 06xx/53xx is one example) retain
-    // MAME's causal ordering without any board-specific quantum.
-    const hostedCarry = new Map(hostedProcessors.map(processor => [processor.tag, 0]));
+    // Standalone bus masters expose MAME's execute_run/m_icount pair but have
+    // no firmware host. The Intel 8257 on Donkey Kong is one such processor.
+    const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
+      if (
+        specification.hostTag ||
+        machine.execution.cpus.some(cpu => cpu.tag === specification.tag)
+      ) return [];
+      const device = this.devices.get(specification.tag);
+      if (!device?.methodNames().includes('execute_run')) return [];
+      return [{
+        tag: specification.tag,
+        clock: device.cycleClock(),
+        enabled: () => true,
+        run: (cycles: number) => {
+          device.set('m_icount', cycles);
+          device.call('execute_run');
+          return cycles - device.get('m_icount');
+        },
+      }];
+    });
+    // Firmware MCUs and clocked peripherals share elapsed board time with the
+    // CPU. A whole-scanline slice leaves counter reads stale and can collapse
+    // several input transitions before the peripheral observes any of them.
+    // Deliver source clocks at instruction boundaries, as for device timers.
+    const synchronizedProcessors = [...hostedProcessors, ...autonomousProcessors];
+    const hostedCarry = new Map(synchronizedProcessors.map(processor => [processor.tag, 0]));
     tickHostedProcessors = seconds => {
       if (!(seconds > 0)) return;
-      for (const processor of hostedProcessors) {
+      for (const processor of synchronizedProcessors) {
         if (processor.enabled && !processor.enabled()) {
           hostedCarry.set(processor.tag, 0);
           continue;
@@ -1515,25 +1567,6 @@ class IrBoard implements Board {
         hostedCarry.set(processor.tag, carry - processor.run(target));
       }
     };
-    // Standalone bus masters expose MAME's execute_run/m_icount pair but have
-    // no firmware host. The Intel 8257 on Donkey Kong is one such processor.
-    const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
-      if (
-        specification.hostTag ||
-        machine.execution.cpus.some(cpu => cpu.tag === specification.tag)
-      ) return [];
-      const device = this.devices.get(specification.tag);
-      if (!device?.methodNames().includes('execute_run')) return [];
-      return [{
-        tag: specification.tag,
-        clock: device.cycleClock(),
-        run: (cycles: number) => {
-          device.set('m_icount', cycles);
-          device.call('execute_run');
-          return cycles - device.get('m_icount');
-        },
-      }];
-    });
     runAutonomousNow = () => {
       // Drivers use abort_timeslice after asserting short DMA request pulses so
       // the autonomous controller observes them before the CPU clears them.
@@ -1765,7 +1798,7 @@ class IrBoard implements Board {
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
-      })), ...autonomousProcessors],
+      }))],
       onEvent: event => {
         const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
         if (callback?.promGate && !generatedPromGateOpen(
@@ -1933,12 +1966,20 @@ class IrBoard implements Board {
       }
       return 0;
     });
-    device.bindCall('READOP', address => firmware[address & (firmware.length - 1)] ?? 0);
-    device.bindCall('RDMEM', address => ram[address & (ram.length - 1)]! & 0x0f);
-    device.bindCall('WRMEM', (address, value) => {
+    const readOpcode = (address: number) => firmware[address & (firmware.length - 1)] ?? 0;
+    const readData = (address: number) => ram[address & (ram.length - 1)]! & 0x0f;
+    const writeData = (address: number, value: number) => {
       ram[address & (ram.length - 1)] = value & 0x0f;
       return 0;
-    });
+    };
+    device.bindCall('READOP', readOpcode);
+    device.bindCall('RDMEM', readData);
+    device.bindCall('WRMEM', writeData);
+    // Source macros may lower to the address-space/cache APIs themselves.
+    // Both forms must see the same firmware and private RAM, rather than an
+    // unbound cache returning zero opcodes after macro expansion.
+    device.bindMember('m_cache', { read_byte: readOpcode });
+    device.bindMember('m_data', { read_byte: readData, write_byte: writeData });
     for (const [name, member] of [
       ['TEST_ST', 'm_st'],
       ['TEST_ZF', 'm_zf'],
@@ -2079,6 +2120,9 @@ class IrBoard implements Board {
   }
 
   reset(): void {
+    this.observedMachineSeconds = 0;
+    for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
+    this.cpuSliceCycles.clear();
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
@@ -2086,7 +2130,6 @@ class IrBoard implements Board {
       this.cpuReportedSuspended.set(tag, false);
     }
     this.videoPrimitives?.reset?.();
-    for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     this.frameRunner.reset();
     this.soundRuntime?.reset?.();
@@ -2166,6 +2209,25 @@ class IrBoard implements Board {
       }
       executeGeneratedMachineHandler(this.machine, handler, this.bindings, {});
     }
+  }
+
+  media() {
+    return [...this.devices.entries()].flatMap(([tag, device]) => {
+      const cassette = device.findDevice?.('cassette');
+      if (!cassette) return [];
+      const constant = (name: string) => {
+        const value = cassette.constant(name);
+        if (value === undefined) throw new Error(`cassette source constant ${name} is missing`);
+        return value;
+      };
+      return [{ tag, extensions: cassette.imageExtensions?.() ?? [],
+        mount: (extension: string, bytes: Uint8Array) => cassette.mountImage!(extension, bytes),
+        play: () => { cassette.call('change_state', constant('CASSETTE_PLAY'), constant('CASSETTE_MASK_UISTATE')); },
+        stop: () => { cassette.call('change_state', constant('CASSETTE_STOPPED'), constant('CASSETTE_MASK_UISTATE')); },
+        rewind: () => { cassette.call('seek', 0, constant('SEEK_SET')); },
+        position: () => Number(cassette.invoke('get_position')),
+      }];
+    });
   }
 
   snapshot(): BoardSnapshot {
@@ -2368,7 +2430,14 @@ class IrBoard implements Board {
     const cpu = this.machine.execution.cpus.find(candidate => candidate.tag === tag);
     if (!cpu) return 0;
     const clock = Math.max(1, cpu.cycleClock ?? cpu.clock);
-    return Math.max(0, this.totalCycles(cpu.tag) / clock - generatedTimerBacklog());
+    // Instructions are atomic in the host: a bus write can expose its time
+    // before an overdue timer from that instruction is dispatched. Preserve
+    // the scheduler's causal ordering for devices that have already observed
+    // the write. Returning an earlier expiry here makes elapsed intervals
+    // negative (and image transports interpret that as rewinding past zero).
+    this.observedMachineSeconds = Math.max(this.observedMachineSeconds,
+      this.totalCycles(cpu.tag) / clock - generatedTimerBacklog());
+    return this.observedMachineSeconds;
   }
 
   private totalCycles(cpuTag: string): number {
@@ -4575,10 +4644,12 @@ export function generatedPromGateOpen(
 
 /** Minimal numeric attotime value for compiled device source methods. */
 function generatedAttotime(seconds: number): {
+  as_double(): number;
   as_ticks(frequency: number): number;
   valueOf(): number;
 } {
   return {
+    as_double: () => seconds,
     as_ticks: frequency => Math.floor(seconds * Math.max(0, frequency)),
     valueOf: () => seconds,
   };
@@ -4708,7 +4779,7 @@ export function generatedStateSetters(
       state[member.name] ??= generatedStateArray(member);
       continue;
     }
-    state[member.name] ??= 0;
+    state[member.name] ??= generatedStateWidth(member.initial ?? 0, member.bits, member.signed);
     setters[member.name] = value => {
       state[member.name] = generatedStateWidth(value, member.bits, member.signed);
     };

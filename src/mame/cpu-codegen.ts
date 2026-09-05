@@ -917,6 +917,8 @@ function emitCall(
   if (method) {
     return `this.method_${emittedMethodName(context.definition, method)}(${args.join(', ')})`;
   }
+  const signal = context.definition.callbacks?.[name];
+  if (signal) return `(this.bus.signal?.(${JSON.stringify(signal)}, ${args[0] ?? '0'}) ?? 0)`;
 
   if ((name === 'POSTINC' || name === 'POSTDEC') && expression.args[0]) {
     const target = targetInfo(expression.args[0], context);

@@ -84,6 +84,41 @@ tested: a Game Boy PCB is not describable by an address map, so
 `gameboy.spec.ts` mounts a synthetic cartridge, runs the board's own installer
 against a recording address space, and reads back the windows it decoded.
 
+### C64 development
+
+`c64` (NTSC) and `c64p` (PAL) are experimental computer targets. Use PAL for
+the current selected tape collection.
+
+`npm run dev` exposes all generated targets, including candidates, in its local
+catalogue. Distribution generation still exposes only the accepted target set.
+For an isolated build and a local tape diagnostic:
+
+```sh
+node bin/mamekit.js dev-game c64p
+MAMEKIT_C64_MACHINE=c64p MAMEKIT_C64_LOAD=nebulus \
+  MAMEKIT_C64_MEDIA_FRAMES=13000 node tools/check-c64-games.ts \
+  .data/roms/_processed/c64/testing/selected-games.json .cache/dev/c64p
+```
+
+The diagnostic verifies the selected software-list checksums and BIOS, boots
+the generated machine, types `LOAD`, and operates the source-derived tape
+transport. It records loading checkpoints and attempts `RUN` after the loader
+prints `READY.`. Its exit status remains unsuccessful until gameplay acceptance
+exists; a matching tape or a BASIC screen is not a gameplay pass.
+
+In the app, open the PAL C64 under **Computers**, choose the BIOS `c64.zip`,
+then select a TAP or software-list ZIP with the tape file picker. Multi-image
+ZIPs expose an image selector. Type `LOAD` and press Enter, then click **Play**.
+**Stop**, **Rewind**, **Reset computer**, and **Fast-forward** are buttons so
+the computer retains its letter and function keys. Tape speed remains under
+the emulated computer's motor control.
+
+Matched software belongs in `.data/roms/computers/c64/<software-list>/` and
+firmware in `.data/roms/computers/c64/bios/`; processing reports and retained
+source material belong under `.data/roms/_processed/c64/`. Neither BIOS nor
+game data belongs in generated output. SID sound, cartridge/quickload image
+loading, and the 1541 floppy-drive composition are still unfinished.
+
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance
 contracts in `src/games/contracts.ts`: a game with a contract is by definition

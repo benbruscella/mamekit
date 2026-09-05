@@ -37,6 +37,15 @@ check('a well-formed board decodes', () => {
   assert.equal(decodeBoardIr(value, 'fixture'), value);
 });
 
+check('device allocations require byte fill and positive integral sizes', () => {
+  const device = { id: 'ram', tag: 'ram', type: 'RAM', memoryAllocations: { m_pointer: { bytes: 65536, fill: 255 } } };
+  assert.doesNotThrow(() => decodeBoardIr(board({ devices: [device] }), 'fixture'));
+  for (const allocation of [{ bytes: -1, fill: 0 }, { bytes: 1.5, fill: 0 }, { bytes: 2, fill: 256 }]) {
+    const found = diagnostics(board({ devices: [{ ...device, memoryAllocations: { m_pointer: allocation } }] }));
+    assert.ok(found.some(item => item.path.startsWith('devices[0].memoryAllocations.m_pointer.')));
+  }
+});
+
 // A stale artifact used to reach execution as `data as unknown as BoardIr` and
 // fail later as an undefined-property crash somewhere unrelated.
 check('a version mismatch is reported alone, not as downstream damage', () => {

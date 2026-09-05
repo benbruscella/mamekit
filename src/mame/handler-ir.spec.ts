@@ -11,6 +11,15 @@ const pacmanVideo = compileMameHandler(`
   m_videoram[offset] = data;
   m_bg_tilemap->mark_tile_dirty(offset);
 `);
+for (const [body, expected] of [
+  ['int cursor = 3; ++cursor &= 3; return cursor;', 0],
+  ['int cursor = 3; ++cursor += cursor; return cursor;', 7],
+  ['int cursor = 3; --cursor *= cursor; return cursor;', 6],
+] as const) {
+  const program = compileMameHandler(body);
+  assert.deepEqual(program.diagnostics, []);
+  assert.equal(executeGeneratedProgram(program, {}).value, expected);
+}
 assert.deepEqual(pacmanVideo.diagnostics, []);
 assert.equal(pacmanVideo.operations.length, 2);
 assert.equal(pacmanVideo.operations[0]?.op, 'assign');

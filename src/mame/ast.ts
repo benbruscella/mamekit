@@ -141,7 +141,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   const functions: MameFunction[] = [];
   const occupied: [number, number][] = [];
   const functionRe =
-    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+(?:::\w+)*)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
   let fm: RegExpExecArray | null;
   while ((fm = functionRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
@@ -260,7 +260,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   // (`class ATTR_COLD upd775x_device : ...`).  Treat those export/attribute
   // markers as declaration syntax, not as the class identifier, or the base
   // disappears from every derived device's executable hierarchy.
-  const classRe = /\bclass\s+(?:ATTR_\w+\s+)*(\w+)\s*:\s*([^{]+)\{/g;
+  const classRe = /\bclass\s+(?:ATTR_\w+\s+)*(\w+)\s*(?::\s*([^;{]+))?\{/g;
   let cm: RegExpExecArray | null;
   while ((cm = classRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', cm.index + cm[0].length - 1);
@@ -271,7 +271,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     // the arguments so the instantiated width stays source-derived.
     const bases: string[] = [];
     const baseTemplateArguments: Record<string, string[]> = {};
-    for (const raw of splitMameArgs(cm[2])) {
+    for (const raw of splitMameArgs(cm[2] ?? '')) {
       const base = raw.replace(/\b(public|protected|private|virtual)\b/g, '').trim();
       const templated = /^(\w+(?:::\w+)*)\s*<([^<>]*)>$/.exec(base);
       const name = (templated?.[1] ?? base).split('::').at(-1)!;
@@ -284,9 +284,10 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       }
     }
     const templateParameters = classTemplateParameters(masked, cm.index);
+    const owner = classes.filter(candidate => candidate.bodySpan.start <= cm!.index && candidate.bodySpan.end > braceEnd).at(-1);
     const declaration: MameClass = {
       kind: 'class',
-      name: cm[1],
+      name: owner ? `${owner.name}::${cm[1]}` : cm[1],
       bases,
       ...(Object.keys(baseTemplateArguments).length ? { baseTemplateArguments } : {}),
       ...(templateParameters.length ? { templateParameters } : {}),
@@ -306,7 +307,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     // `const`. Accepting only `const` made every method spelled the other ways
     // invisible -- which is how a Game Boy MBC lost `load()`, the one method
     // that installs the cartridge into the CPU's space.
-    const inlineRe = /(?:^|[;:]\s*|\n\s*)(?:virtual\s+|inline\s+|static\s+|constexpr\s+)*(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept|override|final|ATTR_\w+)\s*)*\{/g;
+    const inlineRe = /(?:^|[;:]\s*|\n\s*)(?:virtual\s+|inline\s+|static\s+|constexpr\s+)*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept|override|final|ATTR_\w+)\s*)*\{/g;
     let im: RegExpExecArray | null;
     while ((im = inlineRe.exec(bodyMasked)) !== null) {
       const localBrace = bodyMasked.indexOf('{', im.index + im[0].length - 1);
@@ -351,7 +352,9 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       occupied.push([inlineStart, absoluteEnd + 1]);
       inlineRe.lastIndex = localEnd + 1;
     }
-    classRe.lastIndex = braceEnd + 1;
+    // Continue inside this declaration so nested helper classes retain their
+    // own qualified ownership, instead of leaking fields into the device.
+    classRe.lastIndex = braceStart + 1;
   }
 
   // File-scope helper functions. A MAME device source factors small pieces of
@@ -560,6 +563,57 @@ export function parseCallChain(
     i = close + 1;
   }
   return calls;
+}
+
+/** Out-of-line constructors retain member initializers separately from their body. */
+export function parseMameConstructors(file: string, source: string): (MameFunction & { initializers: { name: string; args: string[] }[] })[] {
+  const masked = maskComments(source);
+  const lineStarts = buildLineStarts(source);
+  const result: (MameFunction & { initializers: { name: string; args: string[] }[] })[] = [];
+  const pattern = /\b(\w+(?:::\w+)*)::(\w+)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(masked))) {
+    if (match[1]!.split('::').at(-1) !== match[2]) continue;
+    const open = masked.indexOf('(', match.index);
+    const close = matchPair(masked, open, '(', ')');
+    if (close < 0) continue;
+    let cursor = close + 1;
+    while (/\s/.test(masked[cursor] ?? '') && cursor < masked.length) cursor++;
+    const initializers: { name: string; args: string[] }[] = [];
+    if (masked[cursor] === ':') {
+      cursor++;
+      while (cursor < masked.length) {
+        const init = /^\s*([\w:]+)\s*([({])/.exec(masked.slice(cursor));
+        if (!init) break;
+        const start = cursor + init[0].length - 1;
+        const end = matchPair(masked, start, init[2]!, init[2] === '(' ? ')' : '}');
+        if (end < 0) break;
+        initializers.push({ name: init[1]!, args: splitMameArgs(source.slice(start + 1, end)) });
+        cursor = end + 1;
+        while (/\s/.test(masked[cursor] ?? '') && cursor < masked.length) cursor++;
+        if (masked[cursor] !== ',') break;
+        cursor++;
+      }
+    }
+    if (masked[cursor] !== '{') continue;
+    const end = matchPair(masked, cursor, '{', '}');
+    if (end < 0) continue;
+    // Reuse the AST's source-span calculation through a source-preserving
+    // statement parse; constructor text and offsets remain those of MAME.
+    const span = (start: number, stop: number): SourceSpan => {
+      const before = source.slice(0, start).split('\n');
+      const through = source.slice(0, stop).split('\n');
+      return { file, start, end: stop, line: before.length, column: before.at(-1)!.length + 1,
+        endLine: through.length, endColumn: through.at(-1)!.length + 1 };
+    };
+    result.push({ kind: 'function', className: match[1]!, name: match[2]!,
+      parameters: source.slice(open + 1, close), initializers,
+      body: source.slice(cursor + 1, end),
+      statements: parseStatements(file, source, masked, cursor + 1, end, lineStarts),
+      span: span(match.index, end + 1), bodySpan: span(cursor + 1, end) });
+    pattern.lastIndex = end + 1;
+  }
+  return result;
 }
 
 export class MameAstIndex {

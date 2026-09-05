@@ -227,4 +227,20 @@ function bothWays(
   assert.equal(emitted.source, '{}');
 }
 
+
+// An uncomposed chip must not redirect its register writes into a same-named
+// board handler. On C64 that corrupted zero-page pointers during music playback.
+{
+  const update = handler('update', '', `
+    for (int y = 0; y < 2; y++)
+      for (int x = 0; x < 2; x++) m_sound->write(x, 0x5a);
+  `);
+  const write = handler('write', 'int offset, int data', 'm_wrong_write = data;');
+  const machine = board([update, write]);
+  machine.devices = [{ id: 'device:sound', tag: 'sound', type: 'TEST_SOUND', member: 'm_sound' }];
+  const result = bothWays(machine, update, () => ({ members: {} }));
+  assert.deepEqual(result.states, [{}, {}],
+    'interpreted and compiled hardware calls must preserve the receiver when its core is absent');
+}
+
 console.log('emit-handler-codegen.spec: emitted board handlers match the interpreter');

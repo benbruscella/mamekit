@@ -44,6 +44,8 @@ interface GameEntry {
   hasCover?: boolean;
   /** the compiled app contains this game's board module (games.json) */
   supported?: boolean;
+  /** A compiled but unfinished machine intentionally exposed by the local development build. */
+  preview?: boolean;
   /** KG-reachable MAME hardware types without executable generated artifacts. */
   generationGaps?: string[];
   // "learn" modal facts (from the driver header + MAME git history)
@@ -58,6 +60,11 @@ interface GameEntry {
 import { audioLimitations, SYNTHESIZED_SAMPLES_NOTE } from './audio-fidelity.ts';
 
 export type MenuTab = 'arcade' | 'console' | 'computer';
+
+export function menuTitle(entry: Pick<GameEntry, 'kind' | 'fullname'>): string {
+  return entry.kind === 'computer' ? entry.fullname
+    : entry.fullname.replace(/\s*\(.*\)$/, '').split(' / ')[0]!;
+}
 
 function entryTab(entry: Pick<GameEntry, 'kind'>): MenuTab {
   return entry.kind === 'console' || entry.kind === 'computer' ? entry.kind : 'arcade';
@@ -365,7 +372,7 @@ export async function runMenu(): Promise<void> {
     const name = el('div', 'font-weight:800;font-size:17px;line-height:1.15;overflow:hidden;max-height:36px');
     // shelf label: drop the set/licence suffix and MAME's dual-name form
     // ("Space Invaders / Space Invaders M" — the story card keeps the full name)
-    name.textContent = entry.fullname.replace(/\s*\(.*\)$/, '').split(' / ')[0];
+    name.textContent = menuTitle(entry);
     const meta = el('div', 'font-size:12px;color:#6b6045;margin-top:4px;letter-spacing:.4px');
     meta.textContent = `${entry.manufacturer} · ${entry.year}`;
     label.append(name, meta);
@@ -384,7 +391,7 @@ export async function runMenu(): Promise<void> {
       // (stale-bundle protection) — story card still opens
       const gapCount = entry.generationGaps?.length ?? 0;
       ribbon.textContent = entry.supported === false
-        ? `BLOCKED${gapCount ? ` · ${gapCount}` : ''}`
+        ? entry.preview ? 'EXPERIMENTAL' : `BLOCKED${gapCount ? ` · ${gapCount}` : ''}`
         : 'INSERT ROM';
       if (entry.generationGaps?.length) {
         ribbon.title = `Missing generated hardware: ${entry.generationGaps.join(', ')}`;
@@ -629,8 +636,8 @@ export async function runMenu(): Promise<void> {
         ${solid ? 'background:#f2c200;color:#1b1b1b' : 'border:2px solid #2a3160;color:#9fb0ff'}`;
       return a;
     };
-    if (entry.supported !== false) {
-      links.appendChild(mkBtn('▶ Play', `g/${game}/`, true));
+    if (entry.supported !== false || entry.preview) {
+      links.appendChild(mkBtn(entry.preview ? '▶ Test' : '▶ Play', `g/${game}/`, true));
     } else {
       const soon = el('span', `padding:9px 18px;border-radius:8px;font-weight:700;
         border:2px solid #555;color:#aaa;max-width:100%;overflow-wrap:anywhere`);

@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import {
   collectFunctionMacros,
+  collectBitAliasMacros,
+  collectDynamicMacros,
+  expandDynamicMacros,
   collectMemberAliasMacros,
   expandFunctionMacros,
   expandMemberAliasMacros,
@@ -123,6 +126,41 @@ check('a member alias reaches through a struct field chain', () => {
   assert.deepEqual(collectMemberAliasMacros('#define ROW m_regs[BANK].row\n'), [
     { name: 'ROW', body: 'm_regs[BANK].row' },
   ]);
+});
+
+check('address-bit aliases retain the handler parameter at each use', () => {
+  const aliases = collectBitAliasMacros('#define A15 BIT(offset, 15)\n#define VA12 BIT(va, 12)\n');
+  assert.equal(expandMemberAliasMacros('return A15 << 5 | VA12 << 15;', aliases),
+    'return BIT(offset, 15) << 5 | BIT(va, 12) << 15;');
+});
+
+check('live register and variant macros expand through dependent coordinate macros', () => {
+  const macros = collectDynamicMacros(`
+#define IS_PAL (m_variant == PAL)
+#define LINES (IS_PAL ? 312 : 263)
+#define RASTER(a) (IS_PAL ? (a - 16) : (a + 222))
+#define SPRITE(n) (m_reg[1 + 2 * (n)])
+#define NAMCO_54XX_0_DATA(base) (NODE_RELATIVE(base, 0))
+`);
+  const expanded = expandDynamicMacros('return LINES + RASTER(SPRITE(3)) + NAMCO_54XX_0_DATA(0);', macros);
+  assert.ok(!/\b(?:LINES|IS_PAL|RASTER|SPRITE)\b/.test(expanded));
+  assert.match(expanded, /m_variant/);
+  assert.match(expanded, /m_reg/);
+  assert.match(expanded, /NAMCO_54XX_0_DATA\(0\)/);
+});
+
+check('caller locals do not expand symbolic audio interfaces through their formal parameters', () => {
+  const macros = collectDynamicMacros(`
+#define NODE_INDEX(node) (((node) - NODE_00) / DISCRETE_MAX_OUTPUTS)
+#define NODE(n) (NODE_00 + (n) * DISCRETE_MAX_OUTPUTS)
+#define NODE_RELATIVE(base, n) NODE(NODE_INDEX(base) + (n))
+#define NAMCO_54XX_0_DATA(base) NODE_RELATIVE(base, 0)
+#define BITMAPADDR ((data & 8) << 10)
+`, new Set(['base', 'data', 'node']));
+  const result = expandDynamicMacros('write(NAMCO_54XX_0_DATA(m_basenode), BITMAPADDR);', macros);
+  assert.match(result, /NAMCO_54XX_0_DATA\(m_basenode\)/);
+  assert.match(result, /data & 8/);
+  assert.doesNotMatch(result, /BITMAPADDR|NODE_00/);
 });
 
 console.log(`preprocessor.spec: ${passed} passed`);

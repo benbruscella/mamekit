@@ -34,6 +34,19 @@ const root = resolve(import.meta.dirname, '..');
 const argv = process.argv.slice(2);
 const list = flagValue('--list') ?? 'nes';
 const dryRun = argv.includes('--dry-run');
+// A mixed-machine audit retains container/member identity and exact MAME
+// matches. Revalidate it with the shared archive reader before filing inputs.
+const auditedInbox = flagValue('--audit');
+if (auditedInbox) {
+  const { processRomAudit } = await import('./process-rom-audit.ts');
+  await processRomAudit({
+    auditPath: resolve(auditedInbox),
+    ...(flagValue('--input') ? { inputDir: resolve(flagValue('--input')!) } : {}),
+    ...(flagValue('--output') ? { outputDir: resolve(flagValue('--output')!) } : {}),
+    dryRun,
+  });
+  process.exit(0);
+}
 // A set the visitor already owns is more useful on the shelf under its own
 // name than parked out of sight, so importing one in place can keep the dumps
 // no catalog entry claims.

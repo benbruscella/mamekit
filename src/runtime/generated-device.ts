@@ -71,6 +71,8 @@ interface DeviceMethod {
 }
 
 type DeviceResource =
+  | { kind: 'owner' }
+  | { kind: 'sample-image'; region: string; sampleRate: number }
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
   | { kind: 'region-object'; name: string }
@@ -143,6 +145,9 @@ export type GeneratedDeviceMethodMap = Record<string, GeneratedDeviceMethodExecu
 
 export interface GeneratedDeviceDefinition {
   type: string;
+  hierarchy?: string[];
+  allocations?: Record<string, GeneratedDeviceDefinition>;
+  construct?: string;
   constants: Record<string, number>;
   members: DeviceMember[];
   callbacks: DeviceCallback[];
@@ -172,6 +177,8 @@ export interface GeneratedDeviceDefinition {
     ranges: GeneratedDeviceBusRange[];
   };
   role?: string;
+  imageFormats?: { extension: string; definition: GeneratedDeviceDefinition;
+    sizeMethod: string; fillMethod: string; mountMethod: string; sampleRate: number }[];
   links?: GeneratedDeviceLink[];
   /** Machine-config setter -> device_delegate member it assigns. */
   delegates?: Record<string, string>;
@@ -200,6 +207,12 @@ export interface GeneratedDeviceDefinition {
 export type DeviceCallbackListener = (...args: number[]) => number | void;
 
 export interface Device {
+  findDevice?(role: string): Device | undefined;
+  imageExtensions?(): string[];
+  mountImage?(extension: string, bytes: Uint8Array): void;
+  /** Install a machine-config map over a declared byte-wide device space. */
+  bindAddressSpace?(index: number, read: (address: number) => number,
+    write: (address: number, data: number) => void): void;
   reset(): void;
   tick(seconds: number): void;
   call(name: string, ...args: number[]): number;
@@ -286,6 +299,8 @@ export function hasGeneratedDevice(type: string): boolean {
 }
 
 export interface GeneratedDeviceOptions {
+  owner?: unknown;
+  constructorArgs?: GeneratedCallArgument[];
   clock?: number;
   /** Device tag, resolving MAME's DEVICE_SELF memory share binding. */
   tag?: string;
@@ -341,6 +356,10 @@ class IrAttotime {
 
   as_ticks(frequency: number): number {
     return Math.floor(this.seconds * Math.max(0, frequency));
+  }
+
+  as_double(): number {
+    return this.seconds;
   }
 
   valueOf(): number {
@@ -514,6 +533,8 @@ class IrDevice implements Device {
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength }, () => new IrMemoryBank())
                 : new IrMemoryBank())
+          : /^simple_list<[^>]+>$/.test(member.valueType)
+            ? new IrSimpleList()
           // A struct the device declares: build the shape its source gives it,
           // so the fields a method writes exist to be written.
           : member.fields
@@ -527,6 +548,7 @@ class IrDevice implements Device {
         // second subscript can store into one: `m_wave_ram[bank][offset] = x`
         // indexes a number otherwise, and the write goes nowhere.
         : member.arrayShape ? nestedArrayMember(member.arrayShape)
+        : member.arrayLength ? Array(member.arrayLength).fill(0)
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
@@ -538,6 +560,17 @@ class IrDevice implements Device {
       }
     }
     Object.assign(this.members, options.members);
+    const self: Record<string, unknown> = {};
+    for (const method of definition.methods) self[method.name] = (...args: GeneratedCallArgument[]) => this.invoke(method.name, ...args);
+    for (const member of definition.members) Object.defineProperty(self, member.name, {
+      // A later lowered declaration may refine a member into a struct array.
+      // Match the member store's last-declaration-wins initialization.
+      enumerable: true, configurable: true, get: () => this.members[member.name],
+      set: value => { this.members[member.name] = wrap(value, member.bits, member.signed); },
+    });
+    self.tag = () => options.tag ?? '';
+    self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
+    this.members.this = self;
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
       // One signal can name two different devcbs, told apart in MAME by how
@@ -594,6 +627,12 @@ class IrDevice implements Device {
       };
     }
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {};
+    for (const [name, allocated] of Object.entries(definition.allocations ?? {})) {
+      referenceCalls[`new::${name}`] = (...args) => {
+        const instance = new IrDevice(allocated, clock, { constructorArgs: args });
+        return instance.members.this;
+      };
+    }
     const callParameters: NonNullable<GeneratedHandlerBindings['callParameters']> = {};
     const palette: number[] = [];
     this.bindings = {
@@ -736,6 +775,7 @@ class IrDevice implements Device {
       writableMember: name => this.members[name] ?? 0,
       wide: generatedWideBinary,
       invoke: (name, ...args) => {
+        if (name.startsWith('new::') && referenceCalls[name]) return referenceCalls[name]!(...args);
         const method = this.selectMethod(name, args);
         if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);
         const binding = this.bindings.calls?.[name];
@@ -785,6 +825,7 @@ class IrDevice implements Device {
         const cartSpace = definition.slot.install?.space;
         const child = this.slotChild = new IrDevice(childDefinition, clock, {
           ...resourceOptions,
+          owner: this.members.this,
           // A child card may itself be a slot in a future bus; do not pass
           // the parent's selected option through accidentally.
           slot: undefined,
@@ -820,6 +861,7 @@ class IrDevice implements Device {
     for (const child of definition.children ?? []) {
       const instance = new IrDevice(child.definition, clock, {
         ...resourceOptions,
+        owner: this.members.this,
         slot: undefined,
       });
       this.children.push(instance);
@@ -831,6 +873,7 @@ class IrDevice implements Device {
       );
     }
 
+    if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
     if (definition.start) this.call(definition.start);
     for (const initialize of definition.resources?.initialize ?? []) {
       if (!this.methodNames().includes(initialize.method)) continue;
@@ -978,6 +1021,18 @@ class IrDevice implements Device {
     return this.clock / (this.definition.clockDivider ?? 1);
   }
 
+  bindAddressSpace(index: number, read: (address: number) => number,
+    write: (address: number, data: number) => void): void {
+    const config = this.definition.spaces?.find(space => space.index === index);
+    const space = this.spaces.get(index);
+    if (!config || !space || config.dataBits !== 8) {
+      throw new Error(`${this.definition.type}: no supported byte address space ${index}`);
+    }
+    const mask = 2 ** config.addressBits - 1;
+    space.read_byte = address => read(address & mask);
+    space.write_byte = (address, data) => { write(address & mask, data & 0xff); return 0; };
+  }
+
   dataAddressBits(): number | undefined {
     return this.definition.dataAddressBits;
   }
@@ -992,6 +1047,27 @@ class IrDevice implements Device {
 
   role(): string | undefined {
     return this.definition.role;
+  }
+
+  findDevice(role: string): Device | undefined {
+    if (this.role() === role) return this;
+    return this.slotChild?.findDevice(role) ?? this.children.map(child => child.findDevice(role)).find(Boolean);
+  }
+
+  imageExtensions(): string[] {
+    return this.definition.imageFormats?.map(format => format.extension) ?? [];
+  }
+
+  mountImage(extension: string, bytes: Uint8Array): void {
+    const format = this.definition.imageFormats?.find(candidate => candidate.extension === extension.toLowerCase());
+    if (!format) throw new Error(`${this.definition.type}: unsupported image extension ${extension}`);
+    const decoder = new IrDevice(format.definition, 0);
+    const count = Number(decoder.invoke(format.sizeMethod, bytes, bytes.length));
+    if (!Number.isSafeInteger(count) || count <= 0) throw new Error('image decoder returned no valid samples');
+    const pcm = new Int16Array(count);
+    const written = decoder.invoke(format.fillMethod, pcm, count, bytes, 0);
+    if (written !== count) throw new Error('image decoder sample count changed during decoding');
+    this.invoke(format.mountMethod, sampleImage(pcm, format.sampleRate));
   }
 
   links(): readonly GeneratedDeviceLink[] {
@@ -1055,8 +1131,6 @@ class IrDevice implements Device {
         return this.invoke('sync_callback', args[0] ?? 0);
       }
       const defaults = this.methodDefaults.get(method);
-      const resolvedArgs = parameterNames.map((_name, index) =>
-        args[index] ?? defaults?.[index] ?? 0);
       const compiled = this.definition.compiledMethods?.[method.name];
       // A `&` parameter always arrives as a get/set wrapper, because the caller
       // cannot know whether the callee reassigns it. Only methods that do NOT
@@ -1067,15 +1141,16 @@ class IrDevice implements Device {
       // emitted draw_tile_pixel wrote through `u32*& dest` as if the wrapper
       // itself were the pointer, and one background tile threw.
       if (compiled) {
+        if (parameterNames.length === 0) return compiled(this.executionContext);
         return compiled(
           this.executionContext,
-          ...resolvedArgs.map(argument =>
-            generatedReferent(argument) as GeneratedCallArgument),
+          ...parameterNames.map((_name, index) =>
+            generatedReferent(args[index] ?? defaults?.[index] ?? 0) as GeneratedCallArgument),
         );
       }
       const locals: Record<string, unknown> = {};
       for (let index = 0; index < parameterNames.length; index++) {
-        locals[parameterNames[index]!] = resolvedArgs[index];
+        locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
       }
       return executeGeneratedProgram(method.program, this.bindings, locals).value;
     } catch (error) {
@@ -1090,6 +1165,7 @@ class IrDevice implements Device {
   ): DeviceMethod | undefined {
     const overloads = this.methods.get(name);
     if (!overloads?.length) return undefined;
+    if (overloads.length === 1 && this.methodParams.get(overloads[0]!)?.length === args.length) return overloads[0];
     const exact = overloads.filter(method =>
       (this.methodParams.get(method) ?? splitParameters(method.parameters)).length === args.length);
     if (exact.length) return exact.at(-1);
@@ -1173,6 +1249,13 @@ function resolveDeviceResource(
   resource: DeviceResource,
   options: GeneratedDeviceOptions,
 ): unknown {
+  if (resource.kind === 'owner') return options.owner ?? 0;
+  if (resource.kind === 'sample-image') {
+    const bytes = options.regions?.[resource.region];
+    if (!bytes?.length) return 0;
+    const pcm = new Int16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
+    return sampleImage(pcm, resource.sampleRate);
+  }
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
   const resourceName = 'name' in resource ? resource.name : '';
@@ -1271,6 +1354,16 @@ class GeneratedBitmap {
 
   height(): number {
     return this.bitmapHeight;
+  }
+
+  /** MAME bitmap_t::plot_box, clipped to this bitmap's bounds. */
+  plot_box(x: number, y: number, width: number, height: number, color: number): void {
+    const left = Math.max(0, x), right = Math.min(this.bitmapWidth, x + width);
+    const top = Math.max(0, y), bottom = Math.min(this.bitmapHeight, y + height);
+    if (right <= left || bottom <= top) return;
+    for (let row = top; row < bottom; row++) {
+      this.pixels.fill(color, row * this.bitmapWidth + left, row * this.bitmapWidth + right);
+    }
   }
 
   pix(y: number, x = 0): number {
@@ -1460,6 +1553,21 @@ function parameterDefault(parameter: string): number | undefined {
   return undefined;
 }
 
+/** MAME simple_list's intrusive container ABI; device behavior stays in IR. */
+class IrSimpleList {
+  private head: Record<string, unknown> | 0 = 0;
+  private tail: Record<string, unknown> | 0 = 0;
+  first(): unknown { return this.head; }
+  append(value: Record<string, unknown>): unknown {
+    value.m_next = 0;
+    if (this.tail) this.tail.m_next = value;
+    else this.head = value;
+    this.tail = value;
+    return value;
+  }
+  reset(): void { this.head = this.tail = 0; }
+}
+
 function wrap(value: number, bits?: 1 | 8 | 16 | 32, signed = false): number {
   if (bits === 1) return value ? 1 : 0;
   if (bits === 8) return signed ? value << 24 >> 24 : value & 0xff;
@@ -1480,6 +1588,17 @@ export interface GeneratedDeviceSpace {
   write_byte(address: number, data: number): number;
   /** The backing bytes, for board wiring and for reading state back in tests. */
   readonly memory: Uint8Array;
+}
+
+function sampleImage(pcm: Int16Array, sampleRate: number) {
+  return {
+    get_info: () => ({ sample_count: pcm.length, sample_frequency: sampleRate }),
+    get_sample: (_channel: number, time: number, _duration: number, output: unknown) => {
+      generatedPointerStore(output, (pcm[Math.floor(time * sampleRate)] ?? 0) * 65536);
+      return 0;
+    },
+    put_sample: () => { throw new Error('mounted sample image is read-only'); },
+  };
 }
 
 function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {

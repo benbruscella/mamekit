@@ -1067,6 +1067,7 @@ function compileFastExpression(
     const left = compileFastExpression(expression.left, bindings, locals);
     const right = compileFastExpression(expression.right, bindings, locals);
     const operator = expression.operator;
+    if (expression.precision === 64) return context => wideBinary(operator, left(context), right(context));
     if (operator === '&&') {
       return context => truthy(left(context)) && truthy(right(context)) ? 1 : 0;
     }
@@ -1300,7 +1301,7 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
   if (declared === 'uint32_t' || declared === 'u32' || declared === 'offs_t') {
     return value => toNumber(value) >>> 0;
   }
-  if (declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
+  if (declared === 'int' || declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
   if (declared === 'uint64_t' || declared === 'u64' ||
       declared === 'int64_t' || declared === 's64') {
     return value => Math.trunc(toNumber(value));
@@ -1478,6 +1479,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       return truthy(leftValue) || truthy(evaluate(expression.right, context)) ? 1 : 0;
     }
     const rightValue = evaluate(expression.right, context);
+    if (expression.precision === 64) return wideBinary(expression.operator, leftValue, rightValue);
     if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
       return offsetPointer(leftValue, toNumber(rightValue));
     }
@@ -1611,6 +1613,24 @@ export function isFloatingExpression(expression: GeneratedExpression): boolean {
  * for a name it does not know, so callers keep their own fallbacks.
  */
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
+  if (name === 'get_u24le') {
+    const bytes = args[0] as ArrayLike<number>;
+    return (bytes[0]! | bytes[1]! << 8 | bytes[2]! << 16) >>> 0;
+  }
+  if (name === 'strcmp') {
+    const string = (value: unknown): string => {
+      if (typeof value === 'string') return value.split('\0')[0]!;
+      if (Array.isArray(value) || ArrayBuffer.isView(value)) {
+        const bytes = Array.from(value as ArrayLike<number>);
+        const end = bytes.indexOf(0);
+        return String.fromCharCode(...bytes.slice(0, end < 0 ? undefined : end));
+      }
+      throw new Error('strcmp requires a string or byte array');
+    };
+    const left = string(args[0]);
+    const right = string(args[1]);
+    return left === right ? 0 : left < right ? -1 : 1;
+  }
   // What `stripTracingCalls` leaves where a MAME `LOG(...)` stood. It is a
   // placeholder, not hardware, and it is answered first because a renderer
   // carries dozens of them through its hottest loop.
@@ -1891,7 +1911,7 @@ function applyIdentifierCall(
   if (['u16', 'uint16_t'].includes(name)) return toNumber(args[0]) & 0xffff;
   if (['s16', 'int16_t'].includes(name)) return (toNumber(args[0]) << 16) >> 16;
   if (['u32', 'uint32_t'].includes(name)) return toNumber(args[0]) >>> 0;
-  if (['s32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
+  if (['int', 's32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
   if (['u64', 'uint64_t', 's64', 'int64_t'].includes(name)) {
     return Math.trunc(toNumber(args[0]));
   }
@@ -2799,8 +2819,7 @@ export function generatedAdd(left: unknown, right: unknown): unknown {
 
 export function generatedPointerStore(pointer: unknown, value: unknown): unknown {
   if (isGeneratedPointer(pointer)) {
-    const source = pointer.source as Record<number, unknown> | undefined;
-    if (source) source[pointer.offset] = value;
+    setPointerValue(pointer, 0, value);
     return value;
   }
   if (isIndexableMemory(pointer)) {

@@ -67,6 +67,7 @@ export interface GeneratedCpuDefinition {
   aliases: Record<string, CpuAlias>;
   members: CpuMember[];
   methods: CpuMethod[];
+  callbacks?: Record<string, string>;
   start: GeneratedHandlerProgram;
   reset: GeneratedHandlerProgram;
   input: GeneratedHandlerProgram;
@@ -397,6 +398,8 @@ class IrCpu implements Cpu {
       return this.definition.alignDataWords ? masked & ~1 : masked;
     };
     return {
+      ...Object.fromEntries(Object.entries(this.definition.callbacks ?? {}).map(([member, signal]) =>
+        [member, (state = 0) => Number(this.bus.signal?.(signal, state) ?? 0)])),
       READ: address => {
         if (this.definition.dialect !== 'mame-musashi-generated-handler-table') {
           this.set('cycles', this.get('cycles') + 1);

@@ -354,6 +354,7 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     callbacks: [],
     timers: [],
     boardScope: true,
+    concreteDeviceMembers: (machine.devices ?? []).flatMap(device => device.member ? [device.member] : []),
     methods: [...byMethod.values()].map(handler => {
       // The interpreter derives Which from the expanded method name's _N
       // suffix, overriding whatever the handler's constant table says; the

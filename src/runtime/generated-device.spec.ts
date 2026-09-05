@@ -329,5 +329,27 @@ assert.equal(overloaded.call('override_me', 3), 5, 'the most-derived exact signa
 overloaded.call('write');
 assert.equal(overloaded.get('m_ready'), 1, 'scheduler synchronization invokes its generated delegate');
 
+registerGeneratedDevice({
+  type: 'BITMAP_BOX_TEST', constants: {}, callbacks: [],
+  members: [{ name: 'm_bitmap', valueType: 'bitmap_rgb32' }],
+  methods: [method('draw', '',
+    'm_bitmap.allocate(4, 3); m_bitmap.plot_box(-1, 1, 3, 4, 7); return m_bitmap;')],
+  summary: { diagnostics: 0 },
+});
+const bitmap = createDevice('BITMAP_BOX_TEST').invoke('draw') as { pixels: Uint32Array };
+assert.deepEqual([...bitmap.pixels], [0, 0, 0, 0, 7, 7, 0, 0, 7, 7, 0, 0],
+  'plot_box must clip on all edges without spilling into adjacent rows');
+
+registerGeneratedDevice({
+  type: 'REFINED_MEMBER_TEST', constants: {}, callbacks: [],
+  members: [
+    { name: 'm_channel', valueType: 'channel', fields: [{ name: 'value', bits: 16 }] },
+    { name: 'm_channel', valueType: 'channel[]', values: [{ value: 7 }, { value: 9 }] },
+  ],
+  methods: [method('read', '', 'return this->m_channel[1].value;')], summary: { diagnostics: 0 },
+});
+assert.equal(createDevice('REFINED_MEMBER_TEST').call('read'), 9,
+  'source this pointer must expose the final struct-array declaration');
+
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

@@ -6,6 +6,7 @@ import {
   BUILD_MANIFEST_FILE,
   buildClosureFailures,
   readBuildManifest,
+  updateAppTargets,
   writeBuildManifest,
 } from './build-manifest.ts';
 import {
@@ -26,6 +27,19 @@ function dist(targets: string[], capabilities: string[]): string {
   );
   return root;
 }
+
+check('a development app can expose generated candidates without changing build provenance', () => {
+  const root = dist(['candidate', 'pacman'], ['z80']);
+  try {
+    const original = writeBuildManifest(root, ['candidate', 'pacman'], '', 'same-hardware', ['pacman']);
+    assert.deepEqual(updateAppTargets(root, ['pacman', 'candidate'], true), {
+      ...original, publishedTargets: ['candidate', 'pacman'], development: true,
+    });
+    assert.deepEqual(buildClosureFailures(root, ['candidate', 'pacman']), []);
+    assert.throws(() => updateAppTargets(root, ['not-generated']), /not generated/);
+    assert.deepEqual(readBuildManifest(root)?.publishedTargets, ['candidate', 'pacman']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 check('a coherent build reports no failures', () => {
   const root = dist(['pacman', 'galaga'], ['z80', 'namco-wsg']);

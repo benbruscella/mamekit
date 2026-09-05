@@ -41,6 +41,21 @@ check('comment masking preserves line count', masked.split('\n').length, source.
 check('comments are removed', masked.includes('preserve'), false);
 
 const unit = parseMameSource('src/mame/konami/timeplt.cpp', source);
+const nested = parseMameSource('ports.cpp', `
+uint8_t cpu_device::memory_interface::read(uint16_t address) { return address; }
+`);
+check('nested source methods retain their qualified owner',
+  nested.functions.map(method => [method.className, method.name]),
+  [['cpu_device::memory_interface', 'read']]);
+const pointerAccessor = parseMameSource('memory.h', `
+class memory_device : public device_t {
+public:
+  template <typename T> T *pointer() { return reinterpret_cast<T *>(m_data.get()); }
+};
+`);
+check('pointer-returning inline templates are discovered',
+  pointerAccessor.functions.map(method => [method.className, method.name, method.templateParameters]),
+  [['memory_device', 'pointer', ['T']]]);
 check('function count', unit.functions.length, 1);
 check('function identity', [unit.functions[0].className, unit.functions[0].name],
   ['timeplt_state', 'timeplt']);
