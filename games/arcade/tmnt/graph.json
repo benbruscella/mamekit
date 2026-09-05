@@ -1,0 +1,3788 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/tmnt.cpp",
+    "generatedAt": "2026-09-05T03:50:15.029Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/tmnt.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/tmnt.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:k052109.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "k052109.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:k051960.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "k051960.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m68000/m68000.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m68000/m68000.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6805/m68705.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6805/m68705.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/k007232.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/k007232.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/msm5205.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/msm5205.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/samples.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/samples.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/upd7759.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/upd7759.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:ymfm/src/ymfm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "ymfm/src/ymfm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:tmnt",
+      "label": "Game",
+      "props": {
+        "name": "tmnt",
+        "year": "1989",
+        "company": "Konami",
+        "fullname": "Teenage Mutant Ninja Turtles (World 4 Players, version X)",
+        "monitor": "ROT0",
+        "cls": "tmnt_state",
+        "init": "init_tmnt",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1723,
+        "sourceColumn": 1,
+        "sourceEndLine": 1723
+      }
+    },
+    {
+      "id": "romset:tmnt",
+      "label": "RomSet",
+      "props": {
+        "name": "tmnt",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1075,
+        "sourceColumn": 1,
+        "sourceEndLine": 1075
+      }
+    },
+    {
+      "id": "region:tmnt/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 393216,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1008,
+        "sourceColumn": 2,
+        "sourceEndLine": 1008
+      }
+    },
+    {
+      "id": "rom:tmnt/maincpu/963-x23.j17",
+      "label": "Rom",
+      "props": {
+        "file": "963-x23.j17",
+        "offset": 0,
+        "size": 131072,
+        "crc": "a9549004",
+        "sha1": "bf9be5983af2282f627fb8408c069415c9b90229",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:tmnt/maincpu/963-x24.k17",
+      "label": "Rom",
+      "props": {
+        "file": "963-x24.k17",
+        "offset": 1,
+        "size": 131072,
+        "crc": "e5cc9067",
+        "sha1": "649db4a09864eb8aba44cb77b580f1f28cfd80ed",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:tmnt/maincpu/963-x21.j15",
+      "label": "Rom",
+      "props": {
+        "file": "963-x21.j15",
+        "offset": 262144,
+        "size": 65536,
+        "crc": "5789cf92",
+        "sha1": "c1d1c958813062e5df5ac62e90ee4ce11f7e4a24",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:tmnt/maincpu/963-x22.k15",
+      "label": "Rom",
+      "props": {
+        "file": "963-x22.k15",
+        "offset": 262145,
+        "size": 65536,
+        "crc": "0a74e277",
+        "sha1": "c349d3c25eb05cc30ec1fd823475d971f3649f8b",
+        "skip": 1
+      }
+    },
+    {
+      "id": "region:tmnt/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1030,
+        "sourceColumn": 2,
+        "sourceEndLine": 1030
+      }
+    },
+    {
+      "id": "rom:tmnt/audiocpu/963e20.g13",
+      "label": "Rom",
+      "props": {
+        "file": "963e20.g13",
+        "offset": 0,
+        "size": 32768,
+        "crc": "1692a6d6",
+        "sha1": "68c3419012b2863e91a7d7e479fce5ceabb10b88",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1083,
+        "sourceColumn": 2,
+        "sourceEndLine": 1083
+      }
+    },
+    {
+      "id": "region:tmnt/k052109",
+      "label": "RomRegion",
+      "props": {
+        "tag": "k052109",
+        "size": 1048576,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1012,
+        "sourceColumn": 2,
+        "sourceEndLine": 1012
+      }
+    },
+    {
+      "id": "rom:tmnt/k052109/963a28.h27",
+      "label": "Rom",
+      "props": {
+        "file": "963a28.h27",
+        "offset": 0,
+        "size": 524288,
+        "crc": "db4769a8",
+        "sha1": "810811914f9c1fbf2320d5a9030cbf124f6d78cf",
+        "groupSize": 2,
+        "skip": 2
+      }
+    },
+    {
+      "id": "rom:tmnt/k052109/963a29.k27",
+      "label": "Rom",
+      "props": {
+        "file": "963a29.k27",
+        "offset": 2,
+        "size": 524288,
+        "crc": "8069cd2e",
+        "sha1": "54095d3546119ccd1e8814d692aceb1327c9369f",
+        "groupSize": 2,
+        "skip": 2
+      }
+    },
+    {
+      "id": "region:tmnt/k051960",
+      "label": "RomRegion",
+      "props": {
+        "tag": "k051960",
+        "size": 2097152,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1018,
+        "sourceColumn": 2,
+        "sourceEndLine": 1018
+      }
+    },
+    {
+      "id": "rom:tmnt/k051960/963a17.h4",
+      "label": "Rom",
+      "props": {
+        "file": "963a17.h4",
+        "offset": 0,
+        "size": 524288,
+        "crc": "b5239a44",
+        "sha1": "84e94807e7c51aa652b4e4b827b36be59a53d0d6",
+        "groupSize": 2,
+        "skip": 2
+      }
+    },
+    {
+      "id": "rom:tmnt/k051960/963a15.k4",
+      "label": "Rom",
+      "props": {
+        "file": "963a15.k4",
+        "offset": 2,
+        "size": 524288,
+        "crc": "1f324eed",
+        "sha1": "971a675578518fffa341a943d0cc4fdea005fde0",
+        "groupSize": 2,
+        "skip": 2
+      }
+    },
+    {
+      "id": "rom:tmnt/k051960/963a18.h6",
+      "label": "Rom",
+      "props": {
+        "file": "963a18.h6",
+        "offset": 1048576,
+        "size": 524288,
+        "crc": "dd51adef",
+        "sha1": "5010c0911b0b9e4f23a785e8a751a0bde5be5be0",
+        "groupSize": 2,
+        "skip": 2
+      }
+    },
+    {
+      "id": "rom:tmnt/k051960/963a16.k6",
+      "label": "Rom",
+      "props": {
+        "file": "963a16.k6",
+        "offset": 1048578,
+        "size": 524288,
+        "crc": "d4bd9984",
+        "sha1": "d780ae7f72e16767c3a492544f02f0f1a332ab22",
+        "groupSize": 2,
+        "skip": 2
+      }
+    },
+    {
+      "id": "region:tmnt/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1043,
+        "sourceColumn": 2,
+        "sourceEndLine": 1043
+      }
+    },
+    {
+      "id": "rom:tmnt/proms/963a30.g7",
+      "label": "Rom",
+      "props": {
+        "file": "963a30.g7",
+        "offset": 0,
+        "size": 256,
+        "crc": "abd82680",
+        "sha1": "945a71e6ec65202f13209b45d45b616372d6c0f5",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1096,
+        "sourceColumn": 2,
+        "sourceEndLine": 1096
+      }
+    },
+    {
+      "id": "rom:tmnt/proms/963a31.g19",
+      "label": "Rom",
+      "props": {
+        "file": "963a31.g19",
+        "offset": 256,
+        "size": 256,
+        "crc": "f8004a1c",
+        "sha1": "ed6694b8eebfe0238b50ebd05007d519f6e57b1b",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1097,
+        "sourceColumn": 2,
+        "sourceEndLine": 1097
+      }
+    },
+    {
+      "id": "region:tmnt/k007232",
+      "label": "RomRegion",
+      "props": {
+        "tag": "k007232",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1046,
+        "sourceColumn": 2,
+        "sourceEndLine": 1046
+      }
+    },
+    {
+      "id": "rom:tmnt/k007232/963a26.c13",
+      "label": "Rom",
+      "props": {
+        "file": "963a26.c13",
+        "offset": 0,
+        "size": 131072,
+        "crc": "e2ac3063",
+        "sha1": "5bb294c46fb5eaba9935a18c0aa5d3931168f474",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1100,
+        "sourceColumn": 2,
+        "sourceEndLine": 1100
+      }
+    },
+    {
+      "id": "region:tmnt/upd",
+      "label": "RomRegion",
+      "props": {
+        "tag": "upd",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1102,
+        "sourceColumn": 2,
+        "sourceEndLine": 1102
+      }
+    },
+    {
+      "id": "rom:tmnt/upd/963a27.d18",
+      "label": "Rom",
+      "props": {
+        "file": "963a27.d18",
+        "offset": 0,
+        "size": 131072,
+        "crc": "2dfd674b",
+        "sha1": "bbec5896c70056964fbc972a84bd5b0dfc6af257",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1103,
+        "sourceColumn": 2,
+        "sourceEndLine": 1103
+      }
+    },
+    {
+      "id": "region:tmnt/title",
+      "label": "RomRegion",
+      "props": {
+        "tag": "title",
+        "size": 524288,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1105,
+        "sourceColumn": 2,
+        "sourceEndLine": 1105
+      }
+    },
+    {
+      "id": "rom:tmnt/title/963a25.d5",
+      "label": "Rom",
+      "props": {
+        "file": "963a25.d5",
+        "offset": 0,
+        "size": 524288,
+        "crc": "fca078c7",
+        "sha1": "3e1124d72c9db4cb11d8de6c44b7aeca967f44e1",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1106,
+        "sourceColumn": 2,
+        "sourceEndLine": 1106
+      }
+    },
+    {
+      "id": "handler:palette_device.read8",
+      "label": "Handler",
+      "props": {
+        "method": "read8",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 510,
+        "sourceColumn": 2,
+        "sourceEndLine": 510
+      }
+    },
+    {
+      "id": "handler:palette_device.write8",
+      "label": "Handler",
+      "props": {
+        "method": "write8",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 510,
+        "sourceColumn": 2,
+        "sourceEndLine": 510
+      }
+    },
+    {
+      "id": "handler:tmnt_state._0a0000_w",
+      "label": "Handler",
+      "props": {
+        "method": "_0a0000_w",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 391,
+        "sourceColumn": 1,
+        "sourceEndLine": 412,
+        "sourceParameters": "offs_t offset, uint16_t data",
+        "sourceBody": "/* bit 0/1 = coin counters */\n\tmachine().bookkeeping().coin_counter_w(0, data & 0x01);\n\tmachine().bookkeeping().coin_counter_w(1, data & 0x02);  /* 2 players version */\n\n\t/* bit 3 high then low triggers irq on sound CPU */\n\tif (m_last == 0x08 && (data & 0x08) == 0 && m_audiocpu.found())\n\t\tm_audiocpu->set_input_line(0, HOLD_LINE); // Z80 IM1\n\n\tm_last = data & 0x08;\n\n\t/* bit 5 = irq enable */\n\tm_irq5_mask = data & 0x20;\n\tif (!m_irq5_mask)\n\t\tm_maincpu->set_input_line(M68K_IRQ_5, CLEAR_LINE);\n\n\t/* bit 7 = enable char ROM reading through the video RAM */\n\tm_k052109->set_rmrd_line((data & 0x80) ? ASSERT_LINE : CLEAR_LINE);\n\n\t/* other bits unused */"
+      }
+    },
+    {
+      "id": "handler:k052109_device.set_rmrd_line",
+      "label": "Handler",
+      "props": {
+        "method": "set_rmrd_line",
+        "ownerClass": "k052109_device",
+        "sourceFile": "src/mame/konami/k052109.h",
+        "sourceLine": 51,
+        "sourceColumn": 36,
+        "sourceEndLine": 53,
+        "sourceParameters": "int state",
+        "sourceBody": "m_rmrd_line = state;"
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset16_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset16_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 516,
+        "sourceColumn": 2,
+        "sourceEndLine": 516
+      }
+    },
+    {
+      "id": "handler:ym2151_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 559,
+        "sourceColumn": 2,
+        "sourceEndLine": 559
+      }
+    },
+    {
+      "id": "handler:ym2151_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 559,
+        "sourceColumn": 2,
+        "sourceEndLine": 559
+      }
+    },
+    {
+      "id": "handler:tmnt_state.k052109_word_noA12_r",
+      "label": "Handler",
+      "props": {
+        "method": "k052109_word_noA12_r",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 207,
+        "sourceColumn": 1,
+        "sourceEndLine": 216,
+        "sourceParameters": "offs_t offset, uint16_t mem_mask",
+        "sourceBody": "/* some games have the A12 line not connected, so the chip spans */\n\t/* twice the memory range, with mirroring */\n\toffset = ((offset & 0x3000) >> 1) | (offset & 0x07ff);\n\tif (ACCESSING_BITS_8_15)\n\t\treturn m_k052109->read(offset) << 8;\n\telse\n\t\treturn m_k052109->read(offset + 0x2000);"
+      }
+    },
+    {
+      "id": "handler:k052109_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "k052109_device",
+        "sourceFile": "src/mame/konami/k052109.cpp",
+        "sourceLine": 341,
+        "sourceColumn": 1,
+        "sourceEndLine": 400,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (m_rmrd_line == CLEAR_LINE)\n\t{\n\t\tif ((offset & 0x1fff) >= 0x1800)\n\t\t{\n\t\t\tif (offset >= 0x180c && offset < 0x1834)\n\t\t\t{\n\t\t\t\t// A y scroll\n\t\t\t}\n\t\t\telse if (offset >= 0x1a00 && offset < 0x1c00)\n\t\t\t{\n\t\t\t\t// A x scroll\n\t\t\t}\n\t\t\telse if (offset == 0x1d00)\n\t\t\t{\n\t\t\t\t// read for bitwise operations before writing\n\t\t\t}\n\t\t\telse if (offset >= 0x380c && offset < 0x3834)\n\t\t\t{\n\t\t\t\t// B y scroll\n\t\t\t}\n\t\t\telse if (offset >= 0x3a00 && offset < 0x3c00)\n\t\t\t{\n\t\t\t\t// B x scroll\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t//logerror(\"%s: read from unknown 052109 address %04x\\n\",machine().describe_context(),offset);\n\t\t\t}\n\t\t}\n\n\t\treturn m_ram[offset];\n\t}\n\telse // Punk Shot and TMNT read from 0000-1fff, Aliens from 2000-3fff\n\t{\n\t\tassert(m_char_rom.found());\n\n\t\tint code = (offset & 0x1fff) >> 5;\n\t\tint color = m_romsubbank;\n\t\tint flags = 0;\n\t\tint priority = 0;\n\t\tint bank = m_charrombank[(color & 0x0c) >> 2] >> 2; // discard low bits (TMNT)\n\t\tint addr;\n\n\t\tbank |= (m_charrombank_2[(color & 0x0c) >> 2] >> 2); // Surprise Attack uses this 2nd bank in the rom test\n\n\t\tif (m_has_extra_video_ram)\n\t\t\tcode |= color << 8; /* kludge for X-Men */\n\t\telse\n\t\t\tm_k052109_cb(0, bank, code, color, flags, priority);\n\n\t\taddr = (code << 5) + (offset & 0x1f);\n\t\taddr &= m_char_rom.length() - 1;\n\n\t\t//logerror(\"%s: off = %04x sub = %02x (bnk = %x) adr = %06x\\n\", machine().describe_context(), offset, m_romsubbank, bank, addr);\n\n\t\treturn m_char_rom[addr];\n\t}"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.k052109_word_noA12_w",
+      "label": "Handler",
+      "props": {
+        "method": "k052109_word_noA12_w",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 218,
+        "sourceColumn": 1,
+        "sourceEndLine": 227,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "/* some games have the A12 line not connected, so the chip spans */\n\t/* twice the memory range, with mirroring */\n\toffset = ((offset & 0x3000) >> 1) | (offset & 0x07ff);\n\tif (ACCESSING_BITS_8_15)\n\t\tm_k052109->write(offset, (data >> 8) & 0xff);\n\telse\n\t\tm_k052109->write(offset + 0x2000, data & 0xff);"
+      }
+    },
+    {
+      "id": "handler:k052109_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "k052109_device",
+        "sourceFile": "src/mame/konami/k052109.cpp",
+        "sourceLine": 402,
+        "sourceColumn": 1,
+        "sourceEndLine": 540,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "if ((offset & 0x1fff) < 0x1800) // tilemap RAM\n\t{\n\t\tif (offset >= 0x4000)\n\t\t\tm_has_extra_video_ram = 1; // kludge for X-Men\n\n\t\tm_ram[offset] = data;\n\t\tm_tilemap[(offset & 0x1800) >> 11]->mark_tile_dirty(offset & 0x7ff);\n\t}\n\telse // control registers\n\t{\n\t\tm_ram[offset] = data;\n\n\t\tif (offset >= 0x180c && offset < 0x1834)\n\t\t{\n\t\t\t// A y scroll\n\t\t}\n\t\telse if (offset >= 0x1a00 && offset < 0x1c00)\n\t\t{\n\t\t\t// A x scroll\n\t\t}\n\t\telse if (offset == 0x1c00)\n\t\t{\n\t\t\tm_addrmap = data;\n\t\t}\n\t\telse if (offset == 0x1c80)\n\t\t{\n\t\t\tif (m_scrollctrl != data)\n\t\t\t{\n\t\t\t\t//popmessage(\"scrollcontrol = %02x\", data);\n\t\t\t\t//logerror(\"%s: rowscrollcontrol = %02x\\n\", machine().describe_context(), data);\n\t\t\t\tm_scrollctrl = data;\n\t\t\t}\n\t\t}\n\t\telse if (offset == 0x1d00)\n\t\t{\n\t\t\t//logerror(\"%s: 052109 register 1d00 = %02x\\n\", machine().describe_context(), data);\n\t\t\t// clear interrupts\n\t\t\tif (BIT(~data & m_irq_control, 0))\n\t\t\t\tm_nmi_handler(CLEAR_LINE);\n\n\t\t\tif (BIT(~data & m_irq_control, 1))\n\t\t\t\tm_firq_handler(CLEAR_LINE);\n\n\t\t\tif (BIT(~data & m_irq_control, 2))\n\t\t\t\tm_irq_handler(CLEAR_LINE);\n\n\t\t\tm_irq_control = data;\n\t\t}\n\t\telse if (offset == 0x1d80)\n\t\t{\n\t\t\tint dirty = 0;\n\n\t\t\tif (m_charrombank[0] != (data & 0x0f))\n\t\t\t\tdirty |= 1;\n\t\t\tif (m_charrombank[1] != ((data >> 4) & 0x0f))\n\t\t\t\tdirty |= 2;\n\n\t\t\tif (dirty)\n\t\t\t{\n\t\t\t\tm_charrombank[0] = data & 0x0f;\n\t\t\t\tm_charrombank[1] = (data >> 4) & 0x0f;\n\n\t\t\t\tfor (int i = 0; i < 0x1800; i++)\n\t\t\t\t{\n\t\t\t\t\tint bank = (m_ram[i] & 0x0c) >> 2;\n\t\t\t\t\tif ((bank == 0 && (dirty & 1)) || (bank == 1 && (dirty & 2)))\n\t\t\t\t\t{\n\t\t\t\t\t\tm_tilemap[(i & 0x1800) >> 11]->mark_tile_dirty(i & 0x7ff);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (offset == 0x1e00 || offset == 0x3e00) // Surprise Attack uses offset 0x3e00\n\t\t{\n\t\t\t//logerror(\"%s: 052109 register 1e00 = %02x\\n\",machine().describe_context(),data);\n\t\t\tm_romsubbank = data;\n\t\t}\n\t\telse if (offset == 0x1e80)\n\t\t{\n\t\t\t//if ((data & 0xfe)) logerror(\"%s: 052109 register 1e80 = %02x\\n\",machine().describe_context(),data);\n\t\t\tif ((m_tileflip_enable & 0x06) != (data & 0x06))\n\t\t\t{\n\t\t\t\tfor (int i = 0; i < 3; i++)\n\t\t\t\t\tm_tilemap[i]->mark_all_dirty();\n\t\t\t}\n\t\t\tm_tileflip_enable = data & 0x07;\n\t\t\ttileflip_reset();\n\t\t}\n\t\telse if (offset == 0x1f00)\n\t\t{\n\t\t\tint dirty = 0;\n\n\t\t\tif (m_charrombank[2] != (data & 0x0f))\n\t\t\t\tdirty |= 1;\n\n\t\t\tif (m_charrombank[3] != ((data >> 4) & 0x0f))\n\t\t\t\tdirty |= 2;\n\n\t\t\tif (dirty)\n\t\t\t{\n\t\t\t\tm_charrombank[2] = data & 0x0f;\n\t\t\t\tm_charrombank[3] = (data >> 4) & 0x0f;\n\n\t\t\t\tfor (int i = 0; i < 0x1800; i++)\n\t\t\t\t{\n\t\t\t\t\tint bank = (m_ram[i] & 0x0c) >> 2;\n\t\t\t\t\tif ((bank == 2 && (dirty & 1)) || (bank == 3 && (dirty & 2)))\n\t\t\t\t\t\tm_tilemap[(i & 0x1800) >> 11]->mark_tile_dirty(i & 0x7ff);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (offset >= 0x380c && offset < 0x3834)\n\t\t{\n\t\t\t// B y scroll\n\t\t}\n\t\telse if (offset >= 0x3a00 && offset < 0x3c00)\n\t\t{\n\t\t\t// B x scroll\n\t\t}\n\t\telse if (offset == 0x3d80) // Surprise Attack uses offset 0x3d80 in rom test\n\t\t{\n\t\t\t// mirroring this write, breaks Surprise Attack in game tilemaps\n\t\t\tm_charrombank_2[0] = data & 0x0f;\n\t\t\tm_charrombank_2[1] = (data >> 4) & 0x0f;\n\t\t}\n\t\telse if (offset == 0x3f00) // Surprise Attack uses offset 0x3f00 in rom test\n\t\t{\n\t\t\t// mirroring this write, breaks Surprise Attack in game tilemaps\n\t\t\tm_charrombank_2[2] = data & 0x0f;\n\t\t\tm_charrombank_2[3] = (data >> 4) & 0x0f;\n\t\t}\n\t\telse\n\t\t{\n\t\t\t//logerror(\"%s: write %02x to unknown 052109 address %04x\\n\",machine().describe_context(),data,offset);\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:k052109_device.tileflip_reset",
+      "label": "Handler",
+      "props": {
+        "method": "tileflip_reset",
+        "ownerClass": "k052109_device",
+        "sourceFile": "src/mame/konami/k052109.cpp",
+        "sourceLine": 659,
+        "sourceColumn": 1,
+        "sourceEndLine": 664,
+        "sourceParameters": "",
+        "sourceBody": "u32 flip = BIT(m_tileflip_enable, 0) ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0;\n\tfor (int i = 0; i < 3; i++)\n\t\tm_tilemap[i]->set_flip(flip);"
+      }
+    },
+    {
+      "id": "handler:k051960_device.k051937_r",
+      "label": "Handler",
+      "props": {
+        "method": "k051937_r",
+        "ownerClass": "k051960_device",
+        "sourceFile": "src/mame/konami/k051960.cpp",
+        "sourceLine": 332,
+        "sourceColumn": 1,
+        "sourceEndLine": 343,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "offset &= 7;\n\n\tif (BIT(m_control, 5) && offset & 4)\n\t\treturn k051960_fetchromdata(offset & 3);\n\telse if (offset == 0)\n\t\treturn m_sprites_busy->enabled() ? 1 : 0;\n\n\t//logerror(\"%s: read unknown 051937 address %x\\n\", m_maincpu->pc(), offset);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:k051960_device.k051960_fetchromdata",
+      "label": "Handler",
+      "props": {
+        "method": "k051960_fetchromdata",
+        "ownerClass": "k051960_device",
+        "sourceFile": "src/mame/konami/k051960.cpp",
+        "sourceLine": 293,
+        "sourceColumn": 1,
+        "sourceEndLine": 309,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "int addr = m_romoffset + (m_spriterombank[0] << 8) + ((m_spriterombank[1] & 0x03) << 16);\n\tint code = (addr & 0x3ffe0) >> 5;\n\tint off1 = addr & 0x1f;\n\tint color = ((m_spriterombank[1] & 0xfc) >> 2) + ((m_spriterombank[2] & 0x03) << 6);\n\tint pri = 0;\n\tbool shadow = false;\n\n\tm_k051960_cb(code, color, pri, shadow);\n\n\taddr = (code << 7) | (off1 << 2) | offset;\n\taddr &= m_sprite_rom.length() - 1;\n\n\t//popmessage(\"%s: addr %06x\", machine().describe_context(), addr);\n\treturn m_sprite_rom[addr];"
+      }
+    },
+    {
+      "id": "handler:k051960_device.k051937_w",
+      "label": "Handler",
+      "props": {
+        "method": "k051937_w",
+        "ownerClass": "k051960_device",
+        "sourceFile": "src/mame/konami/k051960.cpp",
+        "sourceLine": 345,
+        "sourceColumn": 1,
+        "sourceEndLine": 383,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "offset &= 7;\n\n\tif (offset == 0)\n\t{\n\t\t// clear interrupts\n\t\tif (BIT(~data & m_control, 0))\n\t\t\tm_irq_handler(CLEAR_LINE);\n\n\t\tif (BIT(~data & m_control, 1))\n\t\t\tm_firq_handler(CLEAR_LINE);\n\n\t\tif (BIT(~data & m_control, 2))\n\t\t\tm_nmi_handler(CLEAR_LINE);\n\n\t\t//if (data & 0xc2) popmessage(\"051937 reg 00 = %02x\",data);\n\t\tm_control = data;\n\t}\n\telse if (offset == 1)\n\t{\n\t\tif (0)\n\t\t\tlogerror(\"%s: %02x to 051937 address %x\\n\", machine().describe_context(), data, offset);\n\n\t\t// callback for setting palette shadow mode\n\t\tif (BIT(data ^ m_shadow_config, 0))\n\t\t\tm_shadow_config_cb(data & 1);\n\n\t\tm_shadow_config = data & 0x07;\n\t}\n\telse if (offset >= 2 && offset < 5)\n\t{\n\t\tm_spriterombank[offset - 2] = data;\n\t}\n\telse\n\t{\n\t\t//logerror(\"%s: write %02x to unknown 051937 address %x\\n\", m_maincpu->pc(), data, offset);\n\t}"
+      }
+    },
+    {
+      "id": "handler:k051960_device.k051960_r",
+      "label": "Handler",
+      "props": {
+        "method": "k051960_r",
+        "ownerClass": "k051960_device",
+        "sourceFile": "src/mame/konami/k051960.cpp",
+        "sourceLine": 311,
+        "sourceColumn": 1,
+        "sourceEndLine": 323,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (BIT(m_control, 5))\n\t{\n\t\t// the 051960 remembers the last address read and uses it when reading the sprite ROMs\n\t\tif (!machine().side_effects_disabled())\n\t\t\tm_romoffset = (offset & 0x3fc) >> 2;\n\n\t\treturn k051960_fetchromdata(offset & 3); // only 88 Games reads the ROMs from here\n\t}\n\telse\n\t\treturn m_ram[offset];"
+      }
+    },
+    {
+      "id": "handler:k051960_device.k051960_w",
+      "label": "Handler",
+      "props": {
+        "method": "k051960_w",
+        "ownerClass": "k051960_device",
+        "sourceFile": "src/mame/konami/k051960.cpp",
+        "sourceLine": 325,
+        "sourceColumn": 1,
+        "sourceEndLine": 328,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "m_ram[offset] = data;"
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 515,
+        "sourceColumn": 2,
+        "sourceEndLine": 515
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "tmnt_state",
+        "name": "tmnt_main_map",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 506,
+        "sourceColumn": 1,
+        "sourceEndLine": 525
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 393215,
+        "raw": "map(0x000000, 0x05ffff).rom()",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 508,
+        "sourceColumn": 2,
+        "sourceEndLine": 508,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 393216,
+        "end": 409599,
+        "raw": "map(0x060000, 0x063fff).ram()",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 509,
+        "sourceColumn": 2,
+        "sourceEndLine": 509,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 524288,
+        "end": 528383,
+        "raw": "map(0x080000, 0x080fff).rw(m_palette, FUNC(palette_device::read8), FUNC(palette_device::write8)).umask16(0x00ff).share(\"palette\")",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 510,
+        "sourceColumn": 2,
+        "sourceEndLine": 510,
+        "share": "palette",
+        "umask": 255
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 655360,
+        "end": 655361,
+        "raw": "map(0x0a0000, 0x0a0001).portr(\"COINS\").w(FUNC(tmnt_state::_0a0000_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 511,
+        "sourceColumn": 2,
+        "sourceEndLine": 511,
+        "portRead": "COINS"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 655362,
+        "end": 655363,
+        "raw": "map(0x0a0002, 0x0a0003).portr(\"P1\")",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 512,
+        "sourceColumn": 2,
+        "sourceEndLine": 512,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 655364,
+        "end": 655365,
+        "raw": "map(0x0a0004, 0x0a0005).portr(\"P2\")",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 513,
+        "sourceColumn": 2,
+        "sourceEndLine": 513,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 655366,
+        "end": 655367,
+        "raw": "map(0x0a0006, 0x0a0007).portr(\"P3\")",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 514,
+        "sourceColumn": 2,
+        "sourceEndLine": 514,
+        "portRead": "P3"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 655369,
+        "end": 655369,
+        "raw": "map(0x0a0009, 0x0a0009).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 515,
+        "sourceColumn": 2,
+        "sourceEndLine": 515
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 655376,
+        "end": 655377,
+        "raw": "map(0x0a0010, 0x0a0011).portr(\"DSW1\").w(\"watchdog\", FUNC(watchdog_timer_device::reset16_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 516,
+        "sourceColumn": 2,
+        "sourceEndLine": 516,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 655378,
+        "end": 655379,
+        "raw": "map(0x0a0012, 0x0a0013).portr(\"DSW2\")",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 517,
+        "sourceColumn": 2,
+        "sourceEndLine": 517,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 655380,
+        "end": 655381,
+        "raw": "map(0x0a0014, 0x0a0015).portr(\"P4\")",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 518,
+        "sourceColumn": 2,
+        "sourceEndLine": 518,
+        "portRead": "P4"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 655384,
+        "end": 655385,
+        "raw": "map(0x0a0018, 0x0a0019).portr(\"DSW3\")",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 519,
+        "sourceColumn": 2,
+        "sourceEndLine": 519,
+        "portRead": "DSW3"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 786432,
+        "end": 786433,
+        "raw": "map(0x0c0000, 0x0c0001).w(FUNC(tmnt_state::priority_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 520,
+        "sourceColumn": 2,
+        "sourceEndLine": 520
+      }
+    },
+    {
+      "id": "handler:tmnt_state.priority_w",
+      "label": "Handler",
+      "props": {
+        "method": "priority_w",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 414,
+        "sourceColumn": 1,
+        "sourceEndLine": 435,
+        "sourceParameters": "offs_t offset, uint16_t data",
+        "sourceBody": "/* bit 2/3 = priority; other bits unused */\n\t/* bit2 = PRI bit3 = PRI2\n\t      sprite/playfield priority is controlled by these two bits, by bit 3\n\t      of the background tile color code, and by the SHADOW sprite\n\t      attribute bit.\n\t      Priorities are encoded in a PROM (G19 for TMNT). However, in TMNT,\n\t      the PROM only takes into account the PRI and SHADOW bits.\n\t      PRI  Priority\n\t       0   bg fg spr text\n\t       1   bg spr fg text\n\t      The SHADOW bit, when set, torns a sprite into a shadow which makes\n\t      color below it darker (this is done by turning off three resistors\n\t      in parallel with the RGB output).\n\n\t      Note: the background color (color used when all of the four layers\n\t      are 0) is taken from the *foreground* palette, not the background\n\t      one as would be more intuitive.\n\t*/\n\tm_priority = (data & 0x0c) >> 2;"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 1048576,
+        "end": 1081343,
+        "raw": "map(0x100000, 0x107fff).rw(FUNC(tmnt_state::k052109_word_noA12_r), FUNC(tmnt_state::k052109_word_noA12_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 521,
+        "sourceColumn": 2,
+        "sourceEndLine": 521
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 1310720,
+        "end": 1310727,
+        "raw": "map(0x140000, 0x140007).rw(m_k051960, FUNC(k051960_device::k051937_r), FUNC(k051960_device::k051937_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 523,
+        "sourceColumn": 2,
+        "sourceEndLine": 523
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 1311744,
+        "end": 1312767,
+        "raw": "map(0x140400, 0x1407ff).rw(m_k051960, FUNC(k051960_device::k051960_r), FUNC(k051960_device::k051960_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 524,
+        "sourceColumn": 2,
+        "sourceEndLine": 524
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 557,
+        "sourceColumn": 2,
+        "sourceEndLine": 557
+      }
+    },
+    {
+      "id": "handler:k007232_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "k007232_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 2,
+        "sourceEndLine": 544
+      }
+    },
+    {
+      "id": "handler:k007232_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "k007232_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 2,
+        "sourceEndLine": 544
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "tmnt_state",
+        "name": "tmnt_audio_map",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 538,
+        "sourceColumn": 1,
+        "sourceEndLine": 549
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 2,
+        "sourceEndLine": 540,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 34815,
+        "raw": "map(0x8000, 0x87ff).ram()",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 541,
+        "sourceColumn": 2,
+        "sourceEndLine": 541,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 36864,
+        "end": 36864,
+        "raw": "map(0x9000, 0x9000).rw(FUNC(tmnt_state::sres_r), FUNC(tmnt_state::sres_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 542,
+        "sourceColumn": 2,
+        "sourceEndLine": 542
+      }
+    },
+    {
+      "id": "handler:tmnt_state.sres_r",
+      "label": "Handler",
+      "props": {
+        "method": "sres_r",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 237,
+        "sourceColumn": 1,
+        "sourceEndLine": 240,
+        "sourceParameters": "",
+        "sourceBody": "return m_tmnt_soundlatch;"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.sres_w",
+      "label": "Handler",
+      "props": {
+        "method": "sres_w",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 242,
+        "sourceColumn": 1,
+        "sourceEndLine": 256,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/* bit 1 resets the UPD7795C sound chip */\n\tm_upd7759->reset_w(BIT(data, 1));\n\n\t/* bit 2 plays the title music */\n\tif (BIT(data, 2))\n\t{\n\t\tif (!m_samples->playing(0))\n\t\t\tm_samples->start_raw(0, m_sampledata, 0x40000, 640000 / 32);\n\t}\n\telse\n\t\tm_samples->stop(0);\n\tm_tmnt_soundlatch = data;"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 40960,
+        "raw": "map(0xa000, 0xa000).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 543,
+        "sourceColumn": 2,
+        "sourceEndLine": 543
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 45056,
+        "end": 45069,
+        "raw": "map(0xb000, 0xb00d).rw(m_k007232, FUNC(k007232_device::read), FUNC(k007232_device::write))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 2,
+        "sourceEndLine": 544
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49153,
+        "raw": "map(0xc000, 0xc001).rw(\"ymsnd\", FUNC(ym2151_device::read), FUNC(ym2151_device::write))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 545,
+        "sourceColumn": 2,
+        "sourceEndLine": 545
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 53248,
+        "raw": "map(0xd000, 0xd000).w(m_upd7759, FUNC(upd7759_device::port_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 546,
+        "sourceColumn": 2,
+        "sourceEndLine": 546
+      }
+    },
+    {
+      "id": "handler:upd7759_device.port_w",
+      "label": "Handler",
+      "props": {
+        "method": "port_w",
+        "ownerClass": "upd7759_device",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 560,
+        "sourceColumn": 2,
+        "sourceEndLine": 560
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57344,
+        "raw": "map(0xe000, 0xe000).w(FUNC(tmnt_state::tmnt_upd_start_w))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 547,
+        "sourceColumn": 2,
+        "sourceEndLine": 547
+      }
+    },
+    {
+      "id": "handler:tmnt_state.tmnt_upd_start_w",
+      "label": "Handler",
+      "props": {
+        "method": "tmnt_upd_start_w",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 258,
+        "sourceColumn": 1,
+        "sourceEndLine": 261,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_upd7759->start_w(!BIT(data, 0));"
+      }
+    },
+    {
+      "id": "map:tmnt_state.tmnt_audio_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 61440,
+        "raw": "map(0xf000, 0xf000).r(FUNC(tmnt_state::tmnt_upd_busy_r))",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 548,
+        "sourceColumn": 2,
+        "sourceEndLine": 548
+      }
+    },
+    {
+      "id": "handler:tmnt_state.tmnt_upd_busy_r",
+      "label": "Handler",
+      "props": {
+        "method": "tmnt_upd_busy_r",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 263,
+        "sourceColumn": 1,
+        "sourceEndLine": 266,
+        "sourceParameters": "",
+        "sourceBody": "return m_upd7759->busy_r() ? 1 : 0;"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 814,
+        "sourceColumn": 1,
+        "sourceEndLine": 820,
+        "sourceParameters": "",
+        "sourceBody": "m_last = 0;\n\tm_tmnt_soundlatch = 0;\n\tm_irq5_mask = 0;\n\tm_maincpu->set_input_line(M68K_IRQ_5, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 445,
+        "sourceColumn": 1,
+        "sourceEndLine": 454,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_k052109->tilemap_draw(screen, bitmap, cliprect, 2, TILEMAP_DRAW_OPAQUE,0);\n\tif ((m_priority & 1) == 1) m_k051960->k051960_sprites_draw(bitmap, cliprect, screen.priority(), 0, 0);\n\tm_k052109->tilemap_draw(screen, bitmap, cliprect, 1, 0, 0);\n\tif ((m_priority & 1) == 0) m_k051960->k051960_sprites_draw(bitmap, cliprect, screen.priority(), 0, 0);\n\tm_k052109->tilemap_draw(screen, bitmap, cliprect, 0, 0, 0);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:k052109_device.tilemap_draw",
+      "label": "Handler",
+      "props": {
+        "method": "tilemap_draw",
+        "ownerClass": "k052109_device",
+        "sourceFile": "src/mame/konami/k052109.cpp",
+        "sourceLine": 648,
+        "sourceColumn": 1,
+        "sourceEndLine": 651,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int tmap_num, u32 flags, u8 priority, u8 priority_mask",
+        "sourceBody": "m_tilemap[tmap_num]->draw(screen, bitmap, cliprect, flags, priority, priority_mask);"
+      }
+    },
+    {
+      "id": "handler:k051960_device.k051960_sprites_draw",
+      "label": "Handler",
+      "props": {
+        "method": "k051960_sprites_draw",
+        "ownerClass": "k051960_device",
+        "sourceFile": "src/mame/konami/k051960.cpp",
+        "sourceLine": 418,
+        "sourceColumn": 1,
+        "sourceEndLine": 618,
+        "sourceConstants": [
+          "NUM_SPRITES=128"
+        ],
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap, int min_priority, int max_priority",
+        "sourceBody": "static constexpr int NUM_SPRITES = 128;\n\n\tint offs, pri_code;\n\tint sortedlist[NUM_SPRITES];\n\tu8 drawmode_table[256];\n\n\tmemset(drawmode_table, DRAWMODE_SOURCE, sizeof(drawmode_table));\n\tdrawmode_table[0] = DRAWMODE_NONE;\n\n\tconst u32 shadow_mode = (m_priority_shadows || palette().shadow_mode()) ? DRAWMODE_SHADOW_PRI : DRAWMODE_SHADOW;\n\n\tfor (offs = 0; offs < NUM_SPRITES; offs++)\n\t\tsortedlist[offs] = -1;\n\n\t/* prebuild a sorted table */\n\tfor (offs = 0; offs < 0x400; offs += 8)\n\t{\n\t\tif (m_buffer[offs] & 0x80)\n\t\t{\n\t\t\tpri_code = m_buffer[offs] & 0x7f;\n\t\t\tif (max_priority == -1) /* draw front to back when using priority buffer */\n\t\t\t\tpri_code ^= 0x7f;\n\n\t\t\tsortedlist[pri_code] = offs;\n\t\t}\n\t}\n\n\tfor (pri_code = 0; pri_code < NUM_SPRITES; pri_code++)\n\t{\n\t\tint ox, oy, size, w, h, x, y, flipx, flipy, zoomx, zoomy;\n\t\t/* sprites can be grouped up to 8x8. The draw order is\n\t\t     0  1  4  5 16 17 20 21\n\t\t     2  3  6  7 18 19 22 23\n\t\t     8  9 12 13 24 25 28 29\n\t\t    10 11 14 15 26 27 30 31\n\t\t    32 33 36 37 48 49 52 53\n\t\t    34 35 38 39 50 51 54 55\n\t\t    40 41 44 45 56 57 60 61\n\t\t    42 43 46 47 58 59 62 63\n\t\t*/\n\t\t\n\t\t\n\t\t\n\t\t\n\n\t\toffs = sortedlist[pri_code];\n\t\tif (offs == -1)\n\t\t\tcontinue;\n\n\t\tint code = m_buffer[offs + 2] + ((m_buffer[offs + 1] & 0x1f) << 8);\n\t\tint color = m_buffer[offs + 3] & 0xff;\n\t\tint pri = 0;\n\t\tbool shadow = !BIT(m_shadow_config, 2) && (BIT(m_shadow_config, 1) || BIT(color, 7));\n\n\t\tm_k051960_cb(code, color, pri, shadow);\n\n\t\tif (max_priority != -1)\n\t\t\tif (pri < min_priority || pri > max_priority)\n\t\t\t\tcontinue;\n\n\t\tsize = (m_buffer[offs + 1] & 0xe0) >> 5;\n\t\tw = TABLE(size, 1, 2, 1, 2, 4, 2, 4, 8);\n\t\th = TABLE(size, 1, 1, 2, 2, 2, 4, 4, 8);\n\n\t\tif (w >= 2) code &= ~0x01;\n\t\tif (h >= 2) code &= ~0x02;\n\t\tif (w >= 4) code &= ~0x04;\n\t\tif (h >= 4) code &= ~0x08;\n\t\tif (w >= 8) code &= ~0x10;\n\t\tif (h >= 8) code &= ~0x20;\n\n\t\tox = (256 * m_buffer[offs + 6] + m_buffer[offs + 7]) & 0x01ff;\n\t\toy = 256 - ((256 * m_buffer[offs + 4] + m_buffer[offs + 5]) & 0x01ff);\n\t\tflipx = m_buffer[offs + 6] & 0x02;\n\t\tflipy = m_buffer[offs + 4] & 0x02;\n\n\t\t// X zoom is linear, 128x128 factors are accurate compared to PCB, but\n\t\t// off-by-1 at several places for smaller sprite sizes.\n\t\tzoomx = (m_buffer[offs + 6] & 0xfc) >> 2;\n\t\tzoomx = 0x10000 / 128 * (128 - zoomx);\n\n\t\t// Y zoom is not linear, it can't be expressed as an exponential function.\n\t\t// These values were visually obtained from Devastators.\n\t\t\n\n\t\tzoomy = (m_buffer[offs + 4] & 0xfc) >> 2;\n\t\tzoomy = 128 - TABLE(zoomy, 0x00, 0x01, 0x03, 0x05, 0x07, 0x09, 0x0a, 0x0c, 0x0e, 0x0f, 0x11, 0x12, 0x14, 0x15, 0x16, 0x18, 0x19, 0x1a, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2e, 0x2f, 0x30, 0x31, 0x31, 0x32, 0x33, 0x34, 0x34, 0x35, 0x36, 0x36, 0x37, 0x38, 0x38, 0x39, 0x39, 0x3a, 0x3b, 0x3b, 0x3c, 0x3c, 0x3d, 0x3d, 0x3e, 0x3e, 0x3f);\n\n\t\t// accumulated rounding up for each sprite height\n\t\tfor (int i = 0; i < 3; i++)\n\t\t\tif (h <= (1 << i)) zoomy = (zoomy + 1) / 2;\n\n\t\tzoomy *= 8 / h;\n\t\tzoomy = 0x10000 / 128 * zoomy;\n\n\t\tif (BIT(m_control, 3))\n\t\t{\n\t\t\tox = 512 - (zoomx * w >> 12) - ox;\n\t\t\toy = 256 - (zoomy * h >> 12) - oy;\n\t\t\tflipx = !flipx;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\tdrawmode_table[gfx(0)->granularity() - 1] = shadow ? shadow_mode : DRAWMODE_SOURCE;\n\n\t\tif (zoomx == 0x10000 && zoomy == 0x10000)\n\t\t{\n\t\t\tint sx, sy;\n\n\t\t\tfor (y = 0; y < h; y++)\n\t\t\t{\n\t\t\t\tsy = oy + 16 * y;\n\n\t\t\t\tfor (x = 0; x < w; x++)\n\t\t\t\t{\n\t\t\t\t\tint c = code;\n\n\t\t\t\t\tsx = ox + 16 * x;\n\t\t\t\t\tif (flipx)\n\t\t\t\t\t\tc += TABLE((w - 1 - x), 0, 1, 4, 5, 16, 17, 20, 21);\n\t\t\t\t\telse\n\t\t\t\t\t\tc += TABLE(x, 0, 1, 4, 5, 16, 17, 20, 21);\n\n\t\t\t\t\tif (flipy)\n\t\t\t\t\t\tc += TABLE((h - 1 - y), 0, 2, 8, 10, 32, 34, 40, 42);\n\t\t\t\t\telse\n\t\t\t\t\t\tc += TABLE(y, 0, 2, 8, 10, 32, 34, 40, 42);\n\n\t\t\t\t\tif (max_priority == -1)\n\t\t\t\t\t\tgfx(0)->prio_transtable(bitmap,cliprect,\n\t\t\t\t\t\t\t\tc,color,\n\t\t\t\t\t\t\t\tflipx,flipy,\n\t\t\t\t\t\t\t\t(sx & 0x1ff) - 96, sy,\n\t\t\t\t\t\t\t\tpriority_bitmap,pri,\n\t\t\t\t\t\t\t\tdrawmode_table);\n\t\t\t\t\telse\n\t\t\t\t\t\tgfx(0)->transtable(bitmap,cliprect,\n\t\t\t\t\t\t\t\tc,color,\n\t\t\t\t\t\t\t\tflipx,flipy,\n\t\t\t\t\t\t\t\t(sx & 0x1ff) - 96, sy,\n\t\t\t\t\t\t\t\tdrawmode_table);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse\n\t\t{\n\t\t\tint sx, sy, zw, zh;\n\n\t\t\tfor (y = 0; y < h; y++)\n\t\t\t{\n\t\t\t\tsy = oy + ((zoomy * y + (1 << 11)) >> 12);\n\t\t\t\tzh = (oy + ((zoomy * (y + 1) + (1 << 11)) >> 12)) - sy;\n\n\t\t\t\tfor (x = 0; x < w; x++)\n\t\t\t\t{\n\t\t\t\t\tint c = code;\n\n\t\t\t\t\tsx = ox + ((zoomx * x + (1 << 11)) >> 12);\n\t\t\t\t\tzw = (ox + ((zoomx * (x + 1) + (1 << 11)) >> 12)) - sx;\n\t\t\t\t\tif (flipx)\n\t\t\t\t\t\tc += TABLE((w - 1 - x), 0, 1, 4, 5, 16, 17, 20, 21);\n\t\t\t\t\telse\n\t\t\t\t\t\tc += TABLE(x, 0, 1, 4, 5, 16, 17, 20, 21);\n\n\t\t\t\t\tif (flipy)\n\t\t\t\t\t\tc += TABLE((h - 1 - y), 0, 2, 8, 10, 32, 34, 40, 42);\n\t\t\t\t\telse\n\t\t\t\t\t\tc += TABLE(y, 0, 2, 8, 10, 32, 34, 40, 42);\n\n\t\t\t\t\tif (max_priority == -1)\n\t\t\t\t\t\tgfx(0)->prio_zoom_transtable(bitmap,cliprect,\n\t\t\t\t\t\t\t\tc,color,\n\t\t\t\t\t\t\t\tflipx,flipy,\n\t\t\t\t\t\t\t\t(sx & 0x1ff) - 96, sy,\n\t\t\t\t\t\t\t\t(zw << 16) / 16,(zh << 16) / 16,\n\t\t\t\t\t\t\t\tpriority_bitmap,pri,\n\t\t\t\t\t\t\t\tdrawmode_table);\n\t\t\t\t\telse\n\t\t\t\t\t\tgfx(0)->zoom_transtable(bitmap,cliprect,\n\t\t\t\t\t\t\t\tc,color,\n\t\t\t\t\t\t\t\tflipx,flipy,\n\t\t\t\t\t\t\t\t(sx & 0x1ff) - 96, sy,\n\t\t\t\t\t\t\t\t(zw << 16) / 16,(zh << 16) / 16,\n\t\t\t\t\t\t\t\tdrawmode_table);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.vblank_w",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_w",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 230,
+        "sourceColumn": 1,
+        "sourceEndLine": 234,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_irq5_mask)\n\t\tm_maincpu->set_input_line(M68K_IRQ_5, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.volume_callback",
+      "label": "Handler",
+      "props": {
+        "method": "volume_callback",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 801,
+        "sourceColumn": 1,
+        "sourceEndLine": 805,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_k007232->set_volume(0, (data >> 4) * 0x11, 0);\n\tm_k007232->set_volume(1, 0, (data & 0x0f) * 0x11);"
+      }
+    },
+    {
+      "id": "machine:tmnt_state.tmnt",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "tmnt_state",
+        "name": "tmnt",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_layer_colorbase\",\"bits\":16,\"arrayLength\":3}",
+          "{\"name\":\"m_sprite_colorbase\",\"bits\":16}",
+          "{\"name\":\"m_priority\",\"bits\":16}",
+          "{\"name\":\"m_tmnt_soundlatch\",\"bits\":8}",
+          "{\"name\":\"m_last\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_irq5_mask\",\"bits\":8}",
+          "{\"name\":\"m_cuebrick_nvram\",\"bits\":16}",
+          "{\"name\":\"m_sampledata\",\"bits\":16,\"signed\":true,\"arrayLength\":262144}"
+        ],
+        "resetHandlers": [
+          "tmnt_state.machine_reset_tmnt"
+        ],
+        "startHandlers": [
+          "tmnt_state.video_start_tmnt"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 1,
+        "sourceEndLine": 983
+      }
+    },
+    {
+      "id": "handler:tmnt_state.machine_reset_tmnt",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset_tmnt",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 917,
+        "sourceColumn": 1,
+        "sourceEndLine": 924,
+        "sourceParameters": "",
+        "sourceBody": "machine_reset();\n\n\t/* the UPD7759 control flip-flops are cleared: /ST is 1, /RESET is 0 */\n\tm_upd7759->start_w(1);\n\tm_upd7759->reset_w(0);"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.video_start_tmnt",
+      "label": "Handler",
+      "props": {
+        "method": "video_start_tmnt",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 371,
+        "sourceColumn": 1,
+        "sourceEndLine": 382,
+        "sourceParameters": "",
+        "sourceBody": "m_layer_colorbase[0] = 0;\n\tm_layer_colorbase[1] = 32;\n\tm_layer_colorbase[2] = 40;\n\tm_sprite_colorbase = 16;\n\n\tm_priority = 0;\n\tsave_item(NAME(m_priority));\n\n\tm_palette->set_shadow_factor(0.75);"
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M68000",
+        "tag": "maincpu",
+        "clock": 8000000,
+        "config": [
+          "M68000(config, m_maincpu, 24_MHz_XTAL / 3)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &tmnt_state::tmnt_main_map)"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 929,
+        "sourceColumn": 2,
+        "sourceEndLine": 929
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3579545,
+        "config": [
+          "Z80(config, m_audiocpu, 3.579545_MHz_XTAL)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &tmnt_state::tmnt_audio_map)"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ]
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(24_MHz_XTAL / 4, 384, 0, 320, 264, 16, 240)",
+          "screen.set_screen_update(FUNC(tmnt_state::screen_update))",
+          "screen.set_palette(m_palette)",
+          "screen.screen_vblank().set(FUNC(tmnt_state::vblank_w))"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 940,
+        "sourceColumn": 2,
+        "sourceEndLine": 940,
+        "configCalls": [
+          "set_raw(6000000,384,0,320,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          320,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "24_MHz_XTAL / 4",
+          "384",
+          "0",
+          "320",
+          "264",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(tmnt_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942,
+        "targetClass": "tmnt_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "screen.screen_vblank().set(FUNC(tmnt_state::vblank_w))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 944,
+        "sourceColumn": 2,
+        "sourceEndLine": 944,
+        "targetClass": "tmnt_state",
+        "targetMethod": "vblank_w"
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 1024)",
+          "m_palette->set_membits(8)",
+          "m_palette->enable_shadows()",
+          "m_palette->enable_highlights()"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 946,
+        "sourceColumn": 2,
+        "sourceEndLine": 946,
+        "configCalls": [
+          "set_membits(8)",
+          "enable_shadows()",
+          "enable_highlights()"
+        ]
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/k052109",
+      "label": "Device",
+      "props": {
+        "type": "K052109",
+        "tag": "k052109",
+        "clock": 24000000,
+        "config": [
+          "K052109(config, m_k052109, 24_MHz_XTAL)",
+          "m_k052109->set_palette(m_palette)",
+          "m_k052109->set_screen(\"screen\")",
+          "m_k052109->set_tile_callback(FUNC(tmnt_state::tmnt_tile_callback))"
+        ],
+        "cls": "k052109_device",
+        "clsHierarchy": [
+          "k052109_device"
+        ]
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/k052109/callback:k052109:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_tile_callback",
+        "delegate": 1,
+        "operation": "set_tile_callback",
+        "raw": "m_k052109->set_tile_callback(FUNC(tmnt_state::tmnt_tile_callback))",
+        "ownerTag": "k052109",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 956,
+        "sourceColumn": 2,
+        "sourceEndLine": 956,
+        "targetClass": "tmnt_state",
+        "targetMethod": "tmnt_tile_callback"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.tmnt_tile_callback",
+      "label": "Handler",
+      "props": {
+        "method": "tmnt_tile_callback",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 320,
+        "sourceColumn": 1,
+        "sourceEndLine": 324,
+        "sourceParameters": "int layer, int bank, int &code, int &color, int &flags, int &priority",
+        "sourceBody": "code |= ((color & 0x03) << 8) | ((color & 0x10) << 6) | ((color & 0x0c) << 9) | (bank << 13);\n\tcolor = m_layer_colorbase[layer] + ((color & 0xe0) >> 5);"
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/k051960",
+      "label": "Device",
+      "props": {
+        "type": "K051960",
+        "tag": "k051960",
+        "clock": 24000000,
+        "config": [
+          "K051960(config, m_k051960, 24_MHz_XTAL)",
+          "m_k051960->set_palette(m_palette)",
+          "m_k051960->set_screen(\"screen\")",
+          "m_k051960->set_sprite_callback(FUNC(tmnt_state::tmnt_sprite_callback))",
+          "m_k051960->set_plane_order(K051960_PLANEORDER_MIA)"
+        ],
+        "cls": "k051960_device",
+        "clsHierarchy": [
+          "k051960_device"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 958,
+        "sourceColumn": 2,
+        "sourceEndLine": 958,
+        "configCalls": [
+          "set_plane_order(1)"
+        ]
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/k051960/callback:k051960:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_sprite_callback",
+        "delegate": 1,
+        "operation": "set_sprite_callback",
+        "raw": "m_k051960->set_sprite_callback(FUNC(tmnt_state::tmnt_sprite_callback))",
+        "ownerTag": "k051960",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 961,
+        "sourceColumn": 2,
+        "sourceEndLine": 961,
+        "targetClass": "tmnt_state",
+        "targetMethod": "tmnt_sprite_callback"
+      }
+    },
+    {
+      "id": "handler:tmnt_state.tmnt_sprite_callback",
+      "label": "Handler",
+      "props": {
+        "method": "tmnt_sprite_callback",
+        "ownerClass": "tmnt_state",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 339,
+        "sourceColumn": 1,
+        "sourceEndLine": 343,
+        "sourceParameters": "int &code, int &color, int &priority, bool &shadow",
+        "sourceBody": "code |= (color & 0x10) << 9;\n\tcolor = m_sprite_colorbase + (color & 0x0f);"
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 965,
+        "sourceColumn": 2,
+        "sourceEndLine": 965
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch\")"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 967,
+        "sourceColumn": 2,
+        "sourceEndLine": 967
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/ymsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM2151",
+        "tag": "ymsnd",
+        "clock": 3579545,
+        "config": [
+          "ym2151_device &ymsnd(YM2151(config, \"ymsnd\", 3.579545_MHz_XTAL))",
+          "ymsnd.add_route(0, \"mono\", 0.40)",
+          "ymsnd.add_route(1, \"mono\", 0.40)"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 969,
+        "sourceColumn": 2,
+        "sourceEndLine": 969
+      }
+    },
+    {
+      "id": "audioroute:device:tmnt_state.tmnt/ymsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "ymsnd.add_route(0, \"mono\", 0.40)",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 970,
+        "sourceColumn": 2,
+        "sourceEndLine": 970
+      }
+    },
+    {
+      "id": "audioroute:device:tmnt_state.tmnt/ymsnd/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "ymsnd.add_route(1, \"mono\", 0.40)",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 971,
+        "sourceColumn": 2,
+        "sourceEndLine": 971
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/k007232",
+      "label": "Device",
+      "props": {
+        "type": "K007232",
+        "tag": "k007232",
+        "clock": 3579545,
+        "config": [
+          "K007232(config, m_k007232, 3.579545_MHz_XTAL)",
+          "m_k007232->port_write().set(FUNC(tmnt_state::volume_callback))",
+          "m_k007232->add_route(0, \"mono\", 0.15)",
+          "m_k007232->add_route(1, \"mono\", 0.15)"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 973,
+        "sourceColumn": 2,
+        "sourceEndLine": 973
+      }
+    },
+    {
+      "id": "audioroute:device:tmnt_state.tmnt/k007232/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.15,
+        "raw": "m_k007232->add_route(0, \"mono\", 0.15)",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 975,
+        "sourceColumn": 2,
+        "sourceEndLine": 975
+      }
+    },
+    {
+      "id": "audioroute:device:tmnt_state.tmnt/k007232/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.15,
+        "raw": "m_k007232->add_route(1, \"mono\", 0.15)",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 976,
+        "sourceColumn": 2,
+        "sourceEndLine": 976
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/k007232/callback:k007232:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_write",
+        "operation": "set",
+        "raw": "m_k007232->port_write().set(FUNC(tmnt_state::volume_callback))",
+        "ownerTag": "k007232",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 974,
+        "sourceColumn": 2,
+        "sourceEndLine": 974,
+        "targetClass": "tmnt_state",
+        "targetMethod": "volume_callback"
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/upd",
+      "label": "Device",
+      "props": {
+        "type": "UPD7759",
+        "tag": "upd",
+        "clock": 640000,
+        "config": [
+          "UPD7759(config, \"upd\", 640_kHz_XTAL).add_route(ALL_OUTPUTS, \"mono\", 0.30)"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 978,
+        "sourceColumn": 2,
+        "sourceEndLine": 978
+      }
+    },
+    {
+      "id": "audioroute:device:tmnt_state.tmnt/upd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.3,
+        "raw": "UPD7759(config, \"upd\", 640_kHz_XTAL).add_route(ALL_OUTPUTS, \"mono\", 0.30)",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 978,
+        "sourceColumn": 2,
+        "sourceEndLine": 978
+      }
+    },
+    {
+      "id": "device:tmnt_state.tmnt/samples",
+      "label": "Device",
+      "props": {
+        "type": "SAMPLES",
+        "tag": "samples",
+        "clock": null,
+        "config": [
+          "SAMPLES(config, m_samples)",
+          "m_samples->set_channels(1)",
+          "m_samples->add_route(ALL_OUTPUTS, \"mono\", 0.25)"
+        ],
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 980,
+        "sourceColumn": 2,
+        "sourceEndLine": 980,
+        "configCalls": [
+          "set_channels(1)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:tmnt_state.tmnt/samples/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.25,
+        "raw": "m_samples->add_route(ALL_OUTPUTS, \"mono\", 0.25)",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 982,
+        "sourceColumn": 2,
+        "sourceEndLine": 982
+      }
+    },
+    {
+      "id": "inputs:tmnt",
+      "label": "InputPorts",
+      "props": {
+        "name": "tmnt",
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 671,
+        "sourceColumn": 8,
+        "sourceEndLine": 671
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS",
+      "label": "Port",
+      "props": {
+        "tag": "COINS",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_COIN3",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_COIN4",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_SERVICE2",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_SERVICE3",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:tmnt/COINS/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_SERVICE4",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:tmnt/P1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:tmnt/P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3",
+      "label": "Port",
+      "props": {
+        "tag": "P3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:tmnt/P3/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4",
+      "label": "Port",
+      "props": {
+        "tag": "P4",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:tmnt/P4/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:1,2,3,4\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 15,
+        "location": "SW1:1,2,3,4",
+        "settings": [
+          "0=5C 1C",
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Unused",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Unused",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Unused",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:1,2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 2,
+        "location": "SW2:1,2",
+        "settings": [
+          "3=1",
+          "2=2",
+          "1=3",
+          "0=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Unused",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 96,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:6,7\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 64,
+        "location": "SW2:6,7",
+        "settings": [
+          "96=Easy",
+          "64=Normal",
+          "32=Difficult",
+          "0=Very Difficult"
+        ]
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:8\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW3",
+      "label": "Port",
+      "props": {
+        "tag": "DSW3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW3:1\")"
+        ],
+        "name": "Flip Screen",
+        "defaultValue": 1,
+        "location": "SW3:1",
+        "settings": [
+          "1=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "name": "Unused",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 4,
+        "activeLow": true,
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:tmnt/DSW3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 240,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 240
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:tmnt",
+      "to": "file:src/mame/konami/tmnt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1723,
+        "sourceColumn": 1,
+        "sourceEndLine": 1723
+      }
+    },
+    {
+      "from": "game:tmnt",
+      "to": "machine:tmnt_state.tmnt",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:tmnt",
+      "to": "inputs:tmnt",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:tmnt",
+      "to": "romset:tmnt",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:k052109.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:k051960.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:cpu/m68000/m68000.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:cpu/m6805/m68705.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:sound/k007232.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:sound/msm5205.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:sound/samples.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:sound/upd7759.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:sound/ymopm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/tmnt.cpp",
+      "to": "file:ymfm/src/ymfm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "file:src/mame/konami/tmnt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 1,
+        "sourceEndLine": 983
+      }
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "handler:tmnt_state.machine_reset_tmnt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "handler:tmnt_state.video_start_tmnt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/k052109",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/k051960",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/ymsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/k007232",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/upd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tmnt_state.tmnt",
+      "to": "device:tmnt_state.tmnt/samples",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "file:src/mame/konami/tmnt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 671,
+        "sourceColumn": 8,
+        "sourceEndLine": 671
+      }
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/COINS",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/P3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/P4",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tmnt",
+      "to": "inputs:tmnt/DSW3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "file:src/mame/konami/tmnt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 1075,
+        "sourceColumn": 1,
+        "sourceEndLine": 1075
+      }
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/k052109",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/k051960",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/k007232",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/upd",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:tmnt",
+      "to": "region:tmnt/title",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:tmnt_state.machine_reset_tmnt",
+      "to": "handler:tmnt_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/maincpu",
+      "to": "map:tmnt_state.tmnt_main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:tmnt_state.tmnt/audiocpu",
+      "to": "map:tmnt_state.tmnt_audio_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:tmnt_state.tmnt/screen",
+      "to": "device:tmnt_state.tmnt/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/screen",
+      "to": "device:tmnt_state.tmnt/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k052109",
+      "to": "device:tmnt_state.tmnt/k052109/callback:k052109:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k051960",
+      "to": "device:tmnt_state.tmnt/k051960/callback:k051960:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/ymsnd",
+      "to": "audioroute:device:tmnt_state.tmnt/ymsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/ymsnd",
+      "to": "audioroute:device:tmnt_state.tmnt/ymsnd/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k007232",
+      "to": "audioroute:device:tmnt_state.tmnt/k007232/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k007232",
+      "to": "audioroute:device:tmnt_state.tmnt/k007232/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k007232",
+      "to": "device:tmnt_state.tmnt/k007232/callback:k007232:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/upd",
+      "to": "audioroute:device:tmnt_state.tmnt/upd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/samples",
+      "to": "audioroute:device:tmnt_state.tmnt/samples/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/COINS",
+      "to": "inputs:tmnt/COINS/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P1",
+      "to": "inputs:tmnt/P1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P2",
+      "to": "inputs:tmnt/P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P3",
+      "to": "inputs:tmnt/P3/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/P4",
+      "to": "inputs:tmnt/P4/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW1",
+      "to": "inputs:tmnt/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW1",
+      "to": "inputs:tmnt/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW1",
+      "to": "inputs:tmnt/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW1",
+      "to": "inputs:tmnt/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW1",
+      "to": "inputs:tmnt/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW2",
+      "to": "inputs:tmnt/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW2",
+      "to": "inputs:tmnt/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW2",
+      "to": "inputs:tmnt/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW2",
+      "to": "inputs:tmnt/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW2",
+      "to": "inputs:tmnt/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW2",
+      "to": "inputs:tmnt/DSW2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW3",
+      "to": "inputs:tmnt/DSW3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW3",
+      "to": "inputs:tmnt/DSW3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW3",
+      "to": "inputs:tmnt/DSW3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW3",
+      "to": "inputs:tmnt/DSW3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tmnt/DSW3",
+      "to": "inputs:tmnt/DSW3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:tmnt/maincpu",
+      "to": "rom:tmnt/maincpu/963-x23.j17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/maincpu",
+      "to": "rom:tmnt/maincpu/963-x24.k17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/maincpu",
+      "to": "rom:tmnt/maincpu/963-x21.j15",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/maincpu",
+      "to": "rom:tmnt/maincpu/963-x22.k15",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/audiocpu",
+      "to": "rom:tmnt/audiocpu/963e20.g13",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/k052109",
+      "to": "rom:tmnt/k052109/963a28.h27",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/k052109",
+      "to": "rom:tmnt/k052109/963a29.k27",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/k051960",
+      "to": "rom:tmnt/k051960/963a17.h4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/k051960",
+      "to": "rom:tmnt/k051960/963a15.k4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/k051960",
+      "to": "rom:tmnt/k051960/963a18.h6",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/k051960",
+      "to": "rom:tmnt/k051960/963a16.k6",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/proms",
+      "to": "rom:tmnt/proms/963a30.g7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/proms",
+      "to": "rom:tmnt/proms/963a31.g19",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/k007232",
+      "to": "rom:tmnt/k007232/963a26.c13",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/upd",
+      "to": "rom:tmnt/upd/963a27.d18",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:tmnt/title",
+      "to": "rom:tmnt/title/963a25.d5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "file:src/mame/konami/tmnt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 506,
+        "sourceColumn": 1,
+        "sourceEndLine": 525
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map",
+      "to": "map:tmnt_state.tmnt_main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "file:src/mame/konami/tmnt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/tmnt.cpp",
+        "sourceLine": 538,
+        "sourceColumn": 1,
+        "sourceEndLine": 549
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map",
+      "to": "map:tmnt_state.tmnt_audio_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/screen/callback:screen:0",
+      "to": "handler:tmnt_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/screen/callback:screen:1",
+      "to": "handler:tmnt_state.vblank_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k052109/callback:k052109:0",
+      "to": "handler:tmnt_state.tmnt_tile_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k051960/callback:k051960:0",
+      "to": "handler:tmnt_state.tmnt_sprite_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:tmnt_state.tmnt/k007232/callback:k007232:0",
+      "to": "handler:tmnt_state.volume_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range2",
+      "to": "handler:palette_device.read8",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range2",
+      "to": "handler:palette_device.write8",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range3",
+      "to": "handler:tmnt_state._0a0000_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range7",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range8",
+      "to": "handler:watchdog_timer_device.reset16_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range12",
+      "to": "handler:tmnt_state.priority_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range13",
+      "to": "handler:tmnt_state.k052109_word_noA12_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range13",
+      "to": "handler:tmnt_state.k052109_word_noA12_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range14",
+      "to": "handler:k051960_device.k051937_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "k051960"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range14",
+      "to": "handler:k051960_device.k051937_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "k051960"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range15",
+      "to": "handler:k051960_device.k051960_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "k051960"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_main_map/range15",
+      "to": "handler:k051960_device.k051960_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "k051960"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range2",
+      "to": "handler:tmnt_state.sres_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range2",
+      "to": "handler:tmnt_state.sres_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range3",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range4",
+      "to": "handler:k007232_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "k007232"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range4",
+      "to": "handler:k007232_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "k007232"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range5",
+      "to": "handler:ym2151_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range5",
+      "to": "handler:ym2151_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range6",
+      "to": "handler:upd7759_device.port_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "upd"
+      }
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range7",
+      "to": "handler:tmnt_state.tmnt_upd_start_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tmnt_state.tmnt_audio_map/range8",
+      "to": "handler:tmnt_state.tmnt_upd_busy_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:tmnt_state.screen_update",
+      "to": "handler:k052109_device.tilemap_draw",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tmnt_state.screen_update",
+      "to": "handler:k051960_device.k051960_sprites_draw",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tmnt_state._0a0000_w",
+      "to": "handler:k052109_device.set_rmrd_line",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tmnt_state.k052109_word_noA12_r",
+      "to": "handler:k052109_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tmnt_state.k052109_word_noA12_w",
+      "to": "handler:k052109_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:k051960_device.k051937_r",
+      "to": "handler:k051960_device.k051960_fetchromdata",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:k051960_device.k051960_r",
+      "to": "handler:k051960_device.k051960_fetchromdata",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:k052109_device.write",
+      "to": "handler:k052109_device.tileflip_reset",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

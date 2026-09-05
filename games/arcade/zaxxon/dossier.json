@@ -1,0 +1,679 @@
+{
+  "game": "zaxxon",
+  "title": "Zaxxon (set 1, rev D) (Sega, 1982)",
+  "fullname": "Zaxxon (set 1, rev D)",
+  "year": "1982",
+  "company": "Sega",
+  "family": "zaxxon",
+  "driverFile": "src/mame/sega/zaxxon.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3041250,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 24575,
+          "kind": "rom"
+        },
+        {
+          "start": 24576,
+          "end": 28671,
+          "kind": "ram"
+        },
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "mirror": 7168,
+          "share": "videoram",
+          "write": "zaxxon_state.zaxxon_videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 40960,
+          "end": 41215,
+          "kind": "ram",
+          "mirror": 7936,
+          "share": "spriteram"
+        },
+        {
+          "start": 49152,
+          "end": 49152,
+          "kind": "handler",
+          "mirror": 6396,
+          "read": "port.SW00"
+        },
+        {
+          "start": 49153,
+          "end": 49153,
+          "kind": "handler",
+          "mirror": 6396,
+          "read": "port.SW01"
+        },
+        {
+          "start": 49154,
+          "end": 49154,
+          "kind": "handler",
+          "mirror": 6396,
+          "read": "port.DSW02"
+        },
+        {
+          "start": 49155,
+          "end": 49155,
+          "kind": "handler",
+          "mirror": 6396,
+          "read": "port.DSW03"
+        },
+        {
+          "start": 49408,
+          "end": 49408,
+          "kind": "handler",
+          "mirror": 6399,
+          "read": "port.SW100"
+        },
+        {
+          "start": 49152,
+          "end": 49159,
+          "kind": "handler",
+          "mirror": 6392,
+          "write": "mainlatch1.write_d0"
+        },
+        {
+          "start": 57404,
+          "end": 57407,
+          "kind": "handler",
+          "mirror": 7936,
+          "read": "ppi8255.read",
+          "write": "ppi8255.write"
+        },
+        {
+          "start": 57584,
+          "end": 57587,
+          "kind": "handler",
+          "mirror": 7936,
+          "select": 8,
+          "write": "zaxxon_state.zaxxon_control_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "samples",
+    "clock": 3041250,
+    "chips": 1,
+    "masterGain": 0.65,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.99940814393939,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zaxxon_rom3d.u27",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6e2b4a30",
+          "alt": [
+            {
+              "file": "zaxxon_rom3a.u27",
+              "crc": "b18e428a"
+            },
+            {
+              "file": "zaxxon3_alt.u27",
+              "crc": "2f2f2b7c"
+            },
+            {
+              "file": "zaxxon_rom3.u13",
+              "crc": "925168c7"
+            },
+            {
+              "file": "jackson_rom3.u27",
+              "crc": "125bca1c"
+            }
+          ]
+        },
+        {
+          "file": "zaxxon_rom2d.u28",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "1c9ea398",
+          "alt": [
+            {
+              "file": "zaxxon2_alt.u28",
+              "crc": "ae7e1c38"
+            },
+            {
+              "file": "zaxxon_rom2.u12",
+              "crc": "c088df92"
+            }
+          ]
+        },
+        {
+          "file": "zaxxon_rom1d.u29",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "1c123ef9",
+          "alt": [
+            {
+              "file": "zaxxon_rom1a.u29",
+              "crc": "1977d933"
+            },
+            {
+              "file": "zaxxon1_alt.u29",
+              "crc": "cc67c097"
+            },
+            {
+              "file": "zaxxon_rom1.u11",
+              "crc": "f832dd79"
+            },
+            {
+              "file": "jackson_rom1.u29",
+              "crc": "e7bdc417"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx_tx",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "zaxxon_rom14.u68",
+          "offset": 0,
+          "size": 2048,
+          "crc": "07bf8c52"
+        },
+        {
+          "file": "zaxxon_rom15.u69",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "c215edcb"
+        }
+      ]
+    },
+    {
+      "region": "gfx_bg",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zaxxon_rom6.u113",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6e07bb68"
+        },
+        {
+          "file": "zaxxon_rom5.u112",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "0a5bce6a"
+        },
+        {
+          "file": "zaxxon_rom4.u111",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "a5bf1465"
+        }
+      ]
+    },
+    {
+      "region": "gfx_spr",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zaxxon_rom11.u77",
+          "offset": 0,
+          "size": 8192,
+          "crc": "eaf0dd4b"
+        },
+        {
+          "file": "zaxxon_rom12.u78",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "1c5369c7"
+        },
+        {
+          "file": "zaxxon_rom13.u79",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "ab4e8a9a"
+        }
+      ]
+    },
+    {
+      "region": "tilemap_dat",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "zaxxon_rom8.u91",
+          "offset": 0,
+          "size": 8192,
+          "crc": "28d65063"
+        },
+        {
+          "file": "zaxxon_rom7.u90",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "6284c200"
+        },
+        {
+          "file": "zaxxon_rom10.u93",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "a95e61fd"
+        },
+        {
+          "file": "zaxxon_rom9.u92",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "7e42691f"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mro16.u76",
+          "offset": 0,
+          "size": 256,
+          "crc": "6cc6695b"
+        },
+        {
+          "file": "zaxxon.u72",
+          "offset": 256,
+          "size": 256,
+          "crc": "deaa21f7",
+          "alt": [
+            {
+              "file": "mro17.u41",
+              "crc": "a9e1fb43"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SW00",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "SW100",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "SW100",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SERVICESW",
+      "mask": 1,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW02",
+      "mask": 3,
+      "value": 3,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW02",
+      "mask": 4,
+      "value": 4,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW02",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW02",
+      "mask": 48,
+      "value": 48,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW02",
+      "mask": 64,
+      "value": 64,
+      "name": "Sound"
+    },
+    {
+      "port": "DSW02",
+      "mask": 128,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW03",
+      "mask": 15,
+      "value": 3,
+      "name": "DEF_STR ( Coin_B )"
+    },
+    {
+      "port": "DSW03",
+      "mask": 240,
+      "value": 48,
+      "name": "DEF_STR ( Coin_A )"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 197,
+    "contributors": 31,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Olivier Galibert",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 66,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-08-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-04-16"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 9,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2013-10-24",
+        "lastCommit": "2025-02-10"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2017-06-14",
+        "lastCommit": "2019-09-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-03-03"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 4,
+        "firstCommit": "2011-07-03",
+        "lastCommit": "2012-04-30"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 4,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2021-03-13"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2014-04-17"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2009-08-05",
+        "lastCommit": "2015-07-11"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2016-01-24",
+        "lastCommit": "2023-06-16"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-05-31",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-10-21",
+        "lastCommit": "2009-12-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-09-24"
+      },
+      {
+        "name": "briantro",
+        "commits": 2,
+        "firstCommit": "2016-10-29",
+        "lastCommit": "2016-10-29"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 2,
+        "firstCommit": "2015-05-09",
+        "lastCommit": "2015-05-12"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2011-03-16",
+        "lastCommit": "2012-05-17"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 2,
+        "firstCommit": "2008-05-29",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-03-30",
+        "lastCommit": "2008-03-30"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-07-06",
+        "lastCommit": "2011-07-06"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-11-15",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-05-29",
+        "lastCommit": "2008-05-29"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2008-04-19",
+        "lastCommit": "2008-04-19"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-10-04",
+        "lastCommit": "2009-10-04"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nZaxxon (c) 1982 Sega.\n\nZaxxon is an isometric scrolling shoot-em-up in which the player pilots an armed spaceship and must penetrate heavily-fortified enemy bases, destroying enemy ships and installations before reaching the final confrontation with the game's titular character, a giant armored robot. \n\nThe game consists of three different waves: \n\n* Floating Fortress: Players must penetrate the fortress's defenses, destroying fuel tanks, gun emplacements, missiles and fighters. An altimeter constantly monitors the player ship's height, necessary to navigate through the walls and electronic barriers that form part of fortress's defenses. The player's ship carries a limited amount of fuel that is constantly depleting and can only be replenished by shooting ground-based enemy fuel tanks. If the ship's fuel runs out, it crashes to the ground and a life is lost.\n\n* Fighter Fleet: This takes place in outer space with the player attacked by waves of enemy fighter planes and rogue satellites. The player ship's fuel does not deplete during this wave.\n\n* Enemy Headquarters: This is similar to the 'Floating Fortress' wave (with fuel depletion once again being an issue), but with the player facing much tougher defenses. Upon completion of this wave, the player enters into battle with Zaxxon himself. The robot fires a fast-moving homing missile that needs to be hit six times before it's destroyed. Upon completion of the third wave, the game starts over with a higher level of difficulty.\n\n- TECHNICAL -\n\nBOARD # 834-0211\n\nThere were 2 different dedicated cabinets available for Zaxxon, an upright and a cocktail :\n\n* The upright version came in a nice woodgrain cabinet with black and blue sticker-style side art. The marquee is a blue 'Zaxxon' logo with a star filled background. The control panel has a nice 8-Way flight stick with fire buttons on either side, and graphics explaining how to play the game. Finally the upright uses two sets of coin mechs that are of an odd 'skinny' style.\n\n* The cocktail version came in the standard Sega/Gremlin cocktail table (this same table was also used for \"Frogger\", \"Carnival\", and several other titles). This was a relatively unadorned machine, the only decorations were a set of instruction cards underneath the glass. This machine had a control panel on either side and used Wico balltop joysticks instead of flight sticks. The coin mechs and start buttons were on the player 1 side only.\n\nAll versions used a vertical open frame monitor, and ran the same set of game boards. This game is fully compatible with \"Congo Bongo\", \"Super Zaxxon\", and \"Future Spy\" (those boards will plug right in without modification).\n\nMain CPU : Zilog Z80 (@ 3.04125 Mhz)\nSound Chips : Discrete circuitry\n\nScreen orientation : Vertical\nVideo resolution : 224 x 256 pixels\nScreen refresh : 59.999408 Hz\nPalette colors : 256\n\nPlayers : 2\nControl : 8-way joystick\nButtons : 1 (FIRE)\n\n- TRIVIA -\n\nZaxxon was released in January 1982 in Japan and two months later, in March 1982, in the USA.\n\nAt the time of its release, Zaxxon was unique as it was the first game to employ isometric projection, something of a three-quarters viewing perspective. This effect simulated three dimensions (albeit from the viewpoint of a second person).\n\nIn the game, Zaxxon is the name of the enemy robot who you must destroy. Milton Bradley turned this and other Sega titles into board games. 'Can You Complete Your Mission Before Zaxxon Zaps You?'.\n\nVernon Kalanikaus holds the official record for this game with 4,680,740 points on March 15, 1982.\n\nA Zaxxon unit appears in the 1983 movie 'WarGames'.\n\nA bootleg of this game is known as \"Jackson\".\n\n- UPDATES -\n\nZaxxon was released in at least 2 versions:\nThe latest version (set 1 in MAME (zaxxon)) corrects a minor error in the way the original Zaxxon ROM set (set 2 in MAME (zaxxon2)) managed fractions of a credit, seen only when a player earned credit through game play when the game dipswitch settings provided only a fraction of a full credit for each token inserted.\n\n- SCORING -\n\nGun Implacements (Green and Gray) : 200 or 500 points (random)\nFuel Tank : 300 points\nRadar Tower : 1,000 points\nMissile (Ground-to-Air) : 150 points\nMissile (Air-to-Air) : 200 points\nFighters (on runway) : 50 points\nFighters (in air) : 100 points + (50 points/level after level 2)\nZaxxon (destroyed with missile in launcher) : 1,000 points\nZaxxon (destroying launched missile) : 200 points\nDestroying all planes in space : 1,000 points\nSatellite : 300 points\n\n- TIPS AND TRICKS -\n\n* To kill Zaxxon, fly at 2 1/2 units (in other words, with two blocks of your altimeter filled in and one at halfway). Shoot 6 shots at Zaxxon's missile, and you will kill it quickly. If you miss, either dodge the missile, or keep firing and you can still blow up the missile. However, you get less points for hitting the missile while it's in the air.\n\n* Flying at an altitude of 1 1/2 will allow you to hit ground targets while making their shots go harmlessly under you.\n\n* Shoot airplanes on the platform : it will reduce the number you need to kill in the space scene. If you shoot all the airplanes in space you will get a bonus.\n\n* On the levels in outer space, start up the highest point on the upper left and start shooting immediately. You should be able to hit the satellite right away. If you miss, keep moving to the left and keep firing. This works for the second satellite also.\n\n* This is important in later levels because it is possible to run out of fuel in space : if you hit the satellite, you will get some back.\n\n* There are only two levels that repeat. The first air fortress level never gets much harder : use the same pattern for it. On the other levels, only the gaps become narrower.\n\n* Always keep firing! This way you can see if you will make it through the gaps, and you can adjust your height as needed.\n\n* The white canopy only indicates that the enemy plane is at the highest altitude. At any altitude, when an enemy is in your line of fire you will hear a tone and a white X appears in front of your plane. This makes it much easier to grab the 1,000 point bonus for destroying 20 enemy planes, as well as to avoid their shots.\n\n* On later levels you will lose fuel quickly. Make sure you hit as many fuel tanks as possible. If you run out of fuel you will lose a ship.\n\n- PORTS -\n\n* CONSOLES:\n[US] Colecovision (1982) \"Zaxxon [Model 2435]\"\n[US] Atari 2600 (1982) \"Zaxxon [Model 2454]\"\n[US] Mattel Intellivision (1983) \"Zaxxon [Model 2487]\"\n[US] Atari 5200 (1984) \"Zaxxon [Model 008-02]\"\nAtari XEGS\n[JP] Sega SG-1000 (1985) \"Zaxxon [Model G-1038]\"\n[BR] DynaVision (198?) \"Zaxxon\"\n[US] Sony PS2 (nov.7, 2006) \"Sega Genesis Collection [Model SLUS-21542]\" : as an unlockable extra\n[EU] Sony PS2 (feb.2, 2007) \"Sega Mega Drive Collection [Model SLES-54333]\" : as an unlockable extra\n[AU] Sony PlayStation 2 (feb.8, 2007) \"Sega Mega Drive Collection\" : as an unlockable extra\n[US] Microsoft XBOX 360 (feb.10, 2009) \"Sonic's Ultimate Genesis Collection [Model 68034]\" : as an unlockable extra\n[KO] Sony PlayStation 3 (feb.10, 2009) \"Sonic's Ultimate Genesis Collection\" by SCEI : as an unlockable extra\n[US] Sony PlayStation 3 (feb.10, 2009) \"Sonic's Ultimate Genesis Collection [Model BLUS-30259]\" : as an unlockable extra\n[EU] Microsoft XBOX 360 (feb.20, 2009) \"SEGA Mega Drive Ultimate Collection [Model 384-40210]\" : as an unlockable extra\n[EU] [AU] Sony PlayStation 3 (feb.20, 2009) \"SEGA Mega Drive Ultimate Collection [Model BLES-00475]\" : as an unlockable extra\n[AU] Microsoft XBOX 360 (feb.26, 2009) \"Sega Mega Drive Ultimate Collection\" : as an unlockable extra\n[JP] Nintendo Wii [Virtual Console Arcade] (dec.15, 2009)\n[EU] [AU] Nintendo Wii [Virtual Console Arcade] (mar.10, 2010)\n[US] Nintendo Wii [Virtual Console Arcade] (apr.12, 2010)\n\n* COMPUTERS:\n[US] Tandy Color Computer (1983) \n[US] Apple II (1983) \n[US] Atari 800 (1984) \"Zaxxon [Model 008-03]\" \nPC [Booter] (1984) \n[EU] Commodore C64 (1984)\n[US] Commodore C64 (1984) \"Zaxxon [Model 008-05]\" \n[EU] [JP] MSX (1985) \n[EU] Sinclair ZX Spectrum (1985) \n[US] PC [MS-DOS] (1985) \n[EU] Amstrad CPC (1986) \"Zaxx\" \n\n* OTHERS:\n[US] VFD handheld game (1981) by Coleco.\n[US] LCD handheld game (1982) by Bandai.\n[US] VFD handheld game (1983) by Bandai.\n[US] BlackBerry (dec.21, 2009) \"Zaxxon [Model 5341]\"\n\n- SERIES -\n\n1. Zaxxon (1982, Arcade)\n2. Super Zaxxon (1982, Arcade)\n3. Zaxxon 3-D (1987, Master System)\n4. Zaxxon Motherbase 2000 (1995, Sega 32X)\n5. Zaxxon Escape (2012, Google Play)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/3239/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,894 @@
+{
+  "game": "upndown",
+  "title": "Up'n Down (315-5030) (Sega, 1983)",
+  "family": "system1",
+  "dataPath": "games/arcade/upndown",
+  "board": {
+    "family": "system1",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "sega_315_5098",
+        "clock": 4000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 49151,
+            "kind": "handler",
+            "read": "bank.bank1",
+            "bank": "bank1"
+          },
+          {
+            "start": 49152,
+            "end": 53247,
+            "kind": "ram",
+            "share": "ram"
+          },
+          {
+            "start": 53248,
+            "end": 55295,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 55296,
+            "end": 57343,
+            "kind": "ram",
+            "share": "paletteram",
+            "write": "system1_state.paletteram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 57344,
+            "end": 61439,
+            "kind": "handler",
+            "read": "system1_state.videoram_r",
+            "write": "system1_state.videoram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 61440,
+            "end": 62463,
+            "kind": "handler",
+            "read": "system1_state.mixer_collision_r",
+            "write": "system1_state.mixer_collision_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 62464,
+            "end": 63487,
+            "kind": "handler",
+            "write": "system1_state.mixer_collision_reset_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 63488,
+            "end": 64511,
+            "kind": "handler",
+            "read": "system1_state.sprite_collision_r",
+            "write": "system1_state.sprite_collision_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 64512,
+            "end": 65535,
+            "kind": "handler",
+            "write": "system1_state.sprite_collision_reset_w",
+            "handlerWidth": 8
+          }
+        ],
+        "opcode": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 32767,
+              "kind": "rom",
+              "share": "decrypted_opcodes"
+            },
+            {
+              "start": 32768,
+              "end": 49151,
+              "kind": "handler",
+              "read": "bank.bank1",
+              "bank": "bank1"
+            },
+            {
+              "start": 49152,
+              "end": 53247,
+              "kind": "ram",
+              "share": "ram"
+            },
+            {
+              "start": 53248,
+              "end": 55295,
+              "kind": "ram",
+              "share": "spriteram"
+            },
+            {
+              "start": 55296,
+              "end": 57343,
+              "kind": "ram",
+              "share": "paletteram",
+              "write": "system1_state.paletteram_w",
+              "writeHandlerOwnsRam": true,
+              "handlerWidth": 8
+            }
+          ],
+          "region": "decrypted_opcodes"
+        },
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "mirror": 3,
+              "read": "port.P1"
+            },
+            {
+              "start": 4,
+              "end": 4,
+              "kind": "handler",
+              "mirror": 3,
+              "read": "port.P2"
+            },
+            {
+              "start": 8,
+              "end": 8,
+              "kind": "handler",
+              "mirror": 3,
+              "read": "port.SYSTEM"
+            },
+            {
+              "start": 12,
+              "end": 12,
+              "kind": "handler",
+              "mirror": 2,
+              "read": "port.SWA"
+            },
+            {
+              "start": 13,
+              "end": 13,
+              "kind": "handler",
+              "mirror": 2,
+              "read": "port.SWB"
+            },
+            {
+              "start": 16,
+              "end": 16,
+              "kind": "handler",
+              "mirror": 3,
+              "read": "port.SWB"
+            },
+            {
+              "start": 20,
+              "end": 23,
+              "kind": "handler",
+              "read": "ppi8255.read",
+              "write": "ppi8255.write"
+            }
+          ],
+          "globalMask": 31
+        }
+      },
+      {
+        "tag": "soundcpu",
+        "type": "z80",
+        "clock": 2500000,
+        "region": "soundcpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "mirror": 6144
+          },
+          {
+            "start": 40960,
+            "end": 40960,
+            "kind": "handler",
+            "mirror": 8191,
+            "write": "sn1.write"
+          },
+          {
+            "start": 49152,
+            "end": 49152,
+            "kind": "handler",
+            "mirror": 8191,
+            "write": "sn2.write"
+          },
+          {
+            "start": 57344,
+            "end": 57344,
+            "kind": "handler",
+            "mirror": 8191,
+            "read": "system1_state.sound_data_r"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 32767,
+        "kind": "rom"
+      },
+      {
+        "start": 32768,
+        "end": 49151,
+        "kind": "handler",
+        "read": "bank.bank1",
+        "bank": "bank1"
+      },
+      {
+        "start": 49152,
+        "end": 53247,
+        "kind": "ram",
+        "share": "ram"
+      },
+      {
+        "start": 53248,
+        "end": 55295,
+        "kind": "ram",
+        "share": "spriteram"
+      },
+      {
+        "start": 55296,
+        "end": 57343,
+        "kind": "ram",
+        "share": "paletteram",
+        "write": "system1_state.paletteram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 57344,
+        "end": 61439,
+        "kind": "handler",
+        "read": "system1_state.videoram_r",
+        "write": "system1_state.videoram_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 61440,
+        "end": 62463,
+        "kind": "handler",
+        "read": "system1_state.mixer_collision_r",
+        "write": "system1_state.mixer_collision_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 62464,
+        "end": 63487,
+        "kind": "handler",
+        "write": "system1_state.mixer_collision_reset_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 63488,
+        "end": 64511,
+        "kind": "handler",
+        "read": "system1_state.sprite_collision_r",
+        "write": "system1_state.sprite_collision_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 64512,
+        "end": 65535,
+        "kind": "handler",
+        "write": "system1_state.sprite_collision_reset_w",
+        "handlerWidth": 8
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "mirror": 3,
+          "read": "port.P1"
+        },
+        {
+          "start": 4,
+          "end": 4,
+          "kind": "handler",
+          "mirror": 3,
+          "read": "port.P2"
+        },
+        {
+          "start": 8,
+          "end": 8,
+          "kind": "handler",
+          "mirror": 3,
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 12,
+          "end": 12,
+          "kind": "handler",
+          "mirror": 2,
+          "read": "port.SWA"
+        },
+        {
+          "start": 13,
+          "end": 13,
+          "kind": "handler",
+          "mirror": 2,
+          "read": "port.SWB"
+        },
+        {
+          "start": 16,
+          "end": 16,
+          "kind": "handler",
+          "mirror": 3,
+          "read": "port.SWB"
+        },
+        {
+          "start": 20,
+          "end": 23,
+          "kind": "handler",
+          "read": "ppi8255.read",
+          "write": "ppi8255.write"
+        }
+      ],
+      "globalMask": 31
+    },
+    "screen": {
+      "width": 512,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 60.09615384615385,
+      "htotal": 640,
+      "vtotal": 260,
+      "vbstart": 224,
+      "vbend": 0,
+      "updateMode": "partial",
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "sn76489",
+    "clock": 2500000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489A",
+      "SN76489A"
+    ],
+    "clocks": [
+      2500000,
+      2500000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr5516a.129",
+          "offset": 0,
+          "size": 8192,
+          "crc": "038c82da",
+          "alt": [
+            {
+              "file": "epr-5679.129",
+              "crc": "c4f2f9c2"
+            }
+          ]
+        },
+        {
+          "file": "epr5517a.130",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "6930e1de",
+          "alt": [
+            {
+              "file": "epr-5680.130",
+              "crc": "837f021c"
+            }
+          ]
+        },
+        {
+          "file": "epr-5518.131",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "2a370c99",
+          "alt": [
+            {
+              "file": "epr-5681.131",
+              "crc": "e1c7ff7e"
+            }
+          ]
+        },
+        {
+          "file": "epr-5519.132",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "9d664a58",
+          "alt": [
+            {
+              "file": "epr-5682.132",
+              "crc": "4a5edc1e"
+            }
+          ]
+        },
+        {
+          "file": "epr-5520.133",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "208dfbdf"
+        },
+        {
+          "file": "epr-5521.134",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "e7b8d87a",
+          "alt": [
+            {
+              "file": "epr-5684.133",
+              "crc": "32fa95da"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-5535.3",
+          "offset": 0,
+          "size": 8192,
+          "crc": "cf4e4c45",
+          "alt": [
+            {
+              "file": "epr-5528.3",
+              "crc": "00cd44ab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "epr-5527.82",
+          "offset": 0,
+          "size": 8192,
+          "crc": "b2d616f1"
+        },
+        {
+          "file": "epr-5526.65",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "8a8b33c2"
+        },
+        {
+          "file": "epr-5525.81",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "e749c5ef"
+        },
+        {
+          "file": "epr-5524.64",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "8b886952"
+        },
+        {
+          "file": "epr-5523.80",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "dede35d9"
+        },
+        {
+          "file": "epr-5522.63",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "5e6d9dff"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "epr-5514.86",
+          "offset": 0,
+          "size": 16384,
+          "crc": "fcc0a88b"
+        },
+        {
+          "file": "epr-5515.93",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "60908838"
+        }
+      ]
+    },
+    {
+      "region": "lookup_proms",
+      "size": 256,
+      "loads": [
+        {
+          "file": "pr-5317.106",
+          "offset": 0,
+          "size": 256,
+          "crc": "648350b8"
+        }
+      ]
+    }
+  ],
+  "romTransforms": [
+    {
+      "kind": "sega-z80-decrypt",
+      "algorithm": "segacrpt",
+      "sourceRegion": "maincpu",
+      "targetRegion": "decrypted_opcodes",
+      "start": 0,
+      "end": 32768,
+      "convtable": [
+        8,
+        136,
+        0,
+        128,
+        160,
+        32,
+        128,
+        0,
+        168,
+        160,
+        40,
+        32,
+        136,
+        168,
+        128,
+        160,
+        136,
+        128,
+        8,
+        0,
+        40,
+        8,
+        168,
+        136,
+        136,
+        168,
+        128,
+        160,
+        40,
+        8,
+        168,
+        136,
+        136,
+        168,
+        128,
+        160,
+        160,
+        32,
+        128,
+        0,
+        168,
+        160,
+        40,
+        32,
+        168,
+        160,
+        40,
+        32,
+        136,
+        128,
+        8,
+        0,
+        136,
+        168,
+        128,
+        160,
+        136,
+        168,
+        128,
+        160,
+        136,
+        168,
+        128,
+        160,
+        160,
+        32,
+        128,
+        0,
+        160,
+        32,
+        128,
+        0,
+        8,
+        136,
+        0,
+        128,
+        40,
+        8,
+        168,
+        136,
+        136,
+        168,
+        128,
+        160,
+        136,
+        128,
+        8,
+        0,
+        136,
+        168,
+        128,
+        160,
+        40,
+        8,
+        168,
+        136,
+        136,
+        168,
+        128,
+        160,
+        136,
+        168,
+        128,
+        160,
+        136,
+        168,
+        128,
+        160,
+        136,
+        168,
+        128,
+        160,
+        136,
+        128,
+        8,
+        0,
+        136,
+        128,
+        8,
+        0,
+        8,
+        136,
+        0,
+        128,
+        40,
+        8,
+        168,
+        136
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "value": 4,
+      "name": "Service Mode"
+    },
+    {
+      "port": "SWA",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "SWA",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "SWB",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "SWB",
+      "mask": 6,
+      "value": 6,
+      "name": "Lives"
+    },
+    {
+      "port": "SWB",
+      "mask": 56,
+      "value": 56,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "SWB",
+      "mask": 192,
+      "value": 192,
+      "name": "Difficulty"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    },
+    {
+      "tag": "SYSTEM",
+      "init": 255
+    },
+    {
+      "tag": "SWA",
+      "init": 255
+    },
+    {
+      "tag": "SWB",
+      "init": 254
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

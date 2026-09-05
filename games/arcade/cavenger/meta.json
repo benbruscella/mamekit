@@ -1,0 +1,178 @@
+{
+  "game": "cavenger",
+  "title": "Cosmic Avenger (Universal, 1981)",
+  "fullname": "Cosmic Avenger",
+  "year": "1981",
+  "manufacturer": "Universal",
+  "family": "ladybug",
+  "driverFile": "src/mame/universal/ladybug.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-02-09",
+    "commits": 162,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 57,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 18,
+        "firstCommit": "2016-12-25",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2016-12-16",
+        "lastCommit": "2025-02-09"
+      },
+      {
+        "name": "hap",
+        "commits": 6,
+        "firstCommit": "2022-07-02",
+        "lastCommit": "2022-09-02"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-03-05"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2012-08-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 3,
+        "firstCommit": "2017-03-03",
+        "lastCommit": "2021-01-08"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2012-05-07"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 2,
+        "firstCommit": "2008-08-14",
+        "lastCommit": "2008-08-14"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2021-09-23"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-04-30",
+        "lastCommit": "2009-12-10"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Frank Palazzolo",
+        "commits": 1,
+        "firstCommit": "2021-05-19",
+        "lastCommit": "2021-05-19"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

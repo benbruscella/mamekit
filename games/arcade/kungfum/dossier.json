@@ -1,0 +1,878 @@
+{
+  "game": "kungfum",
+  "title": "Kung-Fu Master (World) (Irem, 1984)",
+  "fullname": "Kung-Fu Master (World)",
+  "year": "1984",
+  "company": "Irem",
+  "family": "m62",
+  "driverFile": "src/mame/irem/m62.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "smf, David Haywood",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "write": "m62_state.m62_hscroll_low_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 45056,
+          "end": 45056,
+          "kind": "handler",
+          "write": "m62_state.m62_hscroll_high_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 49152,
+          "end": 49407,
+          "kind": "ram",
+          "share": "spriteram",
+          "writeOnly": true
+        },
+        {
+          "start": 53248,
+          "end": 57343,
+          "kind": "ram",
+          "share": "m62_tileram",
+          "write": "m62_state.kungfum_tileram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "ram"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "write": "irem_audio.cmd_w",
+            "handlerWidth": 8,
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 1,
+            "end": 1,
+            "kind": "handler",
+            "write": "m62_state.m62_flipscreen_w",
+            "handlerWidth": 8,
+            "read": "port.P1"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "kind": "handler",
+            "read": "port.P2"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "kind": "handler",
+            "read": "port.DSW2"
+          }
+        ],
+        "globalMask": 255
+      }
+    },
+    {
+      "tag": "irem_audio:iremsound",
+      "type": "m6803",
+      "clock": 3579545,
+      "region": "irem_audio:iremsound",
+      "ranges": [
+        {
+          "start": 2048,
+          "end": 2048,
+          "kind": "handler",
+          "mirror": 63484,
+          "write": "irem_audio_device.sound_irq_ack_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 2049,
+          "end": 2050,
+          "kind": "handler",
+          "mirror": 63484,
+          "write": "irem_audio_device.m62_adpcm_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 894886.25,
+    "chips": 2,
+    "deviceTags": [
+      "irem_audio:ay_45m",
+      "irem_audio:ay_45l"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 1
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 2
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 3
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 4
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 5
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "MSM5205",
+        "deviceTag": "irem_audio:msm1",
+        "member": "m_adpcm1",
+        "clock": 384000,
+        "initialMode": "S96_4B",
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 6,
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      },
+      {
+        "type": "MSM5205",
+        "deviceTag": "irem_audio:msm2",
+        "member": "m_adpcm2",
+        "clock": 384000,
+        "initialMode": "SEX_4B",
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 7,
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 256,
+    "xOffset": 128,
+    "yOffset": 0,
+    "refresh": 56.33802816901409,
+    "htotal": 384,
+    "vtotal": 284,
+    "vbstart": 256,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "a-4e-c.bin",
+          "offset": 0,
+          "size": 16384,
+          "crc": "b6e2d083",
+          "alt": [
+            {
+              "file": "snx_a-4e-d",
+              "crc": "fc330a46"
+            },
+            {
+              "file": "a-4e-c-j.bin",
+              "crc": "32a0a9a6"
+            },
+            {
+              "file": "c5.5h",
+              "crc": "5d8e791d"
+            },
+            {
+              "file": "kf4",
+              "crc": "3f65313f"
+            },
+            {
+              "file": "4.bin",
+              "crc": "9f49bdcd"
+            }
+          ]
+        },
+        {
+          "file": "a-4d-c.bin",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "7532918e",
+          "alt": [
+            {
+              "file": "snx_a-4d-d",
+              "crc": "1b2fd32f"
+            },
+            {
+              "file": "a-4d-c-j.bin",
+              "crc": "3173ea78"
+            },
+            {
+              "file": "c4.5k",
+              "crc": "4000e2b8"
+            },
+            {
+              "file": "kf5",
+              "crc": "9ea325f3"
+            },
+            {
+              "file": "5.bin",
+              "crc": "8e7e4c56"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "irem_audio:iremsound",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "a-3e-.bin",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "58e87ab0"
+        },
+        {
+          "file": "a-3f-.bin",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "c81e31ea"
+        },
+        {
+          "file": "a-3h-.bin",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "d99fb995"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "g-4c-a.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6b2cc9c8",
+          "alt": [
+            {
+              "file": "g-4c-a-j.bin",
+              "crc": "8af9c5a6"
+            }
+          ]
+        },
+        {
+          "file": "g-4d-a.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "c648f558",
+          "alt": [
+            {
+              "file": "g-4d-a-j.bin",
+              "crc": "b8300c72"
+            }
+          ]
+        },
+        {
+          "file": "g-4e-a.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "fbe9276e",
+          "alt": [
+            {
+              "file": "g-4e-a-j.bin",
+              "crc": "b50429cd"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "b-4k-.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "16fb5150"
+        },
+        {
+          "file": "b-4f-.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "67745a33"
+        },
+        {
+          "file": "b-4l-.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "bd1c2261"
+        },
+        {
+          "file": "b-4h-.bin",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "8ac5ed3a"
+        },
+        {
+          "file": "b-3n-.bin",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "28a213aa"
+        },
+        {
+          "file": "b-4n-.bin",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "d5228df3"
+        },
+        {
+          "file": "b-4m-.bin",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "b16de4f2"
+        },
+        {
+          "file": "b-3m-.bin",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "eba0d66b"
+        },
+        {
+          "file": "b-4c-.bin",
+          "offset": 65536,
+          "size": 8192,
+          "crc": "01298885"
+        },
+        {
+          "file": "b-4e-.bin",
+          "offset": 73728,
+          "size": 8192,
+          "crc": "c77b87d4"
+        },
+        {
+          "file": "b-4d-.bin",
+          "offset": 81920,
+          "size": 8192,
+          "crc": "6a70615f"
+        },
+        {
+          "file": "b-4a-.bin",
+          "offset": 90112,
+          "size": 8192,
+          "crc": "6189d626"
+        }
+      ]
+    },
+    {
+      "region": "spr_height_prom",
+      "size": 32,
+      "loads": [
+        {
+          "file": "b-5f-.bin",
+          "offset": 0,
+          "size": 32,
+          "crc": "7a601c3d"
+        }
+      ]
+    },
+    {
+      "region": "spr_color_proms",
+      "size": 768,
+      "loads": [
+        {
+          "file": "b-1m-.bin",
+          "offset": 0,
+          "size": 256,
+          "crc": "76c05a9c"
+        },
+        {
+          "file": "b-1n-.bin",
+          "offset": 256,
+          "size": 256,
+          "crc": "23f06b99"
+        },
+        {
+          "file": "b-1l-.bin",
+          "offset": 512,
+          "size": 256,
+          "crc": "35e45021"
+        }
+      ]
+    },
+    {
+      "region": "chr_color_proms",
+      "size": 768,
+      "loads": [
+        {
+          "file": "g-1j-.bin",
+          "offset": 0,
+          "size": 256,
+          "crc": "668e6bca"
+        },
+        {
+          "file": "g-1f-.bin",
+          "offset": 256,
+          "size": 256,
+          "crc": "964b6495"
+        },
+        {
+          "file": "g-1h-.bin",
+          "offset": 512,
+          "size": 256,
+          "crc": "550563e1"
+        }
+      ]
+    },
+    {
+      "region": "timing",
+      "size": 256,
+      "loads": [
+        {
+          "file": "b-6f-.bin",
+          "offset": 0,
+          "size": 256,
+          "crc": "82c20d12"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 16,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW2",
+      "mask": 1,
+      "value": 1,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW2",
+      "mask": 2,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 4,
+      "name": "Coin Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Invulnerability (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Slow Motion Mode (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 16,
+      "value": 16,
+      "name": "Freeze (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 32,
+      "value": 32,
+      "name": "Level Selection Mode (Cheat)"
+    },
+    {
+      "port": "DSW1",
+      "mask": 1,
+      "value": 1,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 2,
+      "value": 2,
+      "name": "Energy Loss"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 12,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 48,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 192,
+      "name": "Coin B"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 124,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 40,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-04-20"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 21,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2015-11-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 14,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-05-20"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2019-02-26",
+        "lastCommit": "2024-11-12"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 5,
+        "firstCommit": "2013-05-19",
+        "lastCommit": "2021-03-13"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 3,
+        "firstCommit": "2022-06-05",
+        "lastCommit": "2026-05-19"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2013-09-12",
+        "lastCommit": "2014-08-26"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2017-06-15"
+      },
+      {
+        "name": "couriersud",
+        "commits": 2,
+        "firstCommit": "2015-06-20",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-29"
+      },
+      {
+        "name": "hap",
+        "commits": 2,
+        "firstCommit": "2022-01-31",
+        "lastCommit": "2022-09-10"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 2,
+        "firstCommit": "2008-04-01",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2013-09-17"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2013-07-16",
+        "lastCommit": "2015-07-27"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2013-01-11"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2021-07-08",
+        "lastCommit": "2021-07-08"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2014-12-01",
+        "lastCommit": "2014-12-01"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Roberto Zandona",
+        "commits": 1,
+        "firstCommit": "2008-04-07",
+        "lastCommit": "2008-04-07"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-02-29"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 42 years ago:\n\nKung-Fu Master (c) 1984 Data East USA, Inc.\n\nExport release. For more complete information on the game itself, please see the original Japanese version entry; \"Spartan X\".\n\n- TRIVIA -\n\nKung-Fu Master was released in December 1984 outside Japan. Originally known in Japan as as \"Spartan X\". \n\nLicensed to Data East for US manufacture and distribution. Kung-Fu Master was the first game that Irem licensed to Data East and was also the first of two genre-defining fighting games released by Data East that year; the other being 'Karate Champ', the world's first one-on-one fighting game.\n\nDifferences between Spartan X and Kung-Fu Master:\n* During the demo screen the word Kung-Fu (in 'A KUNG-FU MASTER, THOMAS....') is spelled 'KANFU' in Spartan X.\n* Spartan X has an additional copyright notice that is not in Kung-Fu Master : '(C)1984 Paragon Films Ltd., Towa Promotion'.\n\nA bootleg of this game was released by O.K. corp. in 1985. \n\nMike Sullivan holds the official record for this game with 1,349,040 points.\n\n- PORTS -\n\n* CONSOLES: \n[AS] Nintendo Famicom (1984) \"Kung Fu\" \n[US] Atari 2600 (may.12, 1987) \"Kung-Fu Master [Model AG-039]\" by Activision\n[US] Nintendo NES (oct.1985) \"Kung Fu [Model NES-SX-USA]\" \n[EU] Nintendo NES (apr.15, 1987) \"Kung Fu [Model NES-SX-NOE]\" \n[US] Atari 7800 (1989) \"Kung-Fu Master [Model AM-039-04]\" by Absolute Entertainment\n\n* HANDHELDS: \n[EU] Nintendo Game Boy (1991) \"Kung Fu Master [Model DMG-SX-NOE]\" \n[US] Nintendo Game Boy (feb.1991) \"Kung Fu Master [Model DMG-SX]\" \n\n* COMPUTERS: \n[US] Apple II (1985) \"Kung Fu Master\" \n[US] Commodore C64 [EU] (1985) \"Kung Fu Master\" \n[EU] Sinclair ZX Spectrum (1986) \"Kung-Fu Master\" by U.S. Gold \n[EU] Amstrad CPC (1987) \"Kung-Fu Master\"\nPC [MS Windows, Online] [EU] (dec.9, 2011) \"IREM Arcade Hits\" by DotEmu \nApple MacIntosh [Online] [US] (aug.21, 2011) \"Irem Arcade Hits\" by DotEmu \nPC [Desura] [US] (nov.2, 2013) \"IREM Arcade Hits\" by Plug In Digital\n\n- SERIES -\n\n1. Kung-Fu Master (1984, Arcade)\n2. Vigilante (1988, Arcade)\n3. Spartan X 2 (1991, Famicom)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1331/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

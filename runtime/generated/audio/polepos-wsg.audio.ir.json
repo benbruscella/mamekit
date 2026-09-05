@@ -1,0 +1,677 @@
+{
+  "schemaVersion": 1,
+  "type": "NAMCO_WSG",
+  "className": "polepos_wsg_device",
+  "deviceType": "POLEPOS_WSG",
+  "voices": 8,
+  "packed": false,
+  "registerCount": 64,
+  "internalRate": 192000,
+  "mixResolution": 1024,
+  "writeMethod": "polepos_sound_w",
+  "readMethod": "polepos_sound_r",
+  "writeProgram": {
+    "operations": [
+      {
+        "op": "if",
+        "condition": {
+          "kind": "binary",
+          "operator": "==",
+          "left": {
+            "kind": "index",
+            "object": {
+              "kind": "identifier",
+              "name": "m_soundregs"
+            },
+            "index": {
+              "kind": "identifier",
+              "name": "offset"
+            }
+          },
+          "right": {
+            "kind": "identifier",
+            "name": "data"
+          }
+        },
+        "then": [
+          {
+            "op": "return"
+          }
+        ]
+      },
+      {
+        "op": "call",
+        "expression": {
+          "kind": "call",
+          "callee": {
+            "kind": "member",
+            "object": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "property": "update"
+          },
+          "args": []
+        }
+      },
+      {
+        "op": "assign",
+        "target": {
+          "kind": "index",
+          "object": {
+            "kind": "identifier",
+            "name": "m_soundregs"
+          },
+          "index": {
+            "kind": "identifier",
+            "name": "offset"
+          }
+        },
+        "operator": "=",
+        "value": {
+          "kind": "identifier",
+          "name": "data"
+        }
+      },
+      {
+        "op": "declare",
+        "name": "ch",
+        "valueType": "int",
+        "value": {
+          "kind": "binary",
+          "operator": ">>",
+          "left": {
+            "kind": "binary",
+            "operator": "&",
+            "left": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "right": {
+              "kind": "number",
+              "value": 31
+            }
+          },
+          "right": {
+            "kind": "number",
+            "value": 2
+          }
+        }
+      },
+      {
+        "op": "declare",
+        "name": "voice",
+        "valueType": "sound_channel&",
+        "value": {
+          "kind": "index",
+          "object": {
+            "kind": "identifier",
+            "name": "m_channel_list"
+          },
+          "index": {
+            "kind": "identifier",
+            "name": "ch"
+          }
+        }
+      },
+      {
+        "op": "switch",
+        "expression": {
+          "kind": "binary",
+          "operator": "&",
+          "left": {
+            "kind": "identifier",
+            "name": "offset"
+          },
+          "right": {
+            "kind": "number",
+            "value": 35
+          }
+        },
+        "cases": [
+          {
+            "values": [
+              {
+                "kind": "number",
+                "value": 0
+              },
+              {
+                "kind": "number",
+                "value": 1
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "voice"
+                  },
+                  "property": "frequency"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_soundregs"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "ch"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "voice"
+                  },
+                  "property": "frequency"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_soundregs"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              },
+              {
+                "op": "break"
+              }
+            ]
+          },
+          {
+            "values": [
+              {
+                "kind": "number",
+                "value": 35
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "voice"
+                  },
+                  "property": "waveform_select"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "values": [
+              {
+                "kind": "number",
+                "value": 2
+              },
+              {
+                "kind": "number",
+                "value": 3
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "voice"
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_soundregs"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "voice"
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_soundregs"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "voice"
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_soundregs"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 35
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "voice"
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_soundregs"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_soundregs"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 35
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "voice"
+                        },
+                        "property": "volume"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "assignment",
+                      "target": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "voice"
+                          },
+                          "property": "volume"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "operator": "=",
+                      "value": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "voice"
+                            },
+                            "property": "volume"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "voice"
+                              },
+                              "property": "volume"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "break"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "diagnostics": []
+  },
+  "engine": {
+    "region": "engine",
+    "clock": 3072000,
+    "outputRate": 24000,
+    "routeGain": 0.6930000000000001,
+    "volumeTable": [
+      0.28,
+      0.36,
+      0.48,
+      0.56,
+      0.73,
+      0.81,
+      0.93,
+      1.01
+    ],
+    "filters": [
+      {
+        "type": "bandpass",
+        "frequency": 150.4456996554281,
+        "damping": 0.5425074942071335,
+        "gain": -0.8863636363636364,
+        "outputResistance": 4700
+      },
+      {
+        "type": "bandpass",
+        "frequency": 425.57152076303015,
+        "damping": 0.48224282217041214,
+        "gain": -1.0999999999999999,
+        "outputResistance": 7500
+      },
+      {
+        "type": "highpass",
+        "frequency": 950,
+        "damping": 1.4144271570014144,
+        "gain": 1,
+        "outputResistance": 10000
+      }
+    ],
+    "outputResistance": 2241.6534181240063
+  },
+  "sourceFiles": [
+    "src/devices/sound/namco.cpp",
+    "src/devices/sound/namco.h",
+    "src/mame/namco/polepos_a.cpp",
+    "src/mame/namco/polepos.cpp"
+  ],
+  "source": {
+    "file": "src/devices/sound/namco.cpp",
+    "line": 379
+  }
+}

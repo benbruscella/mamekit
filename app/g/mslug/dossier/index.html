@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metal Slug - Super Vehicle-001 — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Metal Slug - Super Vehicle-001</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/mslug/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/mslug/mslug-dossier.md" download="mslug-dossier.md">Download mslug-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Nazca · 1996</div>
+    <h1>Metal Slug - Super Vehicle-001</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/mslug.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>mslug</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/snk/neogeo.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>neogeo</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ym2203</strong></div>
+      <div class="fact"><span>Screen</span><strong>320×224 @ 59.19 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>M68000</td><td>12.000 MHz</td><td>28</td></tr><tr><td>audiocpu</td><td>Z80</td><td>4.000 MHz</td><td>6</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>cslot1:maincpu</td><td>201-p1.p1</td><td>0x100000</td><td>0x100000</td><td>08d8daa5</td></tr><tr><td>cslot1:fixed</td><td>201-s1.s1</td><td>0x0</td><td>0x20000</td><td>2f55958d</td></tr><tr><td>fixedbios</td><td>sfix.sfix</td><td>0x0</td><td>0x20000</td><td>c2ea0cfd</td></tr><tr><td>spritegen:zoomy</td><td>000-lo.lo</td><td>0x0</td><td>0x20000</td><td>5a86cff2</td></tr><tr><td>mainbios</td><td>sp-s2.sp1</td><td>0x0</td><td>0x20000</td><td>9036d879</td></tr><tr><td>audiobios</td><td>sm1.sm1</td><td>0x0</td><td>0x20000</td><td>94416d67</td></tr><tr><td>cslot1:audiocpu</td><td>201-m1.m1</td><td>0x0</td><td>0x20000</td><td>c28b3253</td></tr><tr><td>cslot1:ymsnd:adpcma</td><td>201-v1.v1</td><td>0x0</td><td>0x400000</td><td>23d22ed1</td></tr><tr><td>cslot1:ymsnd:adpcma</td><td>201-v2.v2</td><td>0x400000</td><td>0x400000</td><td>472cf9db</td></tr><tr><td>cslot1:sprites</td><td>201-c1.c1</td><td>0x0</td><td>0x400000</td><td>72813676</td></tr><tr><td>cslot1:sprites</td><td>201-c2.c2</td><td>0x1</td><td>0x400000</td><td>96f62574</td></tr><tr><td>cslot1:sprites</td><td>201-c3.c3</td><td>0x800000</td><td>0x400000</td><td>5121456a</td></tr><tr><td>cslot1:sprites</td><td>201-c4.c4</td><td>0x800001</td><td>0x400000</td><td>f4ad59a3</td></tr><tr><td>audiocpu</td><td>sm1.sm1</td><td>0x0</td><td>0x20000</td><td>94416d67</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>5</td><td>coin1</td><td>AUDIO_COIN</td><td>0x1</td></tr><tr><td>6</td><td>coin2</td><td>AUDIO_COIN</td><td>0x2</td></tr><tr><td>9</td><td>service1</td><td>AUDIO_COIN</td><td>0x4</td></tr><tr><td>Up</td><td>joystick up</td><td>edge:JOY1</td><td>0x1</td></tr><tr><td>Down</td><td>joystick down</td><td>edge:JOY1</td><td>0x2</td></tr><tr><td>Left</td><td>joystick left</td><td>edge:JOY1</td><td>0x4</td></tr><tr><td>Right</td><td>joystick right</td><td>edge:JOY1</td><td>0x8</td></tr><tr><td>Space / X</td><td>a</td><td>edge:JOY1</td><td>0x10</td></tr><tr><td>Z</td><td>b</td><td>edge:JOY1</td><td>0x20</td></tr><tr><td>C</td><td>c</td><td>edge:JOY1</td><td>0x40</td></tr><tr><td>1</td><td>start1</td><td>edge:START</td><td>0x1</td></tr><tr><td>2</td><td>start2</td><td>edge:START</td><td>0x4</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/snk/neogeo.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Bryan McPhail,Ernesto Corvi,Andrew Prime,Zsolt Vasvari</strong></div>
+    <div class="fact"><span>Development</span><strong>402 commits by 41 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Vas Crabb, Miodrag Milanovic, David Haywood, Michaël Banaan Ananas</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">SNK Neo-Geo MVS cart. published 30 years ago:
+
+Metal Slug - Super Vehicle-001 (c) 1996 Nazca.
+
+A scrolling 'run-and-gun' platform game for one or two players, Metal Slug is a humorous parody of war and specifically of World War II and the Nazis.
+
+The game features six enemy-packed levels, referred to as 'missions'. Players start the game armed only with a pistol, but extra weapons can be picked up and used for greater firepower. Also, at certain points during a level players will find an unused 'Super Vehicle-001' - or Metal Slug - tank which can be entered and driven. The Metal Slug is slow-moving but has very powerful weapons. If the Slug takes too many hits it will break down and start to flash, the player must then quickly exit the vehicle before it explodes. The enemy troops also have vehicles at their disposal, such as tanks, boats and helicopters.
+
+The levels are littered with bearded hostages who, when rescued, award players with either points bonuses (in the form of medals) or weapon power-ups. Available weapons are Heavy Machine Gun, Flame Shot, Rocket Launcher and Shotgun. Hand grenades are also available.
+
+Each level ends with at least one large enemy 'Boss' vehicle that takes many hits to destroy. Once the boss has been destroyed, bonus points are awarded for each prisoner rescued. Further bonus points are awarded if the player's Metal Slug vehicle has survived the boss battle.</p><details><summary>TECHNICAL</summary><p class="story">Runs on the SNK &quot;Neo-Geo MVS&quot; hardware.
+GAME ID: NGM-201
+
+Players: Up to 2.
+Control: 8-way joystick.
+Buttons: 3 per player.
+=&gt; Character &gt; [A] Shoot, [B] Jump, [C] Grenade
+=&gt; Metal Slug&gt; [A] Gun Attack, [B] Jump Board Vehicle, [C] Artillery Attack</p></details><details><summary>TRIVIA</summary><p class="story">Metal Slug was released in April 1996. 
+
+Etymology of 'Metal Slug': Meeher, the lead designer of the game for Nazca, wanted to create an armored fighting vehicle that could crawl on the ground like a 'slug'. The word 'metal' in the title indicates that the vehicle is mechanical. Initially, players considered the title to be &quot;not good enough&quot;. Meeher later joked about the title, saying &quot;Maybe I don't make much [sic] of a sense?&quot;.
+
+Slugs in Metal Slug sequels included animals (usually only the Vulcan cannon mounted on the animal, with a cannon attachment occasionally available), planes and other vehicles that did not fit Meeher's original definition. 
+
+While being an obvious parody of World War II and the Nazi regime (the rebel army's flag is a deliberate pastiche of the Nazi &quot;Swastika&quot;), Metal Slug also lampoons 'Full Metal Jacket' and 'MASH'. General Morden, the rebel army's evil general, is a parody of Saddam Hussein. 
+
+Just as the two main heroes (Marco &amp; Tarma) appear in every chapter in the Metal Slug series, General Morden &amp; Allen O' Neill (the machine gun wielding, trash mouth-talking, buffed soldier) are the series' classic main villains.
+
+The tank in Metal Slug was inspired by the tank: Dominio Tank Police (1988). The tank in this anime is called Bonaparte and is piloted by Leona Ozaki.
+
+Cliff Reese holds the official record for this game with 2,683,030 points on March 8, 2011. 
+
+The same team that created Metal Slug had previously created a handful of games for Irem, most of which featured very similar graphics and gameplay. &quot;Cyber Lip&quot; (1990) had some of the core developers as the original Metal Slug. &quot;Gunforce&quot; (1991) and &quot;In the Hunt&quot; (1993) had noticeably similar gameplay, with graphics that bear a slight resemblance to Metal Slug. &quot;Gunforce 2&quot; (1994) not only had similar gameplay but the sounds of dying soldiers were almost exactly the same as Metal Slug. Because of this, some fans refer to Gunforce 2 as &quot;Metal Slug Zero&quot;.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* Metal Slug features a 'blood ON' option (soldiers squirt blood when shot, instead of water). This can be activated via the 'Setting The Soft Dip' option in the game's dip switch menu. 
+
+* When you parachute into the level at the start of a mission, press B to make the parachute disappear, allowing your character to drop to the ground more quickly. 
+
+* Don't waste ammo. Metal Slug requires some thinking and shooting indiscriminately is not the best way to play this game. 
+
+* Don't waste special weapons on shields. Shielded soldiers will throw their shields aside when they need to fire, so shoot at them only at this instant. Or use your knife if you manage to get close enough. 
+
+* Use your knife against lone enemies. There is no need to waste ten rounds of your Heavy Machine Gun on a single enemy soldier. 
+
+* When Metal Slug is dangerously low on health (but not so low that you are forced to leave it), use the frontal attack to inflict major damage. 
+
+* Whenever you jump out of the slug, you are invincible for a brief amount of time. This is especially useful against the blue mortars, since they can't be avoided. Note, however, that there is no period of invincibility when you jump back into the slug. 
+
+* There is apparently no 'reload time' when you throw grenades or rockets. The rate depends on how many of either are currently on-screen so if you are close to an enemy, the rate will be negligible. You may use this trick against some bosses and in any other situation to pass through unscratched. 
+
+* The best way to earn points in to rescue hostages, but this can be tricky. The first problem is finding them, the second is to stay alive to the end of the mission to get credit for your rescues. 
+
+As well as the easily-spotted hostages that litter the levels, there are also numerous hidden hostages: 
+
+MISSION 1 (hostages: 10): 
+Two pairs of are hostages hidden in the two waterfalls just before you get to the boss. Just blast the tops of the waterfalls and they will fall. 
+
+MISSION 2 (hostages: 12): 
+Blast down at the green bush underneath the bridge just before you reach the mid level boss (large tank on rails above you) and three secret prisoners will come running in your direction. 
+
+MISSION 3 (hostages: 15): 
+There are secret hostages hidden within the two large trees that you can blast down in the section where you have the Metal Slug tank. These seem to be random, just try blasting those trees down and sometimes they appear. 
+
+There are hidden hostages that drop down from the sky when you are fighting the end of level boss; just don't kill the boss until they have all appeared. 
+
+MISSION 4 (hostages: 20): 
+Just after you have got the Metal Slug tank at the beginning of the level, blast the ceiling of the bar just above the light/lampshade high up on the wall at the entrance of the bar. 
+
+At the end of level bosses you can either blast in the top right hand corner of the cave to get three hidden hostages OR blast the far bottom left hand corner for three hidden hostages. It is not possible to get both of these groups. You can only get one or the other. 
+
+MISSION 5 (hostages: 13):
+Blast the first and second houses and two hostages will appear. 
+
+Fire at the top of the first and second trees in the stage in between the shops and houses. The first tree yields three POW's and the second only two.
+
+Blast the undercarriage of the end of level boss after it has lifted up on stilts to get three extra prisoners who also provide useful power ups. 
+
+MISSION 6 (hostages: 25): 
+At the beginning, shoot above you to find one prisoner. 
+
+Destroy the big pack of rocks to deliver one POW. 
+
+Blast the small white cloud above you just after the boat you are on has run ashore to get two hidden hostages. 
+
+When you're out of the boat, go left in the water to find some points. 
+
+POWs appear on screen during the fight with the final boss, if you shoot in the top right corner. 
+
+* Beat the game in two players mode to view a different ending sequence.</p></details><details><summary>STAFF</summary><p class="story">Designers: Akio Oyabu (Akio), Susumu, Kazuhiro Tanaka (Max.D), Tomohiro, akeshi Okui (T. Okui), Kozo
+Planners: Meeher, Kazuma Kujo (Hire-Nag)
+Sound: Takushi Hiyamuta (Hiya!), Jim
+Programmers: Shinichi Hamada (Hamachan), Kenji Andoh (Andy A.), Atsushi Kurooka (Kurooka), Tetsuya Yokota (T. Yokota), H. Yamada, Pierre</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES:
+SNK Neo-Geo CD (1996)
+Sony PlayStation (1997)
+Sega Saturn (1997)
+Sony PSP (2006) &quot;The Metal Slug Collection&quot;
+Nintendo Wii (2006) &quot;The Metal Slug Collection&quot;
+Sony PlayStation 2 (2006) &quot;The Metal Slug Collection&quot;
+[US] Sony PS2 (may.05, 2008) &quot;SNK Arcade Classics Vol.1 [Model SLUS-21724]&quot;
+[US] Sony PSP (may.05, 2008) &quot;SNK Arcade Classics Vol.1 [Model ULUS-10338]&quot;
+[KO] Sony PS2 (may.29, 2008) &quot;SNK Arcade Classics Vol.1 [Model SLKA-25424]&quot;
+[US] Nintendo Wii (jul.29, 2008) &quot;SNK Arcade Classics Vol.1 [Model RVL-P-RNCE]&quot;
+[EU] Sony PSP (Oct. 17, 2008) &quot;SNK Arcade Classics Vol.1 [Model ULES-01105]&quot;
+[EU] Nintendo Wii (Oct. 31, 2008) &quot;SNK Arcade Classics Vol.1 [Model RVL-P-RJZP]&quot;
+[EU] Sony PS2 (Nov. 21, 2008) &quot;SNK Arcade Classics Vol.1 [Model SLES-55232]&quot;
+[JP] Sony PSP (May. 21, 2009) &quot;SNK Arcade Classics Vol.1 [Model ULJS-193]&quot;
+Sony PlayStation Store (Dec.2010)
+
+* COMPUTERS:
+PC [MS Windows, DVD-ROM] (2009) &quot;Metal Slug Collection PC&quot;</p></details><details><summary>SERIES</summary><p class="story">1. Metal Slug - Super Vehicle-001 [Model NGM-201] (1996, MVS)
+2. Metal Slug 2 - Super Vehicle-001/II [Model NGM-241] (1998, MVS)
+3. Metal Slug X - Super Vehicle-001 [Model NGM-250] (1999, MVS)
+4. Metal Slug - 1st Mission [Model NEOP00210] (1999, NGPC)
+5. Metal Slug - 2nd Mission [Model NEOP00610] (2000, NGPC)
+6. Metal Slug 3 [Model NGM-256] (2000, MVS)
+7. Metal Slug 4 [Model NGM-263] (2002, MVS)
+8. Metal Slug 5 [Model NGM-268] (2003, MVS)
+9. Metal Slug 6 (2006, MVS)
+10. Metal Slug 3D (2006, PS2)
+11. Metal Slug 7 (2008, NDS)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/1613/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

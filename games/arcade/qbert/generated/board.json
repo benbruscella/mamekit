@@ -1,0 +1,4394 @@
+{
+    "schemaVersion": 4,
+    "game": "qbert",
+    "family": "gottlieb",
+    "driverFile": "src/mame/gottlieb/gottlieb.cpp",
+    "callbacks": [
+        {
+            "id": "device:gottlieb_state.gottlieb_core/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "gottlieb_state",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2168,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb_core/screen/callback:screen:1",
+            "ownerTag": "screen",
+            "signal": "screen_vblank",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "INPUT_LINE_NMI",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2169,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/nmi/callback:nmi:0",
+            "ownerTag": "r1sound:nmi",
+            "signal": "output_handler",
+            "operation": "set_inputline",
+            "targetTag": "r1sound:audiocpu",
+            "inputLine": "INPUT_LINE_NMI",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 351,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/riot/callback:riot:0",
+            "ownerTag": "r1sound:riot",
+            "signal": "pb_rd_callback",
+            "operation": "set_ioport",
+            "targetTag": "SB1",
+            "targetPort": "SB1",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 355,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/riot/callback:riot:1",
+            "ownerTag": "r1sound:riot",
+            "signal": "pb_wr_callback",
+            "operation": "set",
+            "targetTag": "r1sound:nmi",
+            "targetClass": "input_merger_device",
+            "targetMethod": "in_w_0",
+            "transforms": [
+                "bit(7)",
+                "invert"
+            ],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 356,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/riot/callback:riot:2",
+            "ownerTag": "r1sound:riot",
+            "signal": "irq_wr_callback",
+            "operation": "set_inputline",
+            "targetTag": "r1sound:audiocpu",
+            "inputLine": "M6502_IRQ_LINE",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 357,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_speech_r1_device.device_add_mconfig/votrax/callback:votrax:0",
+            "ownerTag": "r1sound:votrax",
+            "signal": "ar_callback",
+            "operation": "set",
+            "targetTag": "r1sound:nmi",
+            "targetClass": "input_merger_device",
+            "targetMethod": "in_w_1",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 472,
+                "column": 2
+            }
+        },
+        {
+            "id": "machine:gottlieb_sound_speech_r1a_device.device_add_mconfig/callback:votrax:0",
+            "ownerTag": "r1sound:votrax",
+            "signal": "ar_callback",
+            "operation": "set",
+            "targetTag": "r1sound:nmi",
+            "targetClass": "input_merger_device",
+            "targetMethod": "in_w_1",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 516,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:gottlieb_state.gottlieb_core/screen/callback:screen:1",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "nmi",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2169,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:gottlieb_sound_r1_device.device_add_mconfig/nmi/callback:nmi:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "r1sound:audiocpu",
+                "line": "nmi",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 351,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:gottlieb_sound_r1_device.device_add_mconfig/riot/callback:riot:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "SB1"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 355,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:gottlieb_sound_r1_device.device_add_mconfig/riot/callback:riot:1",
+            "effect": {
+                "kind": "device-method",
+                "tag": "r1sound:nmi",
+                "method": "in_w_0",
+                "ownerClass": "input_merger_device"
+            },
+            "transforms": [
+                {
+                    "kind": "bit",
+                    "bit": 7
+                },
+                {
+                    "kind": "invert"
+                }
+            ],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 356,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:gottlieb_sound_r1_device.device_add_mconfig/riot/callback:riot:2",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "r1sound:audiocpu",
+                "line": "irq",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 357,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:gottlieb_sound_speech_r1_device.device_add_mconfig/votrax/callback:votrax:0",
+            "effect": {
+                "kind": "device-method",
+                "tag": "r1sound:nmi",
+                "method": "in_w_1",
+                "ownerClass": "input_merger_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 472,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "machine:gottlieb_sound_speech_r1a_device.device_add_mconfig/callback:votrax:0",
+            "effect": {
+                "kind": "device-method",
+                "tag": "r1sound:nmi",
+                "method": "in_w_1",
+                "ownerClass": "input_merger_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 516,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "i8088",
+                "clock": 5000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 4095,
+                        "kind": "ram",
+                        "share": "nvram"
+                    },
+                    {
+                        "start": 12288,
+                        "end": 12543,
+                        "kind": "ram",
+                        "mirror": 1792,
+                        "share": "spriteram",
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 14336,
+                        "end": 15359,
+                        "kind": "ram",
+                        "mirror": 1024,
+                        "share": "videoram",
+                        "write": "gottlieb_state.videoram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 16384,
+                        "end": 20479,
+                        "kind": "ram",
+                        "share": "charram",
+                        "write": "gottlieb_state.charram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 20480,
+                        "end": 20511,
+                        "kind": "handler",
+                        "mirror": 2016,
+                        "share": "paletteram",
+                        "write": "gottlieb_state.palette_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 22528,
+                        "end": 22528,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "write": "watchdog.reset_w"
+                    },
+                    {
+                        "start": 22529,
+                        "end": 22529,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "write": "gottlieb_state.analog_reset_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 22530,
+                        "end": 22530,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "write": "gottlieb_state.sound_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 22531,
+                        "end": 22531,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "write": "gottlieb_state.general_output_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 22528,
+                        "end": 22528,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "read": "port.DSW"
+                    },
+                    {
+                        "start": 22529,
+                        "end": 22529,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "read": "port.IN1"
+                    },
+                    {
+                        "start": 22530,
+                        "end": 22530,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "read": "port.IN2"
+                    },
+                    {
+                        "start": 22531,
+                        "end": 22531,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "read": "port.IN3"
+                    },
+                    {
+                        "start": 22532,
+                        "end": 22532,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "read": "port.IN4"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 65535,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 4096,
+                        "end": 12287,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 22531,
+                        "end": 22531,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "write": "gottlieb_state.qbert_output_w"
+                    }
+                ],
+                "mask": 65535,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 5000000,
+                "source": {
+                    "file": "src/mame/gottlieb/gottlieb.cpp",
+                    "line": 2158,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "r1sound:audiocpu",
+                "type": "m6502",
+                "clock": 894886.25,
+                "region": "r1sound:audiocpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 127,
+                        "kind": "handler",
+                        "mirror": 3456,
+                        "read": "r1sound:riot.ram_r",
+                        "write": "r1sound:riot.ram_w"
+                    },
+                    {
+                        "start": 512,
+                        "end": 512,
+                        "kind": "handler",
+                        "mirror": 3576,
+                        "read": "r1sound:riot.pa_data_r",
+                        "write": "r1sound:riot.pa_data_w"
+                    },
+                    {
+                        "start": 513,
+                        "end": 513,
+                        "kind": "handler",
+                        "mirror": 3576,
+                        "read": "r1sound:riot.pa_ddr_r",
+                        "write": "r1sound:riot.pa_ddr_w"
+                    },
+                    {
+                        "start": 514,
+                        "end": 514,
+                        "kind": "handler",
+                        "mirror": 3576,
+                        "read": "r1sound:riot.pb_data_r",
+                        "write": "r1sound:riot.pb_data_w"
+                    },
+                    {
+                        "start": 515,
+                        "end": 515,
+                        "kind": "handler",
+                        "mirror": 3576,
+                        "read": "r1sound:riot.pb_ddr_r",
+                        "write": "r1sound:riot.pb_ddr_w"
+                    },
+                    {
+                        "start": 532,
+                        "end": 535,
+                        "kind": "handler",
+                        "mirror": 3552,
+                        "write": "r1sound:riot.timer_off_w"
+                    },
+                    {
+                        "start": 540,
+                        "end": 543,
+                        "kind": "handler",
+                        "mirror": 3552,
+                        "write": "r1sound:riot.timer_on_w"
+                    },
+                    {
+                        "start": 516,
+                        "end": 516,
+                        "kind": "handler",
+                        "mirror": 3570,
+                        "read": "r1sound:riot.timer_off_r"
+                    },
+                    {
+                        "start": 524,
+                        "end": 524,
+                        "kind": "handler",
+                        "mirror": 3570,
+                        "read": "r1sound:riot.timer_on_r"
+                    },
+                    {
+                        "start": 517,
+                        "end": 517,
+                        "kind": "handler",
+                        "mirror": 3578,
+                        "read": "r1sound:riot.irq_r"
+                    },
+                    {
+                        "start": 516,
+                        "end": 519,
+                        "kind": "handler",
+                        "mirror": 3560,
+                        "write": "r1sound:riot.edge_w"
+                    },
+                    {
+                        "start": 4096,
+                        "end": 4096,
+                        "kind": "handler",
+                        "mirror": 4095,
+                        "write": "r1sound:dac.data_w"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 32767,
+                        "kind": "rom"
+                    }
+                ],
+                "mask": 32767,
+                "space": {
+                    "ownerTag": "r1sound:audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 894886.25,
+                "source": {
+                    "file": "src/mame/shared/gottlieb_a.cpp",
+                    "line": 348,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 5000000,
+                "cycleClock": 5000000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            },
+            {
+                "tag": "r1sound:audiocpu",
+                "kind": "cpu",
+                "clock": 894886.25,
+                "cycleClock": 894886.25,
+                "space": {
+                    "ownerTag": "r1sound:audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "initialShares": [
+            {
+                "share": "nvram",
+                "fill": 255
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            },
+            {
+                "share": "charram",
+                "member": "m_charram"
+            },
+            {
+                "share": "paletteram",
+                "member": "m_paletteram"
+            }
+        ],
+        "startHandlers": [
+            "gottlieb_state.video_start"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 240,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 61.4190251572327,
+            "htotal": 318,
+            "vtotal": 256,
+            "vbstart": 240,
+            "vbend": 0,
+            "updateMode": "partial",
+            "rotate": 270,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2166,
+                "column": 2
+            }
+        },
+        "inputMembers": [
+            {
+                "member": "m_track_x",
+                "tags": [
+                    "TRACKX"
+                ]
+            },
+            {
+                "member": "m_track_y",
+                "tags": [
+                    "TRACKY"
+                ]
+            }
+        ],
+        "frameEvents": [
+            {
+                "callbackId": "device:gottlieb_state.gottlieb_core/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 0,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/gottlieb/gottlieb.cpp",
+                    "line": 2169,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:gottlieb_state.gottlieb_core/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 240,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/gottlieb/gottlieb.cpp",
+                    "line": 2169,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "gottlieb_state.screen_update",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 656,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:gottlieb_state.gottlieb_core/maincpu",
+            "tag": "maincpu",
+            "type": "I8088",
+            "member": "m_maincpu",
+            "clock": 5000000,
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2158,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb_core/nvram",
+            "tag": "nvram",
+            "type": "NVRAM",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2161,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb_core/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2163,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb_core/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        5000000,
+                        318,
+                        0,
+                        256,
+                        256,
+                        0,
+                        240
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2166,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb_core/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2171,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb_core/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2172,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb_core/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2175,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.gottlieb1_votrax/r1sound",
+            "tag": "r1sound",
+            "type": "GOTTLIEB_SOUND_SPEECH_REV1A",
+            "className": "gottlieb_sound_speech_r1a_device",
+            "classHierarchy": [
+                "gottlieb_sound_speech_r1a_device",
+                "gottlieb_sound_speech_r1_device",
+                "gottlieb_sound_r1_device"
+            ],
+            "member": "m_r1_sound",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2193,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_state.qbert_knocker/knocker",
+            "tag": "knocker",
+            "type": "SPEAKER",
+            "clock": 0
+        },
+        {
+            "id": "device:gottlieb_state.qbert_knocker/knocker_sam",
+            "tag": "knocker_sam",
+            "type": "SAMPLES",
+            "member": "m_knocker_sample",
+            "configuration": [
+                {
+                    "method": "set_channels",
+                    "args": [
+                        1
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/audiocpu",
+            "tag": "r1sound:audiocpu",
+            "type": "M6502",
+            "hostTag": "r1sound",
+            "clock": 894886.25,
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 348,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/nmi",
+            "tag": "r1sound:nmi",
+            "type": "INPUT_MERGER_ANY_HIGH",
+            "hostTag": "r1sound",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 351,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/riot",
+            "tag": "r1sound:riot",
+            "type": "MOS6532",
+            "hostTag": "r1sound",
+            "member": "m_riot",
+            "clock": 894886.25,
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 354,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_r1_device.device_add_mconfig/dac",
+            "tag": "r1sound:dac",
+            "type": "MC1408",
+            "hostTag": "r1sound",
+            "member": "m_dac",
+            "clock": 0,
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 360,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gottlieb_sound_speech_r1_device.device_add_mconfig/votrax",
+            "tag": "r1sound:votrax",
+            "type": "VOTRAX_SC01",
+            "hostTag": "r1sound",
+            "member": "m_votrax",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 471,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:gottlieb_state.qbert_output_w",
+            "ownerClass": "gottlieb_state",
+            "method": "qbert_output_w",
+            "parameters": "u8 data",
+            "body": "general_output_w(data & ~0x20);\n\n\t// bit 5 controls the knocker\n\tqbert_knocker(BIT(data, 5));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "general_output_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "unary",
+                                        "operator": "~",
+                                        "operand": {
+                                            "kind": "number",
+                                            "value": 32
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "qbert_knocker"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 747,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.general_output_w",
+            "ownerClass": "gottlieb_state",
+            "method": "general_output_w",
+            "parameters": "u8 data",
+            "body": "// bits 0-3 control video features, and are different for laserdisc games\n\tvideo_control_w(data);\n\n\t// bit 4 normally controls the coin meter\n\tmachine().bookkeeping().coin_counter_w(0, BIT(data, 4));\n\n\t// bit 5 doesn't have a generic function\n\t// bit 6 controls \"COIN1\"; it appears that no games used this\n\t// bit 7 controls the optional coin lockout; it appears that no games used this",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "video_control_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 711,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.video_control_w",
+            "ownerClass": "gottlieb_state",
+            "method": "video_control_w",
+            "parameters": "u8 data",
+            "body": "// bit 0 controls foreground/background priority\n\tif (m_background_priority != (BIT(data, 0)))\n\t\tm_screen->update_partial(m_screen->vpos());\n\tm_background_priority = BIT(data, 0);\n\n\t// bit 1 controls horizontal flip screen\n\tflip_screen_x_set(BIT(data, 1));\n\n\t// bit 2 controls vertical flip screen\n\tflip_screen_y_set(BIT(data, 2));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_background_priority"
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                ]
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "update_partial"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_screen"
+                                                },
+                                                "property": "vpos"
+                                            },
+                                            "args": []
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_background_priority"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "flip_screen_x_set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "flip_screen_y_set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 538,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.qbert_knocker",
+            "ownerClass": "gottlieb_state",
+            "method": "qbert_knocker",
+            "parameters": "u8 knock",
+            "body": "m_knockers[0] = knock ? 1 : 0;\n\n\t// start sound on rising edge\n\tif (knock & ~m_knocker_prev)\n\t\tm_knocker_sample->start(0, 0);\n\tm_knocker_prev = knock;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_knockers"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "identifier",
+                                "name": "knock"
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "knock"
+                            },
+                            "right": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "m_knocker_prev"
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_knocker_sample"
+                                        },
+                                        "property": "start"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_knocker_prev"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "knock"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 1083,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.videoram_w",
+            "ownerClass": "gottlieb_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 579,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.charram_w",
+            "ownerClass": "gottlieb_state",
+            "method": "charram_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "if (m_charram[offset] != data)\n\t{\n\t\tm_charram[offset] = data;\n\t\tm_gfxdecode->gfx(0)->mark_dirty(offset / 32);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_charram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_charram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    }
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_gfxdecode"
+                                                },
+                                                "property": "gfx"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        },
+                                        "property": "mark_dirty"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "/",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offset"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 32
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 586,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.palette_w",
+            "ownerClass": "gottlieb_state",
+            "method": "palette_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "m_paletteram[offset] = data;\n\n\t// blue & green are encoded in the even bytes\n\tint val = m_paletteram[offset & ~1];\n\tint const g = combine_weights(m_weights, BIT(val, 4), BIT(val, 5), BIT(val, 6), BIT(val, 7));\n\tint const b = combine_weights(m_weights, BIT(val, 0), BIT(val, 1), BIT(val, 2), BIT(val, 3));\n\n\t// red is encoded in the odd bytes\n\tval = m_paletteram[offset | 1];\n\tint const r = combine_weights(m_weights, BIT(val, 0), BIT(val, 1), BIT(val, 2), BIT(val, 3));\n\n\t// alpha is set to 0 if laserdisc video is enabled\n\tint const a = (m_transparent0 && offset / 2 == 0) ? 0 : 255;\n\tm_palette->set_pen_color(offset / 2, rgb_t(a, r, g, b));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_paletteram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "val",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_paletteram"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "g",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "combine_weights"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_weights"
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "b",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "combine_weights"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_weights"
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "val"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_paletteram"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "r",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "combine_weights"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_weights"
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "a",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_transparent0"
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "/",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                }
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 0
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 255
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_palette"
+                                },
+                                "property": "set_pen_color"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "/",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "rgb_t"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "a"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "r"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "g"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "b"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 512,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_w",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_w",
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 1156,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.analog_reset_w",
+            "ownerClass": "gottlieb_state",
+            "method": "analog_reset_w",
+            "parameters": "u8 data",
+            "body": "// reset the trackball counters\n\tm_track[0] = m_track_x.read_safe(0);\n\tm_track[1] = m_track_y.read_safe(0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_track"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_track_x"
+                                },
+                                "property": "read_safe"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_track"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_track_y"
+                                },
+                                "property": "read_safe"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 689,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.sound_w",
+            "ownerClass": "gottlieb_state",
+            "method": "sound_w",
+            "parameters": "u8 data",
+            "body": "if (m_r1_sound != nullptr)\n\t\tm_r1_sound->write(data);\n\tif (m_r2_sound != nullptr)\n\t\tm_r2_sound->write(data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_r1_sound"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_r1_sound"
+                                        },
+                                        "property": "write"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_r2_sound"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_r2_sound"
+                                        },
+                                        "property": "write"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 1118,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mos6532_device.ram_r",
+            "ownerClass": "mos6532_device",
+            "method": "ram_r"
+        },
+        {
+            "id": "handler:mos6532_device.ram_w",
+            "ownerClass": "mos6532_device",
+            "method": "ram_w"
+        },
+        {
+            "id": "handler:mos6532_device.pa_data_r",
+            "ownerClass": "mos6532_device",
+            "method": "pa_data_r"
+        },
+        {
+            "id": "handler:mos6532_device.pa_data_w",
+            "ownerClass": "mos6532_device",
+            "method": "pa_data_w"
+        },
+        {
+            "id": "handler:mos6532_device.pa_ddr_r",
+            "ownerClass": "mos6532_device",
+            "method": "pa_ddr_r"
+        },
+        {
+            "id": "handler:mos6532_device.pa_ddr_w",
+            "ownerClass": "mos6532_device",
+            "method": "pa_ddr_w"
+        },
+        {
+            "id": "handler:mos6532_device.pb_data_r",
+            "ownerClass": "mos6532_device",
+            "method": "pb_data_r"
+        },
+        {
+            "id": "handler:mos6532_device.pb_data_w",
+            "ownerClass": "mos6532_device",
+            "method": "pb_data_w"
+        },
+        {
+            "id": "handler:mos6532_device.pb_ddr_r",
+            "ownerClass": "mos6532_device",
+            "method": "pb_ddr_r"
+        },
+        {
+            "id": "handler:mos6532_device.pb_ddr_w",
+            "ownerClass": "mos6532_device",
+            "method": "pb_ddr_w"
+        },
+        {
+            "id": "handler:mos6532_device.timer_off_w",
+            "ownerClass": "mos6532_device",
+            "method": "timer_off_w"
+        },
+        {
+            "id": "handler:mos6532_device.timer_on_w",
+            "ownerClass": "mos6532_device",
+            "method": "timer_on_w"
+        },
+        {
+            "id": "handler:mos6532_device.timer_off_r",
+            "ownerClass": "mos6532_device",
+            "method": "timer_off_r"
+        },
+        {
+            "id": "handler:mos6532_device.timer_on_r",
+            "ownerClass": "mos6532_device",
+            "method": "timer_on_r"
+        },
+        {
+            "id": "handler:mos6532_device.irq_r",
+            "ownerClass": "mos6532_device",
+            "method": "irq_r"
+        },
+        {
+            "id": "handler:mos6532_device.edge_w",
+            "ownerClass": "mos6532_device",
+            "method": "edge_w"
+        },
+        {
+            "id": "handler:dac_byte_interface.data_w",
+            "ownerClass": "dac_byte_interface",
+            "method": "data_w",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 140,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gottlieb_sound_speech_r1_device.votrax_data_w",
+            "ownerClass": "gottlieb_sound_speech_r1_device",
+            "method": "votrax_data_w",
+            "parameters": "u8 data",
+            "body": "m_votrax->inflection_w(data >> 6);\n\tm_votrax->write(~data & 0x3f);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_votrax"
+                                },
+                                "property": "inflection_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 6
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_votrax"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "unary",
+                                        "operator": "~",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 63
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 401,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_sound_r1_device.write",
+            "ownerClass": "gottlieb_sound_r1_device",
+            "method": "write",
+            "parameters": "u8 data",
+            "body": "machine().scheduler().synchronize(timer_expired_delegate(FUNC(gottlieb_sound_r1_device::write_sync), this), data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "scheduler"
+                                    },
+                                    "args": []
+                                },
+                                "property": "synchronize"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "timer_expired_delegate"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "FUNC"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "gottlieb_sound_r1_device::write_sync"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "this"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 295,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_sound_r1_device.write_sync",
+            "ownerClass": "gottlieb_sound_r1_device",
+            "method": "write_sync",
+            "parameters": "s32 param",
+            "body": "// write the command data to the low 6 bits, the low 4 bits are also NANDed together and go to PA7\n\tu8 pa0_5 = ~param & 0x3f;\n\tu8 pa7 = (param & 0x0f) != 0xf;\n\tm_riot->pa_w(0, pa0_5 | (pa7 << 7), 0xbf);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "pa0_5",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "param"
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 63
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "pa7",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "param"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_riot"
+                                },
+                                "property": "pa_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "pa0_5"
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "pa7"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 191
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 287,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_sound_speech_r1_device.speech_clock_dac_w",
+            "ownerClass": "gottlieb_sound_speech_r1_device",
+            "method": "speech_clock_dac_w",
+            "parameters": "u8 data",
+            "body": "//logerror(\"clock = %02X\\n\", data);\n\tm_votrax->set_unscaled_clock(convert_speech_clock(data));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_votrax"
+                                },
+                                "property": "set_unscaled_clock"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "convert_speech_clock"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 423,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_sound_speech_r1_device.convert_speech_clock",
+            "ownerClass": "gottlieb_sound_speech_r1_device",
+            "method": "convert_speech_clock",
+            "parameters": "u8 data",
+            "body": "// prevent negative clock values (and possible crash)\n\tif (data < 0x40) data = 0x40;\n\n\t// totally random guesswork; would like to get real measurements on a board\n\tm_speech_clock = 950000 + (data - 0xa0) * 5500;\n\treturn m_speech_clock;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 64
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 64
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_speech_clock"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "number",
+                                "value": 950000
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 160
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 5500
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "m_speech_clock"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 413,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.video_start",
+            "ownerClass": "gottlieb_state",
+            "method": "video_start",
+            "body": "/* compute palette information\n\t   note that there really are pullup/pulldown resistors, but this situation is complicated\n\t   by the use of transistors, so we ignore that and just use the relative resistor weights */\n\tcompute_resistor_weights(0, 255, -1.0,\n\t\t\t4, resistances, m_weights, 180, 0,\n\t\t\t4, resistances, m_weights, 180, 0,\n\t\t\t4, resistances, m_weights, 180, 0);\n\tm_transparent0 = false;\n\n\t// configure the background tilemap\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gottlieb_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\tm_bg_tilemap->set_transparent_pen(0);\n\n\t// save some state\n\tsave_item(NAME(m_background_priority));\n\tsave_item(NAME(m_spritebank));\n\tsave_item(NAME(m_transparent0));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "compute_resistor_weights"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 255
+                                },
+                                {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 1,
+                                        "floating": true
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 4
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "resistances"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_weights"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 180
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 4
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "resistances"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_weights"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 180
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 4
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "resistances"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_weights"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 180
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_transparent0"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "gottlieb_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_transparent_pen"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_background_priority"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_spritebank"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_transparent0"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 457,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.get_bg_tile_info",
+            "ownerClass": "gottlieb_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int const code = m_videoram[tile_index];\n\tif ((code & 0x80) == 0)\n\t\ttileinfo.set(m_gfxcharlo, code, 0, 0);\n\telse\n\t\ttileinfo.set(m_gfxcharhi, code, 0, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 128
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "tileinfo"
+                                        },
+                                        "property": "set"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_gfxcharlo"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "code"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "tileinfo"
+                                        },
+                                        "property": "set"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_gfxcharhi"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "code"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 596,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:gottlieb_state.screen_update",
+            "ownerClass": "gottlieb_state",
+            "method": "screen_update",
+            "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+            "body": "// if the background has lower priority, render it first, else clear the screen\n\tif (!m_background_priority)\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE, 0);\n\telse\n\t\tbitmap.fill(m_palette->pen(0), cliprect);\n\n\t// draw the sprites\n\tdraw_sprites(bitmap, cliprect);\n\n\t// if the background has higher priority, render it now\n\tif (m_background_priority)\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "m_background_priority"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "draw"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "screen"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "TILEMAP_DRAW_OPAQUE"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        "property": "fill"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_palette"
+                                                },
+                                                "property": "pen"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_background_priority"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "draw"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "screen"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 656,
+                "column": 1
+            },
+            "constants": {
+                "TILEMAP_DRAW_OPAQUE": 128
+            }
+        },
+        {
+            "id": "handler:gottlieb_state.draw_sprites",
+            "ownerClass": "gottlieb_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_rgb32 &bitmap, const rectangle &cliprect",
+            "body": "rectangle clip = cliprect;\n\n\t/* this is a temporary guess until the sprite hardware is better understood\n\t   there is some additional clipping, but this may not be it */\n\tclip.min_x = 8;\n\n\tfor (int offs = 0; offs < 256; offs += 4)\n\t{\n\t\t/* coordinates hand tuned to make the position correct in Q*Bert Qubes start\n\t\t   of level animation. */\n\t\tint sx = (m_spriteram[offs + 1]) - 4;\n\t\tint sy = (m_spriteram[offs]) - 13;\n\t\tint const code = (255 ^ m_spriteram[offs + 2]) + 256 * m_spritebank;\n\n\t\tif (flip_screen_x()) sx = 233 - sx;\n\t\tif (flip_screen_y()) sy = 228 - sy;\n\n\t\tm_gfxdecode->gfx(2)->transpen(bitmap,clip,\n\t\tcode, 0,\n\t\tflip_screen_x(), flip_screen_y(),\n\t\tsx, sy, 0);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "clip",
+                        "valueType": "rectangle",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "cliprect"
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "member",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "clip"
+                            },
+                            "property": "min_x"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 8
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 256
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "sx",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "sy",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 13
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "code",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "^",
+                                        "left": {
+                                            "kind": "number",
+                                            "value": 255
+                                        },
+                                        "right": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "*",
+                                        "left": {
+                                            "kind": "number",
+                                            "value": 256
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "m_spritebank"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "flip_screen_x"
+                                    },
+                                    "args": []
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "sx"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 233
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "sx"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "flip_screen_y"
+                                    },
+                                    "args": []
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "sy"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 228
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "sy"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_gfxdecode"
+                                                },
+                                                "property": "gfx"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            ]
+                                        },
+                                        "property": "transpen"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "clip"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "code"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "flip_screen_x"
+                                            },
+                                            "args": []
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "flip_screen_y"
+                                            },
+                                            "args": []
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "sx"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "sy"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 622,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:input_merger_device.in_w_0",
+            "ownerClass": "input_merger_device",
+            "method": "in_w_0",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 356,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:input_merger_device.in_w_1",
+            "ownerClass": "input_merger_device",
+            "method": "in_w_1",
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 516,
+                "column": 2
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:gottlieb_state.gottlieb_base_map",
+            "className": "gottlieb_state",
+            "name": "gottlieb_base_map",
+            "ranges": [
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range0",
+                    "start": 0,
+                    "end": 4095,
+                    "raw": "map(0x0000, 0x0fff).ram().share(\"nvram\")",
+                    "props": {
+                        "start": 0,
+                        "end": 4095,
+                        "raw": "map(0x0000, 0x0fff).ram().share(\"nvram\")",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1151,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1151,
+                        "ram": true,
+                        "share": "nvram"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1151,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range1",
+                    "start": 12288,
+                    "end": 12543,
+                    "raw": "map(0x3000, 0x30ff).mirror(0x0700).writeonly().share(m_spriteram)",
+                    "props": {
+                        "start": 12288,
+                        "end": 12543,
+                        "raw": "map(0x3000, 0x30ff).mirror(0x0700).writeonly().share(m_spriteram)",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1152,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1152,
+                        "mirror": 1792,
+                        "writeonly": true,
+                        "share": "spriteram"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1152,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range2",
+                    "start": 14336,
+                    "end": 15359,
+                    "raw": "map(0x3800, 0x3bff).mirror(0x0400).ram().w(FUNC(gottlieb_state::videoram_w)).share(m_videoram)",
+                    "write": "gottlieb_state.videoram_w",
+                    "props": {
+                        "start": 14336,
+                        "end": 15359,
+                        "raw": "map(0x3800, 0x3bff).mirror(0x0400).ram().w(FUNC(gottlieb_state::videoram_w)).share(m_videoram)",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1153,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1153,
+                        "mirror": 1024,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1153,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range3",
+                    "start": 16384,
+                    "end": 20479,
+                    "raw": "map(0x4000, 0x4fff).ram().w(FUNC(gottlieb_state::charram_w)).share(m_charram)",
+                    "write": "gottlieb_state.charram_w",
+                    "props": {
+                        "start": 16384,
+                        "end": 20479,
+                        "raw": "map(0x4000, 0x4fff).ram().w(FUNC(gottlieb_state::charram_w)).share(m_charram)",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1154,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1154,
+                        "ram": true,
+                        "share": "charram"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1154,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range4",
+                    "start": 20480,
+                    "end": 20511,
+                    "raw": "map(0x5000, 0x501f).mirror(0x07e0).w(FUNC(gottlieb_state::palette_w)).share(m_paletteram)",
+                    "write": "gottlieb_state.palette_w",
+                    "props": {
+                        "start": 20480,
+                        "end": 20511,
+                        "raw": "map(0x5000, 0x501f).mirror(0x07e0).w(FUNC(gottlieb_state::palette_w)).share(m_paletteram)",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1155,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1155,
+                        "mirror": 2016,
+                        "share": "paletteram"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1155,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range5",
+                    "start": 22528,
+                    "end": 22528,
+                    "raw": "map(0x5800, 0x5800).mirror(0x07f8).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                    "write": "watchdog.reset_w",
+                    "props": {
+                        "start": 22528,
+                        "end": 22528,
+                        "raw": "map(0x5800, 0x5800).mirror(0x07f8).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1156,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1156,
+                        "mirror": 2040
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1156,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range6",
+                    "start": 22529,
+                    "end": 22529,
+                    "raw": "map(0x5801, 0x5801).mirror(0x07f8).w(FUNC(gottlieb_state::analog_reset_w))",
+                    "write": "gottlieb_state.analog_reset_w",
+                    "props": {
+                        "start": 22529,
+                        "end": 22529,
+                        "raw": "map(0x5801, 0x5801).mirror(0x07f8).w(FUNC(gottlieb_state::analog_reset_w))",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1157,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1157,
+                        "mirror": 2040
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1157,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range7",
+                    "start": 22530,
+                    "end": 22530,
+                    "raw": "map(0x5802, 0x5802).mirror(0x07f8).w(FUNC(gottlieb_state::sound_w))",
+                    "write": "gottlieb_state.sound_w",
+                    "props": {
+                        "start": 22530,
+                        "end": 22530,
+                        "raw": "map(0x5802, 0x5802).mirror(0x07f8).w(FUNC(gottlieb_state::sound_w))",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1158,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1158,
+                        "mirror": 2040
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1158,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range8",
+                    "start": 22531,
+                    "end": 22531,
+                    "raw": "map(0x5803, 0x5803).mirror(0x07f8).w(FUNC(gottlieb_state::general_output_w))",
+                    "write": "gottlieb_state.general_output_w",
+                    "props": {
+                        "start": 22531,
+                        "end": 22531,
+                        "raw": "map(0x5803, 0x5803).mirror(0x07f8).w(FUNC(gottlieb_state::general_output_w))",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1159,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1159,
+                        "mirror": 2040
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1159,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range9",
+                    "start": 22528,
+                    "end": 22528,
+                    "raw": "map(0x5800, 0x5800).mirror(0x07f8).portr(\"DSW\")",
+                    "props": {
+                        "start": 22528,
+                        "end": 22528,
+                        "raw": "map(0x5800, 0x5800).mirror(0x07f8).portr(\"DSW\")",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1161,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1161,
+                        "mirror": 2040,
+                        "portRead": "DSW"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1161,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range10",
+                    "start": 22529,
+                    "end": 22529,
+                    "raw": "map(0x5801, 0x5801).mirror(0x07f8).portr(\"IN1\")",
+                    "props": {
+                        "start": 22529,
+                        "end": 22529,
+                        "raw": "map(0x5801, 0x5801).mirror(0x07f8).portr(\"IN1\")",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1162,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1162,
+                        "mirror": 2040,
+                        "portRead": "IN1"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1162,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range11",
+                    "start": 22530,
+                    "end": 22530,
+                    "raw": "map(0x5802, 0x5802).mirror(0x07f8).portr(\"IN2\")",
+                    "props": {
+                        "start": 22530,
+                        "end": 22530,
+                        "raw": "map(0x5802, 0x5802).mirror(0x07f8).portr(\"IN2\")",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1163,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1163,
+                        "mirror": 2040,
+                        "portRead": "IN2"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1163,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range12",
+                    "start": 22531,
+                    "end": 22531,
+                    "raw": "map(0x5803, 0x5803).mirror(0x07f8).portr(\"IN3\")",
+                    "props": {
+                        "start": 22531,
+                        "end": 22531,
+                        "raw": "map(0x5803, 0x5803).mirror(0x07f8).portr(\"IN3\")",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1164,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1164,
+                        "mirror": 2040,
+                        "portRead": "IN3"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1164,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range13",
+                    "start": 22532,
+                    "end": 22532,
+                    "raw": "map(0x5804, 0x5804).mirror(0x07f8).portr(\"IN4\")",
+                    "props": {
+                        "start": 22532,
+                        "end": 22532,
+                        "raw": "map(0x5804, 0x5804).mirror(0x07f8).portr(\"IN4\")",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1165,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1165,
+                        "mirror": 2040,
+                        "portRead": "IN4"
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1165,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_state.gottlieb_base_map/range14",
+                    "start": 24576,
+                    "end": 65535,
+                    "raw": "map(0x6000, 0xffff).rom()",
+                    "props": {
+                        "start": 24576,
+                        "end": 65535,
+                        "raw": "map(0x6000, 0xffff).rom()",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1166,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1166,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1166,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 1148,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:gottlieb_state.gottlieb_ram_map",
+            "className": "gottlieb_state",
+            "name": "gottlieb_ram_map",
+            "ranges": [
+                {
+                    "id": "map:gottlieb_state.gottlieb_ram_map/range0",
+                    "start": 4096,
+                    "end": 12287,
+                    "raw": "map(0x1000, 0x2fff).ram()",
+                    "props": {
+                        "start": 4096,
+                        "end": 12287,
+                        "raw": "map(0x1000, 0x2fff).ram()",
+                        "sourceFile": "src/mame/gottlieb/gottlieb.cpp",
+                        "sourceLine": 1174,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1174,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/gottlieb/gottlieb.cpp",
+                        "line": 1174,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 1170,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:gottlieb_sound_r1_device.r1_map",
+            "className": "gottlieb_sound_r1_device",
+            "name": "r1_map",
+            "ranges": [
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range0",
+                    "start": 0,
+                    "end": 127,
+                    "raw": "map(0x0000, 0x007f).mirror(0x0d80).m(m_riot, FUNC(mos6532_device::ram_map)) -> map(0x00, 0x7f).rw(FUNC(mos6532_device::ram_r), FUNC(mos6532_device::ram_w))",
+                    "read": "r1sound:riot.ram_r",
+                    "write": "r1sound:riot.ram_w",
+                    "props": {
+                        "start": 0,
+                        "end": 127,
+                        "raw": "map(0x0000, 0x007f).mirror(0x0d80).m(m_riot, FUNC(mos6532_device::ram_map)) -> map(0x00, 0x7f).rw(FUNC(mos6532_device::ram_r), FUNC(mos6532_device::ram_w))",
+                        "mirror": 3456
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range1",
+                    "start": 512,
+                    "end": 512,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x00, 0x00).mirror(0x18).rw(FUNC(mos6532_device::pa_data_r), FUNC(mos6532_device::pa_data_w))",
+                    "read": "r1sound:riot.pa_data_r",
+                    "write": "r1sound:riot.pa_data_w",
+                    "props": {
+                        "start": 512,
+                        "end": 512,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x00, 0x00).mirror(0x18).rw(FUNC(mos6532_device::pa_data_r), FUNC(mos6532_device::pa_data_w))",
+                        "mirror": 3576
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range2",
+                    "start": 513,
+                    "end": 513,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x01, 0x01).mirror(0x18).rw(FUNC(mos6532_device::pa_ddr_r), FUNC(mos6532_device::pa_ddr_w))",
+                    "read": "r1sound:riot.pa_ddr_r",
+                    "write": "r1sound:riot.pa_ddr_w",
+                    "props": {
+                        "start": 513,
+                        "end": 513,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x01, 0x01).mirror(0x18).rw(FUNC(mos6532_device::pa_ddr_r), FUNC(mos6532_device::pa_ddr_w))",
+                        "mirror": 3576
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range3",
+                    "start": 514,
+                    "end": 514,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x02, 0x02).mirror(0x18).rw(FUNC(mos6532_device::pb_data_r), FUNC(mos6532_device::pb_data_w))",
+                    "read": "r1sound:riot.pb_data_r",
+                    "write": "r1sound:riot.pb_data_w",
+                    "props": {
+                        "start": 514,
+                        "end": 514,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x02, 0x02).mirror(0x18).rw(FUNC(mos6532_device::pb_data_r), FUNC(mos6532_device::pb_data_w))",
+                        "mirror": 3576
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range4",
+                    "start": 515,
+                    "end": 515,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x03, 0x03).mirror(0x18).rw(FUNC(mos6532_device::pb_ddr_r), FUNC(mos6532_device::pb_ddr_w))",
+                    "read": "r1sound:riot.pb_ddr_r",
+                    "write": "r1sound:riot.pb_ddr_w",
+                    "props": {
+                        "start": 515,
+                        "end": 515,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x03, 0x03).mirror(0x18).rw(FUNC(mos6532_device::pb_ddr_r), FUNC(mos6532_device::pb_ddr_w))",
+                        "mirror": 3576
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range5",
+                    "start": 532,
+                    "end": 535,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x14, 0x17).w(FUNC(mos6532_device::timer_off_w))",
+                    "write": "r1sound:riot.timer_off_w",
+                    "props": {
+                        "start": 532,
+                        "end": 535,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x14, 0x17).w(FUNC(mos6532_device::timer_off_w))",
+                        "mirror": 3552
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range6",
+                    "start": 540,
+                    "end": 543,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x1c, 0x1f).w(FUNC(mos6532_device::timer_on_w))",
+                    "write": "r1sound:riot.timer_on_w",
+                    "props": {
+                        "start": 540,
+                        "end": 543,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x1c, 0x1f).w(FUNC(mos6532_device::timer_on_w))",
+                        "mirror": 3552
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range7",
+                    "start": 516,
+                    "end": 516,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x04, 0x04).mirror(0x12).r(FUNC(mos6532_device::timer_off_r))",
+                    "read": "r1sound:riot.timer_off_r",
+                    "props": {
+                        "start": 516,
+                        "end": 516,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x04, 0x04).mirror(0x12).r(FUNC(mos6532_device::timer_off_r))",
+                        "mirror": 3570
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range8",
+                    "start": 524,
+                    "end": 524,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x0c, 0x0c).mirror(0x12).r(FUNC(mos6532_device::timer_on_r))",
+                    "read": "r1sound:riot.timer_on_r",
+                    "props": {
+                        "start": 524,
+                        "end": 524,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x0c, 0x0c).mirror(0x12).r(FUNC(mos6532_device::timer_on_r))",
+                        "mirror": 3570
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range9",
+                    "start": 517,
+                    "end": 517,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x05, 0x05).mirror(0x1a).r(FUNC(mos6532_device::irq_r))",
+                    "read": "r1sound:riot.irq_r",
+                    "props": {
+                        "start": 517,
+                        "end": 517,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x05, 0x05).mirror(0x1a).r(FUNC(mos6532_device::irq_r))",
+                        "mirror": 3578
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range10",
+                    "start": 516,
+                    "end": 519,
+                    "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x04, 0x07).mirror(0x8).w(FUNC(mos6532_device::edge_w))",
+                    "write": "r1sound:riot.edge_w",
+                    "props": {
+                        "start": 516,
+                        "end": 519,
+                        "raw": "map(0x0200, 0x021f).mirror(0x0de0).m(m_riot, FUNC(mos6532_device::io_map)) -> map(0x04, 0x07).mirror(0x8).w(FUNC(mos6532_device::edge_w))",
+                        "mirror": 3560
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range11",
+                    "start": 4096,
+                    "end": 4096,
+                    "raw": "map(0x1000, 0x1000).mirror(0x0fff).w(\"dac\", FUNC(dac_byte_interface::data_w))",
+                    "write": "r1sound:dac.data_w",
+                    "props": {
+                        "start": 4096,
+                        "end": 4096,
+                        "raw": "map(0x1000, 0x1000).mirror(0x0fff).w(\"dac\", FUNC(dac_byte_interface::data_w))",
+                        "sourceFile": "src/mame/shared/gottlieb_a.cpp",
+                        "sourceLine": 312,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 312,
+                        "mirror": 4095
+                    },
+                    "source": {
+                        "file": "src/mame/shared/gottlieb_a.cpp",
+                        "line": 312,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_r1_device.r1_map/range12",
+                    "start": 24576,
+                    "end": 32767,
+                    "raw": "map(0x6000, 0x7fff).rom()",
+                    "props": {
+                        "start": 24576,
+                        "end": 32767,
+                        "raw": "map(0x6000, 0x7fff).rom()",
+                        "sourceFile": "src/mame/shared/gottlieb_a.cpp",
+                        "sourceLine": 313,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 313,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/shared/gottlieb_a.cpp",
+                        "line": 313,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 305,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:gottlieb_sound_speech_r1_device.r1_map",
+            "className": "gottlieb_sound_speech_r1_device",
+            "name": "r1_map",
+            "ranges": [
+                {
+                    "id": "map:gottlieb_sound_speech_r1_device.r1_map/range0",
+                    "start": 8192,
+                    "end": 8192,
+                    "raw": "map(0x2000, 0x2000).mirror(0x0fff).w(FUNC(gottlieb_sound_speech_r1_device::votrax_data_w))",
+                    "write": "gottlieb_sound_speech_r1_device.votrax_data_w",
+                    "props": {
+                        "start": 8192,
+                        "end": 8192,
+                        "raw": "map(0x2000, 0x2000).mirror(0x0fff).w(FUNC(gottlieb_sound_speech_r1_device::votrax_data_w))",
+                        "sourceFile": "src/mame/shared/gottlieb_a.cpp",
+                        "sourceLine": 437,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 437,
+                        "mirror": 4095
+                    },
+                    "source": {
+                        "file": "src/mame/shared/gottlieb_a.cpp",
+                        "line": 437,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gottlieb_sound_speech_r1_device.r1_map/range1",
+                    "start": 12288,
+                    "end": 12288,
+                    "raw": "map(0x3000, 0x3000).mirror(0x0fff).w(FUNC(gottlieb_sound_speech_r1_device::speech_clock_dac_w))",
+                    "write": "gottlieb_sound_speech_r1_device.speech_clock_dac_w",
+                    "props": {
+                        "start": 12288,
+                        "end": 12288,
+                        "raw": "map(0x3000, 0x3000).mirror(0x0fff).w(FUNC(gottlieb_sound_speech_r1_device::speech_clock_dac_w))",
+                        "sourceFile": "src/mame/shared/gottlieb_a.cpp",
+                        "sourceLine": 438,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 438,
+                        "mirror": 4095
+                    },
+                    "source": {
+                        "file": "src/mame/shared/gottlieb_a.cpp",
+                        "line": 438,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/shared/gottlieb_a.cpp",
+                "line": 434,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_knocker_prev",
+            "bits": 8
+        },
+        {
+            "name": "m_joystick_select",
+            "bits": 8
+        },
+        {
+            "name": "m_track",
+            "bits": 8,
+            "arrayLength": 2
+        },
+        {
+            "name": "m_gfxcharlo",
+            "bits": 8
+        },
+        {
+            "name": "m_gfxcharhi",
+            "bits": 8
+        },
+        {
+            "name": "m_background_priority",
+            "bits": 8
+        },
+        {
+            "name": "m_spritebank",
+            "bits": 8
+        },
+        {
+            "name": "m_transparent0",
+            "bits": 8
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "charram",
+                "offset": 0,
+                "ram": true,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 1,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": "RGN_FRAC(1,1)",
+                    "planes": 4,
+                    "planeOffsets": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "xOffsets": [
+                        0,
+                        4,
+                        8,
+                        12,
+                        16,
+                        20,
+                        24,
+                        28
+                    ],
+                    "yOffsets": [
+                        0,
+                        32,
+                        64,
+                        96,
+                        128,
+                        160,
+                        192,
+                        224
+                    ],
+                    "charIncrement": 256
+                }
+            },
+            {
+                "region": "bgtiles",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 1,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": "RGN_FRAC(1,1)",
+                    "planes": 4,
+                    "planeOffsets": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "xOffsets": [
+                        0,
+                        4,
+                        8,
+                        12,
+                        16,
+                        20,
+                        24,
+                        28
+                    ],
+                    "yOffsets": [
+                        0,
+                        32,
+                        64,
+                        96,
+                        128,
+                        160,
+                        192,
+                        224
+                    ],
+                    "charIncrement": 256
+                }
+            },
+            {
+                "region": "sprites",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 1,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": "RGN_FRAC(1,4)",
+                    "planes": 4,
+                    "planeOffsets": [
+                        "RGN_FRAC(0,4)",
+                        "RGN_FRAC(1,4)",
+                        "RGN_FRAC(2,4)",
+                        "RGN_FRAC(3,4)"
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15
+                    ],
+                    "yOffsets": [
+                        0,
+                        16,
+                        32,
+                        48,
+                        64,
+                        80,
+                        96,
+                        112,
+                        128,
+                        144,
+                        160,
+                        176,
+                        192,
+                        208,
+                        224,
+                        240
+                    ],
+                    "charIncrement": 256
+                }
+            }
+        ],
+        "ramPalette": {
+            "tag": "palette",
+            "entries": 16,
+            "bytesPerEntry": 2,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": 4,
+                    "shift": 8
+                },
+                {
+                    "channel": "g",
+                    "bits": 4,
+                    "shift": 4
+                },
+                {
+                    "channel": "b",
+                    "bits": 4,
+                    "shift": 0
+                }
+            ],
+            "source": {
+                "file": "src/mame/gottlieb/gottlieb.cpp",
+                "line": 2172,
+                "column": 2
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "gottlieb_state.get_bg_tile_info",
+                "transparentPen": 0,
+                "source": {
+                    "file": "src/mame/gottlieb/gottlieb.cpp",
+                    "line": 457,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {
+            "m_track": [
+                0,
+                0
+            ],
+            "m_weights": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "m_transparent0": 0,
+            "resistances": [
+                2000,
+                1000,
+                470,
+                240
+            ],
+            "m_gfxcharhi": 1,
+            "m_gfxcharlo": 1
+        },
+        "source": {
+            "file": "src/mame/gottlieb/gottlieb.cpp",
+            "line": 457,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "dac",
+        "deviceTag": "r1sound:dac",
+        "deviceTags": [
+            "r1sound:dac"
+        ],
+        "deviceType": "MC1408",
+        "deviceTypes": [
+            "MC1408"
+        ],
+        "dacs": [
+            {
+                "deviceTag": "r1sound:dac",
+                "bits": 8,
+                "mapper": "unsigned",
+                "gain": 1
+            }
+        ],
+        "writeMethods": [
+            "data_w",
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "auxiliaryDevices": [
+            {
+                "type": "SAMPLES",
+                "deviceTag": "knocker_sam",
+                "member": "m_knocker_sample",
+                "clock": 0,
+                "gain": 1,
+                "target": "knocker",
+                "writeMethods": [
+                    "start",
+                    "start_raw",
+                    "stop",
+                    "set_volume"
+                ]
+            }
+        ]
+    }
+}

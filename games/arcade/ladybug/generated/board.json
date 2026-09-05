@@ -1,0 +1,3983 @@
+{
+    "schemaVersion": 4,
+    "game": "ladybug",
+    "family": "ladybug",
+    "driverFile": "src/mame/universal/ladybug.cpp",
+    "callbacks": [
+        {
+            "id": "device:ladybug_state.ladybug/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "ladybug_state",
+            "targetMethod": "screen_update_ladybug",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 687,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/videolatch/callback:videolatch:0",
+            "ownerTag": "videolatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 0,
+            "targetClass": "ladybug_state",
+            "targetMethod": "flip_screen_set",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 696,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/palette/callback:palette_init",
+            "ownerTag": "palette",
+            "signal": "palette_init",
+            "operation": "palette_init",
+            "targetClass": "ladybug_state",
+            "targetMethod": "ladybug_palette",
+            "entries": 32,
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 691
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:ladybug_state.ladybug/videolatch/callback:videolatch:0",
+            "effect": {
+                "kind": "video-control",
+                "control": "flip-screen"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 696,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 4000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 24575,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 28671,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 28672,
+                        "end": 29695,
+                        "kind": "handler",
+                        "write": "video.spr_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 32768,
+                        "end": 36863,
+                        "kind": "nop",
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 36864,
+                        "end": 36864,
+                        "kind": "handler",
+                        "read": "port.IN0"
+                    },
+                    {
+                        "start": 36865,
+                        "end": 36865,
+                        "kind": "handler",
+                        "read": "port.IN1"
+                    },
+                    {
+                        "start": 36866,
+                        "end": 36866,
+                        "kind": "handler",
+                        "read": "port.DSW0"
+                    },
+                    {
+                        "start": 36867,
+                        "end": 36867,
+                        "kind": "handler",
+                        "read": "port.DSW1"
+                    },
+                    {
+                        "start": 40960,
+                        "end": 40967,
+                        "kind": "handler",
+                        "write": "videolatch.write_d0"
+                    },
+                    {
+                        "start": 45056,
+                        "end": 49151,
+                        "kind": "handler",
+                        "write": "sn1.write"
+                    },
+                    {
+                        "start": 49152,
+                        "end": 53247,
+                        "kind": "handler",
+                        "write": "sn2.write"
+                    },
+                    {
+                        "start": 53248,
+                        "end": 55295,
+                        "kind": "handler",
+                        "read": "video.bg_r",
+                        "write": "video.bg_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 57344,
+                        "end": 57344,
+                        "kind": "handler",
+                        "read": "port.IN2"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 4000000,
+                "source": {
+                    "file": "src/mame/universal/ladybug.cpp",
+                    "line": 681,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 4000000,
+                "cycleClock": 4000000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "screen": {
+            "width": 240,
+            "height": 192,
+            "xOffset": 8,
+            "yOffset": 32,
+            "refresh": 60.11450381679389,
+            "htotal": 312,
+            "vtotal": 262,
+            "vbstart": 224,
+            "vbend": 32,
+            "updateMode": "frame",
+            "rotate": 270,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 685,
+                "column": 2
+            }
+        },
+        "customs": [
+            {
+                "port": "IN0",
+                "mask": 31,
+                "member": "ladybug_p1_control_r",
+                "handler": "ladybug_state.ladybug_p1_control_r",
+                "activeLow": false
+            },
+            {
+                "port": "IN1",
+                "mask": 31,
+                "member": "ladybug_p2_control_r",
+                "handler": "ladybug_state.ladybug_p2_control_r",
+                "activeLow": false
+            },
+            {
+                "port": "IN1",
+                "mask": 64,
+                "member": "vblank",
+                "source": "screen-vblank",
+                "activeLow": true
+            },
+            {
+                "port": "IN1",
+                "mask": 128,
+                "member": "vblank",
+                "source": "screen-vblank",
+                "activeLow": false
+            }
+        ],
+        "inputMembers": [
+            {
+                "member": "m_p1_control",
+                "tags": [
+                    "CONTP1"
+                ]
+            },
+            {
+                "member": "m_port_dsw0",
+                "tags": [
+                    "DSW0"
+                ]
+            },
+            {
+                "member": "m_p2_control",
+                "tags": [
+                    "CONTP2"
+                ]
+            }
+        ],
+        "inputLatches": [
+            {
+                "port": "COIN",
+                "mask": 1,
+                "activeLow": false,
+                "handler": "ladybug_state.coin1_inserted"
+            },
+            {
+                "port": "COIN",
+                "mask": 2,
+                "activeLow": false,
+                "handler": "ladybug_state.coin2_inserted"
+            }
+        ],
+        "frameEvents": [],
+        "screenUpdate": {
+            "handler": "ladybug_state.screen_update_ladybug",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 216,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:ladybug_state.ladybug/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 4000000,
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 681,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        4914000,
+                        312,
+                        8,
+                        248,
+                        262,
+                        32,
+                        224
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 685,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 690,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 691,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/video",
+            "tag": "video",
+            "type": "LADYBUG_VIDEO",
+            "className": "ladybug_video_device",
+            "classHierarchy": [
+                "ladybug_video_device"
+            ],
+            "member": "m_video",
+            "clock": 4000000,
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 693,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/videolatch",
+            "tag": "videolatch",
+            "type": "LS259",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 695,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 699,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/sn1",
+            "tag": "sn1",
+            "type": "SN76489",
+            "clock": 4000000,
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 701,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:ladybug_state.ladybug/sn2",
+            "tag": "sn2",
+            "type": "SN76489",
+            "clock": 4000000,
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 702,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:ladybug_video_device.spr_w",
+            "ownerClass": "ladybug_video_device",
+            "method": "spr_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "m_spr_ram[offset & 0x03ff] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_spr_ram"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1023
+                                }
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug_video.h",
+                "line": 21,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ls259_device.write_d0",
+            "ownerClass": "ls259_device",
+            "method": "write_d0",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 239,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:sn76489_device.write",
+            "ownerClass": "sn76489_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 241,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ladybug_video_device.bg_r",
+            "ownerClass": "ladybug_video_device",
+            "method": "bg_r",
+            "parameters": "offs_t offset",
+            "body": "return m_bg_ram[offset & 0x07ff];",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_bg_ram"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 2047
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug_video.h",
+                "line": 22,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ladybug_video_device.bg_w",
+            "ownerClass": "ladybug_video_device",
+            "method": "bg_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "m_bg_ram[offset & 0x07ff] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset & 0x03ff);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_bg_ram"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 2047
+                                }
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1023
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug_video.cpp",
+                "line": 40,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ladybug_state.screen_update_ladybug",
+            "ownerClass": "ladybug_state",
+            "method": "screen_update_ladybug",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "bitmap.fill(0, cliprect);\n\tm_video->draw(screen, bitmap, cliprect, flip_screen());\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                "property": "fill"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_video"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "flip_screen"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 216,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:ladybug_video_device.draw",
+            "ownerClass": "ladybug_video_device",
+            "method": "draw",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, rectangle const &cliprect, bool flip",
+            "body": "// TODO: confirm whether sraider hardware actually does this - not used by the game\n\tfor (unsigned offs = 0; offs < 32; ++offs)\n\t{\n\t\tint const scroll = m_bg_ram[((offs & 0x03) << 5) | (offs >> 2)];\n\t\tm_bg_tilemap->set_scrollx(offs, flip ? -scroll : scroll);\n\t}\n\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0);\n\tdraw_sprites(bitmap, cliprect);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "unsigned",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "scroll",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_bg_ram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 5
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "set_scrollx"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        {
+                                            "kind": "conditional",
+                                            "condition": {
+                                                "kind": "identifier",
+                                                "name": "flip"
+                                            },
+                                            "whenTrue": {
+                                                "kind": "unary",
+                                                "operator": "-",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "scroll"
+                                                }
+                                            },
+                                            "whenFalse": {
+                                                "kind": "identifier",
+                                                "name": "scroll"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug_video.cpp",
+                "line": 54,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ladybug_video_device.draw_sprites",
+            "ownerClass": "ladybug_video_device",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "for (int offs = 0x400 - (0x40 << 1); (0x40 << 1) <= offs; offs -= 0x40)\n\t{\n\t\t// find last valid sprite of current block\n\t\tint i = 0;\n\t\twhile ((0x40 > i) && m_spr_ram[offs + i])\n\t\t\ti += 4;\n\n\t\twhile (0 < i)\n\t\t{\n\t\t\ti -= 4;\n\n\t\t\t/*\n\t\t\t abccdddd eeeeeeee fffghhhh iiiiiiii\n\n\t\t\t a: enable?\n\t\t\t b: size (0 = 8x8, 1 = 16x16)\n\t\t\t c: flip\n\t\t\t d: fine-y (coarse-y is from offset)\n\t\t\t e: sprite code (shift right 2 bits for 16x16 sprites)\n\t\t\t f: unknown\n\t\t\t g: sprite bank\n\t\t\t h: color\n\t\t\t i: x position\n\t\t\t*/\n\n\t\t\tif (m_spr_ram[offs + i] & 0x80)\n\t\t\t{\n\t\t\t\tbool const big(m_spr_ram[offs + i] & 0x40);\n\t\t\t\tbool const xflip(m_spr_ram[offs + i] & 0x20);\n\t\t\t\tbool const yflip(m_spr_ram[offs + i] & 0x10);\n\t\t\t\tint const code(m_spr_ram[offs + i + 1] | (BIT(m_spr_ram[offs + i + 2], 4) << 8));\n\t\t\t\tint const color(m_spr_ram[offs + i + 2] & 0x0f);\n\t\t\t\tint const xpos(m_spr_ram[offs + i + 3]);\n\t\t\t\tint const ypos((offs >> 2) | (m_spr_ram[offs + i] & 0x0f));\n\n\t\t\t\tif (big) // 16x16\n\t\t\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap, cliprect, code >> 2, color, xflip, yflip, xpos, ypos - 8, 0);\n\t\t\t\telse // 8x8\n\t\t\t\t\tm_gfxdecode->gfx(2)->transpen(bitmap, cliprect, code, color, xflip, yflip, xpos, ypos, 0);\n\t\t\t}\n\t\t}\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 1024
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                            "kind": "number",
+                                            "value": 64
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<=",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 64
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "-=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 64
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "while",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">",
+                                        "left": {
+                                            "kind": "number",
+                                            "value": 64
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spr_ram"
+                                        },
+                                        "index": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            }
+                                        }
+                                    }
+                                },
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "while",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "<",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 0
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "i"
+                                    }
+                                },
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        "operator": "-=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_spr_ram"
+                                                },
+                                                "index": {
+                                                    "kind": "binary",
+                                                    "operator": "+",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "offs"
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "i"
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 128
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "declare",
+                                                "name": "big",
+                                                "valueType": "bool",
+                                                "value": {
+                                                    "kind": "cast",
+                                                    "valueType": "bool",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spr_ram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "offs"
+                                                                },
+                                                                "right": {
+                                                                    "kind": "identifier",
+                                                                    "name": "i"
+                                                                }
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 64
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "declare",
+                                                "name": "xflip",
+                                                "valueType": "bool",
+                                                "value": {
+                                                    "kind": "cast",
+                                                    "valueType": "bool",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spr_ram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "offs"
+                                                                },
+                                                                "right": {
+                                                                    "kind": "identifier",
+                                                                    "name": "i"
+                                                                }
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 32
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "declare",
+                                                "name": "yflip",
+                                                "valueType": "bool",
+                                                "value": {
+                                                    "kind": "cast",
+                                                    "valueType": "bool",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spr_ram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "offs"
+                                                                },
+                                                                "right": {
+                                                                    "kind": "identifier",
+                                                                    "name": "i"
+                                                                }
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 16
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "declare",
+                                                "name": "code",
+                                                "valueType": "int",
+                                                "value": {
+                                                    "kind": "cast",
+                                                    "valueType": "int",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "|",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spr_ram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "binary",
+                                                                    "operator": "+",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "offs"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "identifier",
+                                                                        "name": "i"
+                                                                    }
+                                                                },
+                                                                "right": {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "binary",
+                                                            "operator": "<<",
+                                                            "left": {
+                                                                "kind": "call",
+                                                                "callee": {
+                                                                    "kind": "identifier",
+                                                                    "name": "BIT"
+                                                                },
+                                                                "args": [
+                                                                    {
+                                                                        "kind": "index",
+                                                                        "object": {
+                                                                            "kind": "identifier",
+                                                                            "name": "m_spr_ram"
+                                                                        },
+                                                                        "index": {
+                                                                            "kind": "binary",
+                                                                            "operator": "+",
+                                                                            "left": {
+                                                                                "kind": "binary",
+                                                                                "operator": "+",
+                                                                                "left": {
+                                                                                    "kind": "identifier",
+                                                                                    "name": "offs"
+                                                                                },
+                                                                                "right": {
+                                                                                    "kind": "identifier",
+                                                                                    "name": "i"
+                                                                                }
+                                                                            },
+                                                                            "right": {
+                                                                                "kind": "number",
+                                                                                "value": 2
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "kind": "number",
+                                                                        "value": 4
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 8
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "declare",
+                                                "name": "color",
+                                                "valueType": "int",
+                                                "value": {
+                                                    "kind": "cast",
+                                                    "valueType": "int",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spr_ram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "binary",
+                                                                    "operator": "+",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "offs"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "identifier",
+                                                                        "name": "i"
+                                                                    }
+                                                                },
+                                                                "right": {
+                                                                    "kind": "number",
+                                                                    "value": 2
+                                                                }
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 15
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "declare",
+                                                "name": "xpos",
+                                                "valueType": "int",
+                                                "value": {
+                                                    "kind": "cast",
+                                                    "valueType": "int",
+                                                    "operand": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_spr_ram"
+                                                        },
+                                                        "index": {
+                                                            "kind": "binary",
+                                                            "operator": "+",
+                                                            "left": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "offs"
+                                                                },
+                                                                "right": {
+                                                                    "kind": "identifier",
+                                                                    "name": "i"
+                                                                }
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 3
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "declare",
+                                                "name": "ypos",
+                                                "valueType": "int",
+                                                "value": {
+                                                    "kind": "cast",
+                                                    "valueType": "int",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "|",
+                                                        "left": {
+                                                            "kind": "binary",
+                                                            "operator": ">>",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "offs"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 2
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "binary",
+                                                            "operator": "&",
+                                                            "left": {
+                                                                "kind": "index",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_spr_ram"
+                                                                },
+                                                                "index": {
+                                                                    "kind": "binary",
+                                                                    "operator": "+",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "offs"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "identifier",
+                                                                        "name": "i"
+                                                                    }
+                                                                }
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 15
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "big"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "call",
+                                                                    "callee": {
+                                                                        "kind": "member",
+                                                                        "object": {
+                                                                            "kind": "identifier",
+                                                                            "name": "m_gfxdecode"
+                                                                        },
+                                                                        "property": "gfx"
+                                                                    },
+                                                                    "args": [
+                                                                        {
+                                                                            "kind": "number",
+                                                                            "value": 1
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                "property": "transpen"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "bitmap"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "cliprect"
+                                                                },
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": ">>",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "code"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "number",
+                                                                        "value": 2
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "color"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "xflip"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "yflip"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "xpos"
+                                                                },
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": "-",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "ypos"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "number",
+                                                                        "value": 8
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ],
+                                                "else": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "call",
+                                                                    "callee": {
+                                                                        "kind": "member",
+                                                                        "object": {
+                                                                            "kind": "identifier",
+                                                                            "name": "m_gfxdecode"
+                                                                        },
+                                                                        "property": "gfx"
+                                                                    },
+                                                                    "args": [
+                                                                        {
+                                                                            "kind": "number",
+                                                                            "value": 2
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                "property": "transpen"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "bitmap"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "cliprect"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "code"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "color"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "xflip"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "yflip"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "xpos"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "ypos"
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug_video.cpp",
+                "line": 67,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ladybug_state.flip_screen_set",
+            "ownerClass": "ladybug_state",
+            "method": "flip_screen_set",
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 696,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ladybug_state.ladybug_p1_control_r",
+            "ownerClass": "ladybug_state",
+            "method": "ladybug_p1_control_r",
+            "body": "return m_p1_control->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_p1_control"
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 270,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ladybug_state.ladybug_p2_control_r",
+            "ownerClass": "ladybug_state",
+            "method": "ladybug_p2_control_r",
+            "body": "// upright cabinet only uses a single set of controls */\n\treturn ((m_port_dsw0->read() & 0x20) ? m_p2_control : m_p1_control)->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_port_dsw0"
+                                                },
+                                                "property": "read"
+                                            },
+                                            "args": []
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 32
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "m_p2_control"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "m_p1_control"
+                                    }
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 275,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ladybug_state.ladybug_palette",
+            "ownerClass": "ladybug_state",
+            "method": "ladybug_palette",
+            "parameters": "palette_device &palette",
+            "body": "// compute the color output resistor weights\n\tdouble rweights[2], gweights[2], bweights[2];\n\tcompute_resistor_weights(0, 255, -1.0,\n\t\t\t2, resistances, rweights, 470, 0,\n\t\t\t2, resistances, gweights, 470, 0,\n\t\t\t2, resistances, bweights, 470, 0);\n\n\tconst u8 *color_prom = memregion(\"proms\")->base();\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\tint bit0, bit1;\n\n\t\t// red component\n\t\tbit0 = BIT(~color_prom[i], 0);\n\t\tbit1 = BIT(~color_prom[i], 5);\n\t\tint const r = combine_weights(rweights, bit0, bit1);\n\n\t\t// green component\n\t\tbit0 = BIT(~color_prom[i], 2);\n\t\tbit1 = BIT(~color_prom[i], 6);\n\t\tint const g = combine_weights(gweights, bit0, bit1);\n\n\t\t// blue component\n\t\tbit0 = BIT(~color_prom[i], 4);\n\t\tbit1 = BIT(~color_prom[i], 7);\n\t\tint const b = combine_weights(bweights, bit0, bit1);\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x20;\n\n\t// characters\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\tu8 const ctabentry = ((i << 3) & 0x18) | ((i >> 2) & 0x07);\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\t// sprites\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\tu8 ctabentry;\n\n\t\tctabentry = bitswap<4>((color_prom[i] >> 0) & 0x0f, 0,1,2,3);\n\t\tpalette.set_pen_indirect(i + 0x20, ctabentry);\n\n\t\tctabentry = bitswap<4>((color_prom[i] >> 4) & 0x0f, 0,1,2,3);\n\t\tpalette.set_pen_indirect(i + 0x40, ctabentry);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "rweights",
+                        "valueType": "double",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "ALLOC"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "gweights",
+                        "valueType": "double",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "ALLOC"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "bweights",
+                        "valueType": "double",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "ALLOC"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "compute_resistor_weights"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 255
+                                },
+                                {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 1,
+                                        "floating": true
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "resistances"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "rweights",
+                                    "floating": true
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 470
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "resistances"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "gweights",
+                                    "floating": true
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 470
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "resistances"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bweights",
+                                    "floating": true
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 470
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color_prom",
+                        "valueType": "auto*",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "memregion"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "proms"
+                                        }
+                                    ]
+                                },
+                                "property": "base"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "bit0",
+                                "valueType": "int"
+                            },
+                            {
+                                "op": "declare",
+                                "name": "bit1",
+                                "valueType": "int"
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "bit0"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "bit1"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "r",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "combine_weights"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "rweights",
+                                            "floating": true
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bit0"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bit1"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "bit0"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "bit1"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 6
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "g",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "combine_weights"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "gweights",
+                                            "floating": true
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bit0"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bit1"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "bit0"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "bit1"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "b",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "combine_weights"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bweights",
+                                            "floating": true
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bit0"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bit1"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_indirect_color"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "rgb_t"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "r"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "g"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "b"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "color_prom"
+                        },
+                        "operator": "+=",
+                        "value": {
+                            "kind": "number",
+                            "value": 32
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "ctabentry",
+                                "valueType": "u8",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 24
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ctabentry"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "ctabentry",
+                                "valueType": "u8"
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "ctabentry"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BITSWAP"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "color_prom"
+                                                    },
+                                                    "index": {
+                                                        "kind": "identifier",
+                                                        "name": "i"
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 15
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 32
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ctabentry"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "ctabentry"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BITSWAP"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "color_prom"
+                                                    },
+                                                    "index": {
+                                                        "kind": "identifier",
+                                                        "name": "i"
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 15
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 64
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ctabentry"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 157,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ladybug_video_device.get_bg_tile_info",
+            "ownerClass": "ladybug_video_device",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int const code = m_bg_ram[tile_index] + (BIT(m_bg_ram[0x0400 | tile_index], 3) << 8);\n\tint const color = m_bg_ram[0x0400 | tile_index] & 0x07;\n\n\ttileinfo.set(0, code, color, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_ram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_bg_ram"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "|",
+                                                "left": {
+                                                    "kind": "number",
+                                                    "value": 1024
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "tile_index"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    ]
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_ram"
+                                },
+                                "index": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 1024
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "tile_index"
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 7
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "constants": {},
+            "source": {
+                "file": "src/mame/universal/ladybug_video.cpp",
+                "line": 46,
+                "column": 1
+            }
+        },
+        {
+            "id": "input-changed:ladybug_state.coin1_inserted",
+            "ownerClass": "ladybug_state",
+            "method": "coin1_inserted",
+            "parameters": "ioport_field &field, u32 param, ioport_value oldval, ioport_value newval",
+            "body": "\n\t/* left coin insertion causes an NMI */\n\tm_maincpu->set_input_line(INPUT_LINE_NMI, newval ? ASSERT_LINE : CLEAR_LINE);\n",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "INPUT_LINE_NMI"
+                                },
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "newval"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "ASSERT_LINE"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 257,
+                "column": 1
+            }
+        },
+        {
+            "id": "input-changed:ladybug_state.coin2_inserted",
+            "ownerClass": "ladybug_state",
+            "method": "coin2_inserted",
+            "parameters": "ioport_field &field, u32 param, ioport_value oldval, ioport_value newval",
+            "body": "\n\t/* right coin insertion causes an IRQ */\n\tif (newval)\n\t\tm_maincpu->set_input_line(0, HOLD_LINE);\n",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "newval"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "HOLD_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 263,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:ladybug_state.ladybug_map",
+            "className": "ladybug_state",
+            "name": "ladybug_map",
+            "ranges": [
+                {
+                    "id": "map:ladybug_state.ladybug_map/range0",
+                    "start": 0,
+                    "end": 24575,
+                    "raw": "map(0x0000, 0x5fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 24575,
+                        "raw": "map(0x0000, 0x5fff).rom()",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 231,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 231,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 231,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range1",
+                    "start": 24576,
+                    "end": 28671,
+                    "raw": "map(0x6000, 0x6fff).ram()",
+                    "props": {
+                        "start": 24576,
+                        "end": 28671,
+                        "raw": "map(0x6000, 0x6fff).ram()",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 232,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 232,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 232,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range2",
+                    "start": 28672,
+                    "end": 29695,
+                    "raw": "map(0x7000, 0x73ff).w(m_video, FUNC(ladybug_video_device::spr_w))",
+                    "write": "video.spr_w",
+                    "props": {
+                        "start": 28672,
+                        "end": 29695,
+                        "raw": "map(0x7000, 0x73ff).w(m_video, FUNC(ladybug_video_device::spr_w))",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 233,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 233
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 233,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range3",
+                    "start": 32768,
+                    "end": 36863,
+                    "raw": "map(0x8000, 0x8fff).nopr()",
+                    "props": {
+                        "start": 32768,
+                        "end": 36863,
+                        "raw": "map(0x8000, 0x8fff).nopr()",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 234,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 234,
+                        "nopr": true
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 234,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range4",
+                    "start": 36864,
+                    "end": 36864,
+                    "raw": "map(0x9000, 0x9000).portr(\"IN0\")",
+                    "props": {
+                        "start": 36864,
+                        "end": 36864,
+                        "raw": "map(0x9000, 0x9000).portr(\"IN0\")",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 235,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 235,
+                        "portRead": "IN0"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 235,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range5",
+                    "start": 36865,
+                    "end": 36865,
+                    "raw": "map(0x9001, 0x9001).portr(\"IN1\")",
+                    "props": {
+                        "start": 36865,
+                        "end": 36865,
+                        "raw": "map(0x9001, 0x9001).portr(\"IN1\")",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 236,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 236,
+                        "portRead": "IN1"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 236,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range6",
+                    "start": 36866,
+                    "end": 36866,
+                    "raw": "map(0x9002, 0x9002).portr(\"DSW0\")",
+                    "props": {
+                        "start": 36866,
+                        "end": 36866,
+                        "raw": "map(0x9002, 0x9002).portr(\"DSW0\")",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 237,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 237,
+                        "portRead": "DSW0"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 237,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range7",
+                    "start": 36867,
+                    "end": 36867,
+                    "raw": "map(0x9003, 0x9003).portr(\"DSW1\")",
+                    "props": {
+                        "start": 36867,
+                        "end": 36867,
+                        "raw": "map(0x9003, 0x9003).portr(\"DSW1\")",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 238,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 238,
+                        "portRead": "DSW1"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 238,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range8",
+                    "start": 40960,
+                    "end": 40967,
+                    "raw": "map(0xa000, 0xa007).w(\"videolatch\", FUNC(ls259_device::write_d0))",
+                    "write": "videolatch.write_d0",
+                    "props": {
+                        "start": 40960,
+                        "end": 40967,
+                        "raw": "map(0xa000, 0xa007).w(\"videolatch\", FUNC(ls259_device::write_d0))",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 239,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 239
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 239,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range9",
+                    "start": 45056,
+                    "end": 49151,
+                    "raw": "map(0xb000, 0xbfff).w(\"sn1\", FUNC(sn76489_device::write))",
+                    "write": "sn1.write",
+                    "props": {
+                        "start": 45056,
+                        "end": 49151,
+                        "raw": "map(0xb000, 0xbfff).w(\"sn1\", FUNC(sn76489_device::write))",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 240,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 240
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 240,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range10",
+                    "start": 49152,
+                    "end": 53247,
+                    "raw": "map(0xc000, 0xcfff).w(\"sn2\", FUNC(sn76489_device::write))",
+                    "write": "sn2.write",
+                    "props": {
+                        "start": 49152,
+                        "end": 53247,
+                        "raw": "map(0xc000, 0xcfff).w(\"sn2\", FUNC(sn76489_device::write))",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 241,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 241
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 241,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range11",
+                    "start": 53248,
+                    "end": 55295,
+                    "raw": "map(0xd000, 0xd7ff).rw(m_video, FUNC(ladybug_video_device::bg_r), FUNC(ladybug_video_device::bg_w))",
+                    "read": "video.bg_r",
+                    "write": "video.bg_w",
+                    "props": {
+                        "start": 53248,
+                        "end": 55295,
+                        "raw": "map(0xd000, 0xd7ff).rw(m_video, FUNC(ladybug_video_device::bg_r), FUNC(ladybug_video_device::bg_w))",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 242,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 242
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 242,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:ladybug_state.ladybug_map/range12",
+                    "start": 57344,
+                    "end": 57344,
+                    "raw": "map(0xe000, 0xe000).portr(\"IN2\")",
+                    "props": {
+                        "start": 57344,
+                        "end": 57344,
+                        "raw": "map(0xe000, 0xe000).portr(\"IN2\")",
+                        "sourceFile": "src/mame/universal/ladybug.cpp",
+                        "sourceLine": 243,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 243,
+                        "portRead": "IN2"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/ladybug.cpp",
+                        "line": 243,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 229,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "gfx1",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "colorBase": 0,
+                "colorCount": 8,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 512,
+                    "planes": 2,
+                    "planeOffsets": [
+                        0,
+                        32768
+                    ],
+                    "xOffsets": [
+                        7,
+                        6,
+                        5,
+                        4,
+                        3,
+                        2,
+                        1,
+                        0
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56
+                    ],
+                    "charIncrement": 64
+                }
+            },
+            {
+                "region": "gfx2",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "colorBase": 32,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": 128,
+                    "planes": 2,
+                    "planeOffsets": [
+                        1,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        2,
+                        4,
+                        6,
+                        8,
+                        10,
+                        12,
+                        14,
+                        128,
+                        130,
+                        132,
+                        134,
+                        136,
+                        138,
+                        140,
+                        142
+                    ],
+                    "yOffsets": [
+                        368,
+                        352,
+                        336,
+                        320,
+                        304,
+                        288,
+                        272,
+                        256,
+                        112,
+                        96,
+                        80,
+                        64,
+                        48,
+                        32,
+                        16,
+                        0
+                    ],
+                    "charIncrement": 512
+                }
+            },
+            {
+                "region": "gfx2",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "colorBase": 32,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 512,
+                    "planes": 2,
+                    "planeOffsets": [
+                        1,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        2,
+                        4,
+                        6,
+                        8,
+                        10,
+                        12,
+                        14
+                    ],
+                    "yOffsets": [
+                        112,
+                        96,
+                        80,
+                        64,
+                        48,
+                        32,
+                        16,
+                        0
+                    ],
+                    "charIncrement": 128
+                }
+            }
+        ],
+        "palette": {
+            "region": "proms",
+            "colorCount": 32,
+            "min": 0,
+            "max": 255,
+            "scaler": -1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": [
+                        0,
+                        5
+                    ],
+                    "inverted": [
+                        true,
+                        true
+                    ],
+                    "resistances": [
+                        470,
+                        220
+                    ],
+                    "pulldown": 470,
+                    "pullup": 0
+                },
+                {
+                    "channel": "g",
+                    "bits": [
+                        2,
+                        6
+                    ],
+                    "inverted": [
+                        true,
+                        true
+                    ],
+                    "resistances": [
+                        470,
+                        220
+                    ],
+                    "pulldown": 470,
+                    "pullup": 0
+                },
+                {
+                    "channel": "b",
+                    "bits": [
+                        4,
+                        7
+                    ],
+                    "inverted": [
+                        true,
+                        true
+                    ],
+                    "resistances": [
+                        470,
+                        220
+                    ],
+                    "pulldown": 470,
+                    "pullup": 0
+                }
+            ],
+            "lookupOffset": 32,
+            "lookupCount": 32,
+            "lookupMask": 15,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 0,
+                    "colorMap": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        1,
+                        9,
+                        17,
+                        25,
+                        2,
+                        10,
+                        18,
+                        26,
+                        3,
+                        11,
+                        19,
+                        27,
+                        4,
+                        12,
+                        20,
+                        28,
+                        5,
+                        13,
+                        21,
+                        29,
+                        6,
+                        14,
+                        22,
+                        30,
+                        7,
+                        15,
+                        23,
+                        31
+                    ],
+                    "lookupOffset": 0,
+                    "lookupCount": 32,
+                    "direct": true
+                },
+                {
+                    "penOffset": 32,
+                    "colorOr": 0,
+                    "lookupOffset": 32,
+                    "lookupCount": 32,
+                    "lookupTerms": [
+                        {
+                            "region": "proms",
+                            "offset": 32,
+                            "mask": 255,
+                            "shift": 0
+                        }
+                    ],
+                    "colorMap": [
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15,
+                        0,
+                        8,
+                        4,
+                        12,
+                        2,
+                        10,
+                        6,
+                        14,
+                        1,
+                        9,
+                        5,
+                        13,
+                        3,
+                        11,
+                        7,
+                        15
+                    ]
+                },
+                {
+                    "penOffset": 64,
+                    "colorOr": 0,
+                    "lookupOffset": 32,
+                    "lookupCount": 32,
+                    "lookupTerms": [
+                        {
+                            "region": "proms",
+                            "offset": 32,
+                            "mask": 255,
+                            "shift": 0
+                        }
+                    ],
+                    "colorMap": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        8,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        4,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        12,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        2,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        6,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        14,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        5,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        13,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        3,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        11,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        7,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15,
+                        15
+                    ]
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/mame/universal/ladybug.cpp",
+                "line": 157,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "ladybug_video_device.get_bg_tile_info",
+                "scrollRows": 32,
+                "transparentPen": 0,
+                "source": {
+                    "file": "src/mame/universal/ladybug_video.cpp",
+                    "line": 24,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {},
+        "source": {
+            "file": "src/mame/universal/ladybug_video.cpp",
+            "line": 24,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "sn76489",
+        "deviceTag": "sn1",
+        "deviceTags": [
+            "sn1",
+            "sn2"
+        ],
+        "deviceType": "SN76489",
+        "writeMethods": [
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.5,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.5,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 0.5,
+                "target": "mono"
+            },
+            {
+                "chip": 1,
+                "channel": 0,
+                "gain": 0.5,
+                "target": "mono"
+            },
+            {
+                "chip": 1,
+                "channel": 1,
+                "gain": 0.5,
+                "target": "mono"
+            },
+            {
+                "chip": 1,
+                "channel": 2,
+                "gain": 0.5,
+                "target": "mono"
+            }
+        ]
+    }
+}

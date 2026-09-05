@@ -1,0 +1,301 @@
+# Gauntlet (rev 14)
+
+**Atari Games · 1985** — transpiled from the MAME driver `src/mame/atari/gauntlet.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/gauntlet.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/gauntlet.webp) | ![cabinet](/artwork/media/cabinets/gauntlet.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | M68010 | 7.159 MHz | 24 |
+| `audiocpu` | M6502 | 1.790 MHz | 11 |
+
+- **Sound:** ym2151 × 1 @ 3.580 MHz
+- **Screen:** 336×240 @ 59.92 Hz
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `136037-1307.9a` | 0x8000 | 0x4000 | `46fe8743` |
+| `maincpu` | `136037-1308.9b` | 0x8001 | 0x4000 | `276e15c4` |
+| `maincpu` | `136037-205.10a` | 0x38000 | 0x4000 | `6d99ed51` |
+| `maincpu` | `136037-206.10b` | 0x38001 | 0x4000 | `545ead91` |
+| `maincpu` | `136037-1409.7a` | 0x48000 | 0x4000 | `6fb8419c` |
+| `maincpu` | `136037-1410.7b` | 0x48001 | 0x4000 | `931bd2a0` |
+| `audiocpu` | `136037-120.16r` | 0x4000 | 0x4000 | `6ee7f3cc` |
+| `audiocpu` | `136037-119.16s` | 0x8000 | 0x8000 | `fa19861f` |
+| `chars` | `136037-104.6p` | 0x0 | 0x4000 | `6c276a1d` |
+| `spr_tiles` | `136037-111.1a` | 0x0 | 0x8000 | `91700f33` |
+| `spr_tiles` | `136037-112.1b` | 0x8000 | 0x8000 | `869330be` |
+| `spr_tiles` | `136037-113.1l` | 0x10000 | 0x8000 | `d497d0a8` |
+| `spr_tiles` | `136037-114.1mn` | 0x18000 | 0x8000 | `29ef9882` |
+| `spr_tiles` | `136037-115.2a` | 0x20000 | 0x8000 | `9510b898` |
+| `spr_tiles` | `136037-116.2b` | 0x28000 | 0x8000 | `11e0ac5b` |
+| `spr_tiles` | `136037-117.2l` | 0x30000 | 0x8000 | `29a5db41` |
+| `spr_tiles` | `136037-118.2mn` | 0x38000 | 0x8000 | `8bf3b263` |
+| `proms` | `74s472-136037-101.7u` | 0x0 | 0x200 | `2964f76f` |
+| `proms` | `74s472-136037-102.5l` | 0x200 | 0x200 | `4d4fec6c` |
+| `proms` | `74s287-136037-103.4r` | 0x400 | 0x100 | `6c5ccf08` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| Z | button2 | `803000` | 0x1 |
+| Space / X | button1 | `803000` | 0x2 |
+| Right | joystick right | `803000` | 0x10 |
+| Left | joystick left | `803000` | 0x20 |
+| Down | joystick down | `803000` | 0x40 |
+| Up | joystick up | `803000` | 0x80 |
+| 6 | coin2 | `COIN` | 0x4 |
+| 5 | coin1 | `COIN` | 0x8 |
+
+## DIP switches (factory defaults)
+
+| Setting | Port | Mask | Default |
+| --- | --- | --- | --- |
+| Service Mode | `803008` | 0x8 | 0x8 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/atari/gauntlet.cpp`
+- **Written by:** Aaron Giles
+- **License:** BSD-3-Clause
+- **Development:** 205 commits by 26 contributors, 2007–2026
+- **Top contributors:** Aaron Giles, Miodrag Milanovic, Olivier Galibert, Vas Crabb, AJR
+
+## The story
+
+Arcade Video game published 41 years ago:
+
+Gauntlet (c) 1985 Atari Games.
+
+Gauntlet is a maze-based shoot-em-up for up to four players. Heavily influenced by classic fantasy conventions, players take on the role of either Thor the Warrior, Thyra the Valkyrie, Merlin the Wizard, or Questor the Elf and must play cooperatively as they explore and fight their way through the enemy-packed mazes. Competitive play is encouraged as players must fight for the limited amount of food, treasure, magic potions and power-up items that litter the dungeons. 
+
+Each of Gauntlet's four characters have different strengths and weaknesses: Thyra has the strongest armour, Thor is best at hand-to-hand combat, Questor has the fastest speed and Merlin has the most powerful magic attacks. The object of the game is simply to survive as long as possible while exploring Gauntlet's mazes in search of treasure, food, magic potions and, ultimately, the exit that leads to the next dungeon. 
+
+The potions - shown as blue bottles - that litter the levels offer either improved character abilities (such as 'speed' or 'extra shot power') or can be used as a 'smart bomb', destroying some or all of the on-screen monsters. Potions are also the only way to kill the game's 'Death' character that appears in many of the stages. Magic potions can be kept and used at the player's discretion by pressing 'Magic' button, although each potion can only be used once. 
+
+The first seven mazes are always the same, but from level 8 onwards, players will find themselves on any one of over a hundred different mazes. If players survive for long enough, the mazes will be repeated in a different order. How long a player lasts depends upon the player's 'health' level. Health continually depletes as time progresses and further health is lost by contact with various monsters or their projectiles. Health can be replenished by consuming the food found in the mazes or by inserting more credits. The many treasure chests that litter the levels can be plundered for points, and collecting treasure increases a player's score multiplier when two or more players are playing the game.
+
+### Technical
+Game ID : 136037
+
+Main CPU : Motorola 68010 (@ 7.15909 Mhz), MOS Technology 6502 (@ 1.789772 Mhz)
+Sound Chips : Yamaha YM2151 (@ 3.579545 Mhz), POKEY (Pot Keyboard Integrated Circuit) (@ 1.789772 Mhz), Texas Instruments TMS5220 (@ 650.826 Khz)
+
+Control per player (4): 8-way joystick
+Buttons per player (4): 2
+
+### Trivia
+Gauntlet was released in October 1985.
+
+Gauntlet was originally going to be called 'Dungeons' and was inspired not only by TSR's tabletop RPG, 'Dungeons & Dragons', but also by another Atari game called 'Dandy'. Dandy's creator, Jack Palevich, tried fruitlessly to get his name added to the list of credits in Gauntlet. In lieu of public recognition, Atari Games Corp gave Pelvich a Gauntlet cabinet, and he in turn agreed not to sue Atari.
+
+Two character names were changed before release. The Valkyrie was originally named 'Amazon' and the Warrior was 'Hulk'" The first character art was produced on January 1, 1984.
+
+Gauntlet's revolutionary, non-linear game-play gave players multiple choices, as they were no longer forced into taking a linear route through the game. Like 'Dungeons & Dragons', Gauntlet players could choose their own path, searching for keys, treasures, food and transporters to take them to other levels. Unlike most other games at the time, the player didn't always have to fight; a simpler route through the dungeon could sometimes be found, or players could simply try to make a run for it.
+
+In the early '80s, arcades were struggling. Manufacturers created more elaborate games that operators could charge more money for ($.50!), but players were resistant to the increase. The question at Atari was: How do we get extra earnings? The idea with Gauntlet was that with four players you earn four times as much with every play. It was a drop-in/drop-out design so if someone died they could immediately rejoin or someone new could step in -- there was no down time, so the quarters just kept coming. Another choice made specifically to increase the coin drop: there was no end to the game. Gauntlet would recycle levels by flipping them horizontally and vertically once the players had run through all of them. Gauntlet was a big success in 1985. But the marketing team at Atari was actually worried about the four-player cabinet. They weren't sure four strangers would want to play a game together and they also had concerns about the four separate coin shoots (which were known to break easily). Confident in his game, Ed Logg convinced the marketing team to just go with it.
+
+Another Gauntlet milestone was in the game's use of sound effects. Synthesized human voices had been used sporadically in games in the early eighties and while it had proved, on most occasions, to be moderately successful, was still considered something of a novelty. Gauntlet, however, revolutionized the concept of in-game speech and added immeasurably to the game's superb atmosphere. The deep timbre of Gauntlet's very own 'Dungeon Master' would guide players through the levels, informing them that 'Elf needs food, badly', or that 'Wizard is about to die' and the always-good advice that is 'Remember, don't shoot food.'
+
+Note: The game contains exactly 212 sounds (including digitized voices, effects and musics).
+
+It was common practice to test a new arcade game at select locations before wide release. The operator was given the cabinet for free, but in exchange they couldn't promote it (as a precaution against competition) and they would share the coin drop numbers of it and all the other machines at the location so that Atari could evaluate the new game's success against current games. But when Ed Logg came by to check on Gauntlet during its field test, he found developers from SEGA snapping photos of the cabinet. Atari pulled it from that location and didn't work with the operator henceforth. A year after Gauntlet's release in 1985, SEGA released a four-player arcade game called "Quartet" (although it was side-scrolling). 
+
+7,848 units were sold in the U.S. A few thousand more were sold in Japan and Europe. Even though Atari considered Gauntlet a success, earlier games like "Space Invaders" and "Ms. Pac-Man" sold hundreds of thousands of cabinets. One of Gauntlet's contemporaries from Atari, the excellent Temple of Doom game, sold just 2,800 copies. 
+
+Note : There were 20 officially released versions (see Updates section for detailed info), including 6 '2-player' versions and various Spanish, German and Japanese versions. Counting 4-player English variants alone, there were 7 releases with various bug-fixes.
+
+The default high score screen of "Cyberball 2072" features names of many Atari arcade games, including GAUNTLET.
+
+Charles Nagle holds the official record for this game with 4,401,169 points on March 28, 2003.
+
+Pony Canyon / Scitron released a limited-edition soundtrack album for this game (That's Atari Music Vol.II : G.S.M. Atari Games 2 - PCCB-00070) on September 21, 1991.
+
+### Updates
+Revision 1 (4-players)
+* First world release.
+
+Revision 2 (4-players)
+* Added an option called 'Disable Speech?' in the operator menu.
+* Fixed some texts in attract mode.
+
+Revision 3 (4-players)
+* German release only.
+
+Revision 4 (4-players)
+* World release.
+
+Revision 5 (4-players)
+* World release.
+
+Revision 6 (4-players)
+* German release only.
+* Added 'All walls turn into exits' trick (see 'Tips And Tricks' section).
+* Added ability to stop the attract mode with the fire button.
+
+Revision 7 (4-players)
+* World release.
+
+Revision 8 (4-players)
+* German release only.
+* Added an option called 'Reduce Text?' in the operator menu.
+
+Revision 9 (4-players)
+* World release.
+
+Revision 10 (4-players)
+* German release only.
+
+Revision 12 (4-players)
+* Japanese release only.
+
+Revision 13 (4-players)
+* Japanese release only.
+
+Revision 14 (4-players)
+* World release.
+* Sequence of boards may be different : After Level 8, either every other level may be skipped (Level 9 = Level 10, Level 10 = Level 12, etc.), or every two levels may be skipped (Level 9 = Level 11, Level 10 = Level 14, etc.), or boards may be played in their normal order. (It may depend on the route taken to Level 8.)
+
+Revision 15 (4-players)
+* Spanish release only.
+
+Revision 1 (2-players)
+* German release only.
+* Based on the latest 4-players revision.
+
+Revision 2 (2-players)
+* Japanese release only.
+
+Revision 3 (2-players)
+* World release.
+
+Revision 4 (2-players)
+* German release only.
+
+Revision 5 (2-players)
+* Japanese release only.
+
+Revision 6 (2-players)
+* World release.
+
+### Tips and tricks
+* Hints for Game Play : The following hints will help you use your health more effectively and score more points per coin :
+1) Play cooperatively.
+2) Allow the player with the best ability to use magic (usually Merlin the Wizard, unless one of the other players has acquired the magic potion for extra magic) to pick up the magic potions.
+3) Save keys and potions and use them conservatively.
+4) Pay attention to your marching order. Allow the players with the best fighting ability and armor (usually Thyra the Valkyrie and Thor the Warrior) to lead the way and fend off attacks.
+5) Avoid contact with the ghosts : they take away your health very quickly and you cannot fight them hand-to-hand.
+
+* If you remain motionless (or basically aimless) and stall off about 30 health, all of the doors will open. Everybody knows this, and the game even tells you about it. The game doesn't tell you that if you stall off about 200 health, all the walls will turn into exits! (work on Revision 6 and +) The game designers had to include this because there are some levels which require you to pick up a key before you exit. If you are already filled up with keys, and the doors are all gone, then it would be IMPOSSIBLE for you to exit, and you would starve to death. What they didn't anticipate, is that certain levels of the game which are really difficult, which would require you to take massive health losses to finish, become very simple if all the walls are exits. Or they can be effectively skipped altogether. Because the game has Monty-Hall levels with lots of food on them, you can use this cheat to only play levels which are a wash or increase your health dramatically, and cut your losses to 200 on all the really hard levels.
+
+* The best character to play, in the LONG run, is Questor. His magic is just as good as Merlin's and his fight ability as good as Thor's. His ability to shoot through cracks in addition to all this (when he has the power potions) makes him the best. Thyra is the worst, although some people regard this as a challenge...
+
+* To manipulate the point value of Death, shoot him. Death's point value takes the following progression : 1000-2000-1000-4000-1000-6000-1000-8000, and then back to start. His value keeps from the previous game.
+
+* You can kill Death painlessly by teleporting on top of him.
+
+* If a previous game ended beyond Level 8, Level 8 in the next game becomes the level that the previous game ended on. If you got a really good sequence of boards in a game and you want to repeat them, turn the machine off and on again after you've entered your high score.
+
+### Staff
+Designer / Programmer : Ed Logg (ED )
+Game programmer : Bob Flanagan (BF )
+Video graphics : Sam Comstock (SWC), Susan G. McBride (SGM), Alan Murphy, Will Noble, Dave Pettigrew (D F)
+Engineer : Pat McCarthy (PMC)
+Technician : Sae Oh (SMO), Cris Drobny (CAD)
+Sound designers : Hal Canon (HAL), Earl Vickers (EAR)
+Cabinet designer : Ken Hata (KEN)
+
+### Ports
+* CONSOLES: 
+[EU] Sega Master System (1990) "Gauntlet [Model 25006]"
+[US] Sony PlayStation (dec.31, 1997) "Arcade's Greatest Hits - The Atari Collection 2 [Model SLUS-00449]" 
+[EU] Sony PlayStation (june.1998) "Arcade's Greatest Hits - The Atari Collection 2 [Model SLES-00712]" 
+[US] Sega Dreamcast (nov.15, 2001) "Midway's Greatest Arcade Hits Vol. 2 [Model T-9714N]" 
+[US] Sony PS2 (nov.18, 2003) "Midway Arcade Treasures [Model SLUS-20801]" 
+[US] Microsoft XBOX (nov.24, 2003) "Midway Arcade Treasures" 
+[US] Nintendo GameCube (dec.18, 2003) "Midway Arcade Treasures [Model DOL-GAKE-USA]" 
+[EU] Microsoft XBOX (feb.6, 2004) "Midway Arcade Treasures" 
+[EU] Sony PS2 (feb.6, 2004) "Midway Arcade Treasures [Model SLES-51927]" 
+[US] Microsoft XBOX 360 [XBLA] (nov.22, 2005) : Retired in 2010
+[EU] Microsoft XBOX 360 [XBLA] (dec.2, 2005) : Retired in 2010
+
+[US] Microsoft XBOX 360 (nov.6, 2012) "Midway Arcade Origins" 
+[US] Sony PlayStation 3 (nov.6, 2012) "Midway Arcade Origins [Model BLUS-31083]"
+[EU] Microsoft XBOX 360 (nov.15, 2012) "Midway Arcade Origins" 
+[EU] Sony PlayStation 3 (nov.15, 2012) "Midway Arcade Origins [Model BLES-01768]"
+
+* HANDHELDS: 
+[EU] Nintendo GBA (sept.16, 2005) "2 Games in One! Gauntlet + Rampart [Model AGB-B69P-EUR]" 
+[US] Nintendo GBA (nov.3, 2005) "2 Games in One! Gauntlet + Rampart [Model AGB-B69E-USA]" 
+[US] Sony PSP (dec.13, 2005) "Midway Arcade Treasures Extended Play [Model ULUS-10059]"
+[EU] Sony PSP (feb.24, 2006) "Midway Arcade Treasures Extended Play [Model ULES-00180]" 
+[US] [EU] [AU] Nintendo DS : Unreleased
+
+* COMPUTERS: 
+[EU] BBC Micro (1984) 
+[EU] Atari XL/XE [Cassette] (1985) 
+[US] Atari XL/XE [Disk] (1985) 
+[US] Commodore C64 [Disc] (1986) 
+[EU] Commodore C64 [Tape] (1986) 
+[US] Tandy Color Computer (1986) "Gantelet" 
+[JP] MSX (1986) 
+[US] [EU] Atari ST (1985) 
+[EU] Amstrad CPC (1987) 
+[US] Apple IIGS (1987) 
+[EU] Amstrad CPC [Tape] (1987) "Les Tresors d'U.S.GOLD" 
+[EU] Amstrad CPC [Disc] (1987) "Les Tresors d'U.S.GOLD" 
+[EU] Commodore C64 [Tape] (1987) "Les Tresors d'U.S.GOLD" 
+[EU] Commodore C64 [Disc] (1987) "Les Tresors d'U.S.GOLD" 
+[EU] Sinclair ZX Spectrum [Tape](1987) "Les Tresors d'U.S.GOLD" 
+[EU] Sinclair ZX Spectrum +3 [Disc] (1987) "Les Tresors d'U.S.GOLD" 
+[EU] Amstrad CPC [Tape] (1988) "Arcade Force Four" 
+[EU] Amstrad CPC [Disc] (1988) "Arcade Force Four" 
+[EU] Commodore C64 [Tape] (1988) "Arcade Force Four" 
+[EU] Commodore C64 [Disc] (1988) "Arcade Force Four" 
+[EU] Sinclair ZX Spectrum [Tape] (1988) "Arcade Force Four" 
+[EU] Atari ST (1988) "Arcade Force Four" 
+[EU] Amstrad CPC (198?) "El Lingote" 
+[EU] Amstrad CPC (198?) "Gauntlet And Gauntlet II [Limited Edition]" 
+[EU] Amstrad CPC (1988) "History In The Making" 
+[EU] Sinclair ZX Spectrum (1988) "History In The Making" 
+[EU] Commodore C64 (1988) "History In The Making" 
+[EU] Amstrad CPC (1988) "Les Geants De L'Arcade" 
+[US] PC [MS-DOS] (1988)
+[EU] Amstrad CPC (1990) "Micro Club No.02" 
+[US] PC [MS Windows, CD-ROM] (jan.1, 1999) "Arcade's Greatest Hits - The Atari Collection 2"
+[US] PC [MS Windows, CD-ROM] (aug.27, 2004) "Midway Arcade Treasures" 
+[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) "Midway Arcade Treasures" 
+
+* OTHERS:
+[US] LCD handheld game (1988) by Tiger Electronics.
+[US] Mobile Phones (sept.8, 2004)
+
+### Series
+1. Gauntlet (1985, Arcade)
+2. Gauntlet II (1986, Arcade) 
+3. Gauntlet - The Deeper Dungeons (1987, Level pack for 8-bit computers) 
+4. Gauntlet [Model NES-GL-USA] (1988, NES)
+5. Gauntlet - The Third Encounter [Model PA2024] (1990, Lynx) 
+6. Gauntlet III - The Final Quest (1991, Atari ST) 
+7. Gauntlet 4 (1993, Mega Drive) 
+8. Gauntlet Legends (1998, Arcade) 
+9. Gauntlet Dark Legacy (2000, Arcade) 
+10. Gauntlet Seven Sorrows (2006, PS2/XBOX)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/938/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `gauntlet`. Play it at [../../../app/g/gauntlet/](../../../app/g/gauntlet/) or [explore the knowledge graph](viewer.html).*

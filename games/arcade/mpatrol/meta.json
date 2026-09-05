@@ -1,0 +1,160 @@
+{
+  "game": "mpatrol",
+  "title": "Moon Patrol (Irem, 1982)",
+  "fullname": "Moon Patrol",
+  "year": "1982",
+  "manufacturer": "Irem",
+  "family": "m52",
+  "driverFile": "src/mame/irem/m52.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 94,
+    "contributors": 22,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Olivier Galibert",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 34,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-04-15"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 19,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 10,
+        "firstCommit": "2017-05-07",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 3,
+        "firstCommit": "2019-02-26",
+        "lastCommit": "2024-06-17"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2012-10-02",
+        "lastCommit": "2012-10-20"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2018-11-01"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-29"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-03-16"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "couriersud",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-25",
+        "lastCommit": "2008-04-25"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2022-09-10",
+        "lastCommit": "2022-09-10"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2017-03-02",
+        "lastCommit": "2017-03-02"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2013-07-16",
+        "lastCommit": "2013-07-16"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-18"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-02-17",
+        "lastCommit": "2008-02-17"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

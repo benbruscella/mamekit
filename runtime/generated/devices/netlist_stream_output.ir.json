@@ -1,0 +1,55 @@
+{
+  "type": "NETLIST_STREAM_OUTPUT",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "snd_nl:cout0"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "konami:cout0"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "snd_nl:cout0"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "snd_nl:cout0"
+      ]
+    },
+    {
+      "game": "popeye",
+      "tags": [
+        "snd_nl:cout0"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "konami:cout0"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "NETLIST_STREAM_OUTPUT",
+    "className": "netlist_mame_stream_output_device",
+    "shortName": "nl_stream_out",
+    "description": "Netlist Stream Output",
+    "sourceFile": "src/devices/machine/netlist.cpp",
+    "sourceLine": 60,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NETLIST_STREAM_OUTPUT, netlist_mame_stream_output_device, \"nl_stream_out\", \"Netlist Stream Output\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

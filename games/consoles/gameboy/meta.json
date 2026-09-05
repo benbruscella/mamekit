@@ -1,0 +1,173 @@
+{
+  "game": "gameboy",
+  "title": "Game Boy (Nintendo, 1990)",
+  "fullname": "Game Boy",
+  "year": "1990",
+  "manufacturer": "Nintendo",
+  "family": "gameboy",
+  "kind": "console",
+  "driverFile": "src/mame/nintendo/gb.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Anthony Kruize,Wilbert Pol",
+  "gitHistory": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-04-14",
+    "commits": 110,
+    "contributors": 24,
+    "topAuthors": [
+      "Vas Crabb",
+      "Miodrag Milanovic",
+      "Fabio Priuli",
+      "Michaël Banaan Ananas",
+      "Wilbert Pol"
+    ],
+    "authorStats": [
+      {
+        "name": "Vas Crabb",
+        "commits": 24,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-09-13"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 21,
+        "firstCommit": "2012-08-21",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 14,
+        "firstCommit": "2013-02-07",
+        "lastCommit": "2014-10-05"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 9,
+        "firstCommit": "2014-06-10",
+        "lastCommit": "2014-06-16"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 9,
+        "firstCommit": "2013-01-31",
+        "lastCommit": "2016-09-30"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2025-04-14"
+      },
+      {
+        "name": "etabeta78",
+        "commits": 3,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2015-04-13"
+      },
+      {
+        "name": "Tauwasser",
+        "commits": 3,
+        "firstCommit": "2016-05-24",
+        "lastCommit": "2017-06-21"
+      },
+      {
+        "name": "AJR",
+        "commits": 2,
+        "firstCommit": "2019-03-09",
+        "lastCommit": "2022-01-03"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2020-02-06"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-08-16",
+        "lastCommit": "2018-12-17"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2013-04-25",
+        "lastCommit": "2016-11-04"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2020-02-07",
+        "lastCommit": "2020-02-07"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2018-01-16",
+        "lastCommit": "2018-01-16"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "incog",
+        "commits": 1,
+        "firstCommit": "2018-01-13",
+        "lastCommit": "2018-01-13"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 1,
+        "firstCommit": "2020-06-10",
+        "lastCommit": "2020-06-10"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Risugami",
+        "commits": 1,
+        "firstCommit": "2018-04-16",
+        "lastCommit": "2018-04-16"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-05-29",
+        "lastCommit": "2013-05-29"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 1,
+        "firstCommit": "2021-12-25",
+        "lastCommit": "2021-12-25"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

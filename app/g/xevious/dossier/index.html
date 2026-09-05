@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xevious (Namco) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Xevious (Namco)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/xevious/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/xevious/xevious-dossier.md" download="xevious-dossier.md">Download xevious-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Namco · 1982</div>
+    <h1>Xevious (Namco)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/xevious.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>xevious</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/namco/galaga.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>galaga</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>wsg</strong></div>
+      <div class="fact"><span>Screen</span><strong>288×224 @ 60.61 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>90°</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>3.072 MHz</td><td>17</td></tr><tr><td>sub</td><td>Z80</td><td>3.072 MHz</td><td>17</td></tr><tr><td>sub2</td><td>Z80</td><td>3.072 MHz</td><td>17</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>xvi_1.3p</td><td>0x0</td><td>0x1000</td><td>09964dda</td></tr><tr><td>maincpu</td><td>xvi_2.3m</td><td>0x1000</td><td>0x1000</td><td>60ecce84</td></tr><tr><td>maincpu</td><td>xvi_3.2m</td><td>0x2000</td><td>0x1000</td><td>79754b7d</td></tr><tr><td>maincpu</td><td>xvi_4.2l</td><td>0x3000</td><td>0x1000</td><td>c7d4bbf0</td></tr><tr><td>sub</td><td>xvi_5.3f</td><td>0x0</td><td>0x1000</td><td>c85b703f</td></tr><tr><td>sub</td><td>xvi_6.3j</td><td>0x1000</td><td>0x1000</td><td>e18cdaad</td></tr><tr><td>sub2</td><td>xvi_7.2c</td><td>0x0</td><td>0x1000</td><td>dd35cf1c</td></tr><tr><td>gfx1</td><td>xvi_12.3b</td><td>0x0</td><td>0x1000</td><td>088c8b26</td></tr><tr><td>gfx2</td><td>xvi_13.3c</td><td>0x0</td><td>0x1000</td><td>de60ba25</td></tr><tr><td>gfx2</td><td>xvi_14.3d</td><td>0x1000</td><td>0x1000</td><td>535cdbbc</td></tr><tr><td>gfx3</td><td>xvi_15.4m</td><td>0x0</td><td>0x2000</td><td>dc2c0ecb</td></tr><tr><td>gfx3</td><td>xvi_17.4p</td><td>0x2000</td><td>0x2000</td><td>dfb587ce</td></tr><tr><td>gfx3</td><td>xvi_16.4n</td><td>0x4000</td><td>0x1000</td><td>605ca889</td></tr><tr><td>gfx3</td><td>xvi_18.4r</td><td>0x5000</td><td>0x2000</td><td>02417d19</td></tr><tr><td>gfx4</td><td>xvi_9.2a</td><td>0x0</td><td>0x1000</td><td>57ed9879</td></tr><tr><td>gfx4</td><td>xvi_10.2b</td><td>0x1000</td><td>0x2000</td><td>ae3ba9e5</td></tr><tr><td>gfx4</td><td>xvi_11.2c</td><td>0x3000</td><td>0x1000</td><td>31e244dd</td></tr><tr><td>proms</td><td>xvi-8.6a</td><td>0x0</td><td>0x100</td><td>5cc2727f</td></tr><tr><td>proms</td><td>xvi-9.6d</td><td>0x100</td><td>0x100</td><td>5c8796cc</td></tr><tr><td>proms</td><td>xvi-10.6e</td><td>0x200</td><td>0x100</td><td>3cb60975</td></tr><tr><td>proms</td><td>xvi-7.4h</td><td>0x300</td><td>0x200</td><td>22d98032</td></tr><tr><td>proms</td><td>xvi-6.4f</td><td>0x500</td><td>0x200</td><td>3a7599f0</td></tr><tr><td>proms</td><td>xvi-4.3l</td><td>0x700</td><td>0x200</td><td>fd8b9d91</td></tr><tr><td>proms</td><td>xvi-5.3m</td><td>0x900</td><td>0x200</td><td>bf906d82</td></tr><tr><td>pals_vidbd</td><td>xvi-3.1f</td><td>0x0</td><td>0x117</td><td>9192d57a</td></tr><tr><td>namco</td><td>xvi-2.7n</td><td>0x0</td><td>0x100</td><td>550f06bc</td></tr><tr><td>namco</td><td>xvi-1.5n</td><td>0x100</td><td>0x100</td><td>77245b66</td></tr><tr><td>50xx:mcu</td><td>50xx.bin</td><td>0x0</td><td>0x800</td><td>a0acbaf7</td></tr><tr><td>51xx:mcu</td><td>51xx.bin</td><td>0x0</td><td>0x400</td><td>c2f57ef8</td></tr><tr><td>54xx:mcu</td><td>54xx.bin</td><td>0x0</td><td>0x400</td><td>ee7357e0</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Up</td><td>joystick up</td><td>IN0</td><td>0x1</td></tr><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>IN0</td><td>0x4</td></tr><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>IN1</td><td>0x1</td></tr><tr><td>1</td><td>start1</td><td>IN1</td><td>0x4</td></tr><tr><td>2</td><td>start2</td><td>IN1</td><td>0x8</td></tr><tr><td>5</td><td>coin1</td><td>IN1</td><td>0x10</td></tr><tr><td>6</td><td>coin2</td><td>IN1</td><td>0x20</td></tr><tr><td>9</td><td>service1</td><td>IN1</td><td>0x40</td></tr><tr><td>Z</td><td>button2</td><td>DSWB</td><td>0x1</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/namco/galaga.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Nicola Salmoria</strong></div>
+    <div class="fact"><span>Development</span><strong>283 commits by 37 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Miodrag Milanovic, Vas Crabb, Ivan Vangelista, hap</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 44 years ago:
+
+Xevious (c) 1982 Namco.
+
+Xevious (pronounced 'zeevious') is a vertically-scrolling shoot-em-up in which the player pilots the heavily-armed 'Solvalou' combat ship and must destroy the evil Xevious forces trying to take over the planet. The Solvalou is equipped with two weapon systems; the forwards-firing &quot;air zapper&quot; for shooting air-based enemies and 'blaster bombs', for destroying ground-based enemies. To enable accurate targetting of the air-to-ground blaster bombs, a white and blue targeting indicator is situated in front of the Solvalou. This flashes when an enemy is in its sights.
+
+Enemy craft appear in a number of different guises; from the standard variety that arrive in large numbers but shoot slow-moving projectiles, to exploding black spheres that shoot projectiles at high speed. There are also rotating shields that cannot be destroyed and must be carefully avoided. Ground enemies are a combination of both stationary bases and moving vehicles, most of which fire slow-moving projectiles. A gigantic, floating fortress called 'Andor Genesis' appears in certain areas; this is defeated by knocking out its core. 
+
+Xevious is divided into 16 different areas, each separated by an area of forest. If the player dies before less than 70% of an area has been completed, play restarts at the beginning of the same area; should a life be lost AFTER 70% of an area has been completed, however, play restarts at the beginning of the next area. After Area 16 has been completed, the game loops back to Area 7.
+
+The game becomes progressively more difficult as the player becomes more skilled - once the player does well at destroying a certain enemy type, a more advanced enemy type will replace it. This can be reverted by destroying flashing-red 'Zolback' radars found on the ground, which will cause the more advanced enemies to be replaced with weaker ones.</p><details><summary>CAST OF CHARACTERS</summary><p class="story">AIR UNITS : 
+These are the air units you will encounter during the game. A players skill will determine what air units they may face. 
+* Andor Genesis (mother ship) - the large ship in Areas 4, 9, and 14. 
+* Bacura (resistor shield) - the large rotating floating walls which are indestructible. 
+* Brag Zakato (energy blaster) - medium black ball, with a red dot, that explode and send several shots at your Solvalou. 
+* Bragza (crystal) - the crystal core of the Andor Genesis mother ship which escapes upon its destruction. 
+* Garu Zakato (energy bombarder) - large black ball that explode sending out a multitude of shots in all directions. 
+* Giddo Spario (energy blast) - small, white crystal-like projectiles that come in diagonally at your Solvalou. 
+* Jara (spinner) - looks like a UFO with a spinning gear in the middle. 
+* Kapi (deflector) - flat-looking fighter with two front projections that flies in, fires multiple shots, then escapes quickly. 
+* Sheonite (escort) - small spinning diamond-shaped craft which escort your Solvalou for a bit and fly off. 
+* Terrazi (destructor) - flat looking, diamond shaped fighter that flies in, fires multiple shots, then escapes quickly. 
+* Torkan (scout ship) - ridged fighter that flies in, fires one shot, then escapes quickly. 
+* Toroid (fleet) - ring-shaped fighter which is traditionally the first enemy you encounter. 
+* Zakato (energy launcher) - small black ball that explodes sending a single shot at your Solvalou. 
+* Zoshi (death squad) - the round spinning fighter which can sometimes attack from behind. 
+
+GROUND UNITS : 
+These are the ground units you will encounter during the game. 
+* Barra (energy station) - small pyramid-shaped buildings. 
+* Boza Logram (dome network) - a structure of four Lograms surrounding a Derota. 
+* Derota (defense site) - the small octagonal-shaped gun batteries that fire multiple shots at your Solvalou. 
+* Domogram (rover) - looks like a mobile Logram that travels along the roads and fires shots at your Solvalou. 
+* Garu Barra (energy base) - medium and large pyramid-shaped buildings. 
+* Garu Derota (mega site) - the large octagonal-shaped gun batteries that fire multiple shots at your Solvalou. 
+* Grobda (tank) - the tank-like vehicles that travel along the road. They can detect when your bombsight is on them and they will move out of the way. 
+* Logram (sphere station) - silver circular domes that fire single shots at your Solvalou. 
+* Sol (citadel) - underground structures which rise up when initially bombed. 
+* Zolbak (detector dome) - domes with red squares on top and around their base.</p></details><details><summary>TECHNICAL</summary><p class="story">Game ID : XVI 
+
+Main CPU : Zilog Z80 (x3), MB88xx 
+Sound Chips : Namco 3-channel WSG, discrete circuitry (for the explosion sounds) 
+
+Players : 2 
+Control : 8-way joystick 
+Buttons : 2 
+= &gt; [1] Zapper, [2] Blaster</p></details><details><summary>TRIVIA</summary><p class="story">Xevious was released on December 22, 1982 (Wednesday) in Japan.
+
+Xevious is not the world's first vertically-scrolling shoot-em-up but has a huge and lasting influence on the genre.
+
+Xevious was the first game to use pre-rendered graphics and, among its countless innovations, was also the first vertical shoot-em-up that allowed accurate targeting of both airborne and ground-based enemies. The graphics were hugely revolutionary for their time; the sprites were rendered with remarkable clarity and detail due to the game's clever use of colors and shades as well as palette-shifting. Xevious was also the first game to feature 'hidden characters', which, being hidden, are not mentioned in the game's instructions but can be revealed by performing a secret maneuver. Among these was the 'special flag', which gave the player an extra life. This feature was carried over to a number of subsequent Namco games. 
+
+While Xevious enjoyed limited popularity in North America, the game was a huge cult hit in Japan, and to this day is considered one of the greatest video games of all time. Popular Japanese musicians, Haruomi Hosono (Yellow Magic Orchestra) and Kuwata Keisuke (Southern All Stars) were known to be fans of the game, and the former produced an album of music from Namco video games, with Xevious as its centerpiece. A follow-up 12-inch single featured in its liner notes an entire science-fiction short story by Endoh, set in the world of Xevious, with even included a rudimentary fictional language. 
+
+At one point in the game, the Solvalou flies over the Nazca lines. The Nazca Lines are geoglyphs (drawings on the ground) located in the Nazca Desert; a high, arid plateau that stretches 37 miles between the towns of Nazca and Palpa, situated in the Pampa region. They were created during the Nazca occupation of the area, between 200 BC and 600 AD. 
+
+The graphic ROMs contain several additional enemies which don't actually appear in gameplay including a silver-grey Galaxian flagship. These enemies do appear in the game-play of &quot;Super Xevious&quot; which uses the same graphics data as Xevious. 
+
+The highest score possible is 9,999,990, at which point the game terminates abnormally and resets. Some time before this score is reached, the game starts to award extra ships on every blaster shot fired. 
+
+Marco Borroni holds the official record for this game with 7,009,560 points (!) on August 16, 1984. 
+
+The background is actually one large 1024x2048 image. Each of the 16 game areas is a 224x2048 strip starting at a different horizontal offset in the image.</p></details><details><summary>UPDATES</summary><p class="story">* The high-score names are ten characters long on the Namco versions, but only three characters long on the Atari versions. 
+
+* The Zapper and Blaster buttons were reversed between the Japanese and American versions.</p></details><details><summary>SCORING</summary><p class="story">Scoring in this game is relatively complicated due to all the different units. 
+
+AIR UNITS 
+Andor Genesis : 1,000-4,000 points 
+Brag Zakato : 500 points 
+Garu Zakato : 1,000 points 
+Giddo Spario : 10 points 
+Jarra : 70-100 points 
+Kapi : 300 points 
+Terrazi : 700 points 
+Torkan : 50 points 
+Toroid : 30 points 
+Zakato : 50 points 
+Zoshi : 100 points 
+
+GROUND UNITS 
+Barra : 100 points 
+Boza Logram : 2,000 points 
+Derota : 1,000 points 
+Domogram : 800 points 
+Garu Barra : 300 points 
+Garu Derota : 2,000 points 
+Grobda : 400 points 
+Logram : 300 points 
+Zolbak : 200 points 
+
+Specials (see Tips and Tricks below for how to get them) 
+Flag : 1,000 points for uncovering it, bonus Solvalou for flying over it 
+Sol Citadel : 2,000 points for making it surface; 2,000 points for destroying it</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">When you start the game, your Solvalou will be at the bottom of the screen. Keep in mind, this is a scrolling game. This means you can go no faster then the top and no slower then the bottom of the screen. You can, however, vary your speed in-between by pushing the joystick up and down. The biggest key in getting through this game is learning how to use the joystick to speed up and slow down because you will sometimes be put into some very tight areas that will require precision joystick control.
+
+* One interesting aspect of this game is the fact if you are too successful against a particular kind of enemy, the game will adjust itself to send different enemies until you have difficulty dealing with them.
+
+* Make sure you know what you will be encountering in each area.
+
+* If you hold down the fire and bomb buttons, you will constantly be doing both at a slower rate. This is great when you are in the thick of things with both air and ground targets swarming the area.
+
+* Speaking of bombs, your Solvalou is equipped with smart bombs (so to speak). They are launch and forget weapons. When you 'paint' the target with your bomb-sight and launch your bomb, it will hit that target even when you have already flown over it. There are a couple of strategies to make your bombing runs more effective :
+1) When you have targets close together (usually bomb batteries are arranged this way), put a bomb between them. You will have a very good chance of taking out both batteries with one hit since you can only have one bomb on the screen at a time.
+2) For moving targets (such as Grobdas), anticipate the targets direction and 'lead' it a little. This basically means putting the bomb at the point where the target will run into it.
+3) Your bomb-sight will turn red whenever any target is 'sighted', even if the target is hidden like Sol Citadels and flags.
+
+* Keep away from the corners. These can become death traps real quickly if you are swamped by enemies.
+
+* Since you have free reign of most of the screen to move around, make sure you use all that room for maneuvering. Enemy fighters have a nasty habit of either shooting from behind your fighter or re-entering the screen from random sides. It also is handy when you are dodging a heavy volume of enemy fire.
+
+* Make sure when you are maneuvering around the Bacuras, you always leave yourself a clear 'out'.  What I mean by this is there another direction to escape instead of having to move along with the Bacuras. An occasional enemy likes to put up shots at your fighter since it is very difficult to maneuver around the rolling plates.
+
+* The Andor Genesis Motherships are pretty easy to destroy if you work quickly. Most of the time, Zakatos and Brag Zakatos precede the arrival of the Andor Genesis Mothership. Blast these out of the sky and avoid the shrapnel. When the Andor Genesis Mothership appears, lead the target a little and quickly move up and plant your bomb at the point the center of the ship will be. The less time you waste taking on this ship, the better.
+
+* Secret Message : The designer of Xevious has included a trick for generating his name right at the beginning of the game. When Solvalou appears, move to the right edge of the screen, wait a few seconds and drop a single bomb as soon as the music changes (after the long note). The message 'Namco ORIGINAL Program by EVEZOO' will appear on the screen.
+
+* THE FLAGS : There are four flags hidden throughout the game. These flags occur in areas 1, 3, 5, and 6. All flags are along a horizontal line across the terrain. The only way to uncover a flag is to bomb it so you will have to lay a string of bombs along the entire horizontal line. This basically means moving up quickly, dealing with enemies quickly, and dropping your bombs quickly. Once a flag is uncovered, you must fly over it to get the benefits from it.
+
+FLAG 1 : The first flag is located in the first river you encounter after you start the game. Look for the three Grobdas in a row. Just above them is a river that cuts horizontally across the terrain. Just bomb the river from left to right and around the bank closest to you. The flag should appear.
+
+FLAG 2 : After you get past the plates, look up and to the right. There is a little lake with a small river feeding into the ocean. Start in the middle of the lake and bomb toward the little river. The flag should appear around where the river dumps into the ocean.
+
+FLAG 3 : When you cross the first ocean, you will eventually see a dock/harbor at the top. The flag is located around the horizontal line that the longest pier projecting out is part of. You will need to quickly bomb that entire length to find and get the flag before the bottom scrolls your Solvalou too far up.
+
+FLAG 4 : You will see a big bird picture on the desert. At the lowest point of its tail-feathers (in the lower right corner), start to bomb horizontally from right to left. The flag will appear.
+
+* Sol Citadels : These structures require you to bomb them once to cause them to surface. They look like large storage tanks or grain silos. You then need to bomb them again to destroy them. You have a potential to collect several hundred thousand points by taking out these structures. They come in groups of 1, 4, or 8. Unlike flags, these structures are always in the same place. There are six sets of Sol Citadels.
+
+FIRST SET : One in area 2. When you see the three Grobdas in a row on the road, start laying bombs in the area around the cul-de-sac below the last tank in a right and diagonal-down point. The citadel will be even with the cul-de-sac.
+
+SECOND SET : One in area 3. When you see the Garu Bara, go to the left of the Garu Bara and start bombing. This is also the area that the second flag can be found.
+
+THIRD SET : Four in area 9. There is a clear area right before you tangle with the second Andor Genesis Mothership. Where the road splits around the woods, start to lay bombs a little below the bottom edge of the road that goes to the right. You should uncover four Sol Citadels.
+
+FOURTH SET : Eight in area 13. At the point the desert ends, there is a little grass, then the air field starts. Use the birds leg as a reference and fly straight up. When the bomb-sight glows, start bombing. This will be the lower left Sol Citadel of the group which is arranged in two rows of four citadels. You will be hard pressed to get all eight citadels.
+
+FIFTH SET : Four in area 14. After the plates roll by, look for where two roads merge into one road. At the top edge of the slanted right hand road, start dropping bombs to uncover some more citadels.
+
+SIXTH SET : Four in area 15. Look for a forest on the left side. There will be a small clearing and then a river. Bomb the small clearing to bring the citadels up. There will be very intense ground fire in this location so be especially watchful.</p></details><details><summary>STAFF</summary><p class="story">From highscore table : Masanobu Endoh (Evezoo End), Masaya Nakamura (M.Nakamura), Eirry Mou, Shin-ichiro Okamoto (S.Okamoto), Shin-ichi Kojima (S.Kojima)
+Music by : Yuriko Keino</p></details><details><summary>PORTS</summary><p class="story">NOTE: For ports released in North America, please see the Atari version entry.
+
+* CONSOLES: 
+[JP] Nintendo Famicom (nov.8, 1984) &quot;Xevious [Model NXV-4900]&quot;
+[EU] Nintendo NES (oct.25, 1989) &quot;Xevious [Model NES-XV-EEC]&quot;
+[JP] Nintendo Famicom Disk (may.18, 1990) &quot;Xevious [Model NDS-XEV]&quot;
+[JP] NEC PC-Engine (june.29, 1990) &quot;Xevious Fardraut Densetsu [Model NC90004]&quot; 
+[AU] Sony PlayStation (1996) &quot;Namco Museum Vol.2 [Model SCES-00267]&quot; 
+[JP] Sony PlayStation (feb.9, 1996) &quot;Namco Museum Vol.2 [Model SLPS-00210]&quot; 
+[EU] Sony PlayStation (nov.1996) &quot;Namco Museum Vol.2 [Model SCES-00267]&quot; 
+[JP] Sony PlayStation (mar.28, 1997) &quot;Xevious 3D/G+ [Model SLPS-00750]&quot; 
+[EU] Sony PlayStation (aug.1997) &quot;Xevious 3D/G+ [Model SCES-00736]&quot; 
+[JP] Sony PS2 (jan.26, 2006) &quot;Namco Museum Arcade Hits! [Model SLPS-25590]&quot; 
+[EU] Microsoft XBOX (mar.24, 2006) &quot;Namco Museum - 50th Anniversary&quot; 
+[EU] Sony PS2 (mar.31, 2006) &quot;Namco Museum - 50th Anniversary [Model SLES-53957]&quot; 
+[EU] Nintendo GameCube (may.5, 2006) &quot;Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]&quot; 
+[EU] [AU] [JP] [KO] Microsoft XBOX 360 [XBLA] (may.23, 2007) 
+[JP] Nintendo Wii (dec.6, 2007) &quot;Minna de Asobou! Namco Carnival [Model RVL-RNWJ-JPN]&quot; 
+[EU] Nintendo Wii (apr.18, 2008) &quot;Namco Museum Remix [Model RVL-RN2P]&quot; 
+[KO] Nintendo Wii (apr.26, 2008) &quot;Namco Museum Remix [Model RVL-RNWK-KOR]&quot; 
+[AU] Nintendo Wii (may.1, 2008) &quot;Namco Museum Remix [Model RVL-RN2P]&quot; 
+[JP] Sony PlayStation 3 [PSN] (jan.29, 2009) &quot;Namco Museum.comm [Model NPJB-00012]&quot; 
+[EU] Microsoft XBOX 360 (may.15, 2009) &quot;Namco Museum - Virtual Arcade&quot; 
+[AU] Microsoft XBOX 360 (june.4, 2009) &quot;Namco Museum - Virtual Arcade&quot; 
+[JP] Nintendo Wii [Virtual Console Arcade] (sept.1, 2009) 
+[JP] Microsoft XBOX 360 (nov.5, 2009) &quot;Namco Museum - Virtual Arcade [Model 2RD-00001]&quot; 
+[EU] Sony PlayStation 3 [PSN] (apr.1, 2010) &quot;Namco Museum Essentials [Model NPEB-00104]&quot; 
+[AU] Sony PlayStation 3 [PSN] (apr.1, 2010) &quot;Namco Museum Essentials&quot; 
+
+* HANDHELDS: 
+[EU] Sony PSP (dec.9, 2005) &quot;Namco Museum Battle Collection [Model UCES-00116]&quot; 
+[JP] Sony PSP (feb.23, 2006) &quot;Namco Museum Vol.2 [Model ULJS-00047]&quot; 
+[EU] Nintendo DS (feb.29, 2008) &quot;Namco Museum DS [Model NTR-YNMP-EUR]&quot; 
+[JP] Nintendo DS (oct.11, 2007) &quot;Namco Museum DS [Model NTR-YNMJ-JPN]&quot; 
+[KO] Sony PSP (nov.8, 2007) &quot;Namco Museum Vol.2&quot; 
+[JP] Nintendo 3DS [3DSWare] (june.7, 2011) &quot;3D Classics: Xevious [Model CTR-SABJ-JPN]&quot;: Re-mastered version, featuring 3D effects.
+[EU] Nintendo 3DS [3DSWare] (jul.21, 2011) &quot;3D Classics: Xevious [Model CTR-SABP-EUR]&quot;: Re-mastered version, featuring 3D effects.
+[AU] Nintendo 3DS [3DSWare] (jul.21, 2011) &quot;3D Classics: Xevious [Model CTR-SABP-AUS]&quot;: Re-mastered version, featuring 3D effects.
+
+* COMPUTERS: 
+[JP] Sharp MZ2500 (1982) 
+Atari 800 (1984) 
+Apple II (1984) 
+Tandy Color Computer (1984) &quot;Devious&quot; 
+[JP] Fujitsu FM-7 (1984) 
+[JP] NEC PC9801 (1985) by Enix Corporation 
+[EU] Commodore C64 (1986) 
+[EU] Amstrad CPC (1986) 
+[EU] Atari ST (1987) 
+[EU] Sinclair ZX Spectrum (1987) 
+[JP] MSX 2 (dec.23, 1988) &quot;Xevious Fardraut Densetsu&quot; 
+[JP] PC [MS Windows, CD-ROM] (apr.25, 1997) &quot;Namco History Vol.1&quot; 
+[AU] PC [MS Windows, CD-ROM] (mar.27, 2006) &quot;Namco Museum - 50th Anniversary&quot; 
+[EU] PC [MS Windows, CD-ROM] (may.19, 2006) &quot;Namco Museum - 50th Anniversary&quot; 
+[JP] Sharp X1
+
+* OTHERS: 
+[JP] Let's! TV play classic series - Namco Nostalgia 1</p></details><details><summary>SERIES</summary><p class="story">1. Xevious (1982, Arcade)
+2. Super Xevious (1984, Arcade)
+3. Super Xevious - Gump no Nazo [Model SX-4900] (1986, Arcade)
+4. Xevious - Fardraut Saga (1988, MSX2)
+4. Solvalou (1991, Arcade)
+5. Xevious 3D/G (1995, Arcade)
+6. Xevious Arrangement (1995, Arcade): part of &quot;Namco Classics Collection Vol.1&quot;
+7. Xevious Resurrection (2010, PS3/PSN): part of &quot;Namco Museum.com&quot;</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/3217/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

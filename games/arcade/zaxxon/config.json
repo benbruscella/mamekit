@@ -1,0 +1,648 @@
+{
+  "game": "zaxxon",
+  "title": "Zaxxon (set 1, rev D) (Sega, 1982)",
+  "family": "zaxxon",
+  "dataPath": "games/arcade/zaxxon",
+  "board": {
+    "family": "zaxxon",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3041250,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 24575,
+            "kind": "rom"
+          },
+          {
+            "start": 24576,
+            "end": 28671,
+            "kind": "ram"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "mirror": 7168,
+            "share": "videoram",
+            "write": "zaxxon_state.zaxxon_videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 40960,
+            "end": 41215,
+            "kind": "ram",
+            "mirror": 7936,
+            "share": "spriteram"
+          },
+          {
+            "start": 49152,
+            "end": 49152,
+            "kind": "handler",
+            "mirror": 6396,
+            "read": "port.SW00"
+          },
+          {
+            "start": 49153,
+            "end": 49153,
+            "kind": "handler",
+            "mirror": 6396,
+            "read": "port.SW01"
+          },
+          {
+            "start": 49154,
+            "end": 49154,
+            "kind": "handler",
+            "mirror": 6396,
+            "read": "port.DSW02"
+          },
+          {
+            "start": 49155,
+            "end": 49155,
+            "kind": "handler",
+            "mirror": 6396,
+            "read": "port.DSW03"
+          },
+          {
+            "start": 49408,
+            "end": 49408,
+            "kind": "handler",
+            "mirror": 6399,
+            "read": "port.SW100"
+          },
+          {
+            "start": 49152,
+            "end": 49159,
+            "kind": "handler",
+            "mirror": 6392,
+            "write": "mainlatch1.write_d0"
+          },
+          {
+            "start": 57404,
+            "end": 57407,
+            "kind": "handler",
+            "mirror": 7936,
+            "read": "ppi8255.read",
+            "write": "ppi8255.write"
+          },
+          {
+            "start": 57584,
+            "end": 57587,
+            "kind": "handler",
+            "mirror": 7936,
+            "select": 8,
+            "write": "zaxxon_state.zaxxon_control_w",
+            "handlerWidth": 8
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 24575,
+        "kind": "rom"
+      },
+      {
+        "start": 24576,
+        "end": 28671,
+        "kind": "ram"
+      },
+      {
+        "start": 32768,
+        "end": 33791,
+        "kind": "ram",
+        "mirror": 7168,
+        "share": "videoram",
+        "write": "zaxxon_state.zaxxon_videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 40960,
+        "end": 41215,
+        "kind": "ram",
+        "mirror": 7936,
+        "share": "spriteram"
+      },
+      {
+        "start": 49152,
+        "end": 49152,
+        "kind": "handler",
+        "mirror": 6396,
+        "read": "port.SW00"
+      },
+      {
+        "start": 49153,
+        "end": 49153,
+        "kind": "handler",
+        "mirror": 6396,
+        "read": "port.SW01"
+      },
+      {
+        "start": 49154,
+        "end": 49154,
+        "kind": "handler",
+        "mirror": 6396,
+        "read": "port.DSW02"
+      },
+      {
+        "start": 49155,
+        "end": 49155,
+        "kind": "handler",
+        "mirror": 6396,
+        "read": "port.DSW03"
+      },
+      {
+        "start": 49408,
+        "end": 49408,
+        "kind": "handler",
+        "mirror": 6399,
+        "read": "port.SW100"
+      },
+      {
+        "start": 49152,
+        "end": 49159,
+        "kind": "handler",
+        "mirror": 6392,
+        "write": "mainlatch1.write_d0"
+      },
+      {
+        "start": 57404,
+        "end": 57407,
+        "kind": "handler",
+        "mirror": 7936,
+        "read": "ppi8255.read",
+        "write": "ppi8255.write"
+      },
+      {
+        "start": 57584,
+        "end": 57587,
+        "kind": "handler",
+        "mirror": 7936,
+        "select": 8,
+        "write": "zaxxon_state.zaxxon_control_w",
+        "handlerWidth": 8
+      }
+    ],
+    "customs": [
+      {
+        "port": "SW100",
+        "mask": 32,
+        "member": "zaxxon_coin_r_0",
+        "handler": "zaxxon_state.zaxxon_coin_r_0",
+        "activeLow": false
+      },
+      {
+        "port": "SW100",
+        "mask": 64,
+        "member": "zaxxon_coin_r_1",
+        "handler": "zaxxon_state.zaxxon_coin_r_1",
+        "activeLow": false
+      },
+      {
+        "port": "SW100",
+        "mask": 128,
+        "member": "zaxxon_coin_r_2",
+        "handler": "zaxxon_state.zaxxon_coin_r_2",
+        "activeLow": false
+      }
+    ],
+    "inputLatches": [
+      {
+        "port": "COIN",
+        "mask": 1,
+        "activeLow": false,
+        "stateMember": "m_coin_status",
+        "index": 0,
+        "handler": "zaxxon_state.zaxxon_coin_inserted"
+      },
+      {
+        "port": "COIN",
+        "mask": 2,
+        "activeLow": false,
+        "stateMember": "m_coin_status",
+        "index": 1,
+        "handler": "zaxxon_state.zaxxon_coin_inserted"
+      },
+      {
+        "port": "COIN",
+        "mask": 4,
+        "activeLow": false,
+        "stateMember": "m_coin_status",
+        "index": 2,
+        "handler": "zaxxon_state.zaxxon_coin_inserted"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 59.99940814393939,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "samples",
+    "clock": 3041250,
+    "chips": 1,
+    "masterGain": 0.65,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zaxxon_rom3d.u27",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6e2b4a30",
+          "alt": [
+            {
+              "file": "zaxxon_rom3a.u27",
+              "crc": "b18e428a"
+            },
+            {
+              "file": "zaxxon3_alt.u27",
+              "crc": "2f2f2b7c"
+            },
+            {
+              "file": "zaxxon_rom3.u13",
+              "crc": "925168c7"
+            },
+            {
+              "file": "jackson_rom3.u27",
+              "crc": "125bca1c"
+            }
+          ]
+        },
+        {
+          "file": "zaxxon_rom2d.u28",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "1c9ea398",
+          "alt": [
+            {
+              "file": "zaxxon2_alt.u28",
+              "crc": "ae7e1c38"
+            },
+            {
+              "file": "zaxxon_rom2.u12",
+              "crc": "c088df92"
+            }
+          ]
+        },
+        {
+          "file": "zaxxon_rom1d.u29",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "1c123ef9",
+          "alt": [
+            {
+              "file": "zaxxon_rom1a.u29",
+              "crc": "1977d933"
+            },
+            {
+              "file": "zaxxon1_alt.u29",
+              "crc": "cc67c097"
+            },
+            {
+              "file": "zaxxon_rom1.u11",
+              "crc": "f832dd79"
+            },
+            {
+              "file": "jackson_rom1.u29",
+              "crc": "e7bdc417"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx_tx",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "zaxxon_rom14.u68",
+          "offset": 0,
+          "size": 2048,
+          "crc": "07bf8c52"
+        },
+        {
+          "file": "zaxxon_rom15.u69",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "c215edcb"
+        }
+      ]
+    },
+    {
+      "region": "gfx_bg",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zaxxon_rom6.u113",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6e07bb68"
+        },
+        {
+          "file": "zaxxon_rom5.u112",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "0a5bce6a"
+        },
+        {
+          "file": "zaxxon_rom4.u111",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "a5bf1465"
+        }
+      ]
+    },
+    {
+      "region": "gfx_spr",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zaxxon_rom11.u77",
+          "offset": 0,
+          "size": 8192,
+          "crc": "eaf0dd4b"
+        },
+        {
+          "file": "zaxxon_rom12.u78",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "1c5369c7"
+        },
+        {
+          "file": "zaxxon_rom13.u79",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "ab4e8a9a"
+        }
+      ]
+    },
+    {
+      "region": "tilemap_dat",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "zaxxon_rom8.u91",
+          "offset": 0,
+          "size": 8192,
+          "crc": "28d65063"
+        },
+        {
+          "file": "zaxxon_rom7.u90",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "6284c200"
+        },
+        {
+          "file": "zaxxon_rom10.u93",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "a95e61fd"
+        },
+        {
+          "file": "zaxxon_rom9.u92",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "7e42691f"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mro16.u76",
+          "offset": 0,
+          "size": 256,
+          "crc": "6cc6695b"
+        },
+        {
+          "file": "zaxxon.u72",
+          "offset": 256,
+          "size": 256,
+          "crc": "deaa21f7",
+          "alt": [
+            {
+              "file": "mro17.u41",
+              "crc": "a9e1fb43"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SW00",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "SW100",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "SW100",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SERVICESW",
+      "mask": 1,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW02",
+      "mask": 3,
+      "value": 3,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW02",
+      "mask": 4,
+      "value": 4,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW02",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW02",
+      "mask": 48,
+      "value": 48,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW02",
+      "mask": 64,
+      "value": 64,
+      "name": "Sound"
+    },
+    {
+      "port": "DSW02",
+      "mask": 128,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW03",
+      "mask": 15,
+      "value": 3,
+      "name": "DEF_STR ( Coin_B )"
+    },
+    {
+      "port": "DSW03",
+      "mask": 240,
+      "value": 48,
+      "name": "DEF_STR ( Coin_A )"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "SW00",
+      "init": 0
+    },
+    {
+      "tag": "SW01",
+      "init": 0
+    },
+    {
+      "tag": "SW100",
+      "init": 0
+    },
+    {
+      "tag": "COIN",
+      "init": 0
+    },
+    {
+      "tag": "SERVICESW",
+      "init": 0
+    },
+    {
+      "tag": "DSW02",
+      "init": 127
+    },
+    {
+      "tag": "DSW03",
+      "init": 51
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

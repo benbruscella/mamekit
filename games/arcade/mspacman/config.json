@@ -1,0 +1,3962 @@
+{
+  "game": "mspacman",
+  "title": "Ms. Pac-Man (Midway / General Computer Corporation, 1981)",
+  "family": "pacman",
+  "dataPath": "games/arcade/mspacman",
+  "board": {
+    "family": "pacman",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 65535,
+            "kind": "handler",
+            "read": "bank.bank1",
+            "bank": "bank1"
+          },
+          {
+            "start": 16384,
+            "end": 32767,
+            "kind": "nop",
+            "mirror": 32768
+          },
+          {
+            "start": 16384,
+            "end": 17407,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "videoram",
+            "write": "pacman_state.pacman_videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 17408,
+            "end": 18431,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "colorram",
+            "write": "pacman_state.pacman_colorram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 18432,
+            "end": 19455,
+            "kind": "handler",
+            "mirror": 40960,
+            "readOnly": true,
+            "read": "pacman_state.pacman_read_nop"
+          },
+          {
+            "start": 19456,
+            "end": 20463,
+            "kind": "ram",
+            "mirror": 40960
+          },
+          {
+            "start": 20464,
+            "end": 20479,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "spriteram"
+          },
+          {
+            "start": 20480,
+            "end": 20487,
+            "kind": "handler",
+            "mirror": 44856,
+            "write": "mainlatch.write_d0"
+          },
+          {
+            "start": 20544,
+            "end": 20575,
+            "kind": "handler",
+            "mirror": 44800,
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 20576,
+            "end": 20591,
+            "kind": "ram",
+            "mirror": 44800,
+            "share": "spriteram2",
+            "writeOnly": true
+          },
+          {
+            "start": 20592,
+            "end": 20607,
+            "kind": "nop",
+            "mirror": 44800,
+            "readOnly": true
+          },
+          {
+            "start": 20608,
+            "end": 20608,
+            "kind": "nop",
+            "mirror": 44863,
+            "readOnly": true
+          },
+          {
+            "start": 20672,
+            "end": 20672,
+            "kind": "handler",
+            "mirror": 44863,
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 20480,
+            "end": 20480,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.IN0"
+          },
+          {
+            "start": 20544,
+            "end": 20544,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.IN1"
+          },
+          {
+            "start": 20608,
+            "end": 20608,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.DSW1"
+          },
+          {
+            "start": 20672,
+            "end": 20672,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.DSW2"
+          },
+          {
+            "start": 56,
+            "end": 63,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_disable_decode_r_56",
+            "write": "pacman_state.mspacman_disable_decode_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 944,
+            "end": 951,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_disable_decode_r_944",
+            "write": "pacman_state.mspacman_disable_decode_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 5632,
+            "end": 5639,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_disable_decode_r_5632",
+            "write": "pacman_state.mspacman_disable_decode_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 8480,
+            "end": 8487,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_disable_decode_r_8480",
+            "write": "pacman_state.mspacman_disable_decode_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 16368,
+            "end": 16375,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_disable_decode_r_16368",
+            "write": "pacman_state.mspacman_disable_decode_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 16376,
+            "end": 16383,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_enable_decode_r_16376",
+            "write": "pacman_state.mspacman_enable_decode_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 32768,
+            "end": 32775,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_disable_decode_r_32768",
+            "write": "pacman_state.mspacman_disable_decode_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 38896,
+            "end": 38903,
+            "kind": "handler",
+            "read": "pacman_state.mspacman_disable_decode_r_38896",
+            "write": "pacman_state.mspacman_disable_decode_w",
+            "handlerWidth": 8
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "write": "pacman_state.pacman_interrupt_vector_w",
+              "handlerWidth": 8
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 65535,
+        "kind": "handler",
+        "read": "bank.bank1",
+        "bank": "bank1"
+      },
+      {
+        "start": 16384,
+        "end": 32767,
+        "kind": "nop",
+        "mirror": 32768
+      },
+      {
+        "start": 16384,
+        "end": 17407,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "videoram",
+        "write": "pacman_state.pacman_videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 17408,
+        "end": 18431,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "colorram",
+        "write": "pacman_state.pacman_colorram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 18432,
+        "end": 19455,
+        "kind": "handler",
+        "mirror": 40960,
+        "readOnly": true,
+        "read": "pacman_state.pacman_read_nop"
+      },
+      {
+        "start": 19456,
+        "end": 20463,
+        "kind": "ram",
+        "mirror": 40960
+      },
+      {
+        "start": 20464,
+        "end": 20479,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "spriteram"
+      },
+      {
+        "start": 20480,
+        "end": 20487,
+        "kind": "handler",
+        "mirror": 44856,
+        "write": "mainlatch.write_d0"
+      },
+      {
+        "start": 20544,
+        "end": 20575,
+        "kind": "handler",
+        "mirror": 44800,
+        "write": "namco.pacman_sound_w"
+      },
+      {
+        "start": 20576,
+        "end": 20591,
+        "kind": "ram",
+        "mirror": 44800,
+        "share": "spriteram2",
+        "writeOnly": true
+      },
+      {
+        "start": 20592,
+        "end": 20607,
+        "kind": "nop",
+        "mirror": 44800,
+        "readOnly": true
+      },
+      {
+        "start": 20608,
+        "end": 20608,
+        "kind": "nop",
+        "mirror": 44863,
+        "readOnly": true
+      },
+      {
+        "start": 20672,
+        "end": 20672,
+        "kind": "handler",
+        "mirror": 44863,
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 20480,
+        "end": 20480,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.IN0"
+      },
+      {
+        "start": 20544,
+        "end": 20544,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.IN1"
+      },
+      {
+        "start": 20608,
+        "end": 20608,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.DSW1"
+      },
+      {
+        "start": 20672,
+        "end": 20672,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.DSW2"
+      },
+      {
+        "start": 56,
+        "end": 63,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_disable_decode_r_56",
+        "write": "pacman_state.mspacman_disable_decode_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 944,
+        "end": 951,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_disable_decode_r_944",
+        "write": "pacman_state.mspacman_disable_decode_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 5632,
+        "end": 5639,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_disable_decode_r_5632",
+        "write": "pacman_state.mspacman_disable_decode_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 8480,
+        "end": 8487,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_disable_decode_r_8480",
+        "write": "pacman_state.mspacman_disable_decode_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 16368,
+        "end": 16375,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_disable_decode_r_16368",
+        "write": "pacman_state.mspacman_disable_decode_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 16376,
+        "end": 16383,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_enable_decode_r_16376",
+        "write": "pacman_state.mspacman_enable_decode_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 32768,
+        "end": 32775,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_disable_decode_r_32768",
+        "write": "pacman_state.mspacman_disable_decode_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 38896,
+        "end": 38903,
+        "kind": "handler",
+        "read": "pacman_state.mspacman_disable_decode_r_38896",
+        "write": "pacman_state.mspacman_disable_decode_w",
+        "handlerWidth": 8
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "write": "pacman_state.pacman_interrupt_vector_w",
+          "handlerWidth": 8
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 288,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 60.60606060606061,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 224,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "pacman.6e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c1e6ab10",
+          "alt": [
+            {
+              "file": "boot1",
+              "crc": "d16b31b7"
+            },
+            {
+              "file": "mpe1.6e",
+              "crc": "3ad0ae2f"
+            },
+            {
+              "file": "p3.6e",
+              "crc": "df673b57"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "1a6fb2d4",
+          "alt": [
+            {
+              "file": "pacfast.6f",
+              "crc": "720dc3ee"
+            },
+            {
+              "file": "boot2",
+              "crc": "0d32de5e"
+            },
+            {
+              "file": "2_faspac.7d",
+              "crc": "a8d6c227"
+            },
+            {
+              "file": "2.bin",
+              "crc": "04e6c486"
+            },
+            {
+              "file": "p4.6f",
+              "crc": "7591f606"
+            },
+            {
+              "file": "mspacatk.2",
+              "crc": "0af09d31"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6h",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "bcdd1beb",
+          "alt": [
+            {
+              "file": "boot3",
+              "crc": "1821ee0b"
+            },
+            {
+              "file": "p5.6h",
+              "crc": "c8ef1a7f"
+            },
+            {
+              "file": "pacman.7fh",
+              "crc": "513f4d5c"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6j",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "817d94e3",
+          "alt": [
+            {
+              "file": "boot4",
+              "crc": "165a9dd8"
+            },
+            {
+              "file": "4.7f",
+              "crc": "66e68887"
+            },
+            {
+              "file": "misspacmanfalgas_3.bin",
+              "crc": "e086219d"
+            },
+            {
+              "file": "4-cpu.6j",
+              "crc": "e30f2dae"
+            },
+            {
+              "file": "7k",
+              "crc": "629c4399"
+            },
+            {
+              "file": "mpe4.6j",
+              "crc": "d5e5d2aa"
+            },
+            {
+              "file": "p6.6j",
+              "crc": "d498f435"
+            },
+            {
+              "file": "pacman.7hj",
+              "crc": "70694c8e"
+            }
+          ]
+        },
+        {
+          "file": "u5",
+          "offset": 32768,
+          "size": 2048,
+          "crc": "f45fbbcd",
+          "alt": [
+            {
+              "file": "rom-e.bin",
+              "crc": "59cb7ea0"
+            }
+          ]
+        },
+        {
+          "file": "u6",
+          "offset": 36864,
+          "size": 4096,
+          "crc": "a90e7000",
+          "alt": [
+            {
+              "file": "u6pacatk",
+              "crc": "f6d83f4d"
+            },
+            {
+              "file": "u6a.bin",
+              "crc": "3fdcb271"
+            },
+            {
+              "file": "boot6",
+              "crc": "368cb165"
+            },
+            {
+              "file": "6.bin",
+              "crc": "206a9623"
+            },
+            {
+              "file": "mpe6.6m",
+              "crc": "375f0693"
+            },
+            {
+              "file": "p8.s2",
+              "crc": "aba3096d"
+            },
+            {
+              "file": "p1.bin",
+              "crc": "aa3887c5"
+            },
+            {
+              "file": "mspacatk.6",
+              "crc": "3b5db308"
+            }
+          ]
+        },
+        {
+          "file": "u7",
+          "offset": 45056,
+          "size": 4096,
+          "crc": "c82cd714",
+          "alt": [
+            {
+              "file": "u7a.bin",
+              "crc": "5fafec7c"
+            },
+            {
+              "file": "3.u7",
+              "crc": "bd972c0c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "5e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "5c281d01",
+          "alt": [
+            {
+              "file": "5e",
+              "crc": "5431d4c4"
+            },
+            {
+              "file": "5.5e",
+              "crc": "c45d4857"
+            },
+            {
+              "file": "p1.5e",
+              "crc": "04333722"
+            }
+          ]
+        },
+        {
+          "file": "5f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "615af909",
+          "alt": [
+            {
+              "file": "5f",
+              "crc": "ceb50654"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 288,
+      "loads": [
+        {
+          "file": "82s123.7f",
+          "offset": 0,
+          "size": 32,
+          "crc": "2fc650bd",
+          "alt": [
+            {
+              "file": "mb7051.7f",
+              "crc": "ff344446"
+            },
+            {
+              "file": "8h",
+              "crc": "2c3cc909"
+            },
+            {
+              "file": "82s123.h7",
+              "crc": "3545e7e9"
+            }
+          ]
+        },
+        {
+          "file": "82s126.4a",
+          "offset": 32,
+          "size": 256,
+          "crc": "3eb3a8e4",
+          "alt": [
+            {
+              "file": "4a",
+              "crc": "4c8e83a4"
+            },
+            {
+              "file": "82s129.4a",
+              "crc": "63efb927"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "82s126.1m",
+          "offset": 0,
+          "size": 256,
+          "crc": "a9cc86bf",
+          "alt": [
+            {
+              "file": "1m",
+              "crc": "0922b031"
+            },
+            {
+              "file": "1m",
+              "crc": "7b1f9b71"
+            }
+          ]
+        },
+        {
+          "file": "82s126.3m",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66",
+          "alt": [
+            {
+              "file": "3m",
+              "crc": "05197026"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "romTransforms": [
+    {
+      "kind": "init-program",
+      "method": "init_mspacman",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "ROM",
+            "valueType": "uint8_t*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memregion"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "maincpu"
+                    }
+                  ]
+                },
+                "property": "base"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "DROM",
+            "valueType": "uint8_t*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memregion"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "maincpu"
+                        }
+                      ]
+                    },
+                    "property": "base"
+                  },
+                  "args": []
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 65536
+                }
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4096
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 4096
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 4096
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 8192
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 8192
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 12288
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "bitswap_8"
+                  },
+                  "args": [
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 45056
+                        },
+                        "right": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "bitswap_12"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 11
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 7
+                            },
+                            {
+                              "kind": "number",
+                              "value": 9
+                            },
+                            {
+                              "kind": "number",
+                              "value": 10
+                            },
+                            {
+                              "kind": "number",
+                              "value": 8
+                            },
+                            {
+                              "kind": "number",
+                              "value": 6
+                            },
+                            {
+                              "kind": "number",
+                              "value": 5
+                            },
+                            {
+                              "kind": "number",
+                              "value": 4
+                            },
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    },
+                    {
+                      "kind": "number",
+                      "value": 5
+                    },
+                    {
+                      "kind": "number",
+                      "value": 7
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 2048
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "bitswap_8"
+                  },
+                  "args": [
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32768
+                        },
+                        "right": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "bitswap_11"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 8
+                            },
+                            {
+                              "kind": "number",
+                              "value": 7
+                            },
+                            {
+                              "kind": "number",
+                              "value": 5
+                            },
+                            {
+                              "kind": "number",
+                              "value": 9
+                            },
+                            {
+                              "kind": "number",
+                              "value": 10
+                            },
+                            {
+                              "kind": "number",
+                              "value": 6
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 4
+                            },
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    },
+                    {
+                      "kind": "number",
+                      "value": 5
+                    },
+                    {
+                      "kind": "number",
+                      "value": 7
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 34816
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "bitswap_8"
+                  },
+                  "args": [
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 38912
+                        },
+                        "right": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "bitswap_11"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 7
+                            },
+                            {
+                              "kind": "number",
+                              "value": 9
+                            },
+                            {
+                              "kind": "number",
+                              "value": 10
+                            },
+                            {
+                              "kind": "number",
+                              "value": 8
+                            },
+                            {
+                              "kind": "number",
+                              "value": 6
+                            },
+                            {
+                              "kind": "number",
+                              "value": 5
+                            },
+                            {
+                              "kind": "number",
+                              "value": 4
+                            },
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    },
+                    {
+                      "kind": "number",
+                      "value": 5
+                    },
+                    {
+                      "kind": "number",
+                      "value": 7
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 36864
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "bitswap_8"
+                  },
+                  "args": [
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 36864
+                        },
+                        "right": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "bitswap_11"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 7
+                            },
+                            {
+                              "kind": "number",
+                              "value": 9
+                            },
+                            {
+                              "kind": "number",
+                              "value": 10
+                            },
+                            {
+                              "kind": "number",
+                              "value": 8
+                            },
+                            {
+                              "kind": "number",
+                              "value": 6
+                            },
+                            {
+                              "kind": "number",
+                              "value": 5
+                            },
+                            {
+                              "kind": "number",
+                              "value": 4
+                            },
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    },
+                    {
+                      "kind": "number",
+                      "value": 5
+                    },
+                    {
+                      "kind": "number",
+                      "value": 7
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 38912
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 6144
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4096
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 40960
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 8192
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "DROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 45056
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 12288
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mspacman_install_patches"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DROM"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4096
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 36864
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 4096
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 40960
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 8192
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 45056
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "ROM"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 12288
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "membank"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "bank1"
+                    }
+                  ]
+                },
+                "property": "configure_entries"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "ROM"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 65536
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "membank"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "bank1"
+                    }
+                  ]
+                },
+                "property": "set_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "helpers": [
+        {
+          "method": "mspacman_install_patches",
+          "parameters": "uint8_t *ROM",
+          "program": {
+            "operations": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 1040
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32776
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 2272
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33240
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 2608
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33048
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 3024
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32984
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 3104
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33056
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 3672
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33128
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 3752
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33176
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4096
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32800
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4104
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32784
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4744
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32920
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4936
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32840
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 5768
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32904
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 5808
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33160
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 5848
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32968
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 5880
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33224
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 6568
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32936
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 6584
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33192
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 8288
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33096
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 8456
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32792
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 8608
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33184
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 8856
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32928
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9184
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33000
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9240
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32768
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9288
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32856
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9328
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33088
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9352
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32896
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9392
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33152
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9432
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32960
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 9464
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33216
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 10056
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32848
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 10112
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32912
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 10168
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33168
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 10240
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32808
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 11040
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33024
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 11056
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33040
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 11248
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33232
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 11456
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32976
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 11480
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 32992
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 11504
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33248
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 11616
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "ROM"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 33120
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "diagnostics": []
+          }
+        }
+      ],
+      "source": {
+        "file": "src/mame/pacman/pacman.cpp",
+        "line": 8671,
+        "column": 1
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "F1"
+      ],
+      "label": "Rack Test (Cheat)",
+      "activeLow": true,
+      "activeValue": 0,
+      "toggle": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 16,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 1,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 8,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Difficulty"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 201
+    },
+    {
+      "tag": "DSW2",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "type": "OUTPUT_LATCH",
+  "className": "output_latch_device",
+  "hierarchy": [
+    "output_latch_device"
+  ],
+  "sourceFiles": [
+    "src/devices/machine/output_latch.cpp",
+    "src/devices/machine/output_latch.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3
+  },
+  "members": [
+    {
+      "name": "m_bits",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arrayLength": 8
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "bit_handler",
+      "member": "m_bit_handlers",
+      "slots": 8,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bits"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/output_latch.cpp",
+        "line": 15,
+        "column": 1
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "unsigned",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "number",
+                "value": 8
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "i"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "bit",
+                "valueType": "int",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bit"
+                  },
+                  "right": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bits"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_bits"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_bit_handlers"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "bit"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/output_latch.cpp",
+        "line": 20,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_bit_handlers"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/output_latch.h",
+        "line": 12,
+        "column": 1
+      }
+    },
+    {
+      "name": "output_latch_device::bit_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_bit_handlers"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/output_latch.h",
+        "line": 12,
+        "column": 106
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 4,
+    "compiledMethods": 4,
+    "diagnostics": 0
+  }
+}

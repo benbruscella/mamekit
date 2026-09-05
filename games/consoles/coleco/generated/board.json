@@ -1,0 +1,2119 @@
+{
+    "schemaVersion": 4,
+    "game": "coleco",
+    "family": "coleco",
+    "driverFile": "src/mame/coleco/coleco.cpp",
+    "callbacks": [
+        {
+            "id": "device:coleco_state.coleco/tms9928a/callback:tms9928a:0",
+            "ownerTag": "tms9928a",
+            "signal": "int_callback",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "INPUT_LINE_NMI",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 575,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/sn76489a/callback:sn76489a:0",
+            "ownerTag": "sn76489a",
+            "signal": "ready_cb",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "Z80_INPUT_LINE_WAIT",
+            "transforms": [
+                "invert"
+            ],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 582,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/exp/callback:exp:0",
+            "ownerTag": "exp",
+            "signal": "int_handler",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "INPUT_LINE_IRQ0",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 596,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/exp/callback:exp:1",
+            "ownerTag": "exp",
+            "signal": "nmi_handler",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "INPUT_LINE_NMI",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 597,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/screen/callback:screen:device",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "tms9928a_device",
+            "targetMethod": "screen_update",
+            "deviceTag": "tms9928a",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 572
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:coleco_state.coleco/tms9928a/callback:tms9928a:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "nmi",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 575,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:coleco_state.coleco/sn76489a/callback:sn76489a:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "halt",
+                "delivery": "level"
+            },
+            "transforms": [
+                {
+                    "kind": "invert"
+                }
+            ],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 582,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:coleco_state.coleco/exp/callback:exp:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "irq",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 596,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:coleco_state.coleco/exp/callback:exp:1",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "nmi",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 597,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 3579545,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 8191,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 25599,
+                        "kind": "ram",
+                        "mirror": 7168
+                    },
+                    {
+                        "start": 32768,
+                        "end": 65535,
+                        "kind": "handler",
+                        "read": "coleco_state.cart_r",
+                        "write": "coleco_state.cart_w",
+                        "handlerWidth": 8
+                    }
+                ],
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 128,
+                            "end": 128,
+                            "kind": "handler",
+                            "mirror": 31,
+                            "write": "coleco_state.paddle_off_w",
+                            "handlerWidth": 8
+                        },
+                        {
+                            "start": 160,
+                            "end": 161,
+                            "kind": "handler",
+                            "mirror": 30,
+                            "read": "tms9928a.read",
+                            "write": "tms9928a.write"
+                        },
+                        {
+                            "start": 192,
+                            "end": 192,
+                            "kind": "handler",
+                            "mirror": 31,
+                            "write": "coleco_state.paddle_on_w",
+                            "handlerWidth": 8
+                        },
+                        {
+                            "start": 224,
+                            "end": 224,
+                            "kind": "handler",
+                            "mirror": 31,
+                            "write": "sn76489a.write"
+                        },
+                        {
+                            "start": 224,
+                            "end": 224,
+                            "kind": "handler",
+                            "mirror": 29,
+                            "read": "coleco_state.paddle_1_r"
+                        },
+                        {
+                            "start": 226,
+                            "end": 226,
+                            "kind": "handler",
+                            "mirror": 29,
+                            "read": "coleco_state.paddle_2_r"
+                        }
+                    ],
+                    "globalMask": 255,
+                    "space": {
+                        "ownerTag": "maincpu",
+                        "name": "io",
+                        "dataWidth": 8,
+                        "addressShift": 0,
+                        "endianness": "big"
+                    }
+                },
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 3579545,
+                "source": {
+                    "file": "src/mame/coleco/coleco.cpp",
+                    "line": 566,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 3579545,
+                "cycleClock": 3579545,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "resetHandlers": [
+            "coleco_state.machine_reset"
+        ],
+        "screen": {
+            "width": 280,
+            "height": 216,
+            "xOffset": 25,
+            "yOffset": 28,
+            "refresh": 59.922737824204276,
+            "htotal": 342,
+            "vtotal": 262,
+            "vbstart": 244,
+            "vbend": 28,
+            "updateMode": "frame",
+            "rotate": 0,
+            "ownerTag": "tms9928a",
+            "ownerKind": "device",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 576,
+                "column": 2
+            }
+        },
+        "inputMembers": [
+            {
+                "member": "m_ctrlsel",
+                "tags": [
+                    "CTRLSEL"
+                ]
+            },
+            {
+                "member": "m_std_keypad1",
+                "tags": [
+                    "STD_KEYPAD1"
+                ]
+            },
+            {
+                "member": "m_std_joy1",
+                "tags": [
+                    "STD_JOY1"
+                ]
+            },
+            {
+                "member": "m_std_keypad2",
+                "tags": [
+                    "STD_KEYPAD2"
+                ]
+            },
+            {
+                "member": "m_std_joy2",
+                "tags": [
+                    "STD_JOY2"
+                ]
+            },
+            {
+                "member": "m_sac_keypad1",
+                "tags": [
+                    "SAC_KEYPAD1"
+                ]
+            },
+            {
+                "member": "m_sac_joy1",
+                "tags": [
+                    "SAC_JOY1"
+                ]
+            },
+            {
+                "member": "m_sac_keypad2",
+                "tags": [
+                    "SAC_KEYPAD2"
+                ]
+            },
+            {
+                "member": "m_sac_joy2",
+                "tags": [
+                    "SAC_JOY2"
+                ]
+            },
+            {
+                "member": "m_driv_pedal1",
+                "tags": [
+                    "DRIV_PEDAL1"
+                ]
+            },
+            {
+                "member": "m_driv_pedal2",
+                "tags": [
+                    "DRIV_PEDAL2"
+                ]
+            }
+        ],
+        "frameEvents": [],
+        "screenUpdate": {
+            "handler": "tms9928a_device.screen_update",
+            "deviceTag": "tms9928a",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 572
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:coleco_state.coleco/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 3579545,
+            "configuration": [
+                {
+                    "method": "z80_set_m1_cycles",
+                    "args": [
+                        5
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 566,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/tms9928a",
+            "tag": "tms9928a",
+            "type": "TMS9928A",
+            "clock": 10738635,
+            "configuration": [
+                {
+                    "method": "set_vram_size",
+                    "args": [
+                        16384
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 572,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 576,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 579,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/sn76489a",
+            "tag": "sn76489a",
+            "type": "SN76489A",
+            "clock": 3579545,
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 580,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/cart",
+            "tag": "cart",
+            "type": "COLECOVISION_CARTRIDGE_SLOT",
+            "member": "m_cart",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 585,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/paddle_timer",
+            "tag": "paddle_timer",
+            "type": "TIMER",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 591,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:coleco_state.coleco/exp",
+            "tag": "exp",
+            "type": "COLECO_EXPANSION",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 593,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:coleco_state.cart_r",
+            "ownerClass": "coleco_state",
+            "method": "cart_r",
+            "parameters": "offs_t offset",
+            "body": "return m_cart->read(offset, 0, 0, 0, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_cart"
+                                },
+                                "property": "read"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 408,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:coleco_state.cart_w",
+            "ownerClass": "coleco_state",
+            "method": "cart_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_cart->write(offset, data, 0, 0, 0, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_cart"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 413,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:coleco_state.paddle_off_w",
+            "ownerClass": "coleco_state",
+            "method": "paddle_off_w",
+            "parameters": "uint8_t data",
+            "body": "m_joy_mode = 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_joy_mode"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 97,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:tms9928a_device.read",
+            "ownerClass": "tms9928a_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 197,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:tms9928a_device.write",
+            "ownerClass": "tms9928a_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 197,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:coleco_state.paddle_on_w",
+            "ownerClass": "coleco_state",
+            "method": "paddle_on_w",
+            "parameters": "uint8_t data",
+            "body": "m_joy_mode = 1;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_joy_mode"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 102,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:sn76489a_device.write",
+            "ownerClass": "sn76489a_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 203,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:coleco_state.paddle_1_r",
+            "ownerClass": "coleco_state",
+            "method": "paddle_1_r",
+            "body": "return m_joy_d7_state[0] | coleco_paddle_read(0, m_joy_mode, m_joy_analog_state[0]);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_joy_d7_state"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "coleco_paddle_read"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "number",
+                                        "value": 0
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "m_joy_mode"
+                                    },
+                                    {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_joy_analog_state"
+                                        },
+                                        "index": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 84,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:coleco_state.coleco_paddle_read",
+            "ownerClass": "coleco_state",
+            "method": "coleco_paddle_read",
+            "parameters": "int port, int joy_mode, uint8_t joy_status",
+            "body": "uint8_t ctrl_sel = m_ctrlsel.read_safe(0);\n\tuint8_t ctrl_extra = ctrl_sel & 0x80;\n\tctrl_sel = ctrl_sel >> (port*4) & 7;\n\n\t/* Keypad and fire 1 (SAC Yellow Button) */\n\tif (joy_mode == 0)\n\t{\n\t\t/* No key pressed by default */\n\t\tuint8_t data = 0x0f;\n\t\tuint16_t ipt = 0xffff;\n\n\t\tif (ctrl_sel == 0)          // ColecoVision Controller\n\t\t\tipt = port ? m_std_keypad2->read() : m_std_keypad1->read();\n\t\telse if (ctrl_sel == 2)     // Super Action Controller\n\t\t\tipt = port ? m_sac_keypad2->read() : m_sac_keypad1->read();\n\n\t\t/* Numeric pad buttons are not independent on a real ColecoVision, if you push more\n\t\t   than one, a real ColecoVision think that it is a third button, so we are going to emulate\n\t\t   the right behaviour */\n\t\t/* Super Action Controller additional buttons are read in the same way */\n\t\tif (!(ipt & 0x0001)) data &= 0x0a; /* 0 */\n\t\tif (!(ipt & 0x0002)) data &= 0x0d; /* 1 */\n\t\tif (!(ipt & 0x0004)) data &= 0x07; /* 2 */\n\t\tif (!(ipt & 0x0008)) data &= 0x0c; /* 3 */\n\t\tif (!(ipt & 0x0010)) data &= 0x02; /* 4 */\n\t\tif (!(ipt & 0x0020)) data &= 0x03; /* 5 */\n\t\tif (!(ipt & 0x0040)) data &= 0x0e; /* 6 */\n\t\tif (!(ipt & 0x0080)) data &= 0x05; /* 7 */\n\t\tif (!(ipt & 0x0100)) data &= 0x01; /* 8 */\n\t\tif (!(ipt & 0x0200)) data &= 0x0b; /* 9 */\n\t\tif (!(ipt & 0x0400)) data &= 0x06; /* # */\n\t\tif (!(ipt & 0x0800)) data &= 0x09; /* * */\n\t\tif (!(ipt & 0x1000)) data &= 0x04; /* Blue Action Button */\n\t\tif (!(ipt & 0x2000)) data &= 0x08; /* Purple Action Button */\n\n\t\treturn ((ipt & 0x4000) >> 8) | 0x30 | data;\n\t}\n\t/* Joystick and fire 2 (SAC Red Button) */\n\telse\n\t{\n\t\tuint8_t data = 0x7f;\n\n\t\tif (ctrl_sel == 0)          // ColecoVision Controller\n\t\t\tdata = port ? m_std_joy2->read() : m_std_joy1->read();\n\t\telse if (ctrl_sel == 2)     // Super Action Controller\n\t\t\tdata = port ? m_sac_joy2->read() : m_sac_joy1->read();\n\t\telse if (ctrl_sel == 3)     // Driving Controller\n\t\t\tdata = port ? m_driv_pedal2->read() : m_driv_pedal1->read();\n\n\t\t/* If any extra analog contoller enabled */\n\t\tif (ctrl_extra || ctrl_sel == 2 || ctrl_sel == 3)\n\t\t{\n\t\t\tif (joy_status & 0x80) data ^= 0x30;\n\t\t\telse if (joy_status) data ^= 0x10;\n\t\t}\n\n\t\treturn data & 0x7f;\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "ctrl_sel",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ctrlsel"
+                                },
+                                "property": "read_safe"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "ctrl_extra",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "ctrl_sel"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 128
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "ctrl_sel"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "ctrl_sel"
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "port"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 7
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "joy_mode"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "declare",
+                                "name": "data",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 15
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "ipt",
+                                "valueType": "uint16_t",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 65535
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "ctrl_sel"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "conditional",
+                                            "condition": {
+                                                "kind": "identifier",
+                                                "name": "port"
+                                            },
+                                            "whenTrue": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_std_keypad2"
+                                                    },
+                                                    "property": "read"
+                                                },
+                                                "args": []
+                                            },
+                                            "whenFalse": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_std_keypad1"
+                                                    },
+                                                    "property": "read"
+                                                },
+                                                "args": []
+                                            }
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "ctrl_sel"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "ipt"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "conditional",
+                                                    "condition": {
+                                                        "kind": "identifier",
+                                                        "name": "port"
+                                                    },
+                                                    "whenTrue": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_sac_keypad2"
+                                                            },
+                                                            "property": "read"
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "whenFalse": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_sac_keypad1"
+                                                            },
+                                                            "property": "read"
+                                                        },
+                                                        "args": []
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 10
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 13
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 12
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 16
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 32
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 64
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 14
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 128
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 256
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 512
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 11
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1024
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 6
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2048
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 9
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 4096
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ipt"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8192
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "ipt"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 16384
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 8
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 48
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    }
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "declare",
+                                "name": "data",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 127
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "ctrl_sel"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "conditional",
+                                            "condition": {
+                                                "kind": "identifier",
+                                                "name": "port"
+                                            },
+                                            "whenTrue": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_std_joy2"
+                                                    },
+                                                    "property": "read"
+                                                },
+                                                "args": []
+                                            },
+                                            "whenFalse": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_std_joy1"
+                                                    },
+                                                    "property": "read"
+                                                },
+                                                "args": []
+                                            }
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "ctrl_sel"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "conditional",
+                                                    "condition": {
+                                                        "kind": "identifier",
+                                                        "name": "port"
+                                                    },
+                                                    "whenTrue": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_sac_joy2"
+                                                            },
+                                                            "property": "read"
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "whenFalse": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_sac_joy1"
+                                                            },
+                                                            "property": "read"
+                                                        },
+                                                        "args": []
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "else": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": "==",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "ctrl_sel"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 3
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "conditional",
+                                                            "condition": {
+                                                                "kind": "identifier",
+                                                                "name": "port"
+                                                            },
+                                                            "whenTrue": {
+                                                                "kind": "call",
+                                                                "callee": {
+                                                                    "kind": "member",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_driv_pedal2"
+                                                                    },
+                                                                    "property": "read"
+                                                                },
+                                                                "args": []
+                                                            },
+                                                            "whenFalse": {
+                                                                "kind": "call",
+                                                                "callee": {
+                                                                    "kind": "member",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_driv_pedal1"
+                                                                    },
+                                                                    "property": "read"
+                                                                },
+                                                                "args": []
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "||",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "||",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ctrl_extra"
+                                        },
+                                        "right": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "ctrl_sel"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ctrl_sel"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "joy_status"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 128
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "operator": "^=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 48
+                                                }
+                                            }
+                                        ],
+                                        "else": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "joy_status"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "operator": "^=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 16
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 127
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 447,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:coleco_state.paddle_2_r",
+            "ownerClass": "coleco_state",
+            "method": "paddle_2_r",
+            "body": "// Tape notes:\n\t//     Signal is averaged to set the threshold voltage for a comparator\n\t//     Output of the comparator goes to bit 7\n\treturn m_joy_d7_state[1] | coleco_paddle_read(1, m_joy_mode, m_joy_analog_state[1]);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_joy_d7_state"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "coleco_paddle_read"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "number",
+                                        "value": 1
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "m_joy_mode"
+                                    },
+                                    {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_joy_analog_state"
+                                        },
+                                        "index": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 89,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:coleco_state.machine_reset",
+            "ownerClass": "coleco_state",
+            "method": "machine_reset",
+            "body": "",
+            "program": {
+                "operations": [],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 537,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:coleco_state.coleco_map",
+            "className": "coleco_state",
+            "name": "coleco_map",
+            "ranges": [
+                {
+                    "id": "map:coleco_state.coleco_map/range0",
+                    "start": 0,
+                    "end": 8191,
+                    "raw": "map(0x0000, 0x1fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 8191,
+                        "raw": "map(0x0000, 0x1fff).rom()",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 165,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 165,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 165,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:coleco_state.coleco_map/range1",
+                    "start": 24576,
+                    "end": 25599,
+                    "raw": "map(0x6000, 0x63ff).ram().mirror(0x1c00)",
+                    "props": {
+                        "start": 24576,
+                        "end": 25599,
+                        "raw": "map(0x6000, 0x63ff).ram().mirror(0x1c00)",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 166,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 166,
+                        "mirror": 7168,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 166,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:coleco_state.coleco_map/range2",
+                    "start": 32768,
+                    "end": 65535,
+                    "raw": "map(0x8000, 0xffff).rw(FUNC(coleco_state::cart_r), FUNC(coleco_state::cart_w))",
+                    "read": "coleco_state.cart_r",
+                    "write": "coleco_state.cart_w",
+                    "props": {
+                        "start": 32768,
+                        "end": 65535,
+                        "raw": "map(0x8000, 0xffff).rw(FUNC(coleco_state::cart_r), FUNC(coleco_state::cart_w))",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 167,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 167
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 167,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 163,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:coleco_state.coleco_io_map",
+            "className": "coleco_state",
+            "name": "coleco_io_map",
+            "ranges": [
+                {
+                    "id": "map:coleco_state.coleco_io_map/range0",
+                    "start": 128,
+                    "end": 128,
+                    "raw": "map(0x80, 0x80).mirror(0x1f).w(FUNC(coleco_state::paddle_off_w))",
+                    "write": "coleco_state.paddle_off_w",
+                    "props": {
+                        "start": 128,
+                        "end": 128,
+                        "raw": "map(0x80, 0x80).mirror(0x1f).w(FUNC(coleco_state::paddle_off_w))",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 183,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 183,
+                        "mirror": 31
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 183,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:coleco_state.coleco_io_map/range1",
+                    "start": 160,
+                    "end": 161,
+                    "raw": "map(0xa0, 0xa1).mirror(0x1e).rw(\"tms9928a\", FUNC(tms9928a_device::read), FUNC(tms9928a_device::write))",
+                    "read": "tms9928a.read",
+                    "write": "tms9928a.write",
+                    "props": {
+                        "start": 160,
+                        "end": 161,
+                        "raw": "map(0xa0, 0xa1).mirror(0x1e).rw(\"tms9928a\", FUNC(tms9928a_device::read), FUNC(tms9928a_device::write))",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 184,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 184,
+                        "mirror": 30
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 184,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:coleco_state.coleco_io_map/range2",
+                    "start": 192,
+                    "end": 192,
+                    "raw": "map(0xc0, 0xc0).mirror(0x1f).w(FUNC(coleco_state::paddle_on_w))",
+                    "write": "coleco_state.paddle_on_w",
+                    "props": {
+                        "start": 192,
+                        "end": 192,
+                        "raw": "map(0xc0, 0xc0).mirror(0x1f).w(FUNC(coleco_state::paddle_on_w))",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 185,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 185,
+                        "mirror": 31
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 185,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:coleco_state.coleco_io_map/range3",
+                    "start": 224,
+                    "end": 224,
+                    "raw": "map(0xe0, 0xe0).mirror(0x1f).w(\"sn76489a\", FUNC(sn76489a_device::write))",
+                    "write": "sn76489a.write",
+                    "props": {
+                        "start": 224,
+                        "end": 224,
+                        "raw": "map(0xe0, 0xe0).mirror(0x1f).w(\"sn76489a\", FUNC(sn76489a_device::write))",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 186,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 186,
+                        "mirror": 31
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 186,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:coleco_state.coleco_io_map/range4",
+                    "start": 224,
+                    "end": 224,
+                    "raw": "map(0xe0, 0xe0).mirror(0x1d).r(FUNC(coleco_state::paddle_1_r))",
+                    "read": "coleco_state.paddle_1_r",
+                    "props": {
+                        "start": 224,
+                        "end": 224,
+                        "raw": "map(0xe0, 0xe0).mirror(0x1d).r(FUNC(coleco_state::paddle_1_r))",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 187,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 187,
+                        "mirror": 29
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 187,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:coleco_state.coleco_io_map/range5",
+                    "start": 226,
+                    "end": 226,
+                    "raw": "map(0xe2, 0xe2).mirror(0x1d).r(FUNC(coleco_state::paddle_2_r))",
+                    "read": "coleco_state.paddle_2_r",
+                    "props": {
+                        "start": 226,
+                        "end": 226,
+                        "raw": "map(0xe2, 0xe2).mirror(0x1d).r(FUNC(coleco_state::paddle_2_r))",
+                        "sourceFile": "src/mame/coleco/coleco.cpp",
+                        "sourceLine": 188,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 188,
+                        "mirror": 29
+                    },
+                    "source": {
+                        "file": "src/mame/coleco/coleco.cpp",
+                        "line": 188,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/coleco/coleco.cpp",
+                "line": 179,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_joy_mode",
+            "bits": 32,
+            "signed": true
+        },
+        {
+            "name": "m_joy_irq_state",
+            "bits": 32,
+            "signed": true,
+            "arrayLength": 2
+        },
+        {
+            "name": "m_joy_d7_state",
+            "bits": 32,
+            "signed": true,
+            "arrayLength": 2
+        },
+        {
+            "name": "m_joy_analog_state",
+            "bits": 8,
+            "arrayLength": 2
+        },
+        {
+            "name": "m_joy_analog_reload",
+            "bits": 8,
+            "arrayLength": 2
+        }
+    ],
+    "sound": {
+        "kind": "sn76489",
+        "deviceTag": "sn76489a",
+        "deviceTags": [
+            "sn76489a"
+        ],
+        "deviceType": "SN76489A",
+        "writeMethods": [
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 1,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 1,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 1,
+                "target": "mono"
+            }
+        ]
+    }
+}

@@ -1,0 +1,3461 @@
+{
+  "type": "WILLIAMS_BLITTER_SC1",
+  "uses": [
+    {
+      "game": "joust",
+      "tags": [
+        "blitter"
+      ]
+    },
+    {
+      "game": "robotron",
+      "tags": [
+        "blitter"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "WILLIAMS_BLITTER_SC1",
+    "className": "williams_blitter_sc1_device",
+    "shortName": "williams_blitter_sc1_device",
+    "description": "Williams Blitter (SC1)",
+    "sourceFile": "src/mame/williams/williamsblitter.cpp",
+    "sourceLine": 27,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(WILLIAMS_BLITTER_SC1, williams_blitter_sc1_device, \"williams_blitter_sc1_device\", \"Williams Blitter (SC1)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 48,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "dummy_table",
+            "valueType": "u8",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ARRAY"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                },
+                {
+                  "kind": "number",
+                  "value": 9
+                },
+                {
+                  "kind": "number",
+                  "value": 10
+                },
+                {
+                  "kind": "number",
+                  "value": 11
+                },
+                {
+                  "kind": "number",
+                  "value": 12
+                },
+                {
+                  "kind": "number",
+                  "value": 13
+                },
+                {
+                  "kind": "number",
+                  "value": 14
+                },
+                {
+                  "kind": "number",
+                  "value": 15
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_window_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_remap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_remap_lookup"
+                },
+                "property": "get"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 256
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "table",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_proms"
+                      },
+                      "property": "found"
+                    },
+                    "args": []
+                  },
+                  "whenTrue": {
+                    "kind": "unary",
+                    "operator": "&",
+                    "operand": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_proms"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "i"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 127
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      }
+                    }
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "dummy_table"
+                  }
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "j",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "j"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 256
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "j"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_remap_lookup"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "i"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 256
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "j"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "table"
+                          },
+                          "index": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "j"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "table"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "j"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 15
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_window_enable"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_control"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_no_even"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_no_odd"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_solid"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_fg_only"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_solid_color"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sstart"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dstart"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_width"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_height"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_remap_index"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 80,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_no_even"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_no_odd"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_solid"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_fg_only"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_solid_color"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sstart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dstart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_width"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_height"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_remap_index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 95,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "williams_blitter_device::control_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                "property": "lw8"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "data"
+                      ],
+                      "body": [
+                        {
+                          "op": "assign",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_solid_color"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  ]
+                },
+                "property": "lw8"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "data"
+                      ],
+                      "body": [
+                        {
+                          "op": "assign",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_sstart"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_sstart"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "cast",
+                                "valueType": "u16",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "data"
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  ]
+                },
+                "property": "lw8"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "data"
+                      ],
+                      "body": [
+                        {
+                          "op": "assign",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_sstart"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_sstart"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                },
+                "property": "lw8"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "data"
+                      ],
+                      "body": [
+                        {
+                          "op": "assign",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_dstart"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_dstart"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "cast",
+                                "valueType": "u16",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "data"
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 5
+                    },
+                    {
+                      "kind": "number",
+                      "value": 5
+                    }
+                  ]
+                },
+                "property": "lw8"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "data"
+                      ],
+                      "body": [
+                        {
+                          "op": "assign",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_dstart"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_dstart"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 6
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    }
+                  ]
+                },
+                "property": "lw8"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "data"
+                      ],
+                      "body": [
+                        {
+                          "op": "assign",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_width"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 7
+                    },
+                    {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  ]
+                },
+                "property": "lw8"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "data"
+                      ],
+                      "body": [
+                        {
+                          "op": "assign",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_height"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_w",
+      "parameters": "address_space &space, offs_t offset, u8 data",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 107,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_no_even"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_NO_EVEN"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_no_odd"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_NO_ODD"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_solid"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_SOLID"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_fg_only"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_FOREGROUND_ONLY"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "w",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "identifier",
+                "name": "m_width"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_size_xor"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "h",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "identifier",
+                "name": "m_height"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_size_xor"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "w"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "w"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "h"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "h"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "accesses",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "blit_core"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "w"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "h"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "estimated_clocks_at_4MHz",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 4
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_SLOW"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "estimated_clocks_at_4MHz"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 4
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "accesses"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "estimated_clocks_at_4MHz"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 2
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "accesses"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "adjust_icount"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "binary",
+                    "operator": "/",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "estimated_clocks_at_4MHz"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "remap_select_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 140,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_remap_index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_proms"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_remap"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_remap_lookup"
+                      },
+                      "property": "get"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 256
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "window_enable_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 147,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_window_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "blit_pixel",
+      "parameters": "address_space &space, int dstaddr, int srcdata",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 152,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "curpix",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "dstaddr"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 49152
+                }
+              },
+              "whenTrue": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vram"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "dstaddr"
+                }
+              },
+              "whenFalse": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "space"
+                  },
+                  "property": "read_byte"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "dstaddr"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "keepmask",
+            "valueType": "u8",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_fg_only"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "srcdata"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 240
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_no_even"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "keepmask"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "number",
+                      "value": 15
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_no_even"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "keepmask"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "number",
+                      "value": 15
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_fg_only"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "srcdata"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_no_odd"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "keepmask"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "number",
+                      "value": 240
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_no_odd"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "keepmask"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "number",
+                      "value": 240
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "curpix"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "identifier",
+              "name": "keepmask"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_solid"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "curpix"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_solid_color"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "~",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "keepmask"
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "curpix"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "srcdata"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "~",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "keepmask"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "||",
+                "left": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_window_enable"
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "dstaddr"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_clip_address"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "dstaddr"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 49152
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "space"
+                    },
+                    "property": "write_byte"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "dstaddr"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "curpix"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "blit_core",
+      "parameters": "address_space &space, int w, int h",
+      "sourceFile": "src/mame/williams/williamsblitter.cpp",
+      "sourceLine": 196,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "dst_stride_256",
+            "valueType": "bool",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_DST_STRIDE_256"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "src_stride_256",
+            "valueType": "bool",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_SRC_STRIDE_256"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "sxadv",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "src_stride_256"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 256
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "syadv",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "src_stride_256"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "w"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dxadv",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "dst_stride_256"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 256
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dyadv",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "dst_stride_256"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "w"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "accesses",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "pixdata",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "shift",
+            "valueType": "bool",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CONTROLBYTE_SHIFT"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "sstart",
+            "valueType": "u16",
+            "value": {
+              "kind": "identifier",
+              "name": "m_sstart"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dstart",
+            "valueType": "u16",
+            "value": {
+              "kind": "identifier",
+              "name": "m_dstart"
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "y",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "y"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "h"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "y"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "source",
+                "valueType": "u16",
+                "value": {
+                  "kind": "identifier",
+                  "name": "sstart"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "dest",
+                "valueType": "u16",
+                "value": {
+                  "kind": "identifier",
+                  "name": "dstart"
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "x",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "w"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "rawval",
+                    "valueType": "u8",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_remap"
+                      },
+                      "index": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "space"
+                          },
+                          "property": "read_byte"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "source"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "shift"
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "pixdata"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "pixdata"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "rawval"
+                          }
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "blit_pixel"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "space"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "dest"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "pixdata"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 4
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "blit_pixel"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "space"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "dest"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "rawval"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "accesses"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "source"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "sxadv"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "dest"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "dxadv"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "dst_stride_256"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "dstart"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "dstart"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "dstart"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "dyadv"
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "dstart"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "dyadv"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "src_stride_256"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sstart"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "sstart"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sstart"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "syadv"
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sstart"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "syadv"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "accesses"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_cpu_tag",
+      "parameters": "auto &&cpu_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_vram_tag",
+      "parameters": "auto &&vram_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vram"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vram_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_proms_tag",
+      "parameters": "auto &&proms_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_proms"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "proms_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clip_address",
+      "parameters": "u16 clip_address",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 26,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clip_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "clip_address"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_size_xor",
+      "parameters": "u32 size_xor",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_size_xor"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "size_xor"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_device::set_cpu_tag",
+      "parameters": "auto &&cpu_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 15,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_device::set_vram_tag",
+      "parameters": "auto &&vram_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vram"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vram_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_device::set_proms_tag",
+      "parameters": "auto &&proms_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_proms"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "proms_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_device::set_clip_address",
+      "parameters": "u16 clip_address",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 26,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clip_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "clip_address"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_device::set_size_xor",
+      "parameters": "u32 size_xor",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_size_xor"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "size_xor"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_sc1_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u16 clip_address, auto &&cpu_tag, auto &&vram_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 74,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_size_xor"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_clip_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clip_address"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_cpu_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_vram_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vram_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_sc1_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u16 clip_address, auto &&cpu_tag, auto &&vram_tag, auto &&proms_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_size_xor"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_clip_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clip_address"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_cpu_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_vram_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vram_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_proms_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "proms_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_blitter_sc1_device::williams_blitter_sc1_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u16 clip_address, auto &&cpu_tag, auto &&vram_tag",
+      "sourceFile": "src/mame/williams/williamsblitter.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_size_xor"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_clip_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clip_address"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_cpu_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_vram_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vram_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/williams/williamsblitter.cpp",
+    "src/mame/williams/williamsblitter.h"
+  ]
+}

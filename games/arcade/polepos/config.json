@@ -1,0 +1,1413 @@
+{
+  "game": "polepos",
+  "title": "Pole Position (World) (Namco, 1982)",
+  "family": "polepos",
+  "dataPath": "games/arcade/polepos",
+  "board": {
+    "family": "polepos",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 12287,
+            "kind": "rom",
+            "romOffset": 0
+          },
+          {
+            "start": 12288,
+            "end": 14335,
+            "kind": "ram",
+            "mirror": 2048,
+            "share": "nvram"
+          },
+          {
+            "start": 16384,
+            "end": 18431,
+            "kind": "handler",
+            "read": "polepos_state.sprite_r",
+            "write": "polepos_state.sprite_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 18432,
+            "end": 19455,
+            "kind": "handler",
+            "read": "polepos_state.road_r",
+            "write": "polepos_state.road_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 19456,
+            "end": 20479,
+            "kind": "handler",
+            "read": "polepos_state.alpha_r",
+            "write": "polepos_state.alpha_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 20480,
+            "end": 22527,
+            "kind": "handler",
+            "read": "polepos_state.view_r",
+            "write": "polepos_state.view_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 32768,
+            "end": 33727,
+            "kind": "ram",
+            "mirror": 3072
+          },
+          {
+            "start": 33728,
+            "end": 33791,
+            "kind": "handler",
+            "mirror": 3072,
+            "read": "namco.polepos_sound_r",
+            "write": "namco.polepos_sound_w"
+          },
+          {
+            "start": 36864,
+            "end": 36864,
+            "kind": "handler",
+            "mirror": 3839,
+            "read": "06xx.data_r",
+            "write": "06xx.data_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 37120,
+            "end": 37120,
+            "kind": "handler",
+            "mirror": 3839,
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 40960,
+            "end": 40960,
+            "kind": "handler",
+            "mirror": 3327,
+            "read": "polepos_state.ready_r"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "mirror": 3320,
+            "write": "latch.write_d0"
+          },
+          {
+            "start": 41216,
+            "end": 41216,
+            "kind": "handler",
+            "mirror": 3327,
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 41472,
+            "end": 41472,
+            "kind": "handler",
+            "mirror": 3327,
+            "write": "engine.polepos_engine_sound_lsb_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 41728,
+            "end": 41728,
+            "kind": "handler",
+            "mirror": 3327,
+            "write": "engine.polepos_engine_sound_msb_w",
+            "handlerWidth": 8
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "read": "adc.read",
+              "write": "adc.write"
+            }
+          ],
+          "globalMask": 255
+        }
+      },
+      {
+        "tag": "sub1",
+        "type": "z8002",
+        "clock": 3072000,
+        "region": "sub1",
+        "ranges": [
+          {
+            "start": 32768,
+            "end": 36863,
+            "kind": "ram",
+            "share": "sprite16_memory"
+          },
+          {
+            "start": 36864,
+            "end": 38911,
+            "kind": "ram",
+            "share": "road16_memory"
+          },
+          {
+            "start": 38912,
+            "end": 40959,
+            "kind": "ram",
+            "share": "alpha16_memory",
+            "write": "polepos_state.alpha16_w"
+          },
+          {
+            "start": 40960,
+            "end": 45055,
+            "kind": "ram",
+            "share": "view16_memory",
+            "write": "polepos_state.view16_w"
+          },
+          {
+            "start": 49152,
+            "end": 49153,
+            "kind": "handler",
+            "mirror": 14590,
+            "write": "polepos_state.view16_hscroll_w"
+          },
+          {
+            "start": 49408,
+            "end": 49409,
+            "kind": "handler",
+            "mirror": 14590,
+            "write": "polepos_state.road16_vscroll_w"
+          },
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom",
+            "romOffset": 0
+          },
+          {
+            "start": 24576,
+            "end": 24577,
+            "kind": "handler",
+            "mirror": 8190,
+            "write": "polepos_state.z8002_nvi_enable_w_0"
+          }
+        ]
+      },
+      {
+        "tag": "sub2",
+        "type": "z8002",
+        "clock": 3072000,
+        "region": "sub2",
+        "ranges": [
+          {
+            "start": 32768,
+            "end": 36863,
+            "kind": "ram",
+            "share": "sprite16_memory"
+          },
+          {
+            "start": 36864,
+            "end": 38911,
+            "kind": "ram",
+            "share": "road16_memory"
+          },
+          {
+            "start": 38912,
+            "end": 40959,
+            "kind": "ram",
+            "share": "alpha16_memory",
+            "write": "polepos_state.alpha16_w"
+          },
+          {
+            "start": 40960,
+            "end": 45055,
+            "kind": "ram",
+            "share": "view16_memory",
+            "write": "polepos_state.view16_w"
+          },
+          {
+            "start": 49152,
+            "end": 49153,
+            "kind": "handler",
+            "mirror": 14590,
+            "write": "polepos_state.view16_hscroll_w"
+          },
+          {
+            "start": 49408,
+            "end": 49409,
+            "kind": "handler",
+            "mirror": 14590,
+            "write": "polepos_state.road16_vscroll_w"
+          },
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom",
+            "romOffset": 0
+          },
+          {
+            "start": 24576,
+            "end": 24577,
+            "kind": "handler",
+            "mirror": 8190,
+            "write": "polepos_state.z8002_nvi_enable_w_1"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 12287,
+        "kind": "rom",
+        "romOffset": 0
+      },
+      {
+        "start": 12288,
+        "end": 14335,
+        "kind": "ram",
+        "mirror": 2048,
+        "share": "nvram"
+      },
+      {
+        "start": 16384,
+        "end": 18431,
+        "kind": "handler",
+        "read": "polepos_state.sprite_r",
+        "write": "polepos_state.sprite_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 18432,
+        "end": 19455,
+        "kind": "handler",
+        "read": "polepos_state.road_r",
+        "write": "polepos_state.road_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 19456,
+        "end": 20479,
+        "kind": "handler",
+        "read": "polepos_state.alpha_r",
+        "write": "polepos_state.alpha_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 20480,
+        "end": 22527,
+        "kind": "handler",
+        "read": "polepos_state.view_r",
+        "write": "polepos_state.view_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 32768,
+        "end": 33727,
+        "kind": "ram",
+        "mirror": 3072
+      },
+      {
+        "start": 33728,
+        "end": 33791,
+        "kind": "handler",
+        "mirror": 3072,
+        "read": "namco.polepos_sound_r",
+        "write": "namco.polepos_sound_w"
+      },
+      {
+        "start": 36864,
+        "end": 36864,
+        "kind": "handler",
+        "mirror": 3839,
+        "read": "06xx.data_r",
+        "write": "06xx.data_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 37120,
+        "end": 37120,
+        "kind": "handler",
+        "mirror": 3839,
+        "read": "06xx.ctrl_r",
+        "write": "06xx.ctrl_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 40960,
+        "end": 40960,
+        "kind": "handler",
+        "mirror": 3327,
+        "read": "polepos_state.ready_r"
+      },
+      {
+        "start": 40960,
+        "end": 40967,
+        "kind": "handler",
+        "mirror": 3320,
+        "write": "latch.write_d0"
+      },
+      {
+        "start": 41216,
+        "end": 41216,
+        "kind": "handler",
+        "mirror": 3327,
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 41472,
+        "end": 41472,
+        "kind": "handler",
+        "mirror": 3327,
+        "write": "engine.polepos_engine_sound_lsb_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 41728,
+        "end": 41728,
+        "kind": "handler",
+        "mirror": 3327,
+        "write": "engine.polepos_engine_sound_msb_w",
+        "handlerWidth": 8
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "read": "adc.read",
+          "write": "adc.write"
+        }
+      ],
+      "globalMask": 255
+    },
+    "initialShares": [
+      {
+        "share": "nvram",
+        "fill": 255
+      }
+    ],
+    "customs": [
+      {
+        "port": "IN0",
+        "mask": 4,
+        "member": "auto_start_r",
+        "handler": "polepos_state.auto_start_r",
+        "activeLow": true
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 60.60606060606061,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 48000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 48000,
+    "waveRegion": "namco",
+    "sampleRegion": "engine",
+    "worklet": "polepos-wsg",
+    "auxiliaryDevices": [
+      {
+        "type": "POLEPOS_SOUND",
+        "deviceTag": "engine",
+        "clock": 3072000,
+        "sampleRegion": "engine",
+        "gain": 0.6930000000000001,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "polepos_engine_sound_lsb_w",
+          "polepos_engine_sound_msb_w",
+          "clson_w"
+        ]
+      }
+    ],
+    "masterGain": 0.8,
+    "auxiliary": {
+      "type": "DAC_FILTER",
+      "levels": [
+        -2,
+        -1.7757390417940877,
+        -1.5208970438328238,
+        -1.2966360856269115,
+        -0.945973496432212,
+        -0.7217125382262997,
+        -0.4668705402650357,
+        -0.24260958205912364,
+        0.24260958205912342,
+        0.4668705402650355,
+        0.7217125382262997,
+        0.9459734964322117,
+        1.2966360856269112,
+        1.5208970438328238,
+        1.7757390417940875,
+        2
+      ],
+      "channels": [
+        {
+          "input": 2,
+          "frequency": 2324.811943452783,
+          "q": 1.9281536003476754,
+          "gain": -7.435552613067406,
+          "clamp": {
+            "minimum": -2,
+            "maximum": 1.5
+          }
+        },
+        {
+          "input": 1,
+          "frequency": 231.96096123953708,
+          "q": 1.923838888619357,
+          "gain": -7.402312138728324,
+          "clamp": {
+            "minimum": -2,
+            "maximum": 1.5
+          }
+        },
+        {
+          "input": 0,
+          "frequency": 74.03790349042075,
+          "q": 1.9677700590402074,
+          "gain": -7.744238010510201,
+          "clamp": {
+            "minimum": -2,
+            "maximum": 1.5
+          }
+        },
+        {
+          "input": 3,
+          "frequency": 100,
+          "q": 0.3,
+          "gain": 1,
+          "levels": [
+            -2,
+            -1.7736675057458684,
+            -1.5184415015869541,
+            -1.2921090073328227,
+            -0.971215935208493,
+            -0.7448834409543614,
+            -0.4896574367954474,
+            -0.2633249425413158,
+            0.26332494254131555,
+            0.48965743679544715,
+            0.7448834409543612,
+            0.9712159352084928,
+            1.2921090073328223,
+            1.518441501586954,
+            1.773667505745868,
+            2
+          ],
+          "stages": [
+            {
+              "type": "highpass",
+              "frequency": 100,
+              "q": 0.3,
+              "gain": 1
+            },
+            {
+              "type": "lowpass",
+              "frequency": 1200,
+              "q": 0.8,
+              "gain": 0.5
+            }
+          ],
+          "clamp": {
+            "minimum": 0,
+            "maximum": 1.5
+          }
+        }
+      ],
+      "outputGain": 0.44998626708984374,
+      "source": {
+        "file": "src/mame/namco/polepos_a.cpp",
+        "line": 433,
+        "netlist": "polepos_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "pp3_9.6h",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c0511173",
+          "alt": [
+            {
+              "file": "pp1_9b.6h",
+              "crc": "94436b70"
+            },
+            {
+              "file": "136014-105.7h",
+              "crc": "c918c043"
+            },
+            {
+              "file": "tr9b.bin",
+              "crc": "538bd0cb"
+            },
+            {
+              "file": "a5.bin",
+              "crc": "caab829a"
+            }
+          ]
+        },
+        {
+          "file": "pp1_10b.5h",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "7174bcb7",
+          "alt": [
+            {
+              "file": "a6.bin",
+              "crc": "148f5000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub1",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "pp3_1.8m",
+          "offset": 1,
+          "size": 8192,
+          "crc": "65c1c2c2",
+          "alt": [
+            {
+              "file": "pp1_1b.8m",
+              "crc": "361c56dd"
+            },
+            {
+              "file": "136014-101.3l",
+              "crc": "8c2cf172"
+            },
+            {
+              "file": "tr1b.bin",
+              "crc": "127f0750"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "pp3_2.8l",
+          "offset": 0,
+          "size": 8192,
+          "crc": "fafb9049",
+          "alt": [
+            {
+              "file": "pp1_2b.8l",
+              "crc": "582b530a"
+            },
+            {
+              "file": "136014-102.4l",
+              "crc": "51018857"
+            },
+            {
+              "file": "tr2b.bin",
+              "crc": "6bd4ff6b"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "sub2",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "pp3_5.4m",
+          "offset": 1,
+          "size": 8192,
+          "crc": "46e5c99a",
+          "alt": [
+            {
+              "file": "pp1_5b.4m",
+              "crc": "5cdf5294"
+            },
+            {
+              "file": "136014-103.3e",
+              "crc": "af4fc019"
+            },
+            {
+              "file": "136014-203.3e",
+              "crc": "eedea6e7"
+            },
+            {
+              "file": "tr5b.bin",
+              "crc": "4e5f7b9c"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "pp3_6.4l",
+          "offset": 0,
+          "size": 8192,
+          "crc": "acc1ebc3",
+          "alt": [
+            {
+              "file": "pp1_6b.4l",
+              "crc": "81696272"
+            },
+            {
+              "file": "136014-104.4e",
+              "crc": "ba0045f3"
+            },
+            {
+              "file": "136014-204.4e",
+              "crc": "c52c98ed"
+            },
+            {
+              "file": "tr6b.bin",
+              "crc": "9d038ada"
+            },
+            {
+              "file": "tr6b.f5",
+              "crc": "b3641d0c"
+            },
+            {
+              "file": "pole-d",
+              "crc": "932bb5a7"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "pp3_28.1f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "2e77187e",
+          "alt": [
+            {
+              "file": "pp1_28.1f",
+              "crc": "5b277daf"
+            },
+            {
+              "file": "136014-132.7n",
+              "crc": "a949aa85"
+            },
+            {
+              "file": "tr28.bin",
+              "crc": "b8217c96"
+            },
+            {
+              "file": "tr28.bin",
+              "crc": "cd80b4c3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "pp1_29.1e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "706e888a",
+          "alt": [
+            {
+              "file": "tr29.bin",
+              "crc": "c6e15c21"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "pp3_25.1n",
+          "offset": 0,
+          "size": 8192,
+          "crc": "b52c086b",
+          "alt": [
+            {
+              "file": "pp1_25.1n",
+              "crc": "ac8e28c1"
+            },
+            {
+              "file": "136014-125.13n",
+              "crc": "e7a09c93"
+            },
+            {
+              "file": "pp2_25.1n",
+              "crc": "34c2d310"
+            },
+            {
+              "file": "trus25.bin",
+              "crc": "9e1a9c3b"
+            },
+            {
+              "file": "tr25.bin",
+              "crc": "f44d33c1"
+            },
+            {
+              "file": "5.bin",
+              "crc": "301117d2"
+            }
+          ]
+        },
+        {
+          "file": "pp3_26.1m",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "d24a5707",
+          "alt": [
+            {
+              "file": "pp1_26.1m",
+              "crc": "94443079"
+            },
+            {
+              "file": "136014-126.12n",
+              "crc": "dee7d687"
+            },
+            {
+              "file": "pp2_26.1m",
+              "crc": "ba3005f3"
+            },
+            {
+              "file": "trus26.bin",
+              "crc": "3b39a176"
+            },
+            {
+              "file": "tr26.bin",
+              "crc": "87e8482d"
+            },
+            {
+              "file": "6.bin",
+              "crc": "3c9db014"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bigsprites",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "pp1_17.5n",
+          "offset": 0,
+          "size": 8192,
+          "crc": "2e134b46",
+          "alt": [
+            {
+              "file": "pp17.bin",
+              "crc": "613ab0df"
+            }
+          ]
+        },
+        {
+          "file": "pp1_19.4n",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "43ff83e1",
+          "alt": [
+            {
+              "file": "136014-121.13k",
+              "crc": "a7e3a1c6"
+            },
+            {
+              "file": "pp2_19.4n",
+              "crc": "1c5c05b7"
+            },
+            {
+              "file": "tr19.bin",
+              "crc": "f8e7f551"
+            },
+            {
+              "file": "tr19.bin",
+              "crc": "1ea04ccd"
+            }
+          ]
+        },
+        {
+          "file": "pp1_21.3n",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "5f958eb4",
+          "alt": [
+            {
+              "file": "136014-123.13l",
+              "crc": "8992d381"
+            },
+            {
+              "file": "pp2_21.3n",
+              "crc": "020f4de5"
+            },
+            {
+              "file": "tr21.bin",
+              "crc": "17c798b0"
+            },
+            {
+              "file": "tr21.bin",
+              "crc": "bd7b4a62"
+            }
+          ]
+        },
+        {
+          "file": "pp1_18.5m",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "6f9997d2",
+          "alt": [
+            {
+              "file": "pp18.bin",
+              "crc": "5fd933e3"
+            }
+          ]
+        },
+        {
+          "file": "pp1_20.4m",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "ec18075b",
+          "alt": [
+            {
+              "file": "136014-122.12k",
+              "crc": "6c5c6e68"
+            },
+            {
+              "file": "pp2_20.4m",
+              "crc": "b8a0411c"
+            },
+            {
+              "file": "tr20.bin",
+              "crc": "7053e219"
+            },
+            {
+              "file": "tr20.bin",
+              "crc": "c572c6ed"
+            }
+          ]
+        },
+        {
+          "file": "pp1_22.3m",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "1d2f30b1",
+          "alt": [
+            {
+              "file": "136014-124.12l",
+              "crc": "111896ad"
+            },
+            {
+              "file": "pp2_22.3m",
+              "crc": "4fbf3e94"
+            },
+            {
+              "file": "tr22.bin",
+              "crc": "5fe9b365"
+            },
+            {
+              "file": "tr22.bin",
+              "crc": "db1bcdd8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "road",
+      "size": 20480,
+      "loads": [
+        {
+          "file": "pp1_30.3a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "ee6b3315"
+        },
+        {
+          "file": "pp1_31.2a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "6d1e7042"
+        },
+        {
+          "file": "pp1_32.1a",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "4e97f101"
+        }
+      ]
+    },
+    {
+      "region": "scalelut",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "pp1_27.1l",
+          "offset": 0,
+          "size": 4096,
+          "crc": "a61bff15",
+          "alt": [
+            {
+              "file": "136014-131.11n",
+              "crc": "5921777f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 4160,
+      "loads": [
+        {
+          "file": "pp1-7.8l",
+          "offset": 0,
+          "size": 256,
+          "crc": "f07ff2ad"
+        },
+        {
+          "file": "pp1-8.9l",
+          "offset": 256,
+          "size": 256,
+          "crc": "adbde7d7"
+        },
+        {
+          "file": "pp1-9.10l",
+          "offset": 512,
+          "size": 256,
+          "crc": "ddac786a"
+        },
+        {
+          "file": "pp2-10.2h",
+          "offset": 768,
+          "size": 256,
+          "crc": "1e8d0491",
+          "alt": [
+            {
+              "file": "7052-10.h15",
+              "crc": "5af3f710"
+            }
+          ]
+        },
+        {
+          "file": "pp1-11.4d",
+          "offset": 1024,
+          "size": 256,
+          "crc": "0e4fe8a0",
+          "alt": [
+            {
+              "file": "7052-11.j15",
+              "crc": "8c90e36e"
+            }
+          ]
+        },
+        {
+          "file": "pp1-15.9a",
+          "offset": 1280,
+          "size": 256,
+          "crc": "2d502464"
+        },
+        {
+          "file": "pp1-16.10a",
+          "offset": 1536,
+          "size": 256,
+          "crc": "027aa62c"
+        },
+        {
+          "file": "pp1-17.11a",
+          "offset": 1792,
+          "size": 256,
+          "crc": "1f8d0df3"
+        },
+        {
+          "file": "pp1-12.3c",
+          "offset": 2048,
+          "size": 1024,
+          "crc": "7afc7cfc"
+        },
+        {
+          "file": "pp3-6.6m",
+          "offset": 3072,
+          "size": 1024,
+          "crc": "63fb6057",
+          "alt": [
+            {
+              "file": "pp1-6.6m",
+              "crc": "2f1079ee"
+            },
+            {
+              "file": "136014-146.12h",
+              "crc": "ca4ba741"
+            },
+            {
+              "file": "pp2-6.6m",
+              "crc": "b448c934"
+            }
+          ]
+        },
+        {
+          "file": "pp1-13.8e",
+          "offset": 4096,
+          "size": 32,
+          "crc": "4330a51b"
+        },
+        {
+          "file": "pp1-14.9e",
+          "offset": 4128,
+          "size": 32,
+          "crc": "4330a51b"
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 256,
+      "loads": [
+        {
+          "file": "pp1-5.3b",
+          "offset": 0,
+          "size": 256,
+          "crc": "8568decc"
+        }
+      ]
+    },
+    {
+      "region": "engine",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "pp1_15.6a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "b5ad4d5f"
+        },
+        {
+          "file": "pp1_16.5a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "8fdd2f6f"
+        }
+      ]
+    },
+    {
+      "region": "52xx",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "pp2_11.2e",
+          "offset": 0,
+          "size": 8192,
+          "crc": "5b4cf05e",
+          "alt": [
+            {
+              "file": "pp1_11.2e",
+              "crc": "45b9bfeb"
+            }
+          ]
+        },
+        {
+          "file": "pp2_12.2f",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "32b694c2",
+          "alt": [
+            {
+              "file": "pp1_12.2f",
+              "crc": "a31b4be5"
+            }
+          ]
+        },
+        {
+          "file": "pp2_13.1e",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "8842138a",
+          "alt": [
+            {
+              "file": "pp1_13.1e",
+              "crc": "a4237466"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "user1",
+      "size": 256,
+      "loads": [
+        {
+          "file": "pp1-4.9h",
+          "offset": 0,
+          "size": 256,
+          "crc": "2401c817",
+          "alt": [
+            {
+              "file": "7052-4.c14",
+              "crc": "0e742cb1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "51xx:mcu",
+      "size": 1024,
+      "romSet": "namco51",
+      "loads": [
+        {
+          "file": "51xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "c2f57ef8"
+        }
+      ]
+    },
+    {
+      "region": "52xx:mcu",
+      "size": 1024,
+      "romSet": "namco52",
+      "loads": [
+        {
+          "file": "52xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "3257d11e"
+        }
+      ]
+    },
+    {
+      "region": "53xx:mcu",
+      "size": 1024,
+      "romSet": "namco53",
+      "loads": [
+        {
+          "file": "53xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "b326fecb"
+        }
+      ]
+    },
+    {
+      "region": "54xx:mcu",
+      "size": 1024,
+      "romSet": "namco54",
+      "loads": [
+        {
+          "file": "54xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "ee7357e0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "Gear Change",
+      "activeLow": true,
+      "toggle": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "BRAKE",
+      "mask": 255,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_PEDAL2",
+      "activeLow": false,
+      "activeValue": 144
+    },
+    {
+      "port": "ACCEL",
+      "mask": 255,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_PEDAL",
+      "activeLow": false,
+      "activeValue": 144
+    },
+    {
+      "port": "STEER",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_DIAL_LEFT",
+      "activeLow": false,
+      "relativeDelta": -4
+    },
+    {
+      "port": "STEER",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_DIAL_RIGHT",
+      "activeLow": false,
+      "relativeDelta": 4
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 224,
+      "value": 224,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 24,
+      "value": 24,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWA",
+      "mask": 6,
+      "value": 6,
+      "name": "Game Time"
+    },
+    {
+      "port": "DSWA",
+      "mask": 1,
+      "value": 1,
+      "name": "Racing Laps"
+    },
+    {
+      "port": "DSWB",
+      "mask": 224,
+      "value": 96,
+      "name": "Practice Rank"
+    },
+    {
+      "port": "DSWB",
+      "mask": 28,
+      "value": 20,
+      "name": "Extended Rank"
+    },
+    {
+      "port": "DSWB",
+      "mask": 2,
+      "value": 0,
+      "name": "Speed Unit"
+    },
+    {
+      "port": "DSWB",
+      "mask": 1,
+      "value": 0,
+      "name": "Demo Sounds"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "DSWA",
+      "init": 255
+    },
+    {
+      "tag": "DSWB",
+      "init": 116
+    },
+    {
+      "tag": "BRAKE",
+      "init": 0
+    },
+    {
+      "tag": "ACCEL",
+      "init": 0
+    },
+    {
+      "tag": "STEER",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

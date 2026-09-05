@@ -1,0 +1,698 @@
+{
+  "game": "pooyan",
+  "title": "Pooyan (Konami, 1982)",
+  "fullname": "Pooyan",
+  "year": "1982",
+  "company": "Konami",
+  "family": "pooyan",
+  "driverFile": "src/mame/konami/pooyan.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Allard van der Bas",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "share": "colorram",
+          "write": "pooyan_state.colorram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 33792,
+          "end": 34815,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "pooyan_state.videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 34816,
+          "end": 36863,
+          "kind": "ram"
+        },
+        {
+          "start": 36864,
+          "end": 37119,
+          "kind": "ram",
+          "mirror": 2816,
+          "share": "spriteram[0]"
+        },
+        {
+          "start": 37888,
+          "end": 38143,
+          "kind": "ram",
+          "mirror": 2816,
+          "share": "spriteram[1]"
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "mirror": 24191,
+          "read": "port.DSW1"
+        },
+        {
+          "start": 41088,
+          "end": 41088,
+          "kind": "handler",
+          "mirror": 24095,
+          "read": "port.IN0"
+        },
+        {
+          "start": 41120,
+          "end": 41120,
+          "kind": "handler",
+          "mirror": 24095,
+          "read": "port.IN1"
+        },
+        {
+          "start": 41152,
+          "end": 41152,
+          "kind": "handler",
+          "mirror": 24095,
+          "read": "port.IN2"
+        },
+        {
+          "start": 41184,
+          "end": 41184,
+          "kind": "handler",
+          "mirror": 24095,
+          "read": "port.DSW0"
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "mirror": 24191,
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 41216,
+          "end": 41216,
+          "kind": "handler",
+          "mirror": 24191,
+          "write": "timeplt_audio.sound_data_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 41344,
+          "end": 41351,
+          "kind": "handler",
+          "mirror": 24184,
+          "write": "mainlatch.write_d0"
+        }
+      ]
+    },
+    {
+      "tag": "timeplt_audio:tpsound",
+      "type": "z80",
+      "clock": 1789772.625,
+      "region": "timeplt_audio:tpsound",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 12287,
+          "kind": "rom"
+        },
+        {
+          "start": 12288,
+          "end": 13311,
+          "kind": "ram",
+          "mirror": 3072
+        },
+        {
+          "start": 16384,
+          "end": 16384,
+          "kind": "handler",
+          "mirror": 4095,
+          "read": "timeplt_audio:ay1.data_r",
+          "write": "timeplt_audio:ay1.data_w"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "handler",
+          "mirror": 4095,
+          "write": "timeplt_audio:ay1.address_w"
+        },
+        {
+          "start": 24576,
+          "end": 24576,
+          "kind": "handler",
+          "mirror": 4095,
+          "read": "timeplt_audio:ay2.data_r",
+          "write": "timeplt_audio:ay2.data_w"
+        },
+        {
+          "start": 28672,
+          "end": 28672,
+          "kind": "handler",
+          "mirror": 4095,
+          "write": "timeplt_audio:ay2.address_w"
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "handler",
+          "write": "timeplt_audio_device.filter_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 2,
+    "deviceTags": [
+      "timeplt_audio:ay1",
+      "timeplt_audio:ay2"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "filter.0.0",
+        "filter": {
+          "index": 0,
+          "bank": 0,
+          "channel": 0
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "filter.0.1",
+        "filter": {
+          "index": 1,
+          "bank": 0,
+          "channel": 1
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "filter.0.2",
+        "filter": {
+          "index": 2,
+          "bank": 0,
+          "channel": 2
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "filter.1.0",
+        "filter": {
+          "index": 3,
+          "bank": 1,
+          "channel": 0
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "filter.1.1",
+        "filter": {
+          "index": 4,
+          "bank": 1,
+          "channel": 1
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "filter.1.2",
+        "filter": {
+          "index": 5,
+          "bank": 1,
+          "channel": 2
+        }
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "1.4a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "bb319c63",
+          "alt": [
+            {
+              "file": "ic22_a4.cpu",
+              "crc": "916ae7d7"
+            },
+            {
+              "file": "poo_ic22.bin",
+              "crc": "41b23a24"
+            }
+          ]
+        },
+        {
+          "file": "2.5a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "a1463d98",
+          "alt": [
+            {
+              "file": "ic23_a5.cpu",
+              "crc": "8fe38c61"
+            },
+            {
+              "file": "poo_ic23.bin",
+              "crc": "c9d94661"
+            }
+          ]
+        },
+        {
+          "file": "3.6a",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "fe1a9e08",
+          "alt": [
+            {
+              "file": "ic24_a6.cpu",
+              "crc": "2660218a"
+            }
+          ]
+        },
+        {
+          "file": "4.7a",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "9e0f9bcc",
+          "alt": [
+            {
+              "file": "ic25_a7.cpu",
+              "crc": "3d2a10ad"
+            },
+            {
+              "file": "poo_ic25.bin",
+              "crc": "8ae459ef"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "timeplt_audio:tpsound",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "xx.7a",
+          "offset": 0,
+          "size": 4096,
+          "crc": "fbe2b368"
+        },
+        {
+          "file": "xx.8a",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "e1795b3d"
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "8.10g",
+          "offset": 0,
+          "size": 4096,
+          "crc": "931b29eb",
+          "alt": [
+            {
+              "file": "ic13_g10.cpu",
+              "crc": "7433aea9"
+            },
+            {
+              "file": "poo_ic13.bin",
+              "crc": "0be802e4"
+            }
+          ]
+        },
+        {
+          "file": "7.9g",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "bbe6d6e4",
+          "alt": [
+            {
+              "file": "ic14_g9.cpu",
+              "crc": "87c1789e"
+            },
+            {
+              "file": "poo_ic14.bin",
+              "crc": "cba29096"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "6.9a",
+          "offset": 0,
+          "size": 4096,
+          "crc": "b2d8c121"
+        },
+        {
+          "file": "5.8a",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "1097c2b6"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "pooyan.pr1",
+          "offset": 0,
+          "size": 32,
+          "crc": "a06a6d0e"
+        },
+        {
+          "file": "pooyan.pr3",
+          "offset": 32,
+          "size": 256,
+          "crc": "8cd4cd60"
+        },
+        {
+          "file": "pooyan.pr2",
+          "offset": 288,
+          "size": 256,
+          "crc": "82748c0b"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW0",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 8,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 112,
+      "value": 112,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-09",
+    "commits": 109,
+    "contributors": 20,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 36,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 25,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2015-11-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 10,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2015-02-26",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "AJR",
+        "commits": 5,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2018-03-28"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2012-01-27"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "hap",
+        "commits": 2,
+        "firstCommit": "2025-08-13",
+        "lastCommit": "2026-03-09"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-02-12",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-10-23",
+        "lastCommit": "2011-10-23"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2013-07-12",
+        "lastCommit": "2013-07-12"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2013-01-11"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nPooyan (c) 1982 Konami Industry Company, Limited.\n\nThe player takes on the role of a bow-and-arrow welding pig who must protect her piglets from the pack of hungry wolves ballooning up or down the cliff face. The pig is suspended in a winch-controlled cage and must move vertically up and down, shooting the balloons and sending the wolves plummeting to the ground. Any wolves she misses will, having safely reached the ground, climb a ladder to try and bite her. Also, if any of the wolves reach the ground, more piglets will be captured by them. Mother Pig must try to kill as many wolves as possible without letting them reach the ground.\n\nOn the second level, the wolves use balloons to float upwards to the top of a high cliff. If enough of them reach the cliff, they will push a huge boulder down onto Mother Pig's cage. After this level has been completed, the piglets who have been captured are rescued and the game starts over with increased difficulty.\n\nThere is also a bonus round where Mother Pig will attempt to eliminate as many wolves on ascending balloons as possible by throwing as few slabs of meat as possible for a maximum bonus score.\n\n- TECHNICAL -\n\nGame ID : GX320\n\nMain CPU : Zilog Z80 (@ 3.072 Mhz)\nSound CPU : Zilog Z80 (@ 1.789772 Mhz)\nSound Chips : (2x) General Instrument AY8910 (@ 1.789772 Mhz), (6x) RC (@ 1.789772 Mhz)\n\nPlayers : 2\nControl : 2-way joystick (vertical)\nButtons : 1 (FIRE)\n\n- TRIVIA -\n\nPooyan was released in October 1982 in Japan.\n\nThe title is Japanese for 'little pigs'. It is also very rarely used as an adjective meaning 'extremely stupid'. For example, 'Intentionally puncturing your spacesuit is pooyan'. \n\nThe intro tune is a rendition of \"The Other Day I Met a Bear\" which is a traditional American camp song. The music was composed in 1919 by Carey Morgan and Lee David.\n\nThe Round 1 in-game tune is a rendition of 'Humoresque (Op. 101, No. 7 in G flat major)' by Antonin Dvorak. \n\nMark Kinter holds the official record for this game with 1609250 points. \n\nA bootleg of this game is known as \"Pootan\". \n\nA Pooyan unit appears in the 1983 movie 'Joysticks'.\n\n- TIPS AND TRICKS -\n\n* Learn how a meat piece falls : unlike arrows, meat pieces fly not straight but in an arc.\n\n* Throw meat pieces at enemy formations : When arrows are not enough to take out a formation, use meat pieces to wipe them all out. Knowing how a meat piece falls will work in your advantage.\n\n* When to use meat pieces ? : At the end of a level appears a wolf with a balloon hard to pop. Keep the meat piece until the very end and use it against that particular wolf.\n\n* Do not underestimate the power of the balloon : As the game proceeds, there will be balloons with no wolves holding onto them. While it will not count as a miss even if you don't take out these balloons, they bounce off meat pieces. be careful!\n\n* Shoot down rocks with arrows : Rocks thrown by wolves can be reflected with the roof of MAM's gondola and by shooting arrows. Stay calm even if you see a bunch of rocks coming at you.\n\n- STAFF -\n\nDirector: Tokuro Fujiwara\n\n- PORTS -\n\n* CONSOLES: \n[JP] Nintendo Famicom (sept.20, 1985) \"Pooyan [Model HFC-PO]\"\nCasio PV-1000\n[JP] Sony PlayStation (may.13, 1999) \"Konami 80's Arcade Gallery [Model SLPM-86228]\" \n[JP] Sony PS2 (may.25, 2006) \"Pooyan [Oretachi Geasen Zoku] [Model SLPM-62731]\" \n\n* HANDHELDS: \n[JP] Nintendo DS (mar.15, 2007) \"Konami Arcade Collection [Model NTR-A5KJ-JPN]\" \n[EU] Nintendo DS (oct.26, 2007) \"Konami Arcade Classics [Model NTR-ACXP-EUR]\" \n[AU] Nintendo DS (oct.29, 2007) \"Konami Arcade Classics\" \n\n* COMPUTERS: \n[EU] Commodore C64 (1983) \n[JP] MSX (1985) \"Konami no Pooyan\" \nSord M5 [JP] (1983) \nAmstrad CPC [UK] (1986) \"Jungle Jane\" \nAmstrad CPC [FR] (1986) \"Croc' Madam'\" \n\n* OTHERS: \n[JP] LCD handheld game (19??) by Gakken. \n[EU] [AU] [KO] Arcade (nov.1998) \"Konami 80's AC Special\" \n[JP] Arcade (nov.1998) \"Konami 80's Arcade Gallery\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2011/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

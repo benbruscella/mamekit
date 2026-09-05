@@ -1,0 +1,1454 @@
+{
+  "game": "polepos",
+  "title": "Pole Position (World) (Namco, 1982)",
+  "fullname": "Pole Position (World)",
+  "year": "1982",
+  "company": "Namco",
+  "family": "polepos",
+  "driverFile": "src/mame/namco/polepos.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Ernesto Corvi, Juergen Buchmueller, Alex Pasadyn, Aaron Giles, Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 12287,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 12288,
+          "end": 14335,
+          "kind": "ram",
+          "mirror": 2048,
+          "share": "nvram"
+        },
+        {
+          "start": 16384,
+          "end": 18431,
+          "kind": "handler",
+          "read": "polepos_state.sprite_r",
+          "write": "polepos_state.sprite_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 18432,
+          "end": 19455,
+          "kind": "handler",
+          "read": "polepos_state.road_r",
+          "write": "polepos_state.road_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 19456,
+          "end": 20479,
+          "kind": "handler",
+          "read": "polepos_state.alpha_r",
+          "write": "polepos_state.alpha_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 20480,
+          "end": 22527,
+          "kind": "handler",
+          "read": "polepos_state.view_r",
+          "write": "polepos_state.view_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 33727,
+          "kind": "ram",
+          "mirror": 3072
+        },
+        {
+          "start": 33728,
+          "end": 33791,
+          "kind": "handler",
+          "mirror": 3072,
+          "read": "namco.polepos_sound_r",
+          "write": "namco.polepos_sound_w"
+        },
+        {
+          "start": 36864,
+          "end": 36864,
+          "kind": "handler",
+          "mirror": 3839,
+          "read": "06xx.data_r",
+          "write": "06xx.data_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 37120,
+          "end": 37120,
+          "kind": "handler",
+          "mirror": 3839,
+          "read": "06xx.ctrl_r",
+          "write": "06xx.ctrl_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "mirror": 3327,
+          "read": "polepos_state.ready_r"
+        },
+        {
+          "start": 40960,
+          "end": 40967,
+          "kind": "handler",
+          "mirror": 3320,
+          "write": "latch.write_d0"
+        },
+        {
+          "start": 41216,
+          "end": 41216,
+          "kind": "handler",
+          "mirror": 3327,
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 41472,
+          "end": 41472,
+          "kind": "handler",
+          "mirror": 3327,
+          "write": "engine.polepos_engine_sound_lsb_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 41728,
+          "end": 41728,
+          "kind": "handler",
+          "mirror": 3327,
+          "write": "engine.polepos_engine_sound_msb_w",
+          "handlerWidth": 8
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "read": "adc.read",
+            "write": "adc.write"
+          }
+        ],
+        "globalMask": 255
+      }
+    },
+    {
+      "tag": "sub1",
+      "type": "z8002",
+      "clock": 3072000,
+      "region": "sub1",
+      "ranges": [
+        {
+          "start": 32768,
+          "end": 36863,
+          "kind": "ram",
+          "share": "sprite16_memory"
+        },
+        {
+          "start": 36864,
+          "end": 38911,
+          "kind": "ram",
+          "share": "road16_memory"
+        },
+        {
+          "start": 38912,
+          "end": 40959,
+          "kind": "ram",
+          "share": "alpha16_memory",
+          "write": "polepos_state.alpha16_w"
+        },
+        {
+          "start": 40960,
+          "end": 45055,
+          "kind": "ram",
+          "share": "view16_memory",
+          "write": "polepos_state.view16_w"
+        },
+        {
+          "start": 49152,
+          "end": 49153,
+          "kind": "handler",
+          "mirror": 14590,
+          "write": "polepos_state.view16_hscroll_w"
+        },
+        {
+          "start": 49408,
+          "end": 49409,
+          "kind": "handler",
+          "mirror": 14590,
+          "write": "polepos_state.road16_vscroll_w"
+        },
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 24576,
+          "end": 24577,
+          "kind": "handler",
+          "mirror": 8190,
+          "write": "polepos_state.z8002_nvi_enable_w_0"
+        }
+      ]
+    },
+    {
+      "tag": "sub2",
+      "type": "z8002",
+      "clock": 3072000,
+      "region": "sub2",
+      "ranges": [
+        {
+          "start": 32768,
+          "end": 36863,
+          "kind": "ram",
+          "share": "sprite16_memory"
+        },
+        {
+          "start": 36864,
+          "end": 38911,
+          "kind": "ram",
+          "share": "road16_memory"
+        },
+        {
+          "start": 38912,
+          "end": 40959,
+          "kind": "ram",
+          "share": "alpha16_memory",
+          "write": "polepos_state.alpha16_w"
+        },
+        {
+          "start": 40960,
+          "end": 45055,
+          "kind": "ram",
+          "share": "view16_memory",
+          "write": "polepos_state.view16_w"
+        },
+        {
+          "start": 49152,
+          "end": 49153,
+          "kind": "handler",
+          "mirror": 14590,
+          "write": "polepos_state.view16_hscroll_w"
+        },
+        {
+          "start": 49408,
+          "end": 49409,
+          "kind": "handler",
+          "mirror": 14590,
+          "write": "polepos_state.road16_vscroll_w"
+        },
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 24576,
+          "end": 24577,
+          "kind": "handler",
+          "mirror": 8190,
+          "write": "polepos_state.z8002_nvi_enable_w_1"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "wsg",
+    "clock": 48000,
+    "waveRegion": "namco",
+    "sampleRegion": "engine",
+    "worklet": "polepos-wsg",
+    "auxiliaryDevices": [
+      {
+        "type": "POLEPOS_SOUND",
+        "deviceTag": "engine",
+        "clock": 3072000,
+        "sampleRegion": "engine",
+        "gain": 0.6930000000000001,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "polepos_engine_sound_lsb_w",
+          "polepos_engine_sound_msb_w",
+          "clson_w"
+        ]
+      }
+    ],
+    "masterGain": 0.8,
+    "auxiliary": {
+      "type": "DAC_FILTER",
+      "levels": [
+        -2,
+        -1.7757390417940877,
+        -1.5208970438328238,
+        -1.2966360856269115,
+        -0.945973496432212,
+        -0.7217125382262997,
+        -0.4668705402650357,
+        -0.24260958205912364,
+        0.24260958205912342,
+        0.4668705402650355,
+        0.7217125382262997,
+        0.9459734964322117,
+        1.2966360856269112,
+        1.5208970438328238,
+        1.7757390417940875,
+        2
+      ],
+      "channels": [
+        {
+          "input": 2,
+          "frequency": 2324.811943452783,
+          "q": 1.9281536003476754,
+          "gain": -7.435552613067406,
+          "clamp": {
+            "minimum": -2,
+            "maximum": 1.5
+          }
+        },
+        {
+          "input": 1,
+          "frequency": 231.96096123953708,
+          "q": 1.923838888619357,
+          "gain": -7.402312138728324,
+          "clamp": {
+            "minimum": -2,
+            "maximum": 1.5
+          }
+        },
+        {
+          "input": 0,
+          "frequency": 74.03790349042075,
+          "q": 1.9677700590402074,
+          "gain": -7.744238010510201,
+          "clamp": {
+            "minimum": -2,
+            "maximum": 1.5
+          }
+        },
+        {
+          "input": 3,
+          "frequency": 100,
+          "q": 0.3,
+          "gain": 1,
+          "levels": [
+            -2,
+            -1.7736675057458684,
+            -1.5184415015869541,
+            -1.2921090073328227,
+            -0.971215935208493,
+            -0.7448834409543614,
+            -0.4896574367954474,
+            -0.2633249425413158,
+            0.26332494254131555,
+            0.48965743679544715,
+            0.7448834409543612,
+            0.9712159352084928,
+            1.2921090073328223,
+            1.518441501586954,
+            1.773667505745868,
+            2
+          ],
+          "stages": [
+            {
+              "type": "highpass",
+              "frequency": 100,
+              "q": 0.3,
+              "gain": 1
+            },
+            {
+              "type": "lowpass",
+              "frequency": 1200,
+              "q": 0.8,
+              "gain": 0.5
+            }
+          ],
+          "clamp": {
+            "minimum": 0,
+            "maximum": 1.5
+          }
+        }
+      ],
+      "outputGain": 0.44998626708984374,
+      "source": {
+        "file": "src/mame/namco/polepos_a.cpp",
+        "line": 433,
+        "netlist": "polepos_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "pp3_9.6h",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c0511173",
+          "alt": [
+            {
+              "file": "pp1_9b.6h",
+              "crc": "94436b70"
+            },
+            {
+              "file": "136014-105.7h",
+              "crc": "c918c043"
+            },
+            {
+              "file": "tr9b.bin",
+              "crc": "538bd0cb"
+            },
+            {
+              "file": "a5.bin",
+              "crc": "caab829a"
+            }
+          ]
+        },
+        {
+          "file": "pp1_10b.5h",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "7174bcb7",
+          "alt": [
+            {
+              "file": "a6.bin",
+              "crc": "148f5000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub1",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "pp3_1.8m",
+          "offset": 1,
+          "size": 8192,
+          "crc": "65c1c2c2",
+          "alt": [
+            {
+              "file": "pp1_1b.8m",
+              "crc": "361c56dd"
+            },
+            {
+              "file": "136014-101.3l",
+              "crc": "8c2cf172"
+            },
+            {
+              "file": "tr1b.bin",
+              "crc": "127f0750"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "pp3_2.8l",
+          "offset": 0,
+          "size": 8192,
+          "crc": "fafb9049",
+          "alt": [
+            {
+              "file": "pp1_2b.8l",
+              "crc": "582b530a"
+            },
+            {
+              "file": "136014-102.4l",
+              "crc": "51018857"
+            },
+            {
+              "file": "tr2b.bin",
+              "crc": "6bd4ff6b"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "sub2",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "pp3_5.4m",
+          "offset": 1,
+          "size": 8192,
+          "crc": "46e5c99a",
+          "alt": [
+            {
+              "file": "pp1_5b.4m",
+              "crc": "5cdf5294"
+            },
+            {
+              "file": "136014-103.3e",
+              "crc": "af4fc019"
+            },
+            {
+              "file": "136014-203.3e",
+              "crc": "eedea6e7"
+            },
+            {
+              "file": "tr5b.bin",
+              "crc": "4e5f7b9c"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "pp3_6.4l",
+          "offset": 0,
+          "size": 8192,
+          "crc": "acc1ebc3",
+          "alt": [
+            {
+              "file": "pp1_6b.4l",
+              "crc": "81696272"
+            },
+            {
+              "file": "136014-104.4e",
+              "crc": "ba0045f3"
+            },
+            {
+              "file": "136014-204.4e",
+              "crc": "c52c98ed"
+            },
+            {
+              "file": "tr6b.bin",
+              "crc": "9d038ada"
+            },
+            {
+              "file": "tr6b.f5",
+              "crc": "b3641d0c"
+            },
+            {
+              "file": "pole-d",
+              "crc": "932bb5a7"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "pp3_28.1f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "2e77187e",
+          "alt": [
+            {
+              "file": "pp1_28.1f",
+              "crc": "5b277daf"
+            },
+            {
+              "file": "136014-132.7n",
+              "crc": "a949aa85"
+            },
+            {
+              "file": "tr28.bin",
+              "crc": "b8217c96"
+            },
+            {
+              "file": "tr28.bin",
+              "crc": "cd80b4c3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "pp1_29.1e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "706e888a",
+          "alt": [
+            {
+              "file": "tr29.bin",
+              "crc": "c6e15c21"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "pp3_25.1n",
+          "offset": 0,
+          "size": 8192,
+          "crc": "b52c086b",
+          "alt": [
+            {
+              "file": "pp1_25.1n",
+              "crc": "ac8e28c1"
+            },
+            {
+              "file": "136014-125.13n",
+              "crc": "e7a09c93"
+            },
+            {
+              "file": "pp2_25.1n",
+              "crc": "34c2d310"
+            },
+            {
+              "file": "trus25.bin",
+              "crc": "9e1a9c3b"
+            },
+            {
+              "file": "tr25.bin",
+              "crc": "f44d33c1"
+            },
+            {
+              "file": "5.bin",
+              "crc": "301117d2"
+            }
+          ]
+        },
+        {
+          "file": "pp3_26.1m",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "d24a5707",
+          "alt": [
+            {
+              "file": "pp1_26.1m",
+              "crc": "94443079"
+            },
+            {
+              "file": "136014-126.12n",
+              "crc": "dee7d687"
+            },
+            {
+              "file": "pp2_26.1m",
+              "crc": "ba3005f3"
+            },
+            {
+              "file": "trus26.bin",
+              "crc": "3b39a176"
+            },
+            {
+              "file": "tr26.bin",
+              "crc": "87e8482d"
+            },
+            {
+              "file": "6.bin",
+              "crc": "3c9db014"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bigsprites",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "pp1_17.5n",
+          "offset": 0,
+          "size": 8192,
+          "crc": "2e134b46",
+          "alt": [
+            {
+              "file": "pp17.bin",
+              "crc": "613ab0df"
+            }
+          ]
+        },
+        {
+          "file": "pp1_19.4n",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "43ff83e1",
+          "alt": [
+            {
+              "file": "136014-121.13k",
+              "crc": "a7e3a1c6"
+            },
+            {
+              "file": "pp2_19.4n",
+              "crc": "1c5c05b7"
+            },
+            {
+              "file": "tr19.bin",
+              "crc": "f8e7f551"
+            },
+            {
+              "file": "tr19.bin",
+              "crc": "1ea04ccd"
+            }
+          ]
+        },
+        {
+          "file": "pp1_21.3n",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "5f958eb4",
+          "alt": [
+            {
+              "file": "136014-123.13l",
+              "crc": "8992d381"
+            },
+            {
+              "file": "pp2_21.3n",
+              "crc": "020f4de5"
+            },
+            {
+              "file": "tr21.bin",
+              "crc": "17c798b0"
+            },
+            {
+              "file": "tr21.bin",
+              "crc": "bd7b4a62"
+            }
+          ]
+        },
+        {
+          "file": "pp1_18.5m",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "6f9997d2",
+          "alt": [
+            {
+              "file": "pp18.bin",
+              "crc": "5fd933e3"
+            }
+          ]
+        },
+        {
+          "file": "pp1_20.4m",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "ec18075b",
+          "alt": [
+            {
+              "file": "136014-122.12k",
+              "crc": "6c5c6e68"
+            },
+            {
+              "file": "pp2_20.4m",
+              "crc": "b8a0411c"
+            },
+            {
+              "file": "tr20.bin",
+              "crc": "7053e219"
+            },
+            {
+              "file": "tr20.bin",
+              "crc": "c572c6ed"
+            }
+          ]
+        },
+        {
+          "file": "pp1_22.3m",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "1d2f30b1",
+          "alt": [
+            {
+              "file": "136014-124.12l",
+              "crc": "111896ad"
+            },
+            {
+              "file": "pp2_22.3m",
+              "crc": "4fbf3e94"
+            },
+            {
+              "file": "tr22.bin",
+              "crc": "5fe9b365"
+            },
+            {
+              "file": "tr22.bin",
+              "crc": "db1bcdd8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "road",
+      "size": 20480,
+      "loads": [
+        {
+          "file": "pp1_30.3a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "ee6b3315"
+        },
+        {
+          "file": "pp1_31.2a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "6d1e7042"
+        },
+        {
+          "file": "pp1_32.1a",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "4e97f101"
+        }
+      ]
+    },
+    {
+      "region": "scalelut",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "pp1_27.1l",
+          "offset": 0,
+          "size": 4096,
+          "crc": "a61bff15",
+          "alt": [
+            {
+              "file": "136014-131.11n",
+              "crc": "5921777f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 4160,
+      "loads": [
+        {
+          "file": "pp1-7.8l",
+          "offset": 0,
+          "size": 256,
+          "crc": "f07ff2ad"
+        },
+        {
+          "file": "pp1-8.9l",
+          "offset": 256,
+          "size": 256,
+          "crc": "adbde7d7"
+        },
+        {
+          "file": "pp1-9.10l",
+          "offset": 512,
+          "size": 256,
+          "crc": "ddac786a"
+        },
+        {
+          "file": "pp2-10.2h",
+          "offset": 768,
+          "size": 256,
+          "crc": "1e8d0491",
+          "alt": [
+            {
+              "file": "7052-10.h15",
+              "crc": "5af3f710"
+            }
+          ]
+        },
+        {
+          "file": "pp1-11.4d",
+          "offset": 1024,
+          "size": 256,
+          "crc": "0e4fe8a0",
+          "alt": [
+            {
+              "file": "7052-11.j15",
+              "crc": "8c90e36e"
+            }
+          ]
+        },
+        {
+          "file": "pp1-15.9a",
+          "offset": 1280,
+          "size": 256,
+          "crc": "2d502464"
+        },
+        {
+          "file": "pp1-16.10a",
+          "offset": 1536,
+          "size": 256,
+          "crc": "027aa62c"
+        },
+        {
+          "file": "pp1-17.11a",
+          "offset": 1792,
+          "size": 256,
+          "crc": "1f8d0df3"
+        },
+        {
+          "file": "pp1-12.3c",
+          "offset": 2048,
+          "size": 1024,
+          "crc": "7afc7cfc"
+        },
+        {
+          "file": "pp3-6.6m",
+          "offset": 3072,
+          "size": 1024,
+          "crc": "63fb6057",
+          "alt": [
+            {
+              "file": "pp1-6.6m",
+              "crc": "2f1079ee"
+            },
+            {
+              "file": "136014-146.12h",
+              "crc": "ca4ba741"
+            },
+            {
+              "file": "pp2-6.6m",
+              "crc": "b448c934"
+            }
+          ]
+        },
+        {
+          "file": "pp1-13.8e",
+          "offset": 4096,
+          "size": 32,
+          "crc": "4330a51b"
+        },
+        {
+          "file": "pp1-14.9e",
+          "offset": 4128,
+          "size": 32,
+          "crc": "4330a51b"
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 256,
+      "loads": [
+        {
+          "file": "pp1-5.3b",
+          "offset": 0,
+          "size": 256,
+          "crc": "8568decc"
+        }
+      ]
+    },
+    {
+      "region": "engine",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "pp1_15.6a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "b5ad4d5f"
+        },
+        {
+          "file": "pp1_16.5a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "8fdd2f6f"
+        }
+      ]
+    },
+    {
+      "region": "52xx",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "pp2_11.2e",
+          "offset": 0,
+          "size": 8192,
+          "crc": "5b4cf05e",
+          "alt": [
+            {
+              "file": "pp1_11.2e",
+              "crc": "45b9bfeb"
+            }
+          ]
+        },
+        {
+          "file": "pp2_12.2f",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "32b694c2",
+          "alt": [
+            {
+              "file": "pp1_12.2f",
+              "crc": "a31b4be5"
+            }
+          ]
+        },
+        {
+          "file": "pp2_13.1e",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "8842138a",
+          "alt": [
+            {
+              "file": "pp1_13.1e",
+              "crc": "a4237466"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "user1",
+      "size": 256,
+      "loads": [
+        {
+          "file": "pp1-4.9h",
+          "offset": 0,
+          "size": 256,
+          "crc": "2401c817",
+          "alt": [
+            {
+              "file": "7052-4.c14",
+              "crc": "0e742cb1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "51xx:mcu",
+      "size": 1024,
+      "romSet": "namco51",
+      "loads": [
+        {
+          "file": "51xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "c2f57ef8"
+        }
+      ]
+    },
+    {
+      "region": "52xx:mcu",
+      "size": 1024,
+      "romSet": "namco52",
+      "loads": [
+        {
+          "file": "52xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "3257d11e"
+        }
+      ]
+    },
+    {
+      "region": "53xx:mcu",
+      "size": 1024,
+      "romSet": "namco53",
+      "loads": [
+        {
+          "file": "53xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "b326fecb"
+        }
+      ]
+    },
+    {
+      "region": "54xx:mcu",
+      "size": 1024,
+      "romSet": "namco54",
+      "loads": [
+        {
+          "file": "54xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "ee7357e0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "Gear Change",
+      "activeLow": true,
+      "toggle": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "BRAKE",
+      "mask": 255,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_PEDAL2",
+      "activeLow": false,
+      "activeValue": 144
+    },
+    {
+      "port": "ACCEL",
+      "mask": 255,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_PEDAL",
+      "activeLow": false,
+      "activeValue": 144
+    },
+    {
+      "port": "STEER",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_DIAL_LEFT",
+      "activeLow": false,
+      "relativeDelta": -4
+    },
+    {
+      "port": "STEER",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_DIAL_RIGHT",
+      "activeLow": false,
+      "relativeDelta": 4
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 224,
+      "value": 224,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 24,
+      "value": 24,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWA",
+      "mask": 6,
+      "value": 6,
+      "name": "Game Time"
+    },
+    {
+      "port": "DSWA",
+      "mask": 1,
+      "value": 1,
+      "name": "Racing Laps"
+    },
+    {
+      "port": "DSWB",
+      "mask": 224,
+      "value": 96,
+      "name": "Practice Rank"
+    },
+    {
+      "port": "DSWB",
+      "mask": 28,
+      "value": 20,
+      "name": "Extended Rank"
+    },
+    {
+      "port": "DSWB",
+      "mask": 2,
+      "value": 0,
+      "name": "Speed Unit"
+    },
+    {
+      "port": "DSWB",
+      "mask": 1,
+      "value": 0,
+      "name": "Demo Sounds"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 262,
+    "contributors": 33,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "AJR",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 91,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 38,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 23,
+        "firstCommit": "2016-11-27",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "AJR",
+        "commits": 17,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2025-04-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 10,
+        "firstCommit": "2014-03-22",
+        "lastCommit": "2023-11-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 8,
+        "firstCommit": "2018-01-02",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 6,
+        "firstCommit": "2009-10-27",
+        "lastCommit": "2010-07-15"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 5,
+        "firstCommit": "2010-05-11",
+        "lastCommit": "2011-12-05"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2019-02-19",
+        "lastCommit": "2021-09-24"
+      },
+      {
+        "name": "RobertoFresca",
+        "commits": 5,
+        "firstCommit": "2016-11-13",
+        "lastCommit": "2017-01-18"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-03-09"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 4,
+        "firstCommit": "2013-08-24",
+        "lastCommit": "2013-08-25"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 4,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-10"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 4,
+        "firstCommit": "2018-03-10",
+        "lastCommit": "2018-12-19"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2014-06-03"
+      },
+      {
+        "name": "smf-",
+        "commits": 4,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 3,
+        "firstCommit": "2011-06-10",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2019-03-30",
+        "lastCommit": "2026-04-03"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-29",
+        "lastCommit": "2014-04-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 2,
+        "firstCommit": "2008-08-02",
+        "lastCommit": "2013-02-21"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 2,
+        "firstCommit": "2008-11-14",
+        "lastCommit": "2009-09-06"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2013-07-15",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 2,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2018-12-29",
+        "lastCommit": "2018-12-29"
+      },
+      {
+        "name": "Jordi Mallach",
+        "commits": 1,
+        "firstCommit": "2016-03-31",
+        "lastCommit": "2016-03-31"
+      },
+      {
+        "name": "MASH",
+        "commits": 1,
+        "firstCommit": "2020-04-08",
+        "lastCommit": "2020-04-08"
+      },
+      {
+        "name": "Mike",
+        "commits": 1,
+        "firstCommit": "2020-04-25",
+        "lastCommit": "2020-04-25"
+      },
+      {
+        "name": "Mike Harris",
+        "commits": 1,
+        "firstCommit": "2020-04-25",
+        "lastCommit": "2020-04-25"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2017-07-20",
+        "lastCommit": "2017-07-20"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nPole Position (c) 1982 Namco.\n\nPole Position is a 1-player game using a color raster-scan video display. Game action takes place at the Fuji Speedway in Japan. The scenery around the speedway consists of green meadows, hills, and snow-capped Mt. Fuji. \n\nThe player drives a Formula-1 race car on the track. The first objective of the game is to finish the qualifying lap as quickly as possible. If the player beats the clock, he or she qualifies for the race. If not, he or she drives out the remainder of the time along the qualifying course. \n\nAs a qualifier, the player is ranked according to his or her qualifying lap time, from the 1st (pole) position to the 8th. The second objective of the game is to race against the clock and other cars to finish the specified number of laps ('Nr. of Laps' dip switch setting; 3 laps is the default) of the race as fast as possible and to achieve the highest score possible. The player earns points for passing cars, driving on the track, and finishing the race with time remaining. He or she is rewarded with an extended-play lap for completing the first lap within a certain amount of time (depending on the 'Extended Rank' dip switch setting). \n\nThe game starts with the player's car behind the starting line and a certain amount of time, in seconds ('Game Time' dip switch setting; the default is 90 seconds), will be on the clock. The player's car must finish the qualifying lap within a certain amount of time (which varies depending on the 'Practice Rank' dip switch setting) to be in the race. If the player does not qualify, his or her car continues on the track until the 'Game Time' elapses.\n\nIf the player has qualified, just before the race begins, the player's car (flashing on the screen) is placed at the starting line with seven other cars. The position of the car depends on the position earned during the qualifying lap. (The player's car is always placed at the 8th position in the attract mode.)\n\nThe starting lights flash from red to green, and the race begins. Racing hazards are other racing cars, sharp turns, road signs, and water puddles. (All of these hazards except for water puddles are also present on the qualifying lap.) As the race progresses, more cars appear on the track. If the player's car hits another car or a road sign, it is destroyed in an explosion. The player's car reappears in a few seconds and the race continues. Driving through water puddles or off the track slows down the player's car. \n\nRacing into the first turn, the player must let up on the accelerator slightly to make the corner. Road signs flash along the side of the track. Depending on how well the player manipulates the controls, he or she can either roar through the hairpin turns like a champion or spin out in a flaming crash. He or she jockeys for position with the other racers, while keeping his or her eye on the clock at the top of the screen. When time runs out, the race is over. If the player has beaten the racing lap time and has seconds remaining, the remaining seconds are added to the extended lap time, which varies depending on the 'Extended Rank' dip switch setting. \n\nThe top score achieved by a player appears at the top of the screen. The time allotted for the lap is displayed under the top score. Increasing lap time (in seconds and hundredths of a second) and the speed of the car appears last.\n\n- TECHNICAL -\n\n[Upright model] \n\nGame ID : PP \n\nMain CPU : Zilog Z80 (also drives the sound), Zilog Z8002 (x2) \nSound Chips : Namco 6-channel stereo WSG, DAC (engine sound), discrete circuitry (crash and skid sounds), custom DAC (speech) \n\nPlayers : 1 \nControls : Steering wheel, gear shifter (Hi and Low) \nPedals : Accelerator only\n\n- TRIVIA -\n\nPole Position was released in September 1982 in Japan.\n\nWhen Pole Position was introduced, players lined up in arcades around the world to grip the steering wheel and stomp on the gas pedal of a driving game so realistic that the players -- just like their cars -- were swerving around the corners. Pole Position was a 14-carat contribution to the golden age of video games. It started the trend for photo-realism in video game graphics. In addition to great graphics, it had great game play and was a huge success, dominating game charts for almost about two years. \n\nPole Position was the first driving game to be based on a real circuit. The action takes place at Fuji Speedway in Japan. The snow-capped Mt. Fuji appears in the background.\n\n* A place in video game history : \"Pole Position stands out as the racing game that really appealed to the general public,\" said Chris Lindsey, director of the National Video Game and Coin-Op Museum in St. Louis. \"It went into arcades across the nation, where it can still be found. Pole Position machines were placed everywhere -- even in gas stations!\". The popularity of Pole Position was based on its realism. Players felt as if they were actually in the driver's seat. \"Racing games before Pole Position tended to have a top-down perspective in which you floated over the course, which wasn't terribly realistic,\" Lindsey said. \"Pole Position's eye-level point of view gave it a great deal of realism, and this point of view became a standard for racing games that followed. In addition, it provided a lot of peripheral cues. You saw lots of things zipping by on the side of the screen and this really added to the excitement of the game. Pole Position also had great sound. You could hear the gears winding out in the stretches. As you zipped by another car, you could hear that car's engine. All of these details added to the overall effect. Pole Position was, and still is, an awfully nice game.\"\n\n * The great 25-cent escape : Chris Lindsey believes that a big reason why Pole Position has remained such a timeless classic is that it has always appealed to women, in addition to men. \"I think there are quite a few game developers who would like to figure out why some games appeal to females,\" Lindsey said. \"Perhaps this is just pop psychology, but I've seen two types of games women will take to: racing games, and games in which the character, or your representation on screen, is doing something besides destroying bad guys. I don't know if that's the correct way to describe it, but that is what I've seen. I've had occasion to work in different types of entertainment facilities, large and small, very modern and, of course, the museum. Without fail I see women take to 'Pac-Man', and I see them take to racing games, almost regardless of what the racing game is.\" \n\n* Lindsey said the comparative lack of violence in Pole Position and other racing games might explain their popularity with women -- as well as with men. \"I think violence in games is fairly thoughtless for men, and for some women, the violence in a video game may stick out,\" Lindsey said. \"Violence in gaming is not an experience that most people seek even though they like video games. When those people find games that are engaging, and that offer outstanding game play, there is a desire on their part to dive into it. These racing games really offer that.\" \n\n* Namco notes : The engineers who created Pole Position knew they had created something special when a steering wheel was first connected to the prototype game in their lab. Later, when Pole Position was released, engineers visiting the arcades found that the waiting lines were so long that they curled back and forth within the arcade and then extended out the door.\n\nPole Position is widely cursed by collectors as having the worst hardware design of any arcade game released in the 1980s. Internal documents that have recently surfaced bear this fact out. The circuit board underwent a large number of modifications and design changes that, while finally allowing the game to function, made the boards fragile. Proof can be found by the piles of Pole Position video PCBs with burnt edge connectors sitting on collectors' workbenches. Working replacement Pole Position PCBs are very hard to find these days, and almost all of the known repair shops won't even look at them, much less attempt to fix them.\n\nLes Lagier holds the official record for this game with 67,310 points.\n\nA Pole Position cockpit model appears in the 1983 movie 'Joysticks'.\n\nA Pole Position upright model appears in the Judas Priest music video 'Freewheel Burning'. The gameplay shows the head of Rob Halford (lead singer) in the player's car.\n\n- SCORING -\n\nPoints are scored for every foot of track driven. \n\nAt the end of the game, 50 points are scored for each car the driver passed. \nFinishing the game awards 200 points for each second left on the timer. \n\nQualifying Lap Placement Bonus : \n(Qualifying times vary depending on the 'Practice Rank' dip switch setting)\nPole Position (1st place) : 4,000 points \n2nd place : 2,000 points \n3rd place : 1,400 points \n4th place : 1,000 points \n5th place : 800 points \n6th place : 600 points \n7th place : 400 points \n8th place : 200 points\n\n- TIPS AND TRICKS -\n\n* Hints for Game Play : \n1) Avoid puddles and the sides of the track because these slow you down. \n2) Accelerate before the green light appears, and stay ahead of other racers. \n3) Drive to the inside of the track to make the corners. \n4) Successful completion of a turn depends on braking skill. \n5) Engine sound will cue the driver when to shift to high gear.\n6) When sliding, steer into the skid. \n\n* Instead of pressing down on the gas pedal for acceleration, placing your foot underneath the gas pedal and lifting the pedal up with your instep caused the car to go even faster.\n\n- STAFF -\n\nSound : Nobuyuki Ohnogi\n\n- PORTS -\n\nNOTE: For ports released in North America, please see the Atari version entry. \n\n* CONSOLES: \n[JP] Sony PlayStation (nov.22, 1995) \"Namco Museum Vol.1 [Model SLPS-00107]\" \n[AU] Sony PlayStation (1996) \"Namco Museum Vol.1 [Model SCES-00243]\" \n[EU] Sony PlayStation (aug.1996) \"Namco Museum Vol.1 [Model SCES-00243]\" \n[JP] Sony PS2 (jan.26, 2006) \"Namco Museum Arcade Hits! [Model SLPS-25590]\" \n[EU] Microsoft XBOX (mar.24, 2006) \"Namco Museum - 50th Anniversary\" \n[EU] Sony PS2 (mar.31, 2006) \"Namco Museum - 50th Anniversary [Model SLES-53957]\" \n[EU] Nintendo GameCube (may.5, 2006) \"Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]\" \n[EU] Microsoft XBOX 360 (may.15, 2009) \"Namco Museum - Virtual Arcade\" \n[AU] Microsoft XBOX 360 (june.4, 2009) \"Namco Museum - Virtual Arcade\" \n[JP] Microsoft XBOX 360 (nov.5, 2009) \"Namco Museum - Virtual Arcade [Model 2RD-00001]\" \n\n* HANDHELDS: \n[EU] Nintendo GBA (dec.7, 2001) \"Namco Museum [Model AGB-ANMP-EUR]\" \n[JP] Nintendo GBA (dec.7, 2001) \"Namco Museum [Model AGB-ANMJ-JPN]\" \n\n* COMPUTERS: \n[EU] Commodore C64 (1984) \n[EU] BBC Micro (1984) \n[EU] Sinclair ZX Spectrum (1984) \n[US] PC [MS DOS] (1988)\n[AU] PC [MS Windows, CD-ROM] (mar.27, 2006) \"Namco Museum - 50th Anniversary\" \n[EU] PC [MS Windows, CD-ROM] (may.19, 2006) \"Namco Museum - 50th Anniversary\"\n\n* OTHERS: \n[EU] Apple iPhone/iPod (2008) \"Pole Position Remix\" : Features updated graphics, music, and all of the tracks from \"Pole Position II\" plus a new track.\n\n- SERIES -\n\n1. Pole Position (1982)\n2. Pole Position II (1983)\n3. Final Lap (1987)\n4. Final Lap UR (1988)\n5. Final Lap Twin (1989, NEC PC-Engine)\n6. Final Lap 2 (1990)\n7. Final Lap 3 (1992)\n8. Final Lap R (1994)\n9. Final Lap 2000 (2000, Bandai WonderSwan)\n10. Final Lap Special (2001, Bandai WonderSwan Color)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2000/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

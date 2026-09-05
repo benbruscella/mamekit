@@ -1,0 +1,576 @@
+{
+  "game": "cavenger",
+  "title": "Cosmic Avenger (Universal, 1981)",
+  "fullname": "Cosmic Avenger",
+  "year": "1981",
+  "company": "Universal",
+  "family": "ladybug",
+  "driverFile": "src/mame/universal/ladybug.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 4000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 24575,
+          "kind": "rom"
+        },
+        {
+          "start": 24576,
+          "end": 28671,
+          "kind": "ram"
+        },
+        {
+          "start": 28672,
+          "end": 29695,
+          "kind": "handler",
+          "write": "video.spr_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 36863,
+          "kind": "nop",
+          "writeOnly": true
+        },
+        {
+          "start": 36864,
+          "end": 36864,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 36865,
+          "end": 36865,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 36866,
+          "end": 36866,
+          "kind": "handler",
+          "read": "port.DSW0"
+        },
+        {
+          "start": 36867,
+          "end": 36867,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 40960,
+          "end": 40967,
+          "kind": "handler",
+          "write": "videolatch.write_d0"
+        },
+        {
+          "start": 45056,
+          "end": 49151,
+          "kind": "handler",
+          "write": "sn1.write"
+        },
+        {
+          "start": 49152,
+          "end": 53247,
+          "kind": "handler",
+          "write": "sn2.write"
+        },
+        {
+          "start": 53248,
+          "end": 55295,
+          "kind": "handler",
+          "read": "video.bg_r",
+          "write": "video.bg_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 57344,
+          "end": 57344,
+          "kind": "handler",
+          "read": "port.IN2"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 4000000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489",
+      "SN76489"
+    ],
+    "clocks": [
+      4000000,
+      4000000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 240,
+    "height": 192,
+    "xOffset": 8,
+    "yOffset": 32,
+    "refresh": 60.11450381679389,
+    "htotal": 312,
+    "vtotal": 262,
+    "vbstart": 224,
+    "vbend": 32,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "1.c4",
+          "offset": 0,
+          "size": 4096,
+          "crc": "9e0cc781"
+        },
+        {
+          "file": "2.d4",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "5ce5b950"
+        },
+        {
+          "file": "3.e4",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "bc28218d"
+        },
+        {
+          "file": "4.h4",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "2b32e9f5"
+        },
+        {
+          "file": "5.j4",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "d117153e"
+        },
+        {
+          "file": "6.k4",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "c7d366cb"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "9.f7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "63357785"
+        },
+        {
+          "file": "0.h7",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "52ad1133"
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "8.l7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "b022bf2d"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 96,
+      "loads": [
+        {
+          "file": "10-2.k1",
+          "offset": 0,
+          "size": 32,
+          "crc": "42a24dd5"
+        },
+        {
+          "file": "10-1.f4",
+          "offset": 32,
+          "size": 32,
+          "crc": "d736b8de"
+        },
+        {
+          "file": "10-3.c4",
+          "offset": 64,
+          "size": 32,
+          "crc": "27fa3a50"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW0",
+      "mask": 4,
+      "value": 4,
+      "name": "High Score Names"
+    },
+    {
+      "port": "DSW0",
+      "mask": 8,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW0",
+      "mask": 48,
+      "value": 0,
+      "name": "Initial High Score"
+    },
+    {
+      "port": "DSW0",
+      "mask": 192,
+      "value": 192,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin A"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-02-09",
+    "commits": 162,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 57,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 18,
+        "firstCommit": "2016-12-25",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2016-12-16",
+        "lastCommit": "2025-02-09"
+      },
+      {
+        "name": "hap",
+        "commits": 6,
+        "firstCommit": "2022-07-02",
+        "lastCommit": "2022-09-02"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-03-05"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2012-08-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 3,
+        "firstCommit": "2017-03-03",
+        "lastCommit": "2021-01-08"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2012-05-07"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 2,
+        "firstCommit": "2008-08-14",
+        "lastCommit": "2008-08-14"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2021-09-23"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-04-30",
+        "lastCommit": "2009-12-10"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Frank Palazzolo",
+        "commits": 1,
+        "firstCommit": "2021-05-19",
+        "lastCommit": "2021-05-19"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 45 years ago:\n\nCosmic Avenger (c) 1981 Universal.\n\nAn early space shoot'em up game.\n\nHow to Play:\n1. Your Avenger can be moved in 8 directions. The speed increases as it advances, while it decreases as it retreats.\n2. Destroy the front enemy by pressing the Fire Button, and destroy the target below by pressing the Bomb Button.\n3. The enemy UFO will assault you flying either from in front of you or from behind you.  You can locate it by using the radar.\n4. A tough chase missile will pursue your Avenger persistently. Dodge it successfully, and you can cause the enemy to fight among themselves.\n5. When you pass the enemy radar site, an ant-aircraft gun will fire at your according to the altitude of your Avenger.\n6. When the screen advances further, the X station will appear. When you destroy it in good time, you can destroy all the targets appearing on the screen at once. You are then awarded a high score.\n7. Your Avenger will be destroyed when it is affected by any explosion.\n8. The 1st – 5th highest scores for the day can enter their names on the screen.\n\n- TECHNICAL -\n\nMain CPU : Zilog Z80 (@ 4 Mhz)\nSound Chips : (2x) Texas Instruments SN76496 (@ 4 Mhz)\n\nScreen orientation : Horizontal\nVideo resolution : 240 x 192 pixels\nScreen refresh : 60.00 Hz\nPalette colors : 32\n\nPlayers : 2\nControl : 8-way joystick\nButtons : 2\n\n- TRIVIA -\n\nReleased in July 1981.\n\nThis game is the first continuous X-axis (Left-Right) scrolling video game.\n\nWes Hupp holds the official record for this game with 117,290 points on November 17, 1982.\n\n- SCORING -\n\nUFO : 100 points.\nChase Missile Station (loaded) : 80 points.\nChase Missile Station (empty) : 50 points.\nCounter Missile Station (loaded) : 80 points.\nCounter Missile Station (empty) : 50 points.\nStation : 100 points.\nAnti-Aircraft Gun : 50 points.\nTank (armed) : 130 points.\nTank (empty) : 100 points.\nSubmarine : 100 points.\nMine : 50 points.\nDepth Bomb : 50 points.\nX Station : 300 points.\nMissile: 30 points.\nSmart Bomb (Large Box with Flashing 'X') awards points for all enemies destroyed.\n\n- TIPS AND TRICKS -\n\n* Alien UFO's can be destroyed by missiles or by contact with another UFO.\n\n* Maximise your score on the tank stage by moving as slowly as possible. Tanks will appear as fast as you can fire. Remember to destroy any missiles fired by the tanks.\n\n* Bomb diagonal missile launchers when they are below you, before they have a chance to launch.\n\n* Vertical missiles are fired before you reach them. Slow down and allow them to fire, then destroy the launcher before it reloads.\n\n* Destroy launchers situated on towers by firing missiles at them. This will clear the way for you well in advance.\n\n* Watch the scanner for any UFO's coming from behind to see if they are coming in low or high. This will enable you to avoid them, but watch out for bullets.\n\n* On the underwater stage destroy the mines so that alien subs are blown up in the subsequent explosion.\n\n* You can move above enemy subs and bomb them safely as they only fire horizontally. Watch out for depth charges falling from above though.\n\no Don't miss the alien smart bombs as these clear a good few buildings in advance as well as awarding points.\n\n- PORTS -\n\n* CONSOLES:\nColecovision (1982)\n\n- SERIES -\n\nCosmic Series\n\n1. Cosmic Monsters [Upright model] (1979)\n2. Cosmic Monsters 2 (1979)\n3. Cosmic Guerilla (1979)\n4. Cosmic Alien (1980)\n5. Devil Zone (1980)\n6. Zero Hour (1980)\n7. Space Panic (1980)\n8. Cosmic Avenger (1981)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/506/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

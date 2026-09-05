@@ -1,0 +1,1282 @@
+{
+    "schemaVersion": 4,
+    "game": "nes",
+    "family": "nes",
+    "driverFile": "src/mame/nintendo/nes.cpp",
+    "callbacks": [
+        {
+            "id": "device:nes_state.nes/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "nes_state",
+            "targetMethod": "screen_update_nes",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 423,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/screen/callback:screen:1",
+            "ownerTag": "screen",
+            "signal": "screen_vblank",
+            "operation": "set",
+            "targetClass": "nes_state",
+            "targetMethod": "screen_vblank_nes",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 424,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/ppu/callback:ppu:0",
+            "ownerTag": "ppu",
+            "signal": "int_callback",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "INPUT_LINE_NMI",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 428,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:nes_state.nes/screen/callback:screen:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "nes_state.screen_vblank_nes"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 424,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:nes_state.nes/ppu/callback:ppu:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "nmi",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 428,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "rp2a03",
+                "clock": 1789772.6666666667,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 2047,
+                        "kind": "ram",
+                        "mirror": 6144,
+                        "share": "mainram"
+                    },
+                    {
+                        "start": 8192,
+                        "end": 16383,
+                        "kind": "handler",
+                        "read": "ppu.read",
+                        "write": "ppu.write"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 16403,
+                        "kind": "handler",
+                        "write": "nesapu.write"
+                    },
+                    {
+                        "start": 16404,
+                        "end": 16404,
+                        "kind": "handler",
+                        "write": "ppu.spriteram_dma"
+                    },
+                    {
+                        "start": 16405,
+                        "end": 16405,
+                        "kind": "handler",
+                        "read": "nesapu.status_r",
+                        "write": "nesapu.write"
+                    },
+                    {
+                        "start": 16406,
+                        "end": 16406,
+                        "kind": "handler",
+                        "read": "nes_state.nes_in0_r",
+                        "write": "nes_state.nes_in0_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 16407,
+                        "end": 16407,
+                        "kind": "handler",
+                        "read": "nes_state.nes_in1_r",
+                        "write": "nesapu.write"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 1789772.6666666667,
+                "source": {
+                    "file": "src/mame/nintendo/nes.cpp",
+                    "line": 410,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 1789772.6666666667,
+                "cycleClock": 1789772.6666666667,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "startHandlers": [
+            "nes_state.video_start"
+        ],
+        "resetHandlers": [
+            "nes_state.machine_reset"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 240,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 60.0988,
+            "htotal": 256,
+            "vtotal": 262,
+            "vbstart": 240,
+            "vbend": 0,
+            "updateMode": "frame",
+            "rotate": 0,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 413,
+                "column": 2
+            }
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:nes_state.nes/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 0,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/nintendo/nes.cpp",
+                    "line": 424,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:nes_state.nes/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 240,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/nintendo/nes.cpp",
+                    "line": 424,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "nes_state.screen_update_nes",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 348,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:nes_state.nes/maincpu",
+            "tag": "maincpu",
+            "type": "RP2A03G",
+            "member": "m_maincpu",
+            "clock": 1789772.6666666667,
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 410,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_refresh_hz",
+                    "args": [
+                        60.0988
+                    ]
+                },
+                {
+                    "method": "set_size",
+                    "args": [
+                        256,
+                        262
+                    ]
+                },
+                {
+                    "method": "set_visarea",
+                    "args": [
+                        0,
+                        255,
+                        0,
+                        239
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 413,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/ppu",
+            "tag": "ppu",
+            "type": "PPU_2C02",
+            "member": "m_ppu",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 426,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 431,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/ctrl1",
+            "tag": "ctrl1",
+            "type": "NES_CONTROL_PORT",
+            "member": "m_ctrl1",
+            "slotOptions": "nes_control_port1_devices",
+            "slotDefault": "joypad",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 434,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/ctrl2",
+            "tag": "ctrl2",
+            "type": "NES_CONTROL_PORT",
+            "member": "m_ctrl2",
+            "slotOptions": "nes_control_port2_devices",
+            "slotDefault": "joypad",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 435,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/special",
+            "tag": "special",
+            "type": "NES_CONTROL_PORT",
+            "member": "m_special",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 436,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:nes_state.nes/nes_slot",
+            "tag": "nes_slot",
+            "type": "NES_CART_SLOT",
+            "member": "m_cartslot",
+            "clock": 1789772.6666666667,
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 438,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:ppu2c0x_device.read",
+            "ownerClass": "ppu2c0x_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 387,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ppu2c0x_device.write",
+            "ownerClass": "ppu2c0x_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 387,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ppu2c0x_device.spriteram_dma",
+            "ownerClass": "ppu2c0x_device",
+            "method": "spriteram_dma",
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 388,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:nes_state.nes_in0_r",
+            "ownerClass": "nes_state",
+            "method": "nes_in0_r",
+            "body": "uint8_t ret = 0x40;\n\tret |= m_ctrl1->read_bit0();\n\tret |= m_ctrl1->read_bit34();\n\treturn ret;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "ret",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 64
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "ret"
+                        },
+                        "operator": "|=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ctrl1"
+                                },
+                                "property": "read_bit0"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "ret"
+                        },
+                        "operator": "|=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ctrl1"
+                                },
+                                "property": "read_bit34"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "ret"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 270,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:nes_state.nes_in0_w",
+            "ownerClass": "nes_state",
+            "method": "nes_in0_w",
+            "parameters": "uint8_t data",
+            "body": "m_ctrl1->write(data);\n\tm_ctrl2->write(data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ctrl1"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ctrl2"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 286,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:nes_state.nes_in1_r",
+            "ownerClass": "nes_state",
+            "method": "nes_in1_r",
+            "body": "uint8_t ret = 0x40;\n\tret |= m_ctrl2->read_bit0();\n\tret |= m_ctrl2->read_bit34();\n\treturn ret;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "ret",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 64
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "ret"
+                        },
+                        "operator": "|=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ctrl2"
+                                },
+                                "property": "read_bit0"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "ret"
+                        },
+                        "operator": "|=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ctrl2"
+                                },
+                                "property": "read_bit34"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "ret"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 278,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:nes_state.machine_reset",
+            "ownerClass": "nes_state",
+            "method": "machine_reset",
+            "body": "// Reset the mapper variables. Will also mark the char-gen ram as dirty\n\tif (m_cartslot)\n\t\tm_cartslot->pcb_reset();\n\n\tm_maincpu->reset();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_cartslot"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_cartslot"
+                                        },
+                                        "property": "pcb_reset"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "reset"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 127,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:nes_state.video_start",
+            "ownerClass": "nes_state",
+            "method": "video_start",
+            "body": "m_last_frame_flip =  0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_last_frame_flip"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 336,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:nes_state.screen_update_nes",
+            "ownerClass": "nes_state",
+            "method": "screen_update_nes",
+            "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+            "body": "// render the ppu\n\tm_ppu->render(bitmap, 0, 0, 0, 0, cliprect);\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_ppu"
+                                },
+                                "property": "render"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 348,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:nes_state.screen_vblank_nes",
+            "ownerClass": "nes_state",
+            "method": "screen_vblank_nes",
+            "parameters": "int state",
+            "body": "// on rising edge\n\tif (!state)\n\t{\n\t\t// if this is a disk system game, check for the flip-disk key\n\t\tif ((m_cartslot && m_cartslot->exists() && (m_cartslot->get_pcb_id() == STD_DISKSYS))   // first scenario = disksys in m_cartslot (= famicom)\n\t\t\t\t|| m_disk)  // second scenario = disk via fixed internal disk option (fds & famitwin)\n\t\t{\n\t\t\tif (m_io_disksel)\n\t\t\t{\n\t\t\t\t// latch this input so it doesn't go at warp speed\n\t\t\t\tif ((m_io_disksel->read() & 0x01) && (!m_last_frame_flip))\n\t\t\t\t{\n\t\t\t\t\tif (m_disk)\n\t\t\t\t\t\tm_disk->disk_flip_side();\n\t\t\t\t\telse\n\t\t\t\t\t\tm_cartslot->disk_flip_side();\n\t\t\t\t\tm_last_frame_flip = 1;\n\t\t\t\t}\n\n\t\t\t\tif (!(m_io_disksel->read() & 0x01))\n\t\t\t\t\tm_last_frame_flip = 0;\n\t\t\t}\n\t\t}\n\t}",
+            "constants": {
+                "STD_DISKSYS": 26
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "state"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "||",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "m_cartslot"
+                                            },
+                                            "right": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_cartslot"
+                                                    },
+                                                    "property": "exists"
+                                                },
+                                                "args": []
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_cartslot"
+                                                    },
+                                                    "property": "get_pcb_id"
+                                                },
+                                                "args": []
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "STD_DISKSYS"
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "m_disk"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "m_io_disksel"
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": "&&",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_io_disksel"
+                                                                },
+                                                                "property": "read"
+                                                            },
+                                                            "args": []
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "unary",
+                                                        "operator": "!",
+                                                        "operand": {
+                                                            "kind": "identifier",
+                                                            "name": "m_last_frame_flip"
+                                                        }
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "if",
+                                                        "condition": {
+                                                            "kind": "identifier",
+                                                            "name": "m_disk"
+                                                        },
+                                                        "then": [
+                                                            {
+                                                                "op": "call",
+                                                                "expression": {
+                                                                    "kind": "call",
+                                                                    "callee": {
+                                                                        "kind": "member",
+                                                                        "object": {
+                                                                            "kind": "identifier",
+                                                                            "name": "m_disk"
+                                                                        },
+                                                                        "property": "disk_flip_side"
+                                                                    },
+                                                                    "args": []
+                                                                }
+                                                            }
+                                                        ],
+                                                        "else": [
+                                                            {
+                                                                "op": "call",
+                                                                "expression": {
+                                                                    "kind": "call",
+                                                                    "callee": {
+                                                                        "kind": "member",
+                                                                        "object": {
+                                                                            "kind": "identifier",
+                                                                            "name": "m_cartslot"
+                                                                        },
+                                                                        "property": "disk_flip_side"
+                                                                    },
+                                                                    "args": []
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_last_frame_flip"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_io_disksel"
+                                                                },
+                                                                "property": "read"
+                                                            },
+                                                            "args": []
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_last_frame_flip"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 355,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:nes_state.nes_map",
+            "className": "nes_state",
+            "name": "nes_map",
+            "ranges": [
+                {
+                    "id": "map:nes_state.nes_map/range0",
+                    "start": 0,
+                    "end": 2047,
+                    "raw": "map(0x0000, 0x07ff).ram().mirror(0x1800).share(\"mainram\")",
+                    "props": {
+                        "start": 0,
+                        "end": 2047,
+                        "raw": "map(0x0000, 0x07ff).ram().mirror(0x1800).share(\"mainram\")",
+                        "sourceFile": "src/mame/nintendo/nes.cpp",
+                        "sourceLine": 386,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 386,
+                        "mirror": 6144,
+                        "ram": true,
+                        "share": "mainram"
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/nes.cpp",
+                        "line": 386,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:nes_state.nes_map/range1",
+                    "start": 8192,
+                    "end": 16383,
+                    "raw": "map(0x2000, 0x3fff).rw(m_ppu, FUNC(ppu2c0x_device::read), FUNC(ppu2c0x_device::write))",
+                    "read": "ppu.read",
+                    "write": "ppu.write",
+                    "props": {
+                        "start": 8192,
+                        "end": 16383,
+                        "raw": "map(0x2000, 0x3fff).rw(m_ppu, FUNC(ppu2c0x_device::read), FUNC(ppu2c0x_device::write))",
+                        "sourceFile": "src/mame/nintendo/nes.cpp",
+                        "sourceLine": 387,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 387
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/nes.cpp",
+                        "line": 387,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:nes_state.nes_map/range2",
+                    "start": 16404,
+                    "end": 16404,
+                    "raw": "map(0x4014, 0x4014).w(m_ppu, FUNC(ppu2c0x_device::spriteram_dma))",
+                    "write": "ppu.spriteram_dma",
+                    "props": {
+                        "start": 16404,
+                        "end": 16404,
+                        "raw": "map(0x4014, 0x4014).w(m_ppu, FUNC(ppu2c0x_device::spriteram_dma))",
+                        "sourceFile": "src/mame/nintendo/nes.cpp",
+                        "sourceLine": 388,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 388
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/nes.cpp",
+                        "line": 388,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:nes_state.nes_map/range3",
+                    "start": 16406,
+                    "end": 16406,
+                    "raw": "map(0x4016, 0x4016).rw(FUNC(nes_state::nes_in0_r), FUNC(nes_state::nes_in0_w))",
+                    "read": "nes_state.nes_in0_r",
+                    "write": "nes_state.nes_in0_w",
+                    "props": {
+                        "start": 16406,
+                        "end": 16406,
+                        "raw": "map(0x4016, 0x4016).rw(FUNC(nes_state::nes_in0_r), FUNC(nes_state::nes_in0_w))",
+                        "sourceFile": "src/mame/nintendo/nes.cpp",
+                        "sourceLine": 389,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 389
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/nes.cpp",
+                        "line": 389,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:nes_state.nes_map/range4",
+                    "start": 16407,
+                    "end": 16407,
+                    "raw": "map(0x4017, 0x4017).r(FUNC(nes_state::nes_in1_r))",
+                    "read": "nes_state.nes_in1_r",
+                    "props": {
+                        "start": 16407,
+                        "end": 16407,
+                        "raw": "map(0x4017, 0x4017).r(FUNC(nes_state::nes_in1_r))",
+                        "sourceFile": "src/mame/nintendo/nes.cpp",
+                        "sourceLine": 390,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 390
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/nes.cpp",
+                        "line": 390,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/nes.cpp",
+                "line": 384,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_last_frame_flip",
+            "bits": 32,
+            "signed": true
+        }
+    ],
+    "sound": {
+        "kind": "nes",
+        "deviceTag": "nesapu",
+        "deviceType": "NES_APU",
+        "writeMethods": [
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "nesApu": {
+            "schemaVersion": 1,
+            "type": "NES_APU",
+            "className": "nesapu_device",
+            "internalMap": {
+                "ranges": [
+                    {
+                        "start": 16384,
+                        "end": 16403,
+                        "source": {
+                            "file": "src/devices/cpu/m6502/rp2a03.cpp",
+                            "line": 22
+                        },
+                        "write": "nesapu.write"
+                    },
+                    {
+                        "start": 16405,
+                        "end": 16405,
+                        "source": {
+                            "file": "src/devices/cpu/m6502/rp2a03.cpp",
+                            "line": 25
+                        },
+                        "read": "nesapu.status_r",
+                        "write": "nesapu.write"
+                    },
+                    {
+                        "start": 16407,
+                        "end": 16407,
+                        "source": {
+                            "file": "src/devices/cpu/m6502/rp2a03.cpp",
+                            "line": 24
+                        },
+                        "write": "nesapu.write"
+                    }
+                ]
+            },
+            "lengthTable": [
+                10,
+                254,
+                20,
+                2,
+                40,
+                4,
+                80,
+                6,
+                160,
+                8,
+                60,
+                10,
+                14,
+                12,
+                26,
+                14,
+                12,
+                16,
+                24,
+                18,
+                48,
+                20,
+                96,
+                22,
+                192,
+                24,
+                72,
+                26,
+                16,
+                28,
+                32,
+                30
+            ],
+            "noisePeriods": {
+                "ntsc": [
+                    4,
+                    8,
+                    16,
+                    32,
+                    64,
+                    96,
+                    128,
+                    160,
+                    202,
+                    254,
+                    380,
+                    508,
+                    762,
+                    1016,
+                    2034,
+                    4068
+                ],
+                "pal": [
+                    4,
+                    8,
+                    14,
+                    30,
+                    60,
+                    88,
+                    118,
+                    148,
+                    188,
+                    236,
+                    354,
+                    472,
+                    708,
+                    944,
+                    1890,
+                    3778
+                ]
+            },
+            "dmcPeriods": {
+                "ntsc": [
+                    428,
+                    380,
+                    340,
+                    320,
+                    286,
+                    254,
+                    226,
+                    214,
+                    190,
+                    160,
+                    142,
+                    128,
+                    106,
+                    84,
+                    72,
+                    54
+                ],
+                "pal": [
+                    398,
+                    354,
+                    316,
+                    298,
+                    276,
+                    236,
+                    210,
+                    198,
+                    176,
+                    148,
+                    132,
+                    118,
+                    98,
+                    78,
+                    66,
+                    50
+                ]
+            },
+            "dutyPatterns": [
+                64,
+                96,
+                120,
+                159
+            ],
+            "clocks": {
+                "ntsc": 1789772,
+                "pal": 1662607,
+                "streamDivider": 4
+            },
+            "frameClocks": {
+                "ntsc": 29830,
+                "pal": 33254
+            },
+            "mixer": {
+                "pulse": {
+                    "numerator": 95.88,
+                    "divisor": 8128,
+                    "bias": 100
+                },
+                "tnd": {
+                    "numerator": 159.79,
+                    "triangleDivisor": 8227,
+                    "noiseDivisor": 12241,
+                    "dmcDivisor": 22638,
+                    "bias": 100
+                }
+            },
+            "writeMethod": "write",
+            "statusMethod": "status_r",
+            "sourceFiles": [
+                "src/devices/cpu/m6502/rp2a03.cpp",
+                "src/devices/sound/nes_apu.cpp",
+                "src/devices/sound/nes_apu.h",
+                "src/devices/sound/nes_defs.h"
+            ],
+            "source": {
+                "file": "src/devices/sound/nes_apu.cpp",
+                "line": 508
+            }
+        }
+    }
+}

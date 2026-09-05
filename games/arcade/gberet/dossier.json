@@ -1,0 +1,685 @@
+{
+  "game": "gberet",
+  "title": "Green Beret (Konami, 1985)",
+  "fullname": "Green Beret",
+  "year": "1985",
+  "company": "Konami",
+  "family": "gberet",
+  "driverFile": "src/mame/konami/gberet.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 49151,
+          "kind": "rom"
+        },
+        {
+          "start": 49152,
+          "end": 51199,
+          "kind": "ram",
+          "share": "colorram",
+          "write": "gberet_state.colorram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 51200,
+          "end": 53247,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "gberet_state.videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 53503,
+          "kind": "ram",
+          "share": "spriteram2"
+        },
+        {
+          "start": 53504,
+          "end": 53759,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 53760,
+          "end": 57343,
+          "kind": "ram"
+        },
+        {
+          "start": 57344,
+          "end": 57407,
+          "kind": "handler",
+          "read": "k005849.scroll_r",
+          "write": "k005849.scroll_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 57408,
+          "end": 57415,
+          "kind": "handler",
+          "write": "k005849.ctrl_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61440,
+          "end": 61440,
+          "kind": "handler",
+          "write": "gberet_state.coin_counter_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61952,
+          "end": 61952,
+          "kind": "ram",
+          "share": "soundlatch",
+          "writeOnly": true,
+          "read": "port.DSW2"
+        },
+        {
+          "start": 62464,
+          "end": 62464,
+          "kind": "handler",
+          "write": "gberet_state.sound_w",
+          "handlerWidth": 8,
+          "read": "port.DSW3"
+        },
+        {
+          "start": 62976,
+          "end": 62976,
+          "kind": "handler",
+          "write": "watchdog.reset_w",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 62977,
+          "end": 62977,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 62978,
+          "end": 62978,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 62979,
+          "end": 62979,
+          "kind": "handler",
+          "read": "port.SYSTEM"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 1536000,
+    "chips": 1,
+    "deviceTypes": [
+      "SN76489A"
+    ],
+    "clocks": [
+      1536000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 240,
+    "height": 224,
+    "xOffset": 8,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "577l03.10c",
+          "offset": 0,
+          "size": 16384,
+          "crc": "ae29e4ff",
+          "alt": [
+            {
+              "file": "577h03.10c",
+              "crc": "4d276b52"
+            }
+          ]
+        },
+        {
+          "file": "577l02.8c",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "240836a5",
+          "alt": [
+            {
+              "file": "577h02.8c",
+              "crc": "b5802806"
+            }
+          ]
+        },
+        {
+          "file": "577l01.7c",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "41fa3e1f",
+          "alt": [
+            {
+              "file": "577h01.7c",
+              "crc": "da7c8f3d"
+            },
+            {
+              "file": "3-ic81.10f",
+              "crc": "f1520a0a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "577l07.3f",
+          "offset": 0,
+          "size": 16384,
+          "crc": "4da7bd1b",
+          "alt": [
+            {
+              "file": "577h07.3f",
+              "crc": "03f9815f"
+            },
+            {
+              "file": "1-ic92.12c",
+              "crc": "b0189c87"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "577l06.5e",
+          "offset": 0,
+          "size": 16384,
+          "crc": "0f1cb0ca",
+          "alt": [
+            {
+              "file": "7-1c8.2b",
+              "crc": "86334522"
+            }
+          ]
+        },
+        {
+          "file": "577l05.4e",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "523a8b66",
+          "alt": [
+            {
+              "file": "577h05.4e",
+              "crc": "9d028e8f"
+            },
+            {
+              "file": "6-ic9.2c",
+              "crc": "bda50d3e"
+            }
+          ]
+        },
+        {
+          "file": "577l08.4f",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "883933a4",
+          "alt": [
+            {
+              "file": "5-ic10.2d",
+              "crc": "6a7b3881"
+            }
+          ]
+        },
+        {
+          "file": "577l04.3e",
+          "offset": 49152,
+          "size": 16384,
+          "crc": "ccecda4c",
+          "alt": [
+            {
+              "file": "4-ic11.2e",
+              "crc": "3fb186c9"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "577h09.2f",
+          "offset": 0,
+          "size": 32,
+          "crc": "c15e7c80",
+          "alt": [
+            {
+              "file": "82s123-ic100.13b",
+              "crc": "1bef8c7b"
+            }
+          ]
+        },
+        {
+          "file": "577h11.6f",
+          "offset": 32,
+          "size": 256,
+          "crc": "2a1a992b",
+          "alt": [
+            {
+              "file": "82s129-ic26.4g",
+              "crc": "2d3ad74b"
+            }
+          ]
+        },
+        {
+          "file": "577h10.5f",
+          "offset": 288,
+          "size": 256,
+          "crc": "e9de1e53",
+          "alt": [
+            {
+              "file": "82s129-ic34.5g",
+              "crc": "a895c3e5"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 2,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 24,
+      "value": 8,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW2",
+      "mask": 96,
+      "value": 64,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW3",
+      "mask": 1,
+      "value": 1,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW3",
+      "mask": 2,
+      "value": 2,
+      "name": "Upright Controls"
+    },
+    {
+      "port": "DSW3",
+      "mask": 4,
+      "value": 4,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW3",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 136,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Michaël Banaan Ananas"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 45,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 27,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 12,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 9,
+        "firstCommit": "2018-09-07",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 5,
+        "firstCommit": "2012-01-19",
+        "lastCommit": "2012-01-20"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 3,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-01"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2025-07-21",
+        "lastCommit": "2026-03-16"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2011-04-25",
+        "lastCommit": "2012-01-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 2,
+        "firstCommit": "2009-07-27",
+        "lastCommit": "2009-07-28"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2010-01-23",
+        "lastCommit": "2012-09-02"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2014-02-11"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 2,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-08-05"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2016-04-30"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "MASH",
+        "commits": 1,
+        "firstCommit": "2016-08-25",
+        "lastCommit": "2016-08-25"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-31",
+        "lastCommit": "2009-12-31"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 41 years ago:\n\nGreen Beret (c) 1985 Konami.\n\nGreen Beret is a sideways-scrolling action/platform game set during the Cold War, in which a US Special Forces Marine must infiltrate a Russian military base to save four POW's from being executed by firing squad. \n\nInitially, the soldier is armed with only a combat knife, but by killing the certain enemy troops, players can obtain either a three-shot flamethrower, a four-shot RPG, or a three-pack of hand grenades. \n\nThe Marine can jump or lie down to avoid the enemy bullets, as well as climbing ladders to avoid enemies and projectiles, as well as the flashing land mines that litter the levels. While it's possible to remain still in one area to rack up points, if players take too long to proceed, the game will start sending out tougher enemies and eventually a stealth-like bomber will appear to take out the player. There is also an unseen time limit that will kill off players if they take too long to complete the stage. \n\nThe game has four stages in total: a missile base, a harbour, an air Base and a Siberian POW Camp. At the end of each stage the Marine will face a group of enemies specific to that stage: Stage 1 ends with a truckload of running and jump-kicking soldiers, Stage 2 with a pack of fierce dogs and their handlers, Stage 3 with three Gyro-copters and Stage 4 with a number of multi-shot flamethrower operators. \n\nThe game is completed once the captives have been rescued at the end of the fourth stage, after which the action starts over with an increased level of difficulty.\n\n- TECHNICAL -\n\nGame ID : GX577\n\nMain CPU : Zilog Z80 (@ 3.072 Mhz)\nSound Chips : SN76496 (@ 1.536 Mhz)\n\nPlayers : 2\nControl : 8-way joystick\nButtons : 2\n\n- TRIVIA -\n\nGreen Beret was released in October 1985.\n\nExport releases:\nThis game is known in US as \"Rush'n Attack\".\n\n- TIPS AND TRICKS -\n\n* Go wild using weapons!\nThe weapon-providing character appears frequently. You don't have to be thrifty.\n\n* Watch out for ladders!\nWhen a ladder is nearby, you will climb it up/down instead of jumping/crouching. Be careful.\n\n* Watch the enemy carefully:\nEnemies attacking from a distance always move in a particular way. Watch carefully!\n\n* How to destroy mines?\nDestroy mines with grenades.\n\n* Use the knife rapidly:\nIf enemies come from both the left and right, rapidly use the knife and face both directions.\n\n* Learn enemy appearance patterns:\nThere are certain difficult points in the game. Learn how enemies appear and come up with a way to overcome the situation.\n\n- PORTS -\n\n* CONSOLES:\n[JP] Nintendo Famicom Disk (apr.10, 1987) \"Green Beret [Model KDS-GRN]\" \n\n* HANDHELDS: \n[JP] Nintendo GBA (may.2, 2002) \"Konami Arcade Game Collection [Model AGB-AKCJ-JPN]\" \n[EU] Nintendo GBA (june.21, 2002) \"Konami Collector's Series - Arcade Classics [Model AGB-AKCP-EUR]\" \n[JP] Nintendo DS (mar.15, 2007) \"Konami Arcade Collection [Model NTR-A5KJ-JPN]\" \n[EU] Nintendo DS (oct.26, 2007) \"Konami Arcade Classics [Model NTR-ACXP-EUR]\" \n[AU] Nintendo DS (oct.29, 2007) \"Konami Arcade Classics\" \n\n* COMPUTERS: \n[EU] BBC Micro (1985) \n[FR] Thomson TO7 (1986)\n[FR] Thomson TO8 (1986) \"Compilation - Coffret Cadeau\"\n[EU] Sinclair ZX Spectrum (1986)\n[EU] Sinclair ZX Spectrum (1986) \"Konami Coin-Op Hits\"\n[EU] MSX (1986) [Model KN329] \n[EU] Amstrad CPC (1986)\n[EU] Commodore C64 (1986) \n [FR]Thomson M05\n\n* OTHERS:\n[JP] Mobile Phones (2006) : Nintendo NES Version\n\n- SERIES -\n\n1. Green Beret [Model GX577] (1985)\n2. M.I.A. - Missing in Action [Model GX808] (1989)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1014/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

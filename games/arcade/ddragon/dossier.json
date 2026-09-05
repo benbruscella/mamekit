@@ -1,0 +1,1115 @@
+{
+  "game": "ddragon",
+  "title": "Double Dragon (World set 1) (Technos Japan (Taito license), 1987)",
+  "fullname": "Double Dragon (World set 1)",
+  "year": "1987",
+  "company": "Technos Japan (Taito license)",
+  "family": "ddragon",
+  "driverFile": "src/mame/technos/ddragon.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Philip Bennett,Carlos A. Lozano, Rob Rosenbrock, Phil Stroffolino, Ernesto Corvi, David Haywood, R. Belmont",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "hd6309e",
+      "clock": 3000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "ram",
+          "share": "rambase"
+        },
+        {
+          "start": 4096,
+          "end": 4607,
+          "kind": "ram",
+          "share": "palette",
+          "write": "palette.write8"
+        },
+        {
+          "start": 4608,
+          "end": 5119,
+          "kind": "ram",
+          "share": "palette_ext",
+          "write": "palette.write8_ext"
+        },
+        {
+          "start": 6144,
+          "end": 8191,
+          "kind": "ram",
+          "share": "fgvideoram",
+          "write": "ddragon_state.fgvideoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 8192,
+          "end": 8703,
+          "kind": "handler",
+          "mirror": 1536,
+          "read": "ddragon_state.comram_r",
+          "write": "ddragon_state.comram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 10240,
+          "end": 12287,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 12288,
+          "end": 14335,
+          "kind": "ram",
+          "share": "bgvideoram",
+          "write": "ddragon_state.bgvideoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 14336,
+          "end": 14336,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 14337,
+          "end": 14337,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 14338,
+          "end": 14338,
+          "kind": "handler",
+          "read": "port.EXTRA"
+        },
+        {
+          "start": 14339,
+          "end": 14339,
+          "kind": "handler",
+          "read": "port.DSW0"
+        },
+        {
+          "start": 14340,
+          "end": 14340,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 14345,
+          "end": 14345,
+          "kind": "ram",
+          "share": "scrollx_lo",
+          "writeOnly": true
+        },
+        {
+          "start": 14346,
+          "end": 14346,
+          "kind": "ram",
+          "share": "scrolly_lo",
+          "writeOnly": true
+        },
+        {
+          "start": 14347,
+          "end": 14351,
+          "kind": "handler",
+          "read": "ddragon_state.interrupt_r",
+          "write": "ddragon_state.interrupt_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 14344,
+          "end": 14344,
+          "kind": "handler",
+          "write": "ddragon_state.bankswitch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 32767,
+          "kind": "handler",
+          "read": "bank.mainbank",
+          "bank": "mainbank"
+        }
+      ]
+    },
+    {
+      "tag": "sub",
+      "type": "hd63701y0",
+      "clock": 6000000,
+      "region": "sub",
+      "ranges": [
+        {
+          "start": 32768,
+          "end": 33279,
+          "kind": "ram",
+          "share": "comram"
+        },
+        {
+          "start": 49152,
+          "end": 65535,
+          "romOffset": 0,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "mc6809",
+      "clock": 6000000,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "ram"
+        },
+        {
+          "start": 4096,
+          "end": 4096,
+          "kind": "handler",
+          "read": "soundlatch.read"
+        },
+        {
+          "start": 6144,
+          "end": 6144,
+          "kind": "handler",
+          "read": "ddragon_state.ddragon_adpcm_status_r"
+        },
+        {
+          "start": 10240,
+          "end": 10241,
+          "kind": "handler",
+          "read": "fmsnd.read",
+          "write": "fmsnd.write"
+        },
+        {
+          "start": 14336,
+          "end": 14343,
+          "kind": "handler",
+          "write": "ddragon_state.ddragon_adpcm_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.35,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.35,
+        "target": "mono"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "MSM5205",
+        "deviceTag": "adpcm1",
+        "member": "m_adpcm[0]",
+        "clock": 375000,
+        "sampleRegion": "adpcm1",
+        "initialMode": "S48_4B",
+        "gain": 1,
+        "target": "mono",
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      },
+      {
+        "type": "MSM5205",
+        "deviceTag": "adpcm2",
+        "member": "m_adpcm[1]",
+        "clock": 375000,
+        "sampleRegion": "adpcm2",
+        "initialMode": "S48_4B",
+        "gain": 1,
+        "target": "mono",
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 240,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 57.44485294117647,
+    "htotal": 384,
+    "vtotal": 272,
+    "vbstart": 240,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 196608,
+      "loads": [
+        {
+          "file": "21j-1.26",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "ae714964",
+          "alt": [
+            {
+              "file": "e1-1.26",
+              "crc": "4b951643"
+            },
+            {
+              "file": "21a-1-5.26",
+              "crc": "e24a6e11"
+            },
+            {
+              "file": "21a-1",
+              "crc": "1d625008"
+            },
+            {
+              "file": "21a-1_6.bin",
+              "crc": "f354b0e1"
+            },
+            {
+              "file": "21j-1-5.26",
+              "crc": "42045dfd"
+            },
+            {
+              "file": "21j-1-8.26",
+              "crc": "54c1ef98"
+            },
+            {
+              "file": "b2_4.bin",
+              "crc": "668dfa19"
+            },
+            {
+              "file": "6809_20.bin",
+              "crc": "67e3b4f1"
+            },
+            {
+              "file": "20.7f",
+              "crc": "c804819f"
+            },
+            {
+              "file": "20.7e",
+              "crc": "5002d27d"
+            }
+          ]
+        },
+        {
+          "file": "21j-2-3.25",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "5779705e",
+          "alt": [
+            {
+              "file": "21a-2-4.25",
+              "crc": "5cd67657"
+            },
+            {
+              "file": "4.bin",
+              "crc": "48045762"
+            },
+            {
+              "file": "6809_19.bin",
+              "crc": "090e2baf"
+            },
+            {
+              "file": "19.7g",
+              "crc": "de08db4d"
+            },
+            {
+              "file": "19.7g",
+              "crc": "398e950d"
+            }
+          ]
+        },
+        {
+          "file": "21a-3.24",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "dbf24897",
+          "alt": [
+            {
+              "file": "21j-3.24",
+              "crc": "3bdea613"
+            },
+            {
+              "file": "6809_18.bin",
+              "crc": "154d50c4"
+            }
+          ]
+        },
+        {
+          "file": "21j-4.23",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "6c9f46fa",
+          "alt": [
+            {
+              "file": "e4-1.23",
+              "crc": "b1e26935"
+            },
+            {
+              "file": "21a-4.23",
+              "crc": "6ea16072"
+            },
+            {
+              "file": "21a-4_2",
+              "crc": "9b019598"
+            },
+            {
+              "file": "21j-4-1.23",
+              "crc": "728f87b9"
+            },
+            {
+              "file": "21j-4-2.23",
+              "crc": "6312767d"
+            },
+            {
+              "file": "6809_17.bin",
+              "crc": "6489d637"
+            },
+            {
+              "file": "17.7j",
+              "crc": "4052f37a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "21jm-0.ic55",
+          "offset": 0,
+          "size": 16384,
+          "crc": "f5232d03"
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "21j-0-1",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "9efa95bb",
+          "alt": [
+            {
+              "file": "6809_16.bin",
+              "crc": "f4c72690"
+            },
+            {
+              "file": "2.7n",
+              "crc": "d68b5fe7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "21j-5",
+          "offset": 0,
+          "size": 32768,
+          "crc": "7a8b8db4"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 524288,
+      "loads": [
+        {
+          "file": "21j-a",
+          "offset": 0,
+          "size": 65536,
+          "crc": "574face3",
+          "alt": [
+            {
+              "file": "1.1t",
+              "crc": "5e810a6d"
+            },
+            {
+              "file": "9.1t",
+              "crc": "a4baa5ba"
+            }
+          ]
+        },
+        {
+          "file": "21j-b",
+          "offset": 65536,
+          "size": 65536,
+          "crc": "40507a76",
+          "alt": [
+            {
+              "file": "2.1r",
+              "crc": "7300b785"
+            }
+          ]
+        },
+        {
+          "file": "21j-c",
+          "offset": 131072,
+          "size": 65536,
+          "crc": "bb0bc76f",
+          "alt": [
+            {
+              "file": "13.bin",
+              "crc": "c8b91e17"
+            },
+            {
+              "file": "3.1q",
+              "crc": "19405de8"
+            },
+            {
+              "file": "11.1q",
+              "crc": "6248bcc4"
+            }
+          ]
+        },
+        {
+          "file": "21j-d",
+          "offset": 196608,
+          "size": 65536,
+          "crc": "cb4f231b",
+          "alt": [
+            {
+              "file": "4.1p",
+              "crc": "4b10defd"
+            }
+          ]
+        },
+        {
+          "file": "21j-e",
+          "offset": 262144,
+          "size": 65536,
+          "crc": "a0a0c261",
+          "alt": [
+            {
+              "file": "5.1n",
+              "crc": "5b1bb493"
+            },
+            {
+              "file": "13.1n",
+              "crc": "15b86326"
+            }
+          ]
+        },
+        {
+          "file": "21j-f",
+          "offset": 327680,
+          "size": 65536,
+          "crc": "6ba152f6",
+          "alt": [
+            {
+              "file": "6.1m",
+              "crc": "e8a2d2e7"
+            },
+            {
+              "file": "14.1m",
+              "crc": "a73bc8f5"
+            }
+          ]
+        },
+        {
+          "file": "21j-g",
+          "offset": 393216,
+          "size": 65536,
+          "crc": "3220a0b6",
+          "alt": [
+            {
+              "file": "7.1l",
+              "crc": "8010fcca"
+            },
+            {
+              "file": "15.1l",
+              "crc": "f80e81a6"
+            }
+          ]
+        },
+        {
+          "file": "21j-h",
+          "offset": 458752,
+          "size": 65536,
+          "crc": "65c7517d",
+          "alt": [
+            {
+              "file": "8.1j",
+              "crc": "bfa4da27"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "21j-8",
+          "offset": 0,
+          "size": 65536,
+          "crc": "7c435887",
+          "alt": [
+            {
+              "file": "6809_9.bin",
+              "crc": "736eff0f"
+            }
+          ]
+        },
+        {
+          "file": "21j-9",
+          "offset": 65536,
+          "size": 65536,
+          "crc": "c6640aed",
+          "alt": [
+            {
+              "file": "6809_10.bin",
+              "crc": "a670d088"
+            }
+          ]
+        },
+        {
+          "file": "21j-i",
+          "offset": 131072,
+          "size": 65536,
+          "crc": "5effb0a0",
+          "alt": [
+            {
+              "file": "19.bin",
+              "crc": "22d65df2"
+            },
+            {
+              "file": "6809_11.bin",
+              "crc": "4171b70d"
+            }
+          ]
+        },
+        {
+          "file": "21j-j",
+          "offset": 196608,
+          "size": 65536,
+          "crc": "5fb42e7c",
+          "alt": [
+            {
+              "file": "6809_12.bin",
+              "crc": "5f6a6d6f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "adpcm1",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "21j-6",
+          "offset": 0,
+          "size": 65536,
+          "crc": "34755de3"
+        }
+      ]
+    },
+    {
+      "region": "adpcm2",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "21j-7",
+          "offset": 0,
+          "size": 65536,
+          "crc": "904de6f8",
+          "alt": [
+            {
+              "file": "7.bin",
+              "crc": "f9311f72"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 768,
+      "loads": [
+        {
+          "file": "21j-k-0.101",
+          "offset": 0,
+          "size": 256,
+          "crc": "fdb130a9",
+          "alt": [
+            {
+              "file": "27s21.5o",
+              "crc": "673f68c3"
+            },
+            {
+              "file": "27s21.5p",
+              "crc": "2dc270f2"
+            },
+            {
+              "file": "82s129.4h",
+              "crc": "7683cadd"
+            },
+            {
+              "file": "n82s129n_2.4h",
+              "crc": "2078871e"
+            }
+          ]
+        },
+        {
+          "file": "21j-l-0.16",
+          "offset": 256,
+          "size": 512,
+          "crc": "46339529"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 64,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 128,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "EXTRA",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "EXTRA",
+      "mask": 2,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 7,
+      "value": 7,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW0",
+      "mask": 56,
+      "value": 56,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW0",
+      "mask": 64,
+      "value": 64,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW0",
+      "mask": 128,
+      "value": 128,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 48,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 192,
+      "name": "Lives"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-12-26",
+    "commits": 257,
+    "contributors": 35,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 92,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 38,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 21,
+        "firstCommit": "2017-01-12",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 13,
+        "firstCommit": "2014-03-30",
+        "lastCommit": "2025-03-12"
+      },
+      {
+        "name": "AJR",
+        "commits": 11,
+        "firstCommit": "2017-01-09",
+        "lastCommit": "2023-11-11"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 11,
+        "firstCommit": "2016-06-22",
+        "lastCommit": "2020-11-02"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 6,
+        "firstCommit": "2009-04-02",
+        "lastCommit": "2013-05-28"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2016-06-19",
+        "lastCommit": "2025-07-07"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 5,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2013-05-05"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2020-04-02"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-03-15"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 4,
+        "firstCommit": "2018-08-15",
+        "lastCommit": "2019-01-02"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2018-03-21",
+        "lastCommit": "2019-03-30"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2015-04-21",
+        "lastCommit": "2015-12-21"
+      },
+      {
+        "name": "davidhay",
+        "commits": 3,
+        "firstCommit": "2008-03-24",
+        "lastCommit": "2009-02-22"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-09",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 3,
+        "firstCommit": "2025-12-20",
+        "lastCommit": "2025-12-26"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2010-04-12",
+        "lastCommit": "2010-06-23"
+      },
+      {
+        "name": "angelosa",
+        "commits": 2,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2025-12-26"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 2,
+        "firstCommit": "2010-12-24",
+        "lastCommit": "2014-02-24"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2013-09-13"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2010-02-04",
+        "lastCommit": "2012-02-19"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2010-03-07",
+        "lastCommit": "2010-03-07"
+      },
+      {
+        "name": "Jose Tejada",
+        "commits": 1,
+        "firstCommit": "2020-01-14",
+        "lastCommit": "2020-01-14"
+      },
+      {
+        "name": "JOTEGO",
+        "commits": 1,
+        "firstCommit": "2023-01-05",
+        "lastCommit": "2023-01-05"
+      },
+      {
+        "name": "Nathan Woods",
+        "commits": 1,
+        "firstCommit": "2013-03-04",
+        "lastCommit": "2013-03-04"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 1,
+        "firstCommit": "2008-05-30",
+        "lastCommit": "2008-05-30"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Steven Coomber",
+        "commits": 1,
+        "firstCommit": "2022-04-02",
+        "lastCommit": "2022-04-02"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 39 years ago:\n\nDouble Dragon (c) 1987 Taito Corp.\n\nExport version for 'Outside Japan' releases by Taito, under license from Technos Japan. For more information about the game itself, please visit the original Technos Japan entry; \"Double Dragon [Model TA-0021]\".\n\n- PORTS -\n\n* CONSOLES:\n[EU] Nintendo NES (1990) \"Double Dragon [Model NES-WD]\" \n[EU] Sega Master System (1988) \"Double Dragon [Model 7012]\"\n[BR] Sega Master System (1988) by Tec Toy\n[EU] Sega Mega Drive (1993)\n[EU] Microsoft XBOX 360 [XBLA] (may.9, 2007) \n[BR] Zeebo (may.29, 2009): Remake with remade graphics.\n[MX] Zeebo (nov.4, 2009): Remake with remade graphics.\n[EU] [AU] Sony PlayStation 4 [PSN] (jul.14, 2015) \"Arcade Archives - Double Dragon [Model CUSA-02667]\" \n[AS] Sony PlayStation 4 [PSN] (may.21, 2015) \"Arcade Archives - Double Dragon\"\n\n* HANDHELDS: \n[EU] Nintendo Game Boy (1990) \"Double Dragon [Model DMG-DD-NOE]\" \n[EU] Sega Game Gear (1993) \"Double Dragon - The Revenge of Billy Lee [Model T-70038-50]\"\n\n* COMPUTERS:\n[EU] Amstrad CPC (1988)\n[EU] Commodore Amiga (1988)\n[EU] Commodore C64 (1988)\n[EU] Sinclair ZX Spectrum (1989)\n[EU] Amstrad CPC (1989) by Virgin Mastertronic : 128 KB Disk version.\n[EU] Amstrad CPC (1989) by Animagic : Spanish version.\n[EU] Atari ST (1988)\n[EU] MSX (1989)\n[AU] Commodore Amiga (1989) \"Amiga Champions\" \n[EU] Commodore C64 (1990) \"100% Dynamite\"\n[KO] MSX (1990) \n[EU] Sinclair ZX Spectrum (1990) \"100% Dynamite\"\n\n* OTHERS:\n[UK] LCD handheld game (1988) by Grandstand.\n[US] LCD handheld game (1989) by Tiger Electronics.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/113455/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

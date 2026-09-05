@@ -1,0 +1,373 @@
+{
+  "game": "nes",
+  "title": "Nintendo Entertainment System / Famicom (NTSC) (Nintendo, 1985)",
+  "fullname": "Nintendo Entertainment System / Famicom (NTSC)",
+  "year": "1985",
+  "company": "Nintendo",
+  "family": "nes",
+  "driverFile": "src/mame/nintendo/nes.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Brad Oliver,Fabio Priuli",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "rp2a03",
+      "clock": 1789772.6666666667,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 2047,
+          "kind": "ram",
+          "mirror": 6144,
+          "share": "mainram"
+        },
+        {
+          "start": 8192,
+          "end": 16383,
+          "kind": "handler",
+          "read": "ppu.read",
+          "write": "ppu.write"
+        },
+        {
+          "start": 16404,
+          "end": 16404,
+          "kind": "handler",
+          "write": "ppu.spriteram_dma"
+        },
+        {
+          "start": 16406,
+          "end": 16406,
+          "kind": "handler",
+          "read": "nes_state.nes_in0_r",
+          "write": "nes_state.nes_in0_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16407,
+          "end": 16407,
+          "kind": "handler",
+          "read": "nes_state.nes_in1_r"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "nes",
+    "clock": 1789772.6666666667,
+    "masterGain": 0.75,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 240,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.0988,
+    "htotal": 256,
+    "vtotal": 262,
+    "vbstart": 240,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": []
+    }
+  ],
+  "bindings": [
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "A",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "B",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 4,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "IPT_SELECT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 8,
+      "keys": [
+        "Enter"
+      ],
+      "label": "IPT_START",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 16,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 32,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 64,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 128,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "gitHistory": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-10-14",
+    "commits": 138,
+    "contributors": 30,
+    "topAuthors": [
+      "Miodrag Milanovic",
+      "Fabio Priuli",
+      "Vas Crabb",
+      "0kmg",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 30,
+        "firstCommit": "2012-08-21",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 26,
+        "firstCommit": "2012-09-21",
+        "lastCommit": "2014-10-03"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 15,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2025-10-14"
+      },
+      {
+        "name": "0kmg",
+        "commits": 13,
+        "firstCommit": "2021-12-15",
+        "lastCommit": "2022-12-13"
+      },
+      {
+        "name": "AJR",
+        "commits": 9,
+        "firstCommit": "2017-04-21",
+        "lastCommit": "2025-08-06"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2012-11-06",
+        "lastCommit": "2020-11-02"
+      },
+      {
+        "name": "Aaron Giles",
+        "commits": 4,
+        "firstCommit": "2012-09-12",
+        "lastCommit": "2013-07-24"
+      },
+      {
+        "name": "etabeta78",
+        "commits": 3,
+        "firstCommit": "2015-01-26",
+        "lastCommit": "2016-04-30"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 3,
+        "firstCommit": "2013-11-05",
+        "lastCommit": "2021-02-19"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-11-02"
+      },
+      {
+        "name": "Enik Land",
+        "commits": 2,
+        "firstCommit": "2019-07-02",
+        "lastCommit": "2019-07-09"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 2,
+        "firstCommit": "2013-11-15",
+        "lastCommit": "2013-11-15"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 2,
+        "firstCommit": "2017-03-22",
+        "lastCommit": "2017-05-27"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2013-04-25",
+        "lastCommit": "2013-09-20"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2013-05-29",
+        "lastCommit": "2013-12-11"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2013-03-15",
+        "lastCommit": "2013-03-15"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-04-02",
+        "lastCommit": "2019-04-02"
+      },
+      {
+        "name": "David 'Foxhack' Silva",
+        "commits": 1,
+        "firstCommit": "2025-10-11",
+        "lastCommit": "2025-10-11"
+      },
+      {
+        "name": "enikland2",
+        "commits": 1,
+        "firstCommit": "2019-03-30",
+        "lastCommit": "2019-03-30"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2022-03-15",
+        "lastCommit": "2022-03-15"
+      },
+      {
+        "name": "kazblox",
+        "commits": 1,
+        "firstCommit": "2017-03-12",
+        "lastCommit": "2017-03-12"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-12-20",
+        "lastCommit": "2018-12-20"
+      },
+      {
+        "name": "Nathan Woods",
+        "commits": 1,
+        "firstCommit": "2012-11-25",
+        "lastCommit": "2012-11-25"
+      },
+      {
+        "name": "Osso",
+        "commits": 1,
+        "firstCommit": "2015-01-02",
+        "lastCommit": "2015-01-02"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Reagan Roush",
+        "commits": 1,
+        "firstCommit": "2016-11-23",
+        "lastCommit": "2016-11-23"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2018-03-11",
+        "lastCommit": "2018-03-11"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2013-02-05",
+        "lastCommit": "2013-02-05"
+      }
+    ]
+  },
+  "historyText": "Console published 41 years ago:\n\nNintendo Entertainment System [NES] (c) 1985 Nintendo Co., Ltd.\n\n8-Bit video game console developed in Japan. For more information about the console itself, please see the original Japanese release entry; \"Family Computer [FAMICOM] [Model HVC-001]\".\n\n- TECHNICAL -\n\nParts:\nNintendo Entertainment System [NES] [Model NES-001]\nAC Power Adapter [Model NES-002]\nRF Adapter [Model NES-003]\nController [Model NES-004]\n\n- TRIVIA -\n\nOfficial Accessories:\nNES Zapper [Model NES-005]\nR.O.B the Robot [Model NES-012]\nNES Advantage [Model NES-026]\nPower Pad [Model NES-028]\nSatellite [Model NES-032]\nSatellite Wireless Receiver [Model NES-033]\nNES Four Score [Model NES-034]\nController (Redesigned) [Model NES-039]\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/82114/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)",
+  "cart": {
+    "list": "nes",
+    "entries": 4545,
+    "slots": [
+      "nrom",
+      "uxrom",
+      "cnrom",
+      "sxrom",
+      "txrom"
+    ]
+  }
+}

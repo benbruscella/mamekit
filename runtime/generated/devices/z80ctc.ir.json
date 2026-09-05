@@ -1,0 +1,3521 @@
+{
+  "type": "Z80CTC",
+  "uses": [
+    {
+      "game": "rampage",
+      "tags": [
+        "ctc"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "Z80CTC",
+    "className": "z80ctc_device",
+    "shortName": "z80ctc",
+    "description": "Z80 CTC",
+    "sourceFile": "src/devices/machine/z80ctc.cpp",
+    "sourceLine": 72,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(Z80CTC, z80ctc_device, \"z80ctc\", \"Z80 CTC\")"
+  },
+  "methods": [
+    {
+      "name": "interface_post_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "device"
+                  },
+                  "args": []
+                },
+                "property": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interface_post_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_decode",
+      "parameters": "uint8_t opcode",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 237
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "opcode"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 77
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "z80daisy_irq_reti"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 203
+                  },
+                  {
+                    "kind": "number",
+                    "value": 221
+                  },
+                  {
+                    "kind": "number",
+                    "value": 253
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "opcode"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "ch",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ch"
+                }
+              },
+              "property": "m_down"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "ch",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_mode"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_tconst"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 256
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_mode"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_mode"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_down"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_tconst"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 248
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "data"
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "data"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 128
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "identifier",
+                                  "name": "ch"
+                                }
+                              },
+                              "property": "m_int_state"
+                            },
+                            "operator": "&=",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "~",
+                              "operand": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "interrupt_check"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state_value",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "state_value"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_channel"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "property": "m_extclk"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "property": "m_extclk"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state_value"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "state_value"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "state_value"
+                      }
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_channel"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "property": "m_mode"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 64
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 64
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "property": "m_down"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_channel"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            },
+                            "property": "m_down"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 0
+                                    }
+                                  },
+                                  "property": "m_mode"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 128
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 128
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 0
+                                    }
+                                  },
+                                  "property": "m_int_state"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "interrupt_check"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "property": "m_down"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "property": "m_tconst"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state_value",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "state_value"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_channel"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "property": "m_extclk"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "property": "m_extclk"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state_value"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "state_value"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "state_value"
+                      }
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_channel"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "property": "m_mode"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 64
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 64
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "property": "m_down"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_channel"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "property": "m_down"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "property": "m_mode"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 128
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 128
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "property": "m_int_state"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "interrupt_check"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "property": "m_down"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "property": "m_tconst"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 122,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state_value",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "state_value"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_channel"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "property": "m_extclk"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "property": "m_extclk"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state_value"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "state_value"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "state_value"
+                      }
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_channel"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      },
+                      "property": "m_mode"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 64
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 64
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "property": "m_down"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_channel"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            },
+                            "property": "m_down"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 2
+                                    }
+                                  },
+                                  "property": "m_mode"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 128
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 128
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 2
+                                    }
+                                  },
+                                  "property": "m_int_state"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "interrupt_check"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              },
+                              "property": "m_down"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              },
+                              "property": "m_tconst"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg3",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 123,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state_value",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "state_value"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_channel"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "property": "m_extclk"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "property": "m_extclk"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state_value"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "state_value"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "state_value"
+                      }
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_channel"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      },
+                      "property": "m_mode"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "property": "m_mode"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 64
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 64
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "property": "m_down"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_channel"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 3
+                              }
+                            },
+                            "property": "m_down"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 3
+                                    }
+                                  },
+                                  "property": "m_mode"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 128
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 128
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_channel"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 3
+                                    }
+                                  },
+                                  "property": "m_int_state"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "interrupt_check"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_zc_cb"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "property": "m_down"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "property": "m_tconst"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 147,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset_after_children",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 158,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "ch",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "ch"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ch"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_mode"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_tconst"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 256
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_down"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 256
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_extclk"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_int_state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_intr_cb"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 176,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "ch",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "ch"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ch"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_channel"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "ch"
+                      }
+                    },
+                    "property": "m_int_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_int_state"
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_ack",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 202,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "ch",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "ch"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ch"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_channel"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "ch"
+                      }
+                    },
+                    "property": "m_int_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_channel"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        }
+                      },
+                      "property": "m_int_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "interrupt_check"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_vector"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_vector"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_reti",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 231,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "ch",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "ch"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ch"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_channel"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "ch"
+                      }
+                    },
+                    "property": "m_int_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_channel"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        }
+                      },
+                      "property": "m_int_state"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "interrupt_check"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "return"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interrupt_check",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 264,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "z80daisy_irq_state"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_intr_cb"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "intr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_intr_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "zc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_zc_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clk",
+      "parameters": "u32 clock",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "channel_config"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "auto"
+                    }
+                  ]
+                },
+                "property": "set_clock"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clock"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clk",
+      "parameters": "const XTAL &xtal",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "channel_config"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "auto"
+                    }
+                  ]
+                },
+                "property": "set_clock"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "xtal"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_channel_constant",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ch"
+                }
+              },
+              "property": "m_tconst"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "channel_int_state",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 113,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ch"
+                }
+              },
+              "property": "m_int_state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "channel_mode",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 116,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ch"
+                }
+              },
+              "property": "m_mode"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::intr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_intr_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::zc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_zc_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::set_clk",
+      "parameters": "u32 clock",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "channel_config"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "auto"
+                    }
+                  ]
+                },
+                "property": "set_clock"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clock"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::get_channel_constant",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ch"
+                }
+              },
+              "property": "m_tconst"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::channel_int_state",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 113,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ch"
+                }
+              },
+              "property": "m_int_state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::channel_mode",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ch"
+                }
+              },
+              "property": "m_mode"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "channel_config",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "lookup"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/z80ctc.cpp",
+    "src/devices/machine/z80ctc.h",
+    "src/devices/machine/z80daisy.h",
+    "src/devices/machine/z80daisy.cpp"
+  ]
+}

@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "shinobi",
+  "family": "segas16a",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "runtime-certified",
+  "generationGaps": [
+    "i8255:I8255",
+    "sprites:SEGA_SYS16A_SPRITES",
+    "upd7751:UPD7751",
+    "upd7751_8243:I8243"
+  ],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 110,
+    "total": 173,
+    "percent": 63.6
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M68000",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68000.cpp:8"
+      },
+      {
+        "name": "soundcpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "upd7751:UPD7751",
+        "status": "blocked",
+        "source": "src/devices/cpu/mcs48/mcs48.cpp:203",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "upd7751_8243:I8243",
+        "status": "blocked",
+        "source": "src/devices/machine/i8243.cpp:20",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "nvram:NVRAM",
+        "status": "declarative-host",
+        "source": "src/devices/machine/nvram.cpp:19"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "i8255:I8255",
+        "status": "blocked",
+        "source": "src/devices/machine/i8255.cpp:66",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "sprites:SEGA_SYS16A_SPRITES",
+        "status": "blocked",
+        "source": "src/mame/sega/sega16sp.cpp:23",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "segaic16vid:SEGAIC16VID",
+        "status": "executable",
+        "source": "src/mame/sega/segaic16.cpp:528"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ymsnd:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "dac:DAC_8BIT_R2R",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:237"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "segaic16vid.textram_r",
+        "status": "executable",
+        "source": "src/mame/sega/segaic16.cpp:528"
+      },
+      {
+        "name": "segaic16vid.textram_w",
+        "status": "executable",
+        "source": "src/mame/sega/segaic16.cpp:528"
+      },
+      {
+        "name": "segaic16vid.tileram_r",
+        "status": "executable",
+        "source": "src/mame/sega/segaic16.cpp:528"
+      },
+      {
+        "name": "segaic16vid.tileram_w",
+        "status": "executable",
+        "source": "src/mame/sega/segaic16.cpp:528"
+      },
+      {
+        "name": "segas16a_state.misc_io_r",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:579"
+      },
+      {
+        "name": "segas16a_state.misc_io_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:590"
+      },
+      {
+        "name": "segas16a_state.paletteram_w",
+        "status": "generated",
+        "source": "src/mame/sega/segaic16.cpp:450"
+      },
+      {
+        "name": "segas16a_state.sound_data_r",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:606"
+      },
+      {
+        "name": "segas16a_state.upd7751_command_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:618"
+      },
+      {
+        "name": "watchdog.reset16_r",
+        "status": "generated"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_vblank_int -> screen.irq4_line_hold",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2261"
+      },
+      {
+        "name": "upd7751.bus_in_cb -> segas16a_state.upd7751_rom_r",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2268"
+      },
+      {
+        "name": "upd7751.p1_out_cb -> dac.data_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2270"
+      },
+      {
+        "name": "upd7751.p2_in_cb -> segas16a_state.upd7751_p2_r",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2271"
+      },
+      {
+        "name": "upd7751.p2_out_cb -> segas16a_state.upd7751_p2_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2272"
+      },
+      {
+        "name": "upd7751.prog_out_cb -> upd7751_8243.prog_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2273"
+      },
+      {
+        "name": "upd7751_8243.p4_out_cb -> segas16a_state.upd7751_rom_offset_w_0",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2276"
+      },
+      {
+        "name": "upd7751_8243.p5_out_cb -> segas16a_state.upd7751_rom_offset_w_4",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2277"
+      },
+      {
+        "name": "upd7751_8243.p6_out_cb -> segas16a_state.upd7751_rom_offset_w_8",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2278"
+      },
+      {
+        "name": "upd7751_8243.p7_out_cb -> segas16a_state.upd7751_rom_offset_w_12",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2279"
+      },
+      {
+        "name": "i8255.out_pa_callback -> soundlatch.write",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2286"
+      },
+      {
+        "name": "i8255.out_pb_callback -> segas16a_state.misc_control_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2287"
+      },
+      {
+        "name": "i8255.out_pc_callback -> segas16a_state.tilemap_sound_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2288"
+      },
+      {
+        "name": "screen.set_screen_update -> segas16a_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2298"
+      },
+      {
+        "name": "ymsnd.port_write_handler -> segas16a_state.upd7751_control_w",
+        "status": "generated",
+        "source": "src/mame/sega/segas16a.cpp:2313"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/shinobi/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 36,
+    "compiledMethods": 29,
+    "blockedMethods": 7,
+    "usedCompiledHandlers": 5,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "segas16a_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": [
+      "could not parse statement at byte 1467"
+    ]
+  },
+  "summary": {
+    "executable": 12,
+    "generated": 22,
+    "declarative-host": 6,
+    "blocked": 4,
+    "missing": 0
+  }
+}

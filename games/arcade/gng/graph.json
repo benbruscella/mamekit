@@ -1,0 +1,3305 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/capcom/gng.cpp",
+    "generatedAt": "2026-09-05T03:49:39.445Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Pierpaolo Prazzoli"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/capcom/gng.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/capcom/gng.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopn.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopn.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/bufsprite.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/bufsprite.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:gng",
+      "label": "Game",
+      "props": {
+        "name": "gng",
+        "year": "1985",
+        "company": "Capcom",
+        "fullname": "Ghosts'n Goblins (World? set 1)",
+        "monitor": "ROT0",
+        "cls": "gng_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 1162,
+        "sourceColumn": 1,
+        "sourceEndLine": 1162
+      }
+    },
+    {
+      "id": "romset:gng",
+      "label": "RomSet",
+      "props": {
+        "name": "gng",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 1,
+        "sourceEndLine": 636
+      }
+    },
+    {
+      "id": "region:gng/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 98304,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 637,
+        "sourceColumn": 2,
+        "sourceEndLine": 637
+      }
+    },
+    {
+      "id": "rom:gng/maincpu/mm_c_04",
+      "label": "Rom",
+      "props": {
+        "file": "mm_c_04",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "4f94130f",
+        "sha1": "6863fee3c97c76ba314ccbada7efacb6783e7d32",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 2,
+        "sourceEndLine": 638
+      }
+    },
+    {
+      "id": "rom:gng/maincpu/mm_c_03",
+      "label": "Rom",
+      "props": {
+        "file": "mm_c_03",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "1def138a",
+        "sha1": "d29e12082c4d5c06a9910b3500ef66242cdec905",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 639,
+        "sourceColumn": 2,
+        "sourceEndLine": 639
+      }
+    },
+    {
+      "id": "rom:gng/maincpu/mm_c_05",
+      "label": "Rom",
+      "props": {
+        "file": "mm_c_05",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "ed28e86e",
+        "sha1": "064871918547a56be330c6994d4db2c9932e14db",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 2,
+        "sourceEndLine": 640
+      }
+    },
+    {
+      "id": "region:gng/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 642,
+        "sourceColumn": 2,
+        "sourceEndLine": 642
+      }
+    },
+    {
+      "id": "rom:gng/audiocpu/gg2.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg2.bin",
+        "offset": 0,
+        "size": 32768,
+        "crc": "615f5b6f",
+        "sha1": "7ef9ec5c2072e21c787a6bbf700033f50c759c1d",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 643,
+        "sourceColumn": 2,
+        "sourceEndLine": 643
+      }
+    },
+    {
+      "id": "region:gng/chars",
+      "label": "RomRegion",
+      "props": {
+        "tag": "chars",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 645,
+        "sourceColumn": 2,
+        "sourceEndLine": 645
+      }
+    },
+    {
+      "id": "rom:gng/chars/gg1.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg1.bin",
+        "offset": 0,
+        "size": 16384,
+        "crc": "ecfccf07",
+        "sha1": "0a1518e19a2e0a4cc3dde4b9568202ea911b5ece",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 646,
+        "sourceColumn": 2,
+        "sourceEndLine": 646
+      }
+    },
+    {
+      "id": "region:gng/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 98304,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 648,
+        "sourceColumn": 2,
+        "sourceEndLine": 648
+      }
+    },
+    {
+      "id": "rom:gng/tiles/gg11.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg11.bin",
+        "offset": 0,
+        "size": 16384,
+        "crc": "ddd56fa9",
+        "sha1": "f9d77eee5e2738b7e83ba02fcc55dd480391479f",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 649,
+        "sourceColumn": 2,
+        "sourceEndLine": 649
+      }
+    },
+    {
+      "id": "rom:gng/tiles/gg10.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg10.bin",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "7302529d",
+        "sha1": "8434c994cc55d2586641f3b90b6b15fd65dfb67c",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 2,
+        "sourceEndLine": 650
+      }
+    },
+    {
+      "id": "rom:gng/tiles/gg9.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg9.bin",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "20035bda",
+        "sha1": "bbb1fba0eb19471f66d29526fa8423ccb047bd63",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 651,
+        "sourceColumn": 2,
+        "sourceEndLine": 651
+      }
+    },
+    {
+      "id": "rom:gng/tiles/gg8.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg8.bin",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "f12ba271",
+        "sha1": "1c42fa02cb27b35d10c3f7f036005e747f9f6b79",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 652,
+        "sourceColumn": 2,
+        "sourceEndLine": 652
+      }
+    },
+    {
+      "id": "rom:gng/tiles/gg7.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg7.bin",
+        "offset": 65536,
+        "size": 16384,
+        "crc": "e525207d",
+        "sha1": "1947f159189b3a53f1251d8653b6e7c65c91fc3c",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 653,
+        "sourceColumn": 2,
+        "sourceEndLine": 653
+      }
+    },
+    {
+      "id": "rom:gng/tiles/gg6.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg6.bin",
+        "offset": 81920,
+        "size": 16384,
+        "crc": "2d77e9b2",
+        "sha1": "944da1ce29a18bf0fc8deff78bceacba0bf23a07",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 654,
+        "sourceColumn": 2,
+        "sourceEndLine": 654
+      }
+    },
+    {
+      "id": "region:gng/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 131072,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 656,
+        "sourceColumn": 2,
+        "sourceEndLine": 656
+      }
+    },
+    {
+      "id": "rom:gng/sprites/gg17.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg17.bin",
+        "offset": 0,
+        "size": 16384,
+        "crc": "93e50a8f",
+        "sha1": "42d367f57bb2fdf60a0445ac1533da99cfeaa617",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 657,
+        "sourceColumn": 2,
+        "sourceEndLine": 657
+      }
+    },
+    {
+      "id": "rom:gng/sprites/gg16.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg16.bin",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "06d7e5ca",
+        "sha1": "9e06012bcd82f98fad43de666ef9a75979d940ab",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 658,
+        "sourceColumn": 2,
+        "sourceEndLine": 658
+      }
+    },
+    {
+      "id": "rom:gng/sprites/gg15.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg15.bin",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "bc1fe02d",
+        "sha1": "e3a1421d465b87148ffa94f5673b2307f0246afe",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 659,
+        "sourceColumn": 2,
+        "sourceEndLine": 659
+      }
+    },
+    {
+      "id": "rom:gng/sprites/gg14.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg14.bin",
+        "offset": 65536,
+        "size": 16384,
+        "crc": "6aaf12f9",
+        "sha1": "207a7407288182a4f3eddaea634c6a6452131182",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 660,
+        "sourceColumn": 2,
+        "sourceEndLine": 660
+      }
+    },
+    {
+      "id": "rom:gng/sprites/gg13.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg13.bin",
+        "offset": 81920,
+        "size": 16384,
+        "crc": "e80c3fca",
+        "sha1": "cb641c25bb04b970b2cbeca41adb792bbe142fb5",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 661,
+        "sourceColumn": 2,
+        "sourceEndLine": 661
+      }
+    },
+    {
+      "id": "rom:gng/sprites/gg12.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg12.bin",
+        "offset": 98304,
+        "size": 16384,
+        "crc": "7780a925",
+        "sha1": "3f129ca6d695548b659955fe538584bd9ac2ff17",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 662,
+        "sourceColumn": 2,
+        "sourceEndLine": 662
+      }
+    },
+    {
+      "id": "region:gng/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 664,
+        "sourceColumn": 2,
+        "sourceEndLine": 664
+      }
+    },
+    {
+      "id": "rom:gng/proms/tbp24s10.14k",
+      "label": "Rom",
+      "props": {
+        "file": "tbp24s10.14k",
+        "offset": 0,
+        "size": 256,
+        "crc": "0eaf5158",
+        "sha1": "bafd4108708f66cd7b280e47152b108f3e254fc9",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 665,
+        "sourceColumn": 2,
+        "sourceEndLine": 665
+      }
+    },
+    {
+      "id": "rom:gng/proms/63s141.2e",
+      "label": "Rom",
+      "props": {
+        "file": "63s141.2e",
+        "offset": 256,
+        "size": 256,
+        "crc": "4a1285a4",
+        "sha1": "5018c3950b675af58db499e2883ecbc55419b491",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 666,
+        "sourceColumn": 2,
+        "sourceEndLine": 666
+      }
+    },
+    {
+      "id": "region:gng/plds",
+      "label": "RomRegion",
+      "props": {
+        "tag": "plds",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 668,
+        "sourceColumn": 2,
+        "sourceEndLine": 668
+      }
+    },
+    {
+      "id": "rom:gng/plds/gg-pal10l8.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gg-pal10l8.bin",
+        "offset": 0,
+        "size": 44,
+        "crc": "87f1b7e0",
+        "sha1": "b719c3be7bd4a02660bb0887f752e9769cbd37d2",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 669,
+        "sourceColumn": 2,
+        "sourceEndLine": 669
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gng_state",
+        "name": "gng_main_map",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 256,
+        "sourceColumn": 1,
+        "sourceEndLine": 277
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 7679,
+        "raw": "map(0x0000, 0x1dff).ram()",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 258,
+        "sourceColumn": 2,
+        "sourceEndLine": 258,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 7680,
+        "end": 8191,
+        "raw": "map(0x1e00, 0x1fff).ram().share(\"spriteram\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 259,
+        "sourceColumn": 2,
+        "sourceEndLine": 259,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 10239,
+        "raw": "map(0x2000, 0x27ff).ram().w(FUNC(gng_state::fgvideoram_w)).share(m_fgvideoram)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 260,
+        "sourceColumn": 2,
+        "sourceEndLine": 260,
+        "ram": true,
+        "share": "fgvideoram"
+      }
+    },
+    {
+      "id": "handler:gng_state.fgvideoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "fgvideoram_w",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 162,
+        "sourceColumn": 1,
+        "sourceEndLine": 166,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_fgvideoram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset & 0x3ff);"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 10240,
+        "end": 12287,
+        "raw": "map(0x2800, 0x2fff).ram().w(FUNC(gng_state::bgvideoram_w)).share(m_bgvideoram)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 261,
+        "sourceColumn": 2,
+        "sourceEndLine": 261,
+        "ram": true,
+        "share": "bgvideoram"
+      }
+    },
+    {
+      "id": "handler:gng_state.bgvideoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "bgvideoram_w",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 168,
+        "sourceColumn": 1,
+        "sourceEndLine": 172,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_bgvideoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset & 0x3ff);"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 12288,
+        "raw": "map(0x3000, 0x3000).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 262,
+        "sourceColumn": 2,
+        "sourceEndLine": 262,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 12289,
+        "end": 12289,
+        "raw": "map(0x3001, 0x3001).portr(\"P1\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 263,
+        "sourceColumn": 2,
+        "sourceEndLine": 263,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 12290,
+        "end": 12290,
+        "raw": "map(0x3002, 0x3002).portr(\"P2\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 264,
+        "sourceColumn": 2,
+        "sourceEndLine": 264,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 12291,
+        "end": 12291,
+        "raw": "map(0x3003, 0x3003).portr(\"DSW1\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 265,
+        "sourceColumn": 2,
+        "sourceEndLine": 265,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 12292,
+        "end": 12292,
+        "raw": "map(0x3004, 0x3004).portr(\"DSW2\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 266,
+        "sourceColumn": 2,
+        "sourceEndLine": 266,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 14336,
+        "end": 14591,
+        "raw": "map(0x3800, 0x38ff).w(m_palette, FUNC(palette_device::write8_ext)).share(\"palette_ext\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 267,
+        "sourceColumn": 2,
+        "sourceEndLine": 267,
+        "share": "palette_ext"
+      }
+    },
+    {
+      "id": "handler:palette_device.write8_ext",
+      "label": "Handler",
+      "props": {
+        "method": "write8_ext",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 291,
+        "sourceColumn": 2,
+        "sourceEndLine": 291
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 14592,
+        "end": 14847,
+        "raw": "map(0x3900, 0x39ff).w(m_palette, FUNC(palette_device::write8)).share(\"palette\")",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 268,
+        "sourceColumn": 2,
+        "sourceEndLine": 268,
+        "share": "palette"
+      }
+    },
+    {
+      "id": "handler:palette_device.write8",
+      "label": "Handler",
+      "props": {
+        "method": "write8",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 292,
+        "sourceColumn": 2,
+        "sourceEndLine": 292
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 14848,
+        "end": 14848,
+        "raw": "map(0x3a00, 0x3a00).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 269,
+        "sourceColumn": 2,
+        "sourceEndLine": 269
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 293,
+        "sourceColumn": 2,
+        "sourceEndLine": 293
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 15112,
+        "end": 15113,
+        "raw": "map(0x3b08, 0x3b09).w(FUNC(gng_state::bgscrollx_w))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 270,
+        "sourceColumn": 2,
+        "sourceEndLine": 270
+      }
+    },
+    {
+      "id": "handler:gng_state.bgscrollx_w",
+      "label": "Handler",
+      "props": {
+        "method": "bgscrollx_w",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 175,
+        "sourceColumn": 1,
+        "sourceEndLine": 179,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_scrollx[offset] = data;\n\tm_bg_tilemap->set_scrollx(0, m_scrollx[0] + 256 * m_scrollx[1]);"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 15114,
+        "end": 15115,
+        "raw": "map(0x3b0a, 0x3b0b).w(FUNC(gng_state::bgscrolly_w))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 271,
+        "sourceColumn": 2,
+        "sourceEndLine": 271
+      }
+    },
+    {
+      "id": "handler:gng_state.bgscrolly_w",
+      "label": "Handler",
+      "props": {
+        "method": "bgscrolly_w",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 181,
+        "sourceColumn": 1,
+        "sourceEndLine": 185,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_scrolly[offset] = data;\n\tm_bg_tilemap->set_scrolly(0, m_scrolly[0] + 256 * m_scrolly[1]);"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 15360,
+        "end": 15360,
+        "raw": "map(0x3c00, 0x3c00).w(m_spriteram, FUNC(buffered_spriteram8_device::write))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 272,
+        "sourceColumn": 2,
+        "sourceEndLine": 272
+      }
+    },
+    {
+      "id": "handler:buffered_spriteram8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "buffered_spriteram8_device",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 296,
+        "sourceColumn": 2,
+        "sourceEndLine": 296
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 15616,
+        "end": 15623,
+        "raw": "map(0x3d00, 0x3d07).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 273,
+        "sourceColumn": 2,
+        "sourceEndLine": 273
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 273,
+        "sourceColumn": 2,
+        "sourceEndLine": 273
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 15872,
+        "end": 15872,
+        "raw": "map(0x3e00, 0x3e00).w(FUNC(gng_state::bankswitch_w))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 274,
+        "sourceColumn": 2,
+        "sourceEndLine": 274
+      }
+    },
+    {
+      "id": "handler:gng_state.bankswitch_w",
+      "label": "Handler",
+      "props": {
+        "method": "bankswitch_w",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 234,
+        "sourceColumn": 1,
+        "sourceEndLine": 240,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "if (data == 4)\n\t\tm_mainbank->set_entry(4);\n\telse\n\t\tm_mainbank->set_entry(data & 0x03);"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 24575,
+        "raw": "map(0x4000, 0x5fff).bankr(m_mainbank)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 275,
+        "sourceColumn": 2,
+        "sourceEndLine": 275,
+        "bankRead": "mainbank"
+      }
+    },
+    {
+      "id": "map:gng_state.gng_main_map/range18",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 65535,
+        "raw": "map(0x6000, 0xffff).rom()",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 276,
+        "sourceColumn": 2,
+        "sourceEndLine": 276,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gng_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gng_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 308,
+        "sourceColumn": 1,
+        "sourceEndLine": 315
+      }
+    },
+    {
+      "id": "map:gng_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 310,
+        "sourceColumn": 2,
+        "sourceEndLine": 310,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gng_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 51199,
+        "raw": "map(0xc000, 0xc7ff).ram()",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 311,
+        "sourceColumn": 2,
+        "sourceEndLine": 311,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gng_state.sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 51200,
+        "raw": "map(0xc800, 0xc800).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 312,
+        "sourceColumn": 2,
+        "sourceEndLine": 312
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 312,
+        "sourceColumn": 2,
+        "sourceEndLine": 312
+      }
+    },
+    {
+      "id": "map:gng_state.sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57345,
+        "raw": "map(0xe000, 0xe001).w(\"ym1\", FUNC(ym2203_device::write))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 313,
+        "sourceColumn": 2,
+        "sourceEndLine": 313
+      }
+    },
+    {
+      "id": "handler:ym2203_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2203_device",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 314,
+        "sourceColumn": 2,
+        "sourceEndLine": 314
+      }
+    },
+    {
+      "id": "map:gng_state.sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 57346,
+        "end": 57347,
+        "raw": "map(0xe002, 0xe003).w(\"ym2\", FUNC(ym2203_device::write))",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 314,
+        "sourceColumn": 2,
+        "sourceEndLine": 314
+      }
+    },
+    {
+      "id": "machine:gng_state.gng",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gng_state",
+        "name": "gng",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_scrollx\",\"bits\":8,\"arrayLength\":2}",
+          "{\"name\":\"m_scrolly\",\"bits\":8,\"arrayLength\":2}"
+        ],
+        "resetHandlers": [
+          "gng_state.machine_reset"
+        ],
+        "startHandlers": [
+          "gng_state.video_start"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 572,
+        "sourceColumn": 1,
+        "sourceEndLine": 618
+      }
+    },
+    {
+      "id": "handler:gng_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 550,
+        "sourceColumn": 1,
+        "sourceEndLine": 570,
+        "sourceParameters": "",
+        "sourceBody": "m_scrollx[0] = 0;\n\tm_scrollx[1] = 0;\n\tm_scrolly[0] = 0;\n\tm_scrolly[1] = 0;\n\n\t/* TODO: PCB reference clearly shows that the POST has random/filled data on the paletteram.\n\t         For now let's fill everything with white colors until we have better info about it */\n\tfor (int i = 0 ; i < 0x100; i += 4)\n\t{\n\t\tm_palette->basemem().write8(i, 0x00); m_palette->extmem().write8(i, 0x00);\n\t\tm_palette->basemem().write8(i + 1, 0x55); m_palette->extmem().write8(i + 1, 0x55);\n\t\tm_palette->basemem().write8(i + 2, 0xaa); m_palette->extmem().write8(i + 2, 0xaa);\n\t\tm_palette->basemem().write8(i + 3, 0xff); m_palette->extmem().write8(i + 3, 0xff);\n\t\tm_palette->set_pen_color(i + 0, 0x00, 0x00, 0x00);\n\t\tm_palette->set_pen_color(i + 1, 0x55, 0x55, 0x55);\n\t\tm_palette->set_pen_color(i + 2, 0xaa, 0xaa, 0xaa);\n\t\tm_palette->set_pen_color(i + 3, 0xff, 0xff, 0xff);\n\t}"
+      }
+    },
+    {
+      "id": "handler:gng_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 1,
+        "sourceEndLine": 153,
+        "sourceParameters": "",
+        "sourceBody": "m_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gng_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gng_state::get_bg_tile_info)), TILEMAP_SCAN_COLS, 16, 16, 32, 32);\n\n\tm_fg_tilemap->set_transparent_pen(3);\n\tm_bg_tilemap->set_transmask(0, 0xff, 0x00); // split type 0 is totally transparent in front half\n\tm_bg_tilemap->set_transmask(1, 0x41, 0xbe); // split type 1 has pens 0 and 6 transparent in front half"
+      }
+    },
+    {
+      "id": "handler:gng_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 118,
+        "sourceColumn": 1,
+        "sourceEndLine": 125,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t attr = m_fgvideoram[tile_index + 0x400];\n\ttileinfo.set(0,\n\t\t\tm_fgvideoram[tile_index] + ((attr & 0xc0) << 2),\n\t\t\tattr & 0x0f,\n\t\t\tTILE_FLIPYX((attr & 0x30) >> 4));"
+      }
+    },
+    {
+      "id": "handler:gng_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 135,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t attr = m_bgvideoram[tile_index + 0x400];\n\ttileinfo.set(1,\n\t\t\tm_bgvideoram[tile_index] + ((attr & 0xc0) << 2),\n\t\t\tattr & 0x07,\n\t\t\tTILE_FLIPYX((attr & 0x30) >> 4));\n\ttileinfo.group = (attr & 0x08) >> 3;"
+      }
+    },
+    {
+      "id": "bank:gng_state.gng/mainbank/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "mainbank",
+        "member": "m_mainbank",
+        "startEntry": 0,
+        "entries": 4,
+        "region": "maincpu",
+        "offset": 65536,
+        "stride": 8192,
+        "raw": "m_mainbank->configure_entries(0, 4, &rombase[0x10000], 0x2000)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 548
+      }
+    },
+    {
+      "id": "bank:gng_state.gng/mainbank/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "mainbank",
+        "member": "m_mainbank",
+        "startEntry": 4,
+        "entries": 1,
+        "region": "maincpu",
+        "offset": 16384,
+        "stride": 0,
+        "raw": "m_mainbank->configure_entry(4, &rombase[0x4000])",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 548
+      }
+    },
+    {
+      "id": "device:gng_state.gng/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "MC6809",
+        "tag": "maincpu",
+        "clock": 6000000,
+        "config": [
+          "MC6809(config, m_maincpu, XTAL(12'000'000) / 2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &gng_state::gng_main_map)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(gng_state::irq0_line_hold))"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 575,
+        "sourceColumn": 2,
+        "sourceEndLine": 575
+      }
+    },
+    {
+      "id": "device:gng_state.gng/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_vblank_int",
+        "operation": "set_vblank_int",
+        "raw": "m_maincpu->set_vblank_int(\"screen\", FUNC(gng_state::irq0_line_hold))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 2,
+        "sourceEndLine": 577,
+        "targetTag": "screen",
+        "targetClass": "gng_state",
+        "targetMethod": "irq0_line_hold"
+      }
+    },
+    {
+      "id": "handler:gng_state.irq0_line_hold",
+      "label": "Handler",
+      "props": {
+        "method": "irq0_line_hold",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581
+      }
+    },
+    {
+      "id": "device:gng_state.gng/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3000000,
+        "config": [
+          "z80_device &audiocpu(Z80(config, \"audiocpu\", XTAL(12'000'000) / 4))",
+          "audiocpu.set_addrmap(AS_PROGRAM, &gng_state::sound_map)",
+          "audiocpu.set_periodic_int(FUNC(gng_state::irq0_line_hold), attotime::from_hz(4 * 60))"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 2,
+        "sourceEndLine": 579
+      }
+    },
+    {
+      "id": "device:gng_state.gng/audiocpu/callback:audiocpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_periodic_int",
+        "operation": "set_periodic_int",
+        "raw": "audiocpu.set_periodic_int(FUNC(gng_state::irq0_line_hold), attotime::from_hz(4 * 60))",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581,
+        "periodHz": 240,
+        "periodExpr": "attotime::from_hz(4 * 60)",
+        "targetClass": "gng_state",
+        "targetMethod": "irq0_line_hold"
+      }
+    },
+    {
+      "id": "device:gng_state.gng/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "ls259_device &mainlatch(LS259(config, \"mainlatch\"))",
+          "mainlatch.q_out_cb<0>().set(FUNC(gng_state::flip_screen_set)).invert()",
+          "mainlatch.q_out_cb<1>().set_inputline(\"audiocpu\", INPUT_LINE_RESET).invert()",
+          "mainlatch.q_out_cb<1>().append(FUNC(gng_state::ym_reset_w))",
+          "mainlatch.q_out_cb<2>().set([this] (int state) { machine().bookkeeping().coin_counter_w(0, state); })",
+          "mainlatch.q_out_cb<3>().set([this] (int state) { machine().bookkeeping().coin_counter_w(1, state); })"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 583,
+        "sourceColumn": 2,
+        "sourceEndLine": 583
+      }
+    },
+    {
+      "id": "device:gng_state.gng/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<0>().set(FUNC(gng_state::flip_screen_set)).invert()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584,
+        "slot": "0",
+        "transforms": [
+          "invert"
+        ],
+        "targetClass": "gng_state",
+        "targetMethod": "flip_screen_set"
+      }
+    },
+    {
+      "id": "handler:gng_state.flip_screen_set",
+      "label": "Handler",
+      "props": {
+        "method": "flip_screen_set",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584
+      }
+    },
+    {
+      "id": "device:gng_state.gng/mainlatch/callback:mainlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_inputline",
+        "raw": "mainlatch.q_out_cb<1>().set_inputline(\"audiocpu\", INPUT_LINE_RESET).invert()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 585,
+        "sourceColumn": 2,
+        "sourceEndLine": 585,
+        "slot": "1",
+        "transforms": [
+          "invert"
+        ],
+        "targetTag": "audiocpu",
+        "inputLine": "INPUT_LINE_RESET"
+      }
+    },
+    {
+      "id": "device:gng_state.gng/mainlatch/callback:mainlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "append",
+        "raw": "mainlatch.q_out_cb<1>().append(FUNC(gng_state::ym_reset_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586,
+        "slot": "1",
+        "targetClass": "gng_state",
+        "targetMethod": "ym_reset_w"
+      }
+    },
+    {
+      "id": "handler:gng_state.ym_reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "ym_reset_w",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 242,
+        "sourceColumn": 1,
+        "sourceEndLine": 249,
+        "sourceParameters": "int state",
+        "sourceBody": "if (!state)\n\t{\n\t\tm_ym[0]->reset();\n\t\tm_ym[1]->reset();\n\t}"
+      }
+    },
+    {
+      "id": "device:gng_state.gng/spriteram",
+      "label": "Device",
+      "props": {
+        "type": "BUFFERED_SPRITERAM8",
+        "tag": "spriteram",
+        "clock": null,
+        "config": [
+          "BUFFERED_SPRITERAM8(config, m_spriteram)"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "device:gng_state.gng/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(XTAL(12'000'000) / 2, 384, 0, 256, 262, 16, 240)",
+          "screen.set_screen_update(FUNC(gng_state::screen_update))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593,
+        "configCalls": [
+          "set_raw(6000000,384,0,256,262,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          256,
+          262,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "XTAL(12'000'000) / 2",
+          "384",
+          "0",
+          "256",
+          "262",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:gng_state.gng/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(gng_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 595,
+        "sourceColumn": 2,
+        "sourceEndLine": 595,
+        "targetClass": "gng_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:gng_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 224,
+        "sourceColumn": 1,
+        "sourceEndLine": 231,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER1, 0);\n\tdraw_sprites(bitmap, cliprect);\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER0, 0);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:gng_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "gng_state",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 195,
+        "sourceColumn": 1,
+        "sourceEndLine": 222,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "uint8_t *spriteram = m_spriteram->buffer();\n\tgfx_element *gfx = m_gfxdecode->gfx(2);\n\n\tfor (int offs = m_spriteram->bytes() - 4; offs >= 0; offs -= 4)\n\t{\n\t\tuint8_t attributes = spriteram[offs + 1];\n\t\tint sx = spriteram[offs + 3] - 0x100 * (attributes & 0x01);\n\t\tint sy = spriteram[offs + 2];\n\t\tint flipx = attributes & 0x04;\n\t\tint flipy = attributes & 0x08;\n\n\t\tif (flip_screen())\n\t\t{\n\t\t\tsx = 240 - sx;\n\t\t\tsy = 240 - sy;\n\t\t\tflipx = !flipx;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\tgfx->transpen(bitmap,cliprect,\n\t\t\t\tspriteram[offs] + ((attributes << 2) & 0x300),\n\t\t\t\t(attributes >> 4) & 3,\n\t\t\t\tflipx, flipy,\n\t\t\t\tsx, sy, 15);\n\t}"
+      }
+    },
+    {
+      "id": "device:gng_state.gng/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_gng)"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 598,
+        "sourceColumn": 2,
+        "sourceEndLine": 598,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:gng_state.gng/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(palette_device::RGBx_444, 256)"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 600,
+        "sourceColumn": 2,
+        "sourceEndLine": 600
+      }
+    },
+    {
+      "id": "device:gng_state.gng/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 2,
+        "sourceEndLine": 603
+      }
+    },
+    {
+      "id": "device:gng_state.gng/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch\")"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 2,
+        "sourceEndLine": 605
+      }
+    },
+    {
+      "id": "device:gng_state.gng/ym1",
+      "label": "Device",
+      "props": {
+        "type": "YM2203",
+        "tag": "ym1",
+        "clock": 1500000,
+        "config": [
+          "YM2203(config, m_ym[0], XTAL(12'000'000) / 8)",
+          "m_ym[0]->add_route(0, \"mono\", 0.40)",
+          "m_ym[0]->add_route(1, \"mono\", 0.40)",
+          "m_ym[0]->add_route(2, \"mono\", 0.40)",
+          "m_ym[0]->add_route(3, \"mono\", 0.20)"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 607,
+        "sourceColumn": 2,
+        "sourceEndLine": 607
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "m_ym[0]->add_route(0, \"mono\", 0.40)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 2,
+        "sourceEndLine": 608
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym1/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "m_ym[0]->add_route(1, \"mono\", 0.40)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 609,
+        "sourceColumn": 2,
+        "sourceEndLine": 609
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym1/2",
+      "label": "AudioRoute",
+      "props": {
+        "output": "2",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "m_ym[0]->add_route(2, \"mono\", 0.40)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 610,
+        "sourceColumn": 2,
+        "sourceEndLine": 610
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym1/3",
+      "label": "AudioRoute",
+      "props": {
+        "output": "3",
+        "target": "mono",
+        "gain": 0.2,
+        "raw": "m_ym[0]->add_route(3, \"mono\", 0.20)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 2,
+        "sourceEndLine": 611
+      }
+    },
+    {
+      "id": "device:gng_state.gng/ym2",
+      "label": "Device",
+      "props": {
+        "type": "YM2203",
+        "tag": "ym2",
+        "clock": 1500000,
+        "config": [
+          "YM2203(config, m_ym[1], XTAL(12'000'000) / 8)",
+          "m_ym[1]->add_route(0, \"mono\", 0.40)",
+          "m_ym[1]->add_route(1, \"mono\", 0.40)",
+          "m_ym[1]->add_route(2, \"mono\", 0.40)",
+          "m_ym[1]->add_route(3, \"mono\", 0.20)"
+        ],
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 2,
+        "sourceEndLine": 613
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym2/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "m_ym[1]->add_route(0, \"mono\", 0.40)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 614,
+        "sourceColumn": 2,
+        "sourceEndLine": 614
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym2/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "m_ym[1]->add_route(1, \"mono\", 0.40)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 615,
+        "sourceColumn": 2,
+        "sourceEndLine": 615
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym2/2",
+      "label": "AudioRoute",
+      "props": {
+        "output": "2",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "m_ym[1]->add_route(2, \"mono\", 0.40)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 2,
+        "sourceEndLine": 616
+      }
+    },
+    {
+      "id": "audioroute:device:gng_state.gng/ym2/3",
+      "label": "AudioRoute",
+      "props": {
+        "output": "3",
+        "target": "mono",
+        "gain": 0.2,
+        "raw": "m_ym[1]->add_route(3, \"mono\", 0.20)",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 2,
+        "sourceEndLine": 617
+      }
+    },
+    {
+      "id": "inputs:gng",
+      "label": "InputPorts",
+      "props": {
+        "name": "gng",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 318,
+        "sourceColumn": 8,
+        "sourceEndLine": 318
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 12,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 12
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gng/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gng/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gng/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gng/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gng/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gng/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gng/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gng/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gng/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 192,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 192
+      }
+    },
+    {
+      "id": "inputs:gng/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gng/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gng/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gng/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gng/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gng/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gng/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gng/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 192,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 192
+      }
+    },
+    {
+      "id": "inputs:gng/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gng/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:8,7,6,5\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 15,
+        "location": "SW1:8,7,6,5",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:4\")"
+        ],
+        "name": "Coinage affects",
+        "defaultValue": 16,
+        "location": "SW1:4",
+        "settings": [
+          "16=Coin A",
+          "0=Coin B"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:3\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW1:3",
+        "settings": [
+          "32=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 64,
+        "activeLow": true,
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gng/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:1\")"
+        ],
+        "name": "Flip Screen",
+        "defaultValue": 128,
+        "location": "SW1:1",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gng/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:8,7\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 3,
+        "location": "SW2:8,7",
+        "settings": [
+          "3=3",
+          "2=4",
+          "1=5",
+          "0=7"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:6\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:6",
+        "settings": [
+          "0=Upright",
+          "4=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 24,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:5,4\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 24,
+        "location": "SW2:5,4",
+        "settings": [
+          "24=20K 70K Every 70K",
+          "16=30K 80K Every 80K",
+          "8=20K and 80K Only",
+          "0=30K and 80K Only"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 96,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:3,2\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 96,
+        "location": "SW2:3,2",
+        "settings": [
+          "64=Easy",
+          "96=Normal",
+          "32=Difficult",
+          "0=Very Difficult"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gng/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 2,
+        "planeOffsets": [
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          8,
+          9,
+          10,
+          11
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:tilelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "tilelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)+4",
+          "RGN_FRAC(1,2)+0",
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          256,
+          257,
+          258,
+          259,
+          264,
+          265,
+          266,
+          267
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gng",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_gng",
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 8,
+        "sourceEndLine": 531
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gng/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "chars",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 128,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gng/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "tilelayout",
+        "colorBase": 0,
+        "colorCount": 8,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gng/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 64,
+        "colorCount": 4,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:gng",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 1162,
+        "sourceColumn": 1,
+        "sourceEndLine": 1162
+      }
+    },
+    {
+      "from": "game:gng",
+      "to": "machine:gng_state.gng",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gng",
+      "to": "inputs:gng",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gng",
+      "to": "romset:gng",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:sound/ymopn.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:video/bufsprite.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gng.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 572,
+        "sourceColumn": 1,
+        "sourceEndLine": 618
+      }
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "handler:gng_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "handler:gng_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "bank:gng_state.gng/mainbank/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "bank:gng_state.gng/mainbank/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/spriteram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "gfxdecode:gfx_gng",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/ym1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gng_state.gng",
+      "to": "device:gng_state.gng/ym2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:gng",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 318,
+        "sourceColumn": 8,
+        "sourceEndLine": 318
+      }
+    },
+    {
+      "from": "inputs:gng",
+      "to": "inputs:gng/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gng",
+      "to": "inputs:gng/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gng",
+      "to": "inputs:gng/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gng",
+      "to": "inputs:gng/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gng",
+      "to": "inputs:gng/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:gng",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 1,
+        "sourceEndLine": 636
+      }
+    },
+    {
+      "from": "romset:gng",
+      "to": "region:gng/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gng",
+      "to": "region:gng/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gng",
+      "to": "region:gng/chars",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gng",
+      "to": "region:gng/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gng",
+      "to": "region:gng/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gng",
+      "to": "region:gng/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gng",
+      "to": "region:gng/plds",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:gng_state.video_start",
+      "to": "handler:gng_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gng_state.video_start",
+      "to": "handler:gng_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:gng_state.gng/mainbank/0",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 548
+      }
+    },
+    {
+      "from": "bank:gng_state.gng/mainbank/1",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 548
+      }
+    },
+    {
+      "from": "device:gng_state.gng/maincpu",
+      "to": "device:gng_state.gng/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gng_state.gng/maincpu",
+      "to": "map:gng_state.gng_main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:gng_state.gng/audiocpu",
+      "to": "device:gng_state.gng/audiocpu/callback:audiocpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gng_state.gng/audiocpu",
+      "to": "map:gng_state.sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:gng_state.gng/mainlatch",
+      "to": "device:gng_state.gng/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gng_state.gng/mainlatch",
+      "to": "device:gng_state.gng/mainlatch/callback:mainlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gng_state.gng/mainlatch",
+      "to": "device:gng_state.gng/mainlatch/callback:mainlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gng_state.gng/screen",
+      "to": "device:gng_state.gng/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_gng",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 8,
+        "sourceEndLine": 531
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_gng",
+      "to": "gfxdecode:gfx_gng/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gng",
+      "to": "gfxdecode:gfx_gng/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gng",
+      "to": "gfxdecode:gfx_gng/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:gng_state.gng/ym1",
+      "to": "audioroute:device:gng_state.gng/ym1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gng_state.gng/ym1",
+      "to": "audioroute:device:gng_state.gng/ym1/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gng_state.gng/ym1",
+      "to": "audioroute:device:gng_state.gng/ym1/2",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gng_state.gng/ym1",
+      "to": "audioroute:device:gng_state.gng/ym1/3",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gng_state.gng/ym2",
+      "to": "audioroute:device:gng_state.gng/ym2/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gng_state.gng/ym2",
+      "to": "audioroute:device:gng_state.gng/ym2/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gng_state.gng/ym2",
+      "to": "audioroute:device:gng_state.gng/ym2/2",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gng_state.gng/ym2",
+      "to": "audioroute:device:gng_state.gng/ym2/3",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:gng/SYSTEM",
+      "to": "inputs:gng/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/SYSTEM",
+      "to": "inputs:gng/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/SYSTEM",
+      "to": "inputs:gng/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/SYSTEM",
+      "to": "inputs:gng/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/SYSTEM",
+      "to": "inputs:gng/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/SYSTEM",
+      "to": "inputs:gng/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/SYSTEM",
+      "to": "inputs:gng/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P1",
+      "to": "inputs:gng/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P1",
+      "to": "inputs:gng/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P1",
+      "to": "inputs:gng/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P1",
+      "to": "inputs:gng/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P1",
+      "to": "inputs:gng/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P1",
+      "to": "inputs:gng/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P1",
+      "to": "inputs:gng/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P2",
+      "to": "inputs:gng/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P2",
+      "to": "inputs:gng/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P2",
+      "to": "inputs:gng/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P2",
+      "to": "inputs:gng/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P2",
+      "to": "inputs:gng/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P2",
+      "to": "inputs:gng/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/P2",
+      "to": "inputs:gng/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW1",
+      "to": "inputs:gng/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW1",
+      "to": "inputs:gng/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW1",
+      "to": "inputs:gng/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW1",
+      "to": "inputs:gng/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW1",
+      "to": "inputs:gng/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW2",
+      "to": "inputs:gng/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW2",
+      "to": "inputs:gng/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW2",
+      "to": "inputs:gng/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW2",
+      "to": "inputs:gng/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gng/DSW2",
+      "to": "inputs:gng/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:gng/maincpu",
+      "to": "rom:gng/maincpu/mm_c_04",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/maincpu",
+      "to": "rom:gng/maincpu/mm_c_03",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/maincpu",
+      "to": "rom:gng/maincpu/mm_c_05",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/audiocpu",
+      "to": "rom:gng/audiocpu/gg2.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/chars",
+      "to": "rom:gng/chars/gg1.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/tiles",
+      "to": "rom:gng/tiles/gg11.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/tiles",
+      "to": "rom:gng/tiles/gg10.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/tiles",
+      "to": "rom:gng/tiles/gg9.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/tiles",
+      "to": "rom:gng/tiles/gg8.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/tiles",
+      "to": "rom:gng/tiles/gg7.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/tiles",
+      "to": "rom:gng/tiles/gg6.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/sprites",
+      "to": "rom:gng/sprites/gg17.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/sprites",
+      "to": "rom:gng/sprites/gg16.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/sprites",
+      "to": "rom:gng/sprites/gg15.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/sprites",
+      "to": "rom:gng/sprites/gg14.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/sprites",
+      "to": "rom:gng/sprites/gg13.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/sprites",
+      "to": "rom:gng/sprites/gg12.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/proms",
+      "to": "rom:gng/proms/tbp24s10.14k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/proms",
+      "to": "rom:gng/proms/63s141.2e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gng/plds",
+      "to": "rom:gng/plds/gg-pal10l8.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:gng_state.gng/maincpu/callback:maincpu:0",
+      "to": "handler:gng_state.irq0_line_hold",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 256,
+        "sourceColumn": 1,
+        "sourceEndLine": 277
+      }
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.gng_main_map",
+      "to": "map:gng_state.gng_main_map/range18",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:gng_state.gng/audiocpu/callback:audiocpu:0",
+      "to": "handler:gng_state.irq0_line_hold",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gng_state.sound_map",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gng.cpp",
+        "sourceLine": 308,
+        "sourceColumn": 1,
+        "sourceEndLine": 315
+      }
+    },
+    {
+      "from": "map:gng_state.sound_map",
+      "to": "map:gng_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.sound_map",
+      "to": "map:gng_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.sound_map",
+      "to": "map:gng_state.sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.sound_map",
+      "to": "map:gng_state.sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gng_state.sound_map",
+      "to": "map:gng_state.sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:gng_state.gng/mainlatch/callback:mainlatch:0",
+      "to": "handler:gng_state.flip_screen_set",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gng_state.gng/mainlatch/callback:mainlatch:1",
+      "to": "device:gng_state.gng/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gng_state.gng/mainlatch/callback:mainlatch:2",
+      "to": "handler:gng_state.ym_reset_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gng_state.gng/screen/callback:screen:0",
+      "to": "handler:gng_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_gng/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gng/e1",
+      "to": "gfxlayout:tilelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gng/e2",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range2",
+      "to": "handler:gng_state.fgvideoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range3",
+      "to": "handler:gng_state.bgvideoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range9",
+      "to": "handler:palette_device.write8_ext",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range10",
+      "to": "handler:palette_device.write8",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range11",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range12",
+      "to": "handler:gng_state.bgscrollx_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range13",
+      "to": "handler:gng_state.bgscrolly_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range14",
+      "to": "handler:buffered_spriteram8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "spriteram"
+      }
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range15",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:gng_state.gng_main_map/range16",
+      "to": "handler:gng_state.bankswitch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gng_state.sound_map/range2",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:gng_state.sound_map/range3",
+      "to": "handler:ym2203_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ym1"
+      }
+    },
+    {
+      "from": "map:gng_state.sound_map/range4",
+      "to": "handler:ym2203_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ym2"
+      }
+    },
+    {
+      "from": "handler:gng_state.screen_update",
+      "to": "handler:gng_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:tilelayout",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/capcom/gng.cpp",
+      "rel": "DEFINED_IN"
+    }
+  ]
+}

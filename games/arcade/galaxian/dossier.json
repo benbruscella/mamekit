@@ -1,0 +1,1243 @@
+{
+  "game": "galaxian",
+  "title": "Galaxian (Namco set 1) (Namco, 1979)",
+  "fullname": "Galaxian (Namco set 1)",
+  "year": "1979",
+  "company": "Namco",
+  "family": "galaxian",
+  "driverFile": "src/mame/galaxian/galaxian.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles, Couriersud, Stephane Humbert, Robbbert",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 17407,
+          "kind": "ram",
+          "mirror": 1024
+        },
+        {
+          "start": 20480,
+          "end": 21503,
+          "kind": "ram",
+          "mirror": 1024,
+          "share": "videoram",
+          "write": "galaxian_state.galaxian_videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 22528,
+          "end": 22783,
+          "kind": "ram",
+          "mirror": 1792,
+          "share": "spriteram",
+          "write": "galaxian_state.galaxian_objram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 24576,
+          "end": 24576,
+          "kind": "handler",
+          "mirror": 2047,
+          "read": "port.IN0"
+        },
+        {
+          "start": 24576,
+          "end": 24577,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "galaxian_state.start_lamp_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 24578,
+          "end": 24578,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "galaxian_state.coin_lock_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 24579,
+          "end": 24579,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "galaxian_state.coin_count_0_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 26624,
+          "end": 26624,
+          "kind": "handler",
+          "mirror": 2047,
+          "read": "port.IN1"
+        },
+        {
+          "start": 28672,
+          "end": 28672,
+          "kind": "handler",
+          "mirror": 2047,
+          "read": "port.IN2"
+        },
+        {
+          "start": 28673,
+          "end": 28673,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "galaxian_state.irq_enable_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28676,
+          "end": 28676,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "galaxian_state.galaxian_stars_enable_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28678,
+          "end": 28678,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "galaxian_state.galaxian_flip_screen_x_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28679,
+          "end": 28679,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "galaxian_state.galaxian_flip_screen_y_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 30720,
+          "end": 30720,
+          "kind": "handler",
+          "mirror": 2047,
+          "read": "watchdog.reset_r"
+        },
+        {
+          "start": 24580,
+          "end": 24583,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "cust.lfo_freq_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 26624,
+          "end": 26631,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "cust.sound_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 30720,
+          "end": 30720,
+          "kind": "handler",
+          "mirror": 2047,
+          "write": "cust.pitch_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "discrete",
+    "clock": 3072000,
+    "worklet": "galaxian-sound",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "partial",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "galmidw.u",
+          "offset": 0,
+          "size": 2048,
+          "crc": "745e2d61",
+          "alt": [
+            {
+              "file": "galaxian.u",
+              "crc": "fac42d34"
+            },
+            {
+              "file": "gl-03.8g",
+              "crc": "e8f3aa67"
+            },
+            {
+              "file": "p2-1.1",
+              "crc": "acfde501"
+            },
+            {
+              "file": "zt-p01c.016",
+              "crc": "90a2bc61"
+            },
+            {
+              "file": "galaktron_g1.bin",
+              "crc": "ac64aabe"
+            },
+            {
+              "file": "3.bin",
+              "crc": "51ba70ac"
+            },
+            {
+              "file": "h7.7h",
+              "crc": "d09b9f1a"
+            },
+            {
+              "file": "fg1.bin",
+              "crc": "3d5d9bae"
+            },
+            {
+              "file": "sg1",
+              "crc": "d493cfd1"
+            },
+            {
+              "file": "piii.1",
+              "crc": "78dd272d"
+            },
+            {
+              "file": "galx.u",
+              "crc": "79e4007d"
+            },
+            {
+              "file": "kk1pmc.bin",
+              "crc": "4a29bbe4"
+            },
+            {
+              "file": "sg1",
+              "crc": "b83f4578"
+            },
+            {
+              "file": "swarm1.bin",
+              "crc": "21eba3d0"
+            },
+            {
+              "file": "test.u",
+              "crc": "0614cd7f"
+            }
+          ]
+        },
+        {
+          "file": "galmidw.v",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "9c999a40",
+          "alt": [
+            {
+              "file": "galaxian.v",
+              "crc": "f58283e3"
+            },
+            {
+              "file": "galx.v",
+              "crc": "bc16064e"
+            },
+            {
+              "file": "p2-2.2",
+              "crc": "65cf3c77"
+            },
+            {
+              "file": "zt-2.016",
+              "crc": "a433067e"
+            },
+            {
+              "file": "piii.2",
+              "crc": "465a9b45"
+            },
+            {
+              "file": "prg2.bin",
+              "crc": "59580b30"
+            },
+            {
+              "file": "kk2pmc.bin",
+              "crc": "65c57131"
+            },
+            {
+              "file": "sg2",
+              "crc": "d12ca054"
+            },
+            {
+              "file": "swarm2.bin",
+              "crc": "f3a436cd"
+            }
+          ]
+        },
+        {
+          "file": "galmidw.w",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "b5894925",
+          "alt": [
+            {
+              "file": "galaxian.w",
+              "crc": "4c7031c0"
+            },
+            {
+              "file": "superg.w",
+              "crc": "ddeabdae"
+            },
+            {
+              "file": "p2-3.3",
+              "crc": "9eef9ae6"
+            },
+            {
+              "file": "zt-3.016",
+              "crc": "aaf038d4"
+            },
+            {
+              "file": "6_7h.bin",
+              "crc": "7c86fc8a"
+            },
+            {
+              "file": "piii.3",
+              "crc": "03e36737"
+            },
+            {
+              "file": "prg3.bin",
+              "crc": "b64e9d12"
+            },
+            {
+              "file": "galx.w",
+              "crc": "72d2d3ee"
+            },
+            {
+              "file": "kk3pmc.bin",
+              "crc": "24cf6da0"
+            },
+            {
+              "file": "sg3",
+              "crc": "53714cb1"
+            },
+            {
+              "file": "swarm3.bin",
+              "crc": "2915e38b"
+            }
+          ]
+        },
+        {
+          "file": "galmidw.y",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "6b3ca10b",
+          "alt": [
+            {
+              "file": "galaxian.y",
+              "crc": "96a7ac94"
+            },
+            {
+              "file": "gl-06.8d",
+              "crc": "097d92a2"
+            },
+            {
+              "file": "superg.y",
+              "crc": "9463f753"
+            },
+            {
+              "file": "galturbo.y",
+              "crc": "a44f450f"
+            },
+            {
+              "file": "galx_1_4.rom",
+              "crc": "e71e1d9e"
+            },
+            {
+              "file": "p2-4.4",
+              "crc": "56a5ddd1"
+            },
+            {
+              "file": "zt-4.016",
+              "crc": "786d690a"
+            },
+            {
+              "file": "l7.7l",
+              "crc": "9471cdd3"
+            },
+            {
+              "file": "4r.bin",
+              "crc": "89b76ca0"
+            },
+            {
+              "file": "fg4.bin",
+              "crc": "d74bdd2a"
+            },
+            {
+              "file": "sg4",
+              "crc": "04329e33"
+            },
+            {
+              "file": "piii.4",
+              "crc": "ce012b3f"
+            },
+            {
+              "file": "galiii_y.y",
+              "crc": "87b24ab8"
+            },
+            {
+              "file": "galx.y",
+              "crc": "afe397f3"
+            },
+            {
+              "file": "kk4pmc.bin",
+              "crc": "5e5ebca8"
+            },
+            {
+              "file": "sg4",
+              "crc": "2f36fc69"
+            },
+            {
+              "file": "swarm4.bin",
+              "crc": "8bbbf486"
+            },
+            {
+              "file": "astrians.7l",
+              "crc": "2db56b2f"
+            },
+            {
+              "file": "f_r_c.bin",
+              "crc": "c8530a88"
+            },
+            {
+              "file": "an4.7f",
+              "crc": "232dd045"
+            }
+          ]
+        },
+        {
+          "file": "7l",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "1b933207",
+          "alt": [
+            {
+              "file": "7l.bin",
+              "crc": "5341d75a"
+            },
+            {
+              "file": "galmidw.z",
+              "crc": "cb24f797"
+            },
+            {
+              "file": "superg.z",
+              "crc": "e6312e35"
+            },
+            {
+              "file": "supergs.z",
+              "crc": "95e9005c"
+            },
+            {
+              "file": "fs-7_7p.bin",
+              "crc": "6a8715fd"
+            },
+            {
+              "file": "galturbo.z",
+              "crc": "3247f3d4"
+            },
+            {
+              "file": "galx_1_5.rom",
+              "crc": "6e65a3b2"
+            },
+            {
+              "file": "p2-5.5",
+              "crc": "f4bc7262"
+            },
+            {
+              "file": "zt-5.016",
+              "crc": "af9260d7"
+            },
+            {
+              "file": "galaktron_g5.bin",
+              "crc": "9c1821bb"
+            },
+            {
+              "file": "5.bin",
+              "crc": "b1a8dfea"
+            },
+            {
+              "file": "cirsagal.5",
+              "crc": "863a688f"
+            },
+            {
+              "file": "m7.7m",
+              "crc": "5766c95b"
+            },
+            {
+              "file": "fg5.bin",
+              "crc": "f93fdd30"
+            },
+            {
+              "file": "princip5.z",
+              "crc": "7eeb9e63"
+            },
+            {
+              "file": "gxrf.7l",
+              "crc": "ee827e75"
+            },
+            {
+              "file": "sg5.7l",
+              "crc": "878de26d"
+            },
+            {
+              "file": "5.8f",
+              "crc": "b71fc917"
+            },
+            {
+              "file": "piii.5",
+              "crc": "9ace06cf"
+            },
+            {
+              "file": "galiii_z.z",
+              "crc": "b960abbd"
+            },
+            {
+              "file": "2716.1",
+              "crc": "dfc20e57"
+            },
+            {
+              "file": "prg5.bin",
+              "crc": "8bb78987"
+            },
+            {
+              "file": "galx.z",
+              "crc": "778c0d3c"
+            },
+            {
+              "file": "kk5pmc.bin",
+              "crc": "6d325b14"
+            },
+            {
+              "file": "sg5",
+              "crc": "1e0ed4fd"
+            },
+            {
+              "file": "swarm5.bin",
+              "crc": "f1b1987e"
+            },
+            {
+              "file": "astrians.7m",
+              "crc": "41075efb"
+            },
+            {
+              "file": "f_r_d.bin",
+              "crc": "da2d77e0"
+            },
+            {
+              "file": "an5.7l",
+              "crc": "e80fec29"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "1h.bin",
+          "offset": 0,
+          "size": 2048,
+          "crc": "39fb43a4",
+          "alt": [
+            {
+              "file": "galaxian.j1",
+              "crc": "84decf98"
+            },
+            {
+              "file": "gl-02.1k",
+              "crc": "d14f7510"
+            },
+            {
+              "file": "cp-7.1k",
+              "crc": "287159b7"
+            },
+            {
+              "file": "fs-1_1k.bin",
+              "crc": "977e37cf"
+            },
+            {
+              "file": "galturbo.1h",
+              "crc": "a713fd1a"
+            },
+            {
+              "file": "galii.1j",
+              "crc": "3dcdb3d2"
+            },
+            {
+              "file": "galx_4c1.rom",
+              "crc": "d5e88ab4"
+            },
+            {
+              "file": "ztc-2.016",
+              "crc": "1b13ca05"
+            },
+            {
+              "file": "7.7a",
+              "crc": "833e112c"
+            },
+            {
+              "file": "hj.bin",
+              "crc": "5f1b4996"
+            },
+            {
+              "file": "2_1hj.bin",
+              "crc": "bc7d0985"
+            },
+            {
+              "file": "7-2716.bin",
+              "crc": "39546539"
+            },
+            {
+              "file": "cirsagal.h",
+              "crc": "6babd14e"
+            },
+            {
+              "file": "1h.bin",
+              "crc": "724a2044"
+            },
+            {
+              "file": "gxrf.1jh",
+              "crc": "23e627ff"
+            },
+            {
+              "file": "2.1j",
+              "crc": "b8629cc6"
+            },
+            {
+              "file": "ca1.bin",
+              "crc": "074271dd"
+            },
+            {
+              "file": "galx.1h",
+              "crc": "e8810654"
+            },
+            {
+              "file": "kk8pmc.bin",
+              "crc": "96b268b1"
+            },
+            {
+              "file": "sgg1",
+              "crc": "a1287bf6"
+            },
+            {
+              "file": "swarma.bin",
+              "crc": "ef8657bb"
+            },
+            {
+              "file": "astrians.1h",
+              "crc": "77c074b4"
+            },
+            {
+              "file": "an-2g.1k",
+              "crc": "b4784fac"
+            }
+          ]
+        },
+        {
+          "file": "1k.bin",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "7e3f56a2",
+          "alt": [
+            {
+              "file": "galaxian.l1",
+              "crc": "c31ada9e"
+            },
+            {
+              "file": "gl-01.1j",
+              "crc": "968b6016"
+            },
+            {
+              "file": "cp-6.1j",
+              "crc": "6fb54cb1"
+            },
+            {
+              "file": "fs-2_1h.bin",
+              "crc": "d0ba22c9"
+            },
+            {
+              "file": "galturbo.1k",
+              "crc": "28511790"
+            },
+            {
+              "file": "galii.1k",
+              "crc": "25789c21"
+            },
+            {
+              "file": "galx_4c2.rom",
+              "crc": "a57b83e4"
+            },
+            {
+              "file": "ztc-1.016",
+              "crc": "5cd7df03"
+            },
+            {
+              "file": "9.9a",
+              "crc": "eca21395"
+            },
+            {
+              "file": "1_1kl.bin",
+              "crc": "c48b88d0"
+            },
+            {
+              "file": "kl.bin",
+              "crc": "18df5c90"
+            },
+            {
+              "file": "6-2716.bin",
+              "crc": "d10337c3"
+            },
+            {
+              "file": "cirsagal.i",
+              "crc": "0997e81b"
+            },
+            {
+              "file": "k2.9a",
+              "crc": "15e387ce"
+            },
+            {
+              "file": "1k.bin",
+              "crc": "656000a7"
+            },
+            {
+              "file": "gxrf.1lk",
+              "crc": "0dbcee5b"
+            },
+            {
+              "file": "1.1l",
+              "crc": "6d42351c"
+            },
+            {
+              "file": "ca2.bin",
+              "crc": "84d90397"
+            },
+            {
+              "file": "galx.1k",
+              "crc": "cbe84a76"
+            },
+            {
+              "file": "kk7pmc.bin",
+              "crc": "58673a07"
+            },
+            {
+              "file": "swarmb.bin",
+              "crc": "60c4bd31"
+            },
+            {
+              "file": "astrians.1k",
+              "crc": "c30fcc46"
+            },
+            {
+              "file": "an-1g.1h",
+              "crc": "a32b7270"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "6l.bpr",
+          "offset": 0,
+          "size": 32,
+          "crc": "c3ac9467",
+          "alt": [
+            {
+              "file": "galaktron_pr.bin",
+              "crc": "6a0c7d87"
+            },
+            {
+              "file": "ims5610.bin",
+              "crc": "24652bc4"
+            },
+            {
+              "file": "m866l_im5610.6l",
+              "crc": "b549ad5a"
+            },
+            {
+              "file": "im8610.6l",
+              "crc": "4a3c88a5"
+            },
+            {
+              "file": "im5610.bin",
+              "crc": "4e3caeab"
+            },
+            {
+              "file": "gxrf.6l",
+              "crc": "992350e5"
+            },
+            {
+              "file": "supergx.prm",
+              "crc": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 32,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "IN1",
+      "mask": 192,
+      "value": 0,
+      "name": "Coinage"
+    },
+    {
+      "port": "IN2",
+      "mask": 3,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "value": 4,
+      "name": "Lives"
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "value": 0,
+      "name": "Unused"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-11",
+    "commits": 659,
+    "contributors": 49,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "ClawGrip",
+      "David Haywood"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 121,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 120,
+        "firstCommit": "2013-11-07",
+        "lastCommit": "2026-06-11"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 59,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 47,
+        "firstCommit": "2018-09-06",
+        "lastCommit": "2026-04-10"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 40,
+        "firstCommit": "2013-08-07",
+        "lastCommit": "2021-06-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 38,
+        "firstCommit": "2015-11-02",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "AJR",
+        "commits": 37,
+        "firstCommit": "2016-03-31",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "hap",
+        "commits": 31,
+        "firstCommit": "2015-10-31",
+        "lastCommit": "2026-03-30"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 28,
+        "firstCommit": "2011-02-17",
+        "lastCommit": "2014-09-05"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 16,
+        "firstCommit": "2008-03-28",
+        "lastCommit": "2009-10-05"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 15,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 13,
+        "firstCommit": "2010-02-03",
+        "lastCommit": "2021-08-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 13,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2025-05-12"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 8,
+        "firstCommit": "2012-11-21",
+        "lastCommit": "2020-07-25"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 6,
+        "firstCommit": "2010-03-18",
+        "lastCommit": "2010-03-19"
+      },
+      {
+        "name": "Steven Coomber",
+        "commits": 6,
+        "firstCommit": "2022-03-12",
+        "lastCommit": "2022-04-15"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 4,
+        "firstCommit": "2010-03-02",
+        "lastCommit": "2022-03-21"
+      },
+      {
+        "name": "braintro",
+        "commits": 4,
+        "firstCommit": "2019-04-07",
+        "lastCommit": "2019-04-10"
+      },
+      {
+        "name": "couriersud",
+        "commits": 4,
+        "firstCommit": "2015-05-25",
+        "lastCommit": "2020-01-20"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2014-04-17"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2019-02-15",
+        "lastCommit": "2019-03-31"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-02-26",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "briantro",
+        "commits": 2,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2015-06-04"
+      },
+      {
+        "name": "Devin Acker",
+        "commits": 2,
+        "firstCommit": "2024-05-09",
+        "lastCommit": "2024-05-16"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "kazblox",
+        "commits": 2,
+        "firstCommit": "2015-10-04",
+        "lastCommit": "2015-10-17"
+      },
+      {
+        "name": "MASHinfo",
+        "commits": 2,
+        "firstCommit": "2016-09-21",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-05-28",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 2,
+        "firstCommit": "2018-05-20",
+        "lastCommit": "2018-05-26"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-02-02",
+        "lastCommit": "2013-02-02"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2008-02-10",
+        "lastCommit": "2008-02-10"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2017-02-10",
+        "lastCommit": "2017-02-10"
+      },
+      {
+        "name": "ImJezze",
+        "commits": 1,
+        "firstCommit": "2016-02-21",
+        "lastCommit": "2016-02-21"
+      },
+      {
+        "name": "Kaz",
+        "commits": 1,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2017-02-06"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2015-01-26",
+        "lastCommit": "2015-01-26"
+      },
+      {
+        "name": "Martin Lindhe",
+        "commits": 1,
+        "firstCommit": "2017-11-03",
+        "lastCommit": "2017-11-03"
+      },
+      {
+        "name": "MASH",
+        "commits": 1,
+        "firstCommit": "2016-09-14",
+        "lastCommit": "2016-09-14"
+      },
+      {
+        "name": "mixxmaster",
+        "commits": 1,
+        "firstCommit": "2015-09-25",
+        "lastCommit": "2015-09-25"
+      },
+      {
+        "name": "Osso",
+        "commits": 1,
+        "firstCommit": "2014-11-02",
+        "lastCommit": "2014-11-02"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-11-15",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 1,
+        "firstCommit": "2018-09-02",
+        "lastCommit": "2018-09-02"
+      },
+      {
+        "name": "sjy555525",
+        "commits": 1,
+        "firstCommit": "2025-08-23",
+        "lastCommit": "2025-08-23"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2008-04-19",
+        "lastCommit": "2008-04-19"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 47 years ago:\n\nGalaxian (c) 1979 Namco.\n\nGalaxian is a legendary single-screen shoot-em-up that took everything that made Taito's ground-breaking \"Space Invaders\" so good, and improved upon it on every level. Each screen starts with a wave of multi-colored aliens moving left and right at the top of the screen; the aliens quickly break ranks and start dive-bombing the Galaxip (player's ship) - either in single units or in groups of 3 - dropping multiple missiles as they descend. All of the aliens need to be destroyed before the player can progress to the next wave.\n\n- CAST OF CHARACTERS - \n\nGalaxip: This is the name of the ship which you control at the bottom of the screen. \n\nGalaxian: These attacking aliens come in three varieties: blue, purple, and red. They begin in formation at the top of the screen and will occasionally swoop down to attack you before returning to their position in the formation. \n\nFlagship: At least two of these appear at the top of the formation at the start of each stage. They will swoop down to attack with one or two red Galaxians if any are nearby. If a flagship is one of the last enemies left of the screen, it will run away and appear as a third Flagship at the start of the next stage.\n\n- TECHNICAL -\n\nThis was the first title to use the now familiar 'Namco Cabinet', which was used for Galaxian, \"Galaga\", \"Pac-Man\", \"Ms. Pac-Man\". Several other titles used nearly identical cabinets as well. These machines are white, with painted sideart of a green dragonfly alien (done up in blue, green. and black). The marquee is rather large and displays a blue and green 'Galaxian' logo (which is painted on a sheet of glass, they don't make them like that anymore). The control panel and monitor bezel are not highly decorated, but do feature some game instructions. Finally this machine uses neon green t-molding (edge trim), it is difficult to find replacement trim in that same exact shade.\n\nThe earliest Galaxian machines used a 25-inch G02 monitor, but later machines shipped with the standard 19-inch Electrohome G07 monitor. Any normal standard resolution arcade monitor should work as a replacement. \"Pac-Man\" PCBs will work in Galaxian machines, but require a 4-way joystick, instead of the 2-way model that Galaxian normally has. The sound pinout is also different, so one would need to rewire the connector to hear any Pac-Man sounds. You can also plug a Galaxian PCB into a Pac-Man. Again, the sound would need to be wired up at the connector and you'd have to push UP on the joystick to fire.\n\nMain CPU: Zilog Z80 (@ 3.072 Mhz)\nSound Chips: Tone generator and discrete circuits\n\nPlayers: 2\nControl: 2-way Joystick \nButtons: 1 (FIRE) \n\nAlternate Japanese cabinet versions):\nButtons: 3 (LEFT, RIGHT, FIRE)\n\n- TRIVIA -\n\nGalaxian was released on October 31, 1979 in Japan.\n\nWhile it is often cited as \"the first video game to be released with 100 percent of its graphics displayed in true R.G.B. color,\" this is inaccurate. It did have multi-color objects, that combined with animation was significant, but Taito had done this earlier with Super Speed Race - which Midway licensed and launched a month before they produced Galaxian. Home consoles already supported full color graphics prior to Galaxian's release (See the 1978 release of Superman on the Atari 2600 as an example of a multi-color object; Or the 1979 release of Basketball on the Atari 400/800) as did various other arcade games that used full color. These may have not been as detailed as Galaxian but were still important: Gotcha Color by Atari (1973) had an RGB color circuit; There was Wimbeldon by Nutting Associates (1973); Car Polo, Star Fire and Fire One! by Exidy (1977~79; Fire One came out a month before Galaxian did in the States), Sea Wolf II by Midway (1978), and a few others.\n\nSomething can also be said for the iconic sounds that came from Galaxian, which players could use to identify the game before they even saw it.\n\nSpace battles of all kinds played a major role during the golden age of video games. With the introduction of Galaxian, players were transported to the most colorful and challenging space battle yet, giving patterns to the attacking aliens that made for a more dynamic and memorable challenge than Space Invaders.\n\n* A place in video game history:\n\"Galaxian captivated the minds of quite a few arcade enthusiasts,\" said Chris Lindsey, director of the National Video Game and Coin-Op Museum in St. Louis. \"It was a relatively early entry in the golden age of video games, and it capitalized on the enthusiasm created by the earlier video game classic, \"Space Invaders\", while providing a more colorful, enjoyable, and demanding gaming experience.\nGalaxian had smarter bad guys than \"Space Invaders\", and it demanded that the player really pay attention to what was going on. And there were no shields, like many games have today. You really had to stay on the ball. Galaxian also had great sound and used elements that have since become standard -- such as flags and other symbols to mark the player's progression through different levels of game play.\".\n\n* The great 25-cent escape:\n\"Galaxian definitely gets an enthusiastic response,\" Lindsey said. \"In fact, I deliberately position the game near the entrance of the museum. Often it's the first game people go to.\" Lindsey often sees parents trying to convey to their child the excitement of these great games. \"It is funny for me when I see a father trying to explain a game to his kid. Junior really just wants to get on the game and figure it out, and Dad wants to do a demo. Dad starts instructing Junior while Junior is sort of looking around, wondering how he can get away. But Dad continues, busily explaining the nuances of the game, which he knows Junior can't get on the first play. This all shows the enthusiasm that a certain generation still has for these terrific games.\"\nWith or without a parent's help, Lindsey sees a younger generation embracing the classic arcade games. \"Kids by themselves will actually do quite well on these games,\" Lindsey said. \"I'm somewhat surprised when I see how good kids are at picking up games. I sort of think that because I'm older, I should be able to play better, and that's not always the case with video games. That's a lesson an entire generation has had to learn.\".\n\n* Namco notes:\nGalaxian was one of Namco's first video games, and engineers throughout the company were gathered into a special team. As the game neared completion, the engineers suspected they had created a good game because other Namco employees were extremely \"excited and crazy about the game.\" Once Galaxian was released, they knew they had a winner because, as one Namco engineer reported, \"People [at the arcades] piled their coins onto the game cabinets to keep playing, and those who were waiting were very irritated because their turn never came. There were huge lines of people around each machine.\".\n\nThe Galaxian Flagship became a trademark of Namco as it makes cameo appearances in other Namco classics:\n* \"Pac-Man\" (1980) and \"Pac-Man Plus\" (1982): The flagship makes an appearance as the bonus fruit in rounds 9 and 10, and is worth 2,000 points if Pac-Man eats it. \n* \"Galaga\" (1981): The flagship makes an appearance as one of the \"transform\" ships. It splits into 2, then 3 clones of itself. They are worth 160 points each, and killing all 3 scores a bonus of 3,000 points. \n* \"Dig Dug\" (1982): The flagship makes an appearance as the bonus vegetable in rounds 16 and 17, and is worth 7,000 points if Dig Dug picks it up. \n* \"Super Pac-Man\" (1982): All regular edible items on rounds 15, 31, 47, and 63 are flagships, and they are worth 150 points each. Starting from their second appearance, Round 31, they are 160 points instead. \n* \"Pac & Pal\" (1983): The flagship makes an appearance as one of the \"special items\" that make Pac-Man turn blue when eaten, and allows him to stun the ghosts for a short while by shooting a Galaga-style tractor beam. It is worth 1,000 points if Pac-Man eats it or intercepts it from Miru. \n* \"Pac-Land\" (1984): The ghosts in airplanes sometimes drop flagships and they are worth 7,650 points (765 being Namco's goroawase number in Japanese) if eaten. \n* \"Super Xevious\" (1984): The flagship makes an appearance in a silver form and as an enemy, and sometimes several of them attack at once. They are worth 300 points each. \n* \"Quester\" (1987): In Round 5, the bricks form a Galaxian Flagship.\n* \"Pac-Mania\" (1987): The flagship makes a 3-D appearance as a special item and in two forms as well, the other one being the silver form from \"Super Xevious\". The regular one and the silver one are worth 7,650 points if eaten.\n* \"Pistol Daimyo no Bouken\" (1990) : The flagship makes an appearance as an enemy along with the other Galaxian characters, and they attempt to hit Pistol Daimyo with their fire. \n* \"Tinkle Pit\" (1994): The flagship also makes an appearance with the other Galaxian characters, but this time they appear as bonus items. It is worth 800 points if collected. \n* \"Tekken\" (1994 - Arcade, 1995 - PlayStation) and \"Tekken 2\" (1995 - Arcade, 1996 - PlayStation) : Winning at least seven rounds in Arcade Vs. mode will reveal the Galaxian flagship on the lower left (or right) hand corner of the screen. In order for this to work, \"Number of Wins Shown By\" must be set to Fruit. \n* \"Namco Classic Collection Vol.1\" (1995): The flagship makes an appearance in \"Galaga Arrangement\" as a Challenging Stage enemy in Space-Plant Zone (Stage 20) and normally in Space-Flower Zone (Stage 26). If killed normally, they are worth 150 points. If killed in Challenging Stage, they are worth 300 points.\n* \"Namco Classic Collection Vol.2\" (1996): The flagship appears in both \"Pac-Man Arrangement\" and \"Dig Dug Arrangement\". In \"Pac-Man Arrangement\", it makes its appearance in World 4-1 and 4-2 and is worth 5,000 points if Pac-Man eats it. In \"Dig Dug Arrangement\", it appears in Stages 17 and 18 and is worth 7,000 points if Dig Dug picks it up.\n* \"Pac-Man World\" (1999): The flagship appears again in a Pac-Man game. This time, the item must be collected in order to access the mazes.\n* \"Pac-Man World 2\" (2002) and \"Pac-Man World 3 (2005): The flagship teleports Pac-Man to mazes. The point value will be the same as the points earned in the maze (if completed), plus 2000.\n* \"Namco Museum Battle Collection\" (2005): The arrangement versions of \"Pac-Man\" and \"Dig Dug\", later called \"Pac-Man Remix\" and \"Dig Dug Remix\" in the iOS version, feature the flagship. \"Pac-Man Remix\" features both the flagship, worth 3,200 points, and the red drone, worth 2,800 points, as fruit items, while on \"Dig Dug Remix\", the flagship is a vegetable item and is worth 7,000 points. \n\"Dig Dug - Digging Strike\" (2005): Just like the first \"Dig Dug\", the flagship appears as a vegetable on stage 13, except it's worth 6,000 points.\n\"Pac-Man Championship Edition\" (2007) and \"Pac-Man Championship Edition DX\" (2010) : The flagship reappears, but is this time joined by the Galaga Boss, Queen Gaplus, and two drones, one each from \"Galaga\" and Galaxian.\n\nGary Whelan holds the official record for this game with 1,114,550 points, achieved August 24, 2006 at Dukinfield in the UK.\n\nThe game can be played while the main game loads in the Sony PlayStation's port of \"Ridge Racer\".\n\nA Namco Galaxian until appears in April Wine's concert video 'Live in London (1981)'.\n\n- UPDATES -\n\nThe only code difference between the original Namco version and the licensed Midway version is that the 'Bonus Galaxip' text is printed on a different line.\n\nIn Namco Set 2: \n* Lives dip switch can be set to 3 or 5 lives. The default is 3 lives.\n* Extra life dip switch can be set to 4,000 (meaning a bonus Galaxip at 4,000 points), 5,000 points, 7,000 points, or None (meaning no bonus Galaxip at any time). The default is 4,000.\n\nIn Midway Set 2: \n* Extra life dip switch can be set to None, 3,000, 4,000, or 5,000. The default is None.\n\nIn the bootleg version: \n* Extra life dip switch can be set to None, 20,000, 40,000, or 80,000. The default is None.\n\n- SCORING -\n\nBlue Galaxian: 30 points in formation, 60 points in flight.\nPurple Galaxian: 40 points in formation, 80 points in flight.\nRed Galaxian: 50 points in formation, 100 points in flight.\nFlagship: 60 points in formation, 150 points in flight.\nFlagship: 200 points in flight with one escort.\nFlagship: 300 points in flight with two escorts, Flagship killed before both escorts.\nFlagship: 800 points in flight with two escorts, Flagship killed after both escorts.\n\n* The maximum possible score shown is 999,990. Scores higher than this roll back to zero, but the high score will show the last score achieved before the rollover, which can vary from 999,990 to 999,200.\n\n- TIPS AND TRICKS -\n\n* The action starts immediately as soon as you start your game. The Galaxians will be set up in formation and your Galaxip will be placed in the middle of the bottom of the screen. The action starts immediately. You can only have one shot in the air at any time so plan your shots accordingly. The game starts off slowly with only 2 or 3 Galaxians attacking your Galaxip at one time. They will drop 3 to 4 laser shots. As the waves progress, more Galaxians will come after your Galaxip until you will usually have 10-15 at any one time swooping down on it.\n\nEach wave starts out with the Galaxians in formation, in the following quantities (in order from top to bottom):\nFlagships: 2 (plus any that have escaped from battle in the previous wave, up to a maximum of 4 altogether).\nRed Galaxians (Escorts): 6 (in 1 row, directly below the flagships).\nPurple Galaxians: 8 (in 1 row, directly below the red Galaxians).\nBlue Galaxians: 30 (in 3 rows of 10, directly below the purple Galaxians).\n\nFlagships and red Galaxians are special enemies : they create convoys. Flagships have other special properties (see below). Purple and blue Galaxians are regular enemies.\n\n* The Galaxip can fire only shot on the screen at a time. It is possible to kill 2 enemies with one shot if they are flying extremely close to each other.\n\n* Missiles shot at the formation which miss by going between columns or near an outer edge of a column, will cause the formation to pause its left-right movement for a very short moment. This will usually, but not always, prevent missed shots near the columns from hitting the enemies in the upper rows of the formation which might otherwise be hit by moving into the shot as it flies by.\n\n* Enemies peel away from the formation and attack the Galaxip. Enemies fire at the Galaxip during their attack, but they can’t fire after they pass an invisible horizontal line just above the Galaxip.\n\n* Enemies always begin attack runs from the edges of the formation, never from the middle. This also applies to Flagships but it is not readily observable unless there are 3 or 4 Flagships present.\n\n* A 'swarm' is triggered by either of 2 criterion:\n1. The total number of enemies in formation is 3 or less.\n2. The total number of blue and purple Galaxians in formation is zero. This can occur when there are many Flagships and red Galaxians still present in formation.\n\n* When the 'swarm' starts, enemies that begin an attack do not return to formation : they keep attacking. Once started, a 'swarm' can only be ended by killing all of the enemies and/or letting them escape, or by the Galaxip getting hit. \n\n* Before the 'swarm' starts, enemies that attack, which are not killed, return to the formation. Since these enemies were on the edge of the formation and able to attack once, they are very likely to attack again soon.\n\n* When not in 'swarm', a maximum of 4 regular enemies can attack at any one time.\n\n* Flagships and convoys can attack at any time as long as another convoy attack is not already commencing; only one convoy attack can happen at a time.\n\n* A Flagship will always create a convoy with the maximum number of red escorts available to it, unless the 'swarm' has started.\n\n* The Flagships 'capture' up to 3 red escorts while they are in formation :  Whenever there is a Flagship in formation directly above an escort or above it to one side, that escort is captured and cannot attack on its own. This capture effect ends when a 'swarm' begins.\n\n* The Flagships can escape from the battle only if all three red escorts under their place in the formation have been killed. Flagships that escape will appear on the next attack wave, up to a maximum of 4 Flagships at the start of any wave.\n\n* When an attacking Flagship is killed, all enemies stop firing for a short period of time. If this kill occurs before the 'swarm', there will also be no new attacks from the formation during this period. These benefits never occur for killing a Flagship that is in formation.\n\n* The flags which count the rounds show a maximum of round 48; rounds 48 and up are shown as round 48. However if round 256 is achieved, the flags start to roll over, but with some graphical glitches; the flags that were showing round 48 begin to get overwritten, one at a time. This results in the big 10-flags being cut in half by the regular flags which start to appear, until all 4 of the 10-flags are replaced by small ones. 16 single flags show during rounds 256+8 and 256+9 (rounds 264 and 265). The glitch ends at round 256+10 (266), which shows a single 10 flag.\n\n* After wave 1, it is possible to kill any one enemy, even a Flagship, in a brand new formation by shooting at just the right time and place before the formation teleports in at the start of a new round.\n\n* The Galaxians that come down in a smooth pattern are the easiest to kill plus their shots are easy to avoid. The hard ones to kill (usually the purple Galaxians) are the ones where the Galaxian 'bounces' from side-to-side dropping shots since those shots cover a very large area.\n\n* The corners can be a death trap. When the Galaxians come down firing, their shots do not come straight down but they angle toward the direction that the Galaxian is traveling. In addition, the Galaxians have a tendency to 'charge' into the corners. You get the points if a Galaxian rams your Galaxip but you also lose your Galaxip in the process.\n\n* The Flagships are the big points in the game. Try to avoid shooting the red Galaxians since they act as escorts for the Flagship. Wait until a Flagship comes down with two escorts. If you can't get aligned to take all three out quickly, let them pass. If you do get a good angle on them, you will have to fire quickly to pick off the two escorts first, then the Flagship. If you hit the Flagship first, you get significantly less points.\n\n* Do not stop moving. If you do, you will be caught in a crossfire. The Galaxians tend to leave small areas of safety open between their shots. Also, make sure you are constantly hitting their formation to reduce their numbers (again, don't kill off the red ones).\n\n* As you progress into the higher waves, the Galaxians tend to move quicker, fly more erratic patterns, and 'gang up' on your Galaxip. Plan accordingly for this.\n\n- PORTS -\n\nNOTE: For ports released in North America, please see the Midway Upright model entry.\n\n* CONSOLES: \n[JP] Epoch Cassette Vision (aug.10, 1981)\n[JP] Atari 2600 (1983)\n[JP] Nintendo Famicom (sept.7, 1984) \"Galaxian [Model NGX-4500]\" \n[JP] Nintendo Famicom Disk (jul.20, 1990) \"Galaxian [Model NDS-GXN]\"  \n[JP] Sony PlayStation (june.21, 1996) \"Namco Museum Vol.3 [Model SLPS-00390]\" \n[AU] Sony PlayStation (1997) \"Namco Museum Vol.3 [Model SCES-00268]\" \n[EU] Sony PlayStation (feb.1997) \"Namco Museum Vol.3 [Model SCES-00268]\" \n[JP] Sony PS2 (jan.26, 2006) \"Namco Museum Arcade Hits! [Model SLPS-25590]\" \n[EU] Microsoft XBOX (mar.24, 2006) \"Namco Museum - 50th Anniversary\" \n[EU] Sony PS2 (mar.31, 2006) \"Namco Museum - 50th Anniversary [Model SLES-53957]\" \n[EU] Nintendo GameCube (may.5, 2006) \"Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]\" \n[JP] Nintendo Wii (dec.6, 2007) \"Minna de Asobou! Namco Carnival [Model RVL-RNWJ-JPN]\" \n[EU] Nintendo Wii (apr.18, 2008) \"Namco Museum Remix [Model RVL-RN2P]\" \n[KO] Nintendo Wii (apr.26, 2008) \"Namco Museum Remix [Model RVL-RNWK-KOR]\" \n[AU] Nintendo Wii (may.1, 2008) \"Namco Museum Remix [Model RVL-RN2P]\" \n[EU] Microsoft XBOX 360 (may.15, 2009) \"Namco Museum - Virtual Arcade\" \n[AU] Microsoft XBOX 360 (june.3, 2009) \"Namco Museum - Virtual Arcade\" \n[JP] Nintendo Wii [Virtual Console Arcade] (sept.29, 2009) \n[JP] Microsoft XBOX 360 (nov.5, 2009) \"Namco Museum - Virtual Arcade [Model 2RD-00001]\" \n\n* HANDHELDS: \n[UK] Nintendo Game Boy (1995) \"Arcade Classic No. 3 - Galaga & Galaxian [Model DMG-AGCP-UKV]\" \n[EU] Nintendo Game Boy (1995) \"Arcade Classic No. 3 - Galaga & Galaxian [Model DMG-AGCP-NOE]\" \n[JP] Nintendo Game Boy (1995) \"Galaga & Galaxian [Model DMG-AGCJ-JPN]\" \n[JP] Nintendo Game Boy (nov.29, 1996) \"Namco Gallery Vol.2 [Model DMG-AN2J-JPN]\" \n[JP] Nintendo GBA (dec.7, 2001) \"Namco Museum [Model AGB-ANMJ-JPN]\" \n[EU] Nintendo GBA (dec.7, 2001) \"Namco Museum [Model AGB-ANMP-EUR]\" \n[JP] Sony PSP (feb.24, 2005) \"Namco Museum [Model ULJS-00012]\" \n[KO] Sony PSP (may.2, 2005) \"Namco Museum [Model UCKS-45005]\" : as 'Old Galaga' and marks the only ever official connection between the Galaxian and Galaga series\n[EU] Sony PSP (dec.9, 2005) \"Namco Museum Battle Collection [Model UCES-00116]\" \n[JP] Nintendo DS (oct.11, 2007) \"Namco Museum DS [Model NTR-YNMJ-JPN]\" \n[EU] Nintendo DS (feb.29, 2008) \"Namco Museum DS [Model NTR-YNMP-EUR]\" \n\n* COMPUTERS: \n[EU] Exidy Sorcerer \n[JP] Apple II (1980) by Star Craft Tokyo.\n[JP] Apple II (1981) \"Alien Typhoon\" by Star Craft.\n[EU] BBC B (1982) \"Arcadians\" by Acornsoft \n[EU] Acorn Electron (1982) \"Arcadians\" by Acornsoft. \n[EU] Sinclair ZX81 (1982) \"ZX Galaxians\" by Artic \n[EU] Sinclair ZX Spectrum (1982) by Artic.\n[EU] Commodore C64 (1983) \"Galaxions\" by Solar Software.\n[EU] Commodore C64 (1983) \n[EU] Sinclair ZX Spectrum (1983) by Atarisoft.\n[UK] Sinclair ZX Spectrum (1983) \"Galactians\" by DK'Tronics.\n[JP] MSX (1984)\n[EU] MSX (1984) by Bug-Byte.\n[JP] Fujitsu FM-7 (1985) \n[JP] Sharp X1 (1984) by Dempa.\n[JP] NEC PC-88\n[EU] Atari ST (1993) \"Galaxian\" : PD / Shareware by Sinister Developments \n[EU] PC [MS-DOS] (1996) \"Galaxi\" : PD / Shareware by Kurt W. Dekker \n[EU] Commodore Amiga (1998) \"Galaxians v1.3\" : PD / Shareware by Kev Gallagher\n[JP] PC [MS Windows, CD-ROM] (dec.24, 1998) \"Namco History Volume 4\" \n[AU] PC [MS Windows, CD-ROM] (mar.27, 2006) \"Namco Museum - 50th Anniversary\" \n[EU] PC [MS Windows, CD-ROM] (may.19, 2006) \"Namco Museum - 50th Anniversary\" \n\n* OTHERS: \nVFD tabletop game (1980) by Bandai \nVFD tabletop game (19??) \"Moon Alien\" : alternate name by Bandai.\n[JP] VFD tabletop game (19??) \"Beam Galaxian\" by Bandai.\nVFD handheld game (1981) \"Galaxian 2\" by Entex : Also by Futuretronics and so named because it can be a two-player game. \n[JP] VFD handheld game (1981) \"Astro Galaxy\" by Entex. \nVFD handheld game (1981) \"Astro Invader\" by Entex : Hales release.\nLCD Keychains handheld game (1997) by Bandai.\n\n- SERIES -\n\n1. Galaxian (1979)\n2. Galaga (1981)\n3. Gaplus (1984) : also known in the USA as \"Galaga 3\"\n4. Galaga '88 (1987)\n5. Galaxian 3 Theatre 6 - Project Dragoon (1990)\n6. Galaxian 3 Theatre 6 J2 - Attack Of The Zolgear (1994)\n7. Galaga Arrangement (1995) : part of \"Namco Classics Collection Vol.1\"\n8. Galaga - Destination Earth (2000, GBA, PC CD-ROM and PlayStation)\n9. Galaga Arrangement (2005, PSP) : part of \"Namco Museum Battle Collection\" \n10. Galaga Remix (2007, Wii) : part of \"Namco Museum Remix\" \n11. Galaga Legions (2008, XBLA)\n12. Galaga Legions DX (2010, PSN, XBLA)\n13. Galaga 3D Impact (2011, Nintendo 3DS) : part of \"Pac-Man & Galaga Dimensions\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/901/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

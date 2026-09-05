@@ -1,0 +1,1236 @@
+{
+  "game": "elevator",
+  "title": "Elevator Action (BA3, 4 PCB version, 1.1) (Taito, 1983)",
+  "fullname": "Elevator Action (BA3, 4 PCB version, 1.1)",
+  "year": "1983",
+  "company": "Taito",
+  "family": "taitosj",
+  "driverFile": "src/mame/taito/taitosj.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 4000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 24575,
+          "kind": "rom"
+        },
+        {
+          "start": 24576,
+          "end": 32767,
+          "kind": "handler",
+          "read": "bank.mainbank",
+          "bank": "mainbank"
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram"
+        },
+        {
+          "start": 34816,
+          "end": 34816,
+          "kind": "handler",
+          "mirror": 2046,
+          "read": "taitosj_state.fake_data_r",
+          "write": "taitosj_state.fake_data_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 34817,
+          "end": 34817,
+          "kind": "handler",
+          "mirror": 2046,
+          "read": "taitosj_state.fake_status_r"
+        },
+        {
+          "start": 36864,
+          "end": 49151,
+          "kind": "handler",
+          "share": "characterram",
+          "write": "taitosj_state.characterram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 49152,
+          "end": 50175,
+          "kind": "ram"
+        },
+        {
+          "start": 50176,
+          "end": 51199,
+          "kind": "ram",
+          "share": "videoram[0]"
+        },
+        {
+          "start": 51200,
+          "end": 52223,
+          "kind": "ram",
+          "share": "videoram[1]"
+        },
+        {
+          "start": 52224,
+          "end": 53247,
+          "kind": "ram",
+          "share": "videoram[2]"
+        },
+        {
+          "start": 53248,
+          "end": 53343,
+          "kind": "ram",
+          "share": "colscrolly"
+        },
+        {
+          "start": 53344,
+          "end": 53503,
+          "kind": "ram"
+        },
+        {
+          "start": 53504,
+          "end": 53759,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 53760,
+          "end": 53887,
+          "kind": "ram",
+          "mirror": 128,
+          "share": "paletteram"
+        },
+        {
+          "start": 54016,
+          "end": 54016,
+          "kind": "ram",
+          "mirror": 255,
+          "share": "video_priority",
+          "writeOnly": true
+        },
+        {
+          "start": 54272,
+          "end": 54275,
+          "kind": "ram",
+          "mirror": 240,
+          "share": "collision_reg",
+          "readOnly": true
+        },
+        {
+          "start": 54276,
+          "end": 54276,
+          "kind": "handler",
+          "mirror": 243,
+          "read": "taitosj_state.gfxrom_r"
+        },
+        {
+          "start": 54280,
+          "end": 54280,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "port.IN0"
+        },
+        {
+          "start": 54281,
+          "end": 54281,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "port.IN1"
+        },
+        {
+          "start": 54282,
+          "end": 54282,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "port.DSW1"
+        },
+        {
+          "start": 54283,
+          "end": 54283,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "port.IN2"
+        },
+        {
+          "start": 54284,
+          "end": 54284,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "port.IN3"
+        },
+        {
+          "start": 54285,
+          "end": 54285,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "port.IN4"
+        },
+        {
+          "start": 54286,
+          "end": 54287,
+          "kind": "handler",
+          "mirror": 240,
+          "write": "ay1.address_data_w"
+        },
+        {
+          "start": 54287,
+          "end": 54287,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "ay1.data_r"
+        },
+        {
+          "start": 54528,
+          "end": 54533,
+          "kind": "ram",
+          "mirror": 240,
+          "share": "scroll",
+          "writeOnly": true
+        },
+        {
+          "start": 54534,
+          "end": 54535,
+          "kind": "ram",
+          "mirror": 240,
+          "share": "colorbank",
+          "writeOnly": true
+        },
+        {
+          "start": 54536,
+          "end": 54536,
+          "kind": "handler",
+          "mirror": 240,
+          "write": "taitosj_state.collision_reg_clear_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 54537,
+          "end": 54538,
+          "kind": "ram",
+          "mirror": 240,
+          "share": "gfxpointer",
+          "writeOnly": true
+        },
+        {
+          "start": 54539,
+          "end": 54539,
+          "kind": "handler",
+          "mirror": 240,
+          "write": "taitosj_state.soundlatch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 54540,
+          "end": 54540,
+          "kind": "handler",
+          "mirror": 240,
+          "write": "taitosj_state.sound_semaphore2_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 54541,
+          "end": 54541,
+          "kind": "handler",
+          "mirror": 240,
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 54542,
+          "end": 54542,
+          "kind": "handler",
+          "mirror": 240,
+          "write": "taitosj_state.bankswitch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 54543,
+          "end": 54543,
+          "kind": "nop",
+          "mirror": 240,
+          "readOnly": true
+        },
+        {
+          "start": 54784,
+          "end": 54784,
+          "kind": "ram",
+          "mirror": 255,
+          "share": "video_mode",
+          "writeOnly": true
+        },
+        {
+          "start": 55040,
+          "end": 57343,
+          "kind": "nop"
+        },
+        {
+          "start": 57344,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 34816,
+          "end": 34817,
+          "kind": "handler",
+          "mirror": 2046,
+          "read": "mcu.data_r",
+          "write": "mcu.data_w",
+          "handlerWidth": 8
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 3000000,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 17407,
+          "kind": "ram"
+        },
+        {
+          "start": 18432,
+          "end": 18433,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "ay2.address_data_w"
+        },
+        {
+          "start": 18433,
+          "end": 18433,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "ay2.data_r"
+        },
+        {
+          "start": 18434,
+          "end": 18435,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "ay3.address_data_w"
+        },
+        {
+          "start": 18435,
+          "end": 18435,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "ay3.data_r"
+        },
+        {
+          "start": 18436,
+          "end": 18437,
+          "kind": "handler",
+          "mirror": 2042,
+          "write": "ay4.address_data_w"
+        },
+        {
+          "start": 18437,
+          "end": 18437,
+          "kind": "handler",
+          "mirror": 2042,
+          "read": "ay4.data_r"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "handler",
+          "mirror": 2044,
+          "read": "taitosj_state.soundlatch_r",
+          "write": "taitosj_state.soundlatch_clear7_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 20481,
+          "end": 20481,
+          "kind": "handler",
+          "mirror": 2044,
+          "read": "taitosj_state.soundlatch_flags_r",
+          "write": "taitosj_state.sound_semaphore2_clear_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1500000,
+    "chips": 4,
+    "deviceTags": [
+      "ay1",
+      "ay2",
+      "ay3",
+      "ay4"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.15,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.15,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.15,
+        "target": "speaker"
+      },
+      {
+        "chip": 1,
+        "channel": -1,
+        "gain": 0.5,
+        "target": "speaker"
+      },
+      {
+        "chip": 2,
+        "channel": -1,
+        "gain": 0.5,
+        "target": "speaker"
+      },
+      {
+        "chip": 3,
+        "channel": -1,
+        "gain": 1,
+        "target": "speaker"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "DAC_8BIT_R2R",
+        "deviceTag": "dac",
+        "member": "m_dac",
+        "clock": 0,
+        "gain": 0.15,
+        "target": "speaker",
+        "writeMethods": [
+          "data_w",
+          "write"
+        ],
+        "referenceControl": {
+          "deviceTag": "dacvol",
+          "member": "m_dacvol"
+        },
+        "referenceLevels": [
+          0,
+          0.0035713855767867827,
+          0.007359218764287916,
+          0.010930604341074698,
+          0.016190281281433412,
+          0.019761666858220197,
+          0.02354950004572133,
+          0.027120885622508112,
+          0.02961636819774405,
+          0.033187753774530836,
+          0.036975586962031966,
+          0.040546972538818754,
+          0.04580664947917746,
+          0.04937803505596424,
+          0.05316586824346538,
+          0.056737253820252166,
+          0.062270312620897744,
+          0.06584169819768453,
+          0.06962953138518566,
+          0.07320091696197244,
+          0.07846059390233116,
+          0.08203197947911794,
+          0.08581981266661907,
+          0.08939119824340586,
+          0.0918866808186418,
+          0.09545806639542859,
+          0.09924589958292972,
+          0.1028172851597165,
+          0.1080769621000752,
+          0.11164834767686198,
+          0.11543618086436311,
+          0.11900756644114989,
+          0.12142710961075061,
+          0.12499849518753739,
+          0.12878632837503853,
+          0.1323577139518253,
+          0.13761739089218403,
+          0.1411887764689708,
+          0.14497660965647194,
+          0.1485479952332587,
+          0.15104347780849467,
+          0.15461486338528144,
+          0.15840269657278258,
+          0.16197408214956935,
+          0.16723375908992807,
+          0.17080514466671484,
+          0.17459297785421599,
+          0.17816436343100275,
+          0.18369742223164834,
+          0.18726880780843513,
+          0.19105664099593625,
+          0.19462802657272305,
+          0.19988770351308177,
+          0.20345908908986854,
+          0.20724692227736968,
+          0.21081830785415645,
+          0.2133137904293924,
+          0.21688517600617918,
+          0.22067300919368033,
+          0.2242443947704671,
+          0.2295040717108258,
+          0.23307545728761261,
+          0.2368632904751137,
+          0.24043467605190053,
+          0.24285421922150122,
+          0.24642560479828798,
+          0.2502134379857891,
+          0.2537848235625759,
+          0.2590445005029346,
+          0.2626158860797214,
+          0.2664037192672225,
+          0.26997510484400933,
+          0.27247058741924524,
+          0.27604197299603206,
+          0.27982980618353315,
+          0.28340119176031997,
+          0.2886608687006787,
+          0.29223225427746546,
+          0.2960200874649666,
+          0.2995914730417534,
+          0.30512453184239896,
+          0.30869591741918573,
+          0.31248375060668687,
+          0.31605513618347364,
+          0.32131481312383237,
+          0.3248861987006192,
+          0.3286740318881203,
+          0.33224541746490704,
+          0.334740900040143,
+          0.3383122856169298,
+          0.3421001188044309,
+          0.34567150438121774,
+          0.35093118132157647,
+          0.3545025668983632,
+          0.35829040008586427,
+          0.3618617856626511,
+          0.36428132883225184,
+          0.3678527144090386,
+          0.37164054759653975,
+          0.3752119331733265,
+          0.3804716101136852,
+          0.384042995690472,
+          0.3878308288779732,
+          0.3914022144547599,
+          0.3938976970299959,
+          0.39746908260678265,
+          0.40125691579428374,
+          0.40482830137107056,
+          0.4100879783114293,
+          0.4136593638882161,
+          0.4174471970757172,
+          0.42101858265250397,
+          0.42655164145314955,
+          0.4301230270299363,
+          0.4339108602174375,
+          0.43748224579422423,
+          0.442741922734583,
+          0.4463133083113697,
+          0.45010114149887087,
+          0.4536725270756577,
+          0.4561680096508936,
+          0.4597393952276804,
+          0.46352722841518157,
+          0.4670986139919683,
+          0.47235829093232695,
+          0.4759296765091138,
+          0.479717509696615,
+          0.48328889527340174,
+          0.5167111047265983,
+          0.5202824903033851,
+          0.5240703234908862,
+          0.527641709067673,
+          0.5329013860080317,
+          0.5364727715848184,
+          0.5402606047723196,
+          0.5438319903491063,
+          0.5463274729243424,
+          0.5498988585011291,
+          0.5536866916886303,
+          0.557258077265417,
+          0.5625177542057758,
+          0.5660891397825626,
+          0.5698769729700637,
+          0.5734483585468505,
+          0.5789814173474961,
+          0.5825528029242828,
+          0.586340636111784,
+          0.5899120216885707,
+          0.5951716986289294,
+          0.5987430842057162,
+          0.6025309173932174,
+          0.6061023029700042,
+          0.6085977855452401,
+          0.6121691711220268,
+          0.6159570043095279,
+          0.6195283898863148,
+          0.6247880668266735,
+          0.6283594524034604,
+          0.6321472855909613,
+          0.6357186711677482,
+          0.6381382143373489,
+          0.6417095999141357,
+          0.6454974331016369,
+          0.6490688186784236,
+          0.6543284956187824,
+          0.6578998811955691,
+          0.6616877143830703,
+          0.6652590999598571,
+          0.667754582535093,
+          0.6713259681118798,
+          0.6751138012993809,
+          0.6786851868761676,
+          0.6839448638165263,
+          0.6875162493933131,
+          0.6913040825808143,
+          0.694875468157601,
+          0.7004085269582467,
+          0.7039799125350334,
+          0.7077677457225345,
+          0.7113391312993214,
+          0.71659880823968,
+          0.7201701938164667,
+          0.7239580270039679,
+          0.7275294125807548,
+          0.7300248951559908,
+          0.7335962807327775,
+          0.7373841139202786,
+          0.7409554994970653,
+          0.7462151764374242,
+          0.7497865620142108,
+          0.753574395201712,
+          0.7571457807784988,
+          0.7595653239480995,
+          0.7631367095248863,
+          0.7669245427123874,
+          0.7704959282891742,
+          0.7757556052295329,
+          0.7793269908063197,
+          0.7831148239938209,
+          0.7866862095706075,
+          0.7891816921458434,
+          0.7927530777226303,
+          0.7965409109101315,
+          0.8001122964869183,
+          0.805371973427277,
+          0.8089433590040638,
+          0.812731192191565,
+          0.8163025777683517,
+          0.8218356365689973,
+          0.8254070221457841,
+          0.8291948553332852,
+          0.8327662409100719,
+          0.8380259178504308,
+          0.8415973034272174,
+          0.8453851366147186,
+          0.8489565221915053,
+          0.8514520047667413,
+          0.8550233903435281,
+          0.8588112235310293,
+          0.862382609107816,
+          0.8676422860481748,
+          0.8712136716249615,
+          0.8750015048124626,
+          0.8785728903892494,
+          0.88099243355885,
+          0.8845638191356369,
+          0.8883516523231381,
+          0.8919230378999249,
+          0.8971827148402834,
+          0.9007541004170704,
+          0.9045419336045716,
+          0.9081133191813582,
+          0.9106088017565942,
+          0.9141801873333809,
+          0.917968020520882,
+          0.9215394060976689,
+          0.9267990830380275,
+          0.9303704686148144,
+          0.9341583018023155,
+          0.9377296873791023,
+          0.9432627461797478,
+          0.9468341317565347,
+          0.9506219649440358,
+          0.9541933505208225,
+          0.9594530274611814,
+          0.963024413037968,
+          0.9668122462254692,
+          0.970383631802256,
+          0.9728791143774919,
+          0.9764504999542788,
+          0.98023833314178,
+          0.9838097187185666,
+          0.9890693956589252,
+          0.9926407812357122,
+          0.9964286144232133,
+          1
+        ]
+      }
+    ],
+    "masterGain": 1,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.18560606060606,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 73728,
+      "loads": [
+        {
+          "file": "ba3__01.2764.ic1",
+          "offset": 0,
+          "size": 8192,
+          "crc": "da775a24"
+        },
+        {
+          "file": "ba3__02.2764.ic2",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "fbfd8b3a"
+        },
+        {
+          "file": "ba3__03-1.2764.ic3",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "a2e69833"
+        },
+        {
+          "file": "ba3__04-1.2764.ic6",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "2b78c462"
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "ba3__09.2732.ic70",
+          "offset": 0,
+          "size": 4096,
+          "crc": "6d5f57cb"
+        },
+        {
+          "file": "ba3__10.2732.ic71",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "f0a769a1"
+        }
+      ]
+    },
+    {
+      "region": "pal",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "ww15.pal16l8.ic24.jed.bin",
+          "offset": 0,
+          "size": 279,
+          "crc": "c3ec20d6"
+        }
+      ]
+    },
+    {
+      "region": "bmcu:mcu",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "ba3__11.mc68705p3.ic24",
+          "offset": 0,
+          "size": 2048,
+          "crc": "9ce75afc"
+        }
+      ]
+    },
+    {
+      "region": "gfx",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "ba3__05.2764.ic4",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6c4ee58f"
+        },
+        {
+          "file": "ba3__06.2764.ic5",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "41ab0afc"
+        },
+        {
+          "file": "ba3__07.2764.ic9",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "efe43731"
+        },
+        {
+          "file": "ba3__08.2764.ic10",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "3ca20696"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 256,
+      "loads": [
+        {
+          "file": "eb16.ic22",
+          "offset": 0,
+          "size": 256,
+          "crc": "b833b5ea"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 128,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN3",
+      "mask": 16,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSW1",
+      "mask": 24,
+      "value": 24,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 32,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 15,
+      "value": 0,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW2",
+      "mask": 240,
+      "value": 0,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW3",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW3",
+      "mask": 4,
+      "value": 4,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW3",
+      "mask": 8,
+      "value": 8,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW3",
+      "mask": 16,
+      "value": 16,
+      "name": "Coinage Display"
+    },
+    {
+      "port": "DSW3",
+      "mask": 32,
+      "value": 32,
+      "name": "Year Display"
+    },
+    {
+      "port": "DSW3",
+      "mask": 64,
+      "value": 64,
+      "name": "Hit Detection"
+    },
+    {
+      "port": "DSW3",
+      "mask": 128,
+      "value": 128,
+      "name": "Coin Slots"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-14",
+    "commits": 218,
+    "contributors": 32,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 66,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 34,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-11-06"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 26,
+        "firstCommit": "2016-09-26",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 18,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2023-05-08"
+      },
+      {
+        "name": "hap",
+        "commits": 11,
+        "firstCommit": "2016-01-24",
+        "lastCommit": "2026-04-08"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 8,
+        "firstCommit": "2016-01-19",
+        "lastCommit": "2017-09-01"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 6,
+        "firstCommit": "2008-01-11",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 5,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-07-15"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "angelosa",
+        "commits": 3,
+        "firstCommit": "2016-09-16",
+        "lastCommit": "2018-06-08"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-05-07"
+      },
+      {
+        "name": "braintro",
+        "commits": 2,
+        "firstCommit": "2020-04-15",
+        "lastCommit": "2020-04-15"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2023-01-03"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2012-09-17",
+        "lastCommit": "2012-10-25"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2011-09-22",
+        "lastCommit": "2016-11-30"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 2,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-03",
+        "lastCommit": "2008-08-03"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2010-11-22",
+        "lastCommit": "2010-11-22"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2010-07-11",
+        "lastCommit": "2010-07-11"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "davidhay",
+        "commits": 1,
+        "firstCommit": "2008-11-20",
+        "lastCommit": "2008-11-20"
+      },
+      {
+        "name": "fipppi",
+        "commits": 1,
+        "firstCommit": "2026-04-07",
+        "lastCommit": "2026-04-07"
+      },
+      {
+        "name": "James Charles Taylor",
+        "commits": 1,
+        "firstCommit": "2026-07-14",
+        "lastCommit": "2026-07-14"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 1,
+        "firstCommit": "2008-04-04",
+        "lastCommit": "2008-04-04"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-01-12",
+        "lastCommit": "2008-01-12"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2013-01-01",
+        "lastCommit": "2013-01-01"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nElevator Action (c) 1983 Taito.\n\nAgent 17 (code name 'Otto') is to secure the top secret documents from the security building. The enemy spies are in pursuit and their orders are to stop him at any cost. Having made it to the top of a 30 story building, Agent 17 has to make his way down to the basement to get to the getaway car and save the documents. Enemy spies are everywhere and the documents are hidden behind the red doors (bonus points awarded). He has to open the door and keep moving. If either of them shoots the lights out there will be a temporary blackout. If Otto finds himself on top of the elevator the player will not be able to control the elevator. If he gets caught in the elevator he is a sitting duck and cannot duck the bullets. By using the escalator he can reach the basement quicker. Otto can defeat his enemy by jump kicking or firing at them. Help Otto to grab all the documents and escape the spies.\n\n- TECHNICAL -\n\nElevator Action was available in 2 different arcade formats, a cocktail table and an upright dedicated cabinet. Both versions used the same internal hardware though.\n\n* The upright version came in the standard 'Taito Classic' cabinet, which was the same one used for Jungle Hunt, Zoo Keeper, Alpine Ski, and many others. These cabinets normally did not have side art that advertised the name of the game, instead they had a painted design of lines and shapes, along with a Taito logo. Different titles had different designs and color schemes, although they have been known to ship games in the wrong cabinets. But lets get back on track here. Elevator Action should come in a brown cabinet with a Taito logo up near the top. The marquee shows a scene of Agent 17 waiting for an elevator while an enemy agent shoots at him. While the monitor bezel shows agents on either side, has game instructions at the bottom, and shows an elevator floor display at the top. This bezel artwork is silk screened on glass, and is prone to peeling, be very careful if you have to handle one of these. The control panel has a single 4-Way ball-top joystick mounted centrally, with jump and fire buttons located to either side.\nInternally the machine uses a 19 inches open frame monitor mounted horizontally, and a set of game boards that conform to the 'Taito Classic' wiring standard. Many other early Taito games (such as \"Jungle Hunt\" and \"Bubble Bobble\") will plug directly into this cabinet without modification.\n\n* The cocktail version came in a table similar in design to the one used for Space Invaders and Carnival. It was not decorated except for a pair of instruction cards underneath the glass. Most Japanese game makers purchased their tables from the same few manufacturers, and were quite likely to change the exact model of cocktail that they shipped in mid production. So assume any Elevator Action cocktail is original unless it is obviously converted from another title.\n\nRuns on the \"Taito SJ System\" hardware.\nProm Stickers : BA3 / EA\n\nPlayers: 2\nControl: 4-way joystick\nButtons: 2 (FIRE, JUMP)\n\n- TRIVIA -\n\nElevator Action was released in July 1983 in Japan and in October 1983 in North America. \n\nG. Ben Carter, Jr. holds official the record for this game with 143,450 points.\n\n- SCORING -\n\nShooting an enemy agent : 100 points\nJumping on an enemy agent : 150 points\nDropping a light on an enemy agent : 300 points\nGetting a secret document : 500 points\n\nThe bonus is 1,000 points x the level you are on. After 10th level, you will get 10,000 points per level completed.\n\n- TIPS AND TRICKS -\n\n* When you start the game, a quick animation will show a hook with a line connecting to the top of the elevator. Then your character will slide down the line to the roof. Then he will enter the building, in the elevator, at the 30th floor. It is now up to you to get all the secrets and make it to your car. The first thing you must know, obviously, is how to eliminate the enemy agents that are after you. There are a few ways you can do this :\n1) Just shoot them. Of course, especially in the later levels, enemy agents make themselves an impossible target by lying down. You can only take them out by riding an elevator down.\n2) Jumping on them will take care of them. In addition, you may avoid some of their fire.\n3) On the non-dark floors, shoot the light down on top of an enemy agent. You must do this from the elevator. This also has the added effect of causing temporary darkness in the building, making enemy agents harder to see.\n4) Crush an enemy agent using the elevator. This is hard to do since they move around. You may get lucky, however, and get one under or on top of the elevator you are on.\n5) This way is pretty hard. You might be able to get an enemy agent to follow you and fall down the hole created by the missing elevator.\n\n* You must know how to use the escalators and open the red doors :\n1) To use the escalators, just stand on the little rectangle. Then push the joystick UP or DOWN depending on which direction you need the escalator to take you.\n2) To open the red doors, stand on the little rectangle. Face the doorknob and press RIGHT on the joystick.\n\n* You have full control over any elevator you enter. This means you can move UP and DOWN on a dime to keep your character safe. This works until the alarm goes off.\n\n* Speaking of elevators, your character cannot duck while in an elevator. Also, while riding the escalators, your character cannot duck, jump, or fire his weapon.\n\n* Also on elevators, you do not have control when you are riding on top of them. This means you are at the mercy of the elevator or the enemy agent controlling it. Be very careful if you ride on top of the elevator. You also cannot go past the bar on the top of the elevator.\n\n* Enemy agents usually come out of the doors on the current floor or the floor above and below. A lot of times it is good to lay a wall of fire down a hallway. This way, you can pick off any enemy agents that happen to come out of one of the doors.\n\n* When you enter through one of the red doors, the enemy agents will lose track of your character but will have a general idea of where your character is. When you exit the room, crouch and lay down fire both left and right to clear off the floor.\n\n* As the levels progress, the enemy agents get better at their tactics. They start to crouch more to mess up your fire. They also may lay down which makes it impossible to hit them unless you are on an elevator and can shoot along the floor.\n\n* As you move up in levels, there will be red doors in odd areas. Areas such as on the lower five floors where only elevators can take you across. Of course, if you get good with the jump button, you can jump those gaps to get to either side quicker. The downside is that enemy agents will usually flood the area and lay down a lot of fire.\n\n* If you happen to get to the B1 floor and you have forgotten to get a red door, the game will automatically put your agent at the door you missed. If it is multiple doors, then you will be placed at the highest floor first.\n\n* There is an internal time limit on how long you can take to get everything out of the building. If you take too much time, an alarm sounds and the following things occur :\na) Although you still have control over the elevators, it is much harder to get them to respond to your commands. If you are in a tight situation that requires a little bit of time, don't wait till the last minute or you may be an ex-agent.\nb) The enemy agents move much quicker and their shots move faster. Plus, additional enemy agents will start appearing to really make your life miserable.\nc) If your character happens to die, the next man will still be facing the same alarm situation. The only way to resolve the situation is to get all of the secrets and make it out of the building.\n\n* Watch out for the double elevator. If you are in the top car, it will stop two floors short of the bottom since there is a one floor gap, and the bottom car. Try to always get into the bottom car of a double elevator so that you can make a hasty exit and not be trapped with enemy agents firing on you.\n\n- STAFF -\n\nMusic by : Yoshino Imamura\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600 : planned, but never released \n[US] Atari 7800 : unreleased prototype \n[JP] Nintendo Famicom (june.28, 1985) \"Elevator Action [Model 04 TF-4900]\" \n[JP] Sega SG-1000 (1985) \"Elevator Action [Model C-55]\"\n[TW] Sega SG-1000 (198?) \"Die Dui Die\"\n[US] Nintendo NES (aug.1987) \"Elevator Action [Model NES-EA-USA]\" \nSega Saturn (Feb 14, 1997) \"Elevator Action Returns\": As hidden/unlockable game.\n[JP] Sony PS2 (aug.25, 2005) \"Taito Memories Gekan [Model SLPM-66092]\" \n[EU] Microsoft XBOX (oct.14, 2005) \"Taito Legends\" \n[EU] Sony PS2 (oct.14, 2005) \"Taito Legends [Model SLES-53438]\" \n[US] Microsoft XBOX (oct.25, 2005) \"Taito Legends\" \n[US] Sony PS2 (oct.25, 2005) \"Taito Legends [Model SLUS-21122]\" \n[KO] Sony PS2 (jul.18, 2006) \"Taito Legends [Model SLKA-15056]\"\n\n* HANDHELDS: \n[EU] Nintendo Game Boy (1991) \"Elevator Action [Model DMG-EA-NOE]\" \n[JP] Nintendo Game Boy (aug.9, 1991) \"Elevator Action [Model DMG-EAA]\" \n[US] Nintendo Game Boy (dec.1991) \"Elevator Action [Model DMG-EA-USA]\" \n[JP] Nintendo GBA (dec.20, 2002) \"Elevator Action - Old & New [Model AGB-ANWJ-JPN]\" \n[JP] Sony PSP (jan.5, 2006) \"Taito Memories Pocket [Model ULJM-05076]\" \n[KO] Sony PSP (feb.10, 2006) \"Taito Memories Pocket\" \n[EU] Sony PSP (oct.6, 2006) \"Taito Legends Power-Up [Model ULES-00473]\" \n[AU] Sony PSP (nov.9, 2006) \"Taito Legends Power-Up [Model ULES-00473]\" \n[US] Sony PSP (may.17, 2007) \"Taito Legends Power-Up [Model ULUS-10208]\" \n\n* COMPUTERS: \n[EU] Sinclair ZX Spectrum (1987) \"Elevator Action [Model QSS 142]\" \n[US] [EU] Commodore C64 (1987) \n[EU] Amstrad CPC (1987) \n[JP] MSX (1985) \"Elevator Action [Model MSX-7]\" \n[EU] PC [MS Windows, CD-ROM] (oct.14, 2005) \"Taito Legends\" \n[US] PC [MS Windows, CD-ROM] (nov.10, 2005) \"Taito Legends\" \n\n* OTHERS: \n[US] Mobile Phones (nov.20, 2003)\n\n- SERIES -\n\n1. Elevator Action (1983)\n2. Elevator Action Returns (1995)\n3. Elevator Action EX (2000, Nintendo Game Boy Color)\n4. Elevator Action - Death Parade (2009)\n5. Elevator Action Deluxe (2011, PSN)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/747/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

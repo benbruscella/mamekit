@@ -1,0 +1,3001 @@
+{
+  "game": "nes",
+  "title": "Nintendo Entertainment System / Famicom (NTSC) (Nintendo, 1985)",
+  "family": "nes",
+  "kind": "console",
+  "dataPath": "games/consoles/nes",
+  "board": {
+    "family": "nes",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "rp2a03",
+        "clock": 1789772.6666666667,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 2047,
+            "kind": "ram",
+            "mirror": 6144,
+            "share": "mainram"
+          },
+          {
+            "start": 8192,
+            "end": 16383,
+            "kind": "handler",
+            "read": "ppu.read",
+            "write": "ppu.write"
+          },
+          {
+            "start": 16404,
+            "end": 16404,
+            "kind": "handler",
+            "write": "ppu.spriteram_dma"
+          },
+          {
+            "start": 16406,
+            "end": 16406,
+            "kind": "handler",
+            "read": "nes_state.nes_in0_r",
+            "write": "nes_state.nes_in0_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 16407,
+            "end": 16407,
+            "kind": "handler",
+            "read": "nes_state.nes_in1_r"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 2047,
+        "kind": "ram",
+        "mirror": 6144,
+        "share": "mainram"
+      },
+      {
+        "start": 8192,
+        "end": 16383,
+        "kind": "handler",
+        "read": "ppu.read",
+        "write": "ppu.write"
+      },
+      {
+        "start": 16404,
+        "end": 16404,
+        "kind": "handler",
+        "write": "ppu.spriteram_dma"
+      },
+      {
+        "start": 16406,
+        "end": 16406,
+        "kind": "handler",
+        "read": "nes_state.nes_in0_r",
+        "write": "nes_state.nes_in0_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 16407,
+        "end": 16407,
+        "kind": "handler",
+        "read": "nes_state.nes_in1_r"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 240,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 60.0988,
+      "htotal": 256,
+      "vtotal": 262,
+      "vbstart": 240,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "nes",
+    "clock": 1789772.6666666667,
+    "masterGain": 0.75,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": []
+    }
+  ],
+  "cart": {
+    "interface": "nes_cart",
+    "list": "nes",
+    "catalogUrl": "softlist.json",
+    "cartsUrl": "carts.json",
+    "cartArt": {
+      "720": {
+        "sticker": "720.sticker.webp"
+      },
+      "1942": {
+        "sticker": "1942.sticker.webp"
+      },
+      "1943": {
+        "sticker": "1943.sticker.webp"
+      },
+      "10yard": {
+        "sticker": "10yard.sticker.webp"
+      },
+      "2ccopcm": {
+        "sticker": "2ccopcm.sticker.webp"
+      },
+      "2sesame": {
+        "sticker": "2sesame.sticker.webp"
+      },
+      "2tcstc": {
+        "sticker": "2tcstc.sticker.webp"
+      },
+      "3dworldr": {
+        "sticker": "3dworldr.sticker.webp"
+      },
+      "3stooges": {
+        "sticker": "3stooges.sticker.webp"
+      },
+      "8eyes": {
+        "sticker": "8eyes.sticker.webp"
+      },
+      "abadox": {
+        "sticker": "abadox.sticker.webp"
+      },
+      "aburner": {
+        "sticker": "aburner.sticker.webp"
+      },
+      "addfamu": {
+        "sticker": "addfamu.sticker.webp"
+      },
+      "advisln2u": {
+        "sticker": "advisln2u.sticker.webp"
+      },
+      "advisln3": {
+        "sticker": "advisln3.sticker.webp"
+      },
+      "advislndu": {
+        "sticker": "advislndu.sticker.webp"
+      },
+      "airfortru": {
+        "sticker": "airfortru.sticker.webp"
+      },
+      "airwolfu": {
+        "sticker": "airwolfu.sticker.webp"
+      },
+      "aladdin2": {
+        "sticker": "aladdin2.sticker.webp"
+      },
+      "aladdin3": {
+        "sticker": "aladdin3.sticker.webp"
+      },
+      "aladdin4": {
+        "sticker": "aladdin4.sticker.webp"
+      },
+      "aladdinc": {
+        "sticker": "aladdinc.sticker.webp"
+      },
+      "aladretj": {
+        "sticker": "aladretj.sticker.webp"
+      },
+      "alfredu": {
+        "sticker": "alfredu.sticker.webp"
+      },
+      "alien3u": {
+        "sticker": "alien3u.sticker.webp"
+      },
+      "aliensyn": {
+        "sticker": "aliensyn.sticker.webp"
+      },
+      "allprobb": {
+        "sticker": "allprobb.sticker.webp"
+      },
+      "alphamisu": {
+        "sticker": "alphamisu.sticker.webp"
+      },
+      "alunser": {
+        "sticker": "alunser.sticker.webp"
+      },
+      "amagon": {
+        "sticker": "amagon.sticker.webp"
+      },
+      "amerglad": {
+        "sticker": "amerglad.sticker.webp"
+      },
+      "andretti": {
+        "sticker": "andretti.sticker.webp"
+      },
+      "anticipu": {
+        "sticker": "anticipu.sticker.webp"
+      },
+      "archon": {
+        "sticker": "archon.sticker.webp"
+      },
+      "archrivlu": {
+        "sticker": "archrivlu.sticker.webp"
+      },
+      "arkanoid": {
+        "sticker": "arkanoid.sticker.webp"
+      },
+      "arkista": {
+        "sticker": "arkista.sticker.webp"
+      },
+      "astyanaxu": {
+        "sticker": "astyanaxu.sticker.webp"
+      },
+      "athena": {
+        "sticker": "athena.sticker.webp"
+      },
+      "athlwrldu": {
+        "sticker": "athlwrldu.sticker.webp"
+      },
+      "autouptr": {
+        "sticker": "autouptr.sticker.webp"
+      },
+      "babyboom": {
+        "sticker": "babyboom.sticker.webp"
+      },
+      "backtf23": {
+        "sticker": "backtf23.sticker.webp"
+      },
+      "backtof": {
+        "sticker": "backtof.sticker.webp"
+      },
+      "baddudesu": {
+        "sticker": "baddudesu.sticker.webp"
+      },
+      "badnewsb": {
+        "sticker": "badnewsb.sticker.webp"
+      },
+      "balonfgtu": {
+        "sticker": "balonfgtu.sticker.webp"
+      },
+      "bandking": {
+        "sticker": "bandking.sticker.webp"
+      },
+      "barbieu": {
+        "sticker": "barbieu.sticker.webp"
+      },
+      "barkbillu": {
+        "sticker": "barkbillu.sticker.webp"
+      },
+      "bartmanu": {
+        "sticker": "bartmanu.sticker.webp"
+      },
+      "bartvssmua": {
+        "sticker": "bartvssmua.sticker.webp"
+      },
+      "bartvswu": {
+        "sticker": "bartvswu.sticker.webp"
+      },
+      "baseball": {
+        "sticker": "baseball.sticker.webp"
+      },
+      "basesim": {
+        "sticker": "basesim.sticker.webp"
+      },
+      "basewars": {
+        "sticker": "basewars.sticker.webp"
+      },
+      "basload": {
+        "sticker": "basload.sticker.webp"
+      },
+      "basload2": {
+        "sticker": "basload2.sticker.webp"
+      },
+      "basload3": {
+        "sticker": "basload3.sticker.webp"
+      },
+      "basload4": {
+        "sticker": "basload4.sticker.webp"
+      },
+      "batltank": {
+        "sticker": "batltank.sticker.webp"
+      },
+      "batmanrju": {
+        "sticker": "batmanrju.sticker.webp"
+      },
+      "batmanrnu": {
+        "sticker": "batmanrnu.sticker.webp"
+      },
+      "batmanu": {
+        "sticker": "batmanu.sticker.webp"
+      },
+      "bayoubilu": {
+        "sticker": "bayoubilu.sticker.webp"
+      },
+      "bbcar": {
+        "sticker": "bbcar.sticker.webp"
+      },
+      "bdashu": {
+        "sticker": "bdashu.sticker.webp"
+      },
+      "bee52": {
+        "sticker": "bee52.sticker.webp"
+      },
+      "beetlej": {
+        "sticker": "beetlej.sticker.webp"
+      },
+      "bestofu": {
+        "sticker": "bestofu.sticker.webp"
+      },
+      "bibleadva": {
+        "sticker": "bibleadva.sticker.webp"
+      },
+      "biblebuf": {
+        "sticker": "biblebuf.sticker.webp"
+      },
+      "bigbird": {
+        "sticker": "bigbird.sticker.webp"
+      },
+      "bigfootu": {
+        "sticker": "bigfootu.sticker.webp"
+      },
+      "bignfo": {
+        "sticker": "bignfo.sticker.webp"
+      },
+      "bignose": {
+        "sticker": "bignose.sticker.webp"
+      },
+      "billted": {
+        "sticker": "billted.sticker.webp"
+      },
+      "bingo75": {
+        "sticker": "bingo75.sticker.webp"
+      },
+      "biohaz": {
+        "sticker": "biohaz.sticker.webp"
+      },
+      "bioniccu": {
+        "sticker": "bioniccu.sticker.webp"
+      },
+      "blackbas": {
+        "sticker": "blackbas.sticker.webp"
+      },
+      "blackmntu": {
+        "sticker": "blackmntu.sticker.webp"
+      },
+      "bladestlu": {
+        "sticker": "bladestlu.sticker.webp"
+      },
+      "blckjack": {
+        "sticker": "blckjack.sticker.webp"
+      },
+      "bluemarl": {
+        "sticker": "bluemarl.sticker.webp"
+      },
+      "bluesbu": {
+        "sticker": "bluesbu.sticker.webp"
+      },
+      "bmasteru": {
+        "sticker": "bmasteru.sticker.webp"
+      },
+      "bnj": {
+        "sticker": "bnj.sticker.webp"
+      },
+      "bojacksn": {
+        "sticker": "bojacksn.sticker.webp"
+      },
+      "bokuksk": {
+        "sticker": "bokuksk.sticker.webp"
+      },
+      "bombman": {
+        "sticker": "bombman.sticker.webp"
+      },
+      "bombman2": {
+        "sticker": "bombman2.sticker.webp"
+      },
+      "bonk": {
+        "sticker": "bonk.sticker.webp"
+      },
+      "boogera": {
+        "sticker": "boogera.sticker.webp"
+      },
+      "boynblobu": {
+        "sticker": "boynblobu.sticker.webp"
+      },
+      "brdtale": {
+        "sticker": "brdtale.sticker.webp"
+      },
+      "breaktim": {
+        "sticker": "breaktim.sticker.webp"
+      },
+      "breaktru": {
+        "sticker": "breaktru.sticker.webp"
+      },
+      "brushrol": {
+        "sticker": "brushrol.sticker.webp"
+      },
+      "bsbrawl": {
+        "sticker": "bsbrawl.sticker.webp"
+      },
+      "bshipu": {
+        "sticker": "bshipu.sticker.webp"
+      },
+      "bstars": {
+        "sticker": "bstars.sticker.webp"
+      },
+      "bstars2": {
+        "sticker": "bstars2.sticker.webp"
+      },
+      "btime": {
+        "sticker": "btime.sticker.webp"
+      },
+      "btlchess": {
+        "sticker": "btlchess.sticker.webp"
+      },
+      "btoadsddu": {
+        "sticker": "btoadsddu.sticker.webp"
+      },
+      "btoadsu": {
+        "sticker": "btoadsu.sticker.webp"
+      },
+      "bublbath": {
+        "sticker": "bublbath.sticker.webp"
+      },
+      "bublbob2": {
+        "sticker": "bublbob2.sticker.webp"
+      },
+      "bublboblu": {
+        "sticker": "bublboblu.sticker.webp"
+      },
+      "buckyu": {
+        "sticker": "buckyu.sticker.webp"
+      },
+      "bugsbbu": {
+        "sticker": "bugsbbu.sticker.webp"
+      },
+      "bugscc": {
+        "sticker": "bugscc.sticker.webp"
+      },
+      "buraiu": {
+        "sticker": "buraiu.sticker.webp"
+      },
+      "cabal": {
+        "sticker": "cabal.sticker.webp"
+      },
+      "caesars": {
+        "sticker": "caesars.sticker.webp"
+      },
+      "calgamesu": {
+        "sticker": "calgamesu.sticker.webp"
+      },
+      "captavenu": {
+        "sticker": "captavenu.sticker.webp"
+      },
+      "captcom": {
+        "sticker": "captcom.sticker.webp"
+      },
+      "captplanu": {
+        "sticker": "captplanu.sticker.webp"
+      },
+      "captskyhu": {
+        "sticker": "captskyhu.sticker.webp"
+      },
+      "carmntim": {
+        "sticker": "carmntim.sticker.webp"
+      },
+      "casinok": {
+        "sticker": "casinok.sticker.webp"
+      },
+      "casinok2": {
+        "sticker": "casinok2.sticker.webp"
+      },
+      "castelnu": {
+        "sticker": "castelnu.sticker.webp"
+      },
+      "castldec": {
+        "sticker": "castldec.sticker.webp"
+      },
+      "castldrg": {
+        "sticker": "castldrg.sticker.webp"
+      },
+      "castlqst": {
+        "sticker": "castlqst.sticker.webp"
+      },
+      "cavegame": {
+        "sticker": "cavegame.sticker.webp"
+      },
+      "ccherub": {
+        "sticker": "ccherub.sticker.webp"
+      },
+      "cdecktc": {
+        "sticker": "cdecktc.sticker.webp"
+      },
+      "chaldrgna": {
+        "sticker": "chaldrgna.sticker.webp"
+      },
+      "champbwl": {
+        "sticker": "champbwl.sticker.webp"
+      },
+      "champool": {
+        "sticker": "champool.sticker.webp"
+      },
+      "cheeta2": {
+        "sticker": "cheeta2.sticker.webp"
+      },
+      "chessac": {
+        "sticker": "chessac.sticker.webp"
+      },
+      "chessmstu1": {
+        "sticker": "chessmstu1.sticker.webp"
+      },
+      "chinarb": {
+        "sticker": "chinarb.sticker.webp"
+      },
+      "chinchkra": {
+        "sticker": "chinchkra.sticker.webp"
+      },
+      "chipndalu": {
+        "sticker": "chipndalu.sticker.webp"
+      },
+      "chipndl2u": {
+        "sticker": "chipndl2u.sticker.webp"
+      },
+      "chipndl3": {
+        "sticker": "chipndl3.sticker.webp"
+      },
+      "circuscp": {
+        "sticker": "circuscp.sticker.webp"
+      },
+      "cityconu": {
+        "sticker": "cityconu.sticker.webp"
+      },
+      "clashdmn": {
+        "sticker": "clashdmn.sticker.webp"
+      },
+      "cliffh": {
+        "sticker": "cliffh.sticker.webp"
+      },
+      "cluclu": {
+        "sticker": "cluclu.sticker.webp"
+      },
+      "cmines": {
+        "sticker": "cmines.sticker.webp"
+      },
+      "cnviper": {
+        "sticker": "cnviper.sticker.webp"
+      },
+      "cobracom": {
+        "sticker": "cobracom.sticker.webp"
+      },
+      "cobratru": {
+        "sticker": "cobratru.sticker.webp"
+      },
+      "colordin": {
+        "sticker": "colordin.sticker.webp"
+      },
+      "commando": {
+        "sticker": "commando.sticker.webp"
+      },
+      "conan": {
+        "sticker": "conan.sticker.webp"
+      },
+      "concentr": {
+        "sticker": "concentr.sticker.webp"
+      },
+      "conflict": {
+        "sticker": "conflict.sticker.webp"
+      },
+      "connorsu": {
+        "sticker": "connorsu.sticker.webp"
+      },
+      "contra": {
+        "sticker": "contra.sticker.webp"
+      },
+      "contrafc": {
+        "sticker": "contrafc.sticker.webp"
+      },
+      "contrasp": {
+        "sticker": "contrasp.sticker.webp"
+      },
+      "coolwrld": {
+        "sticker": "coolwrld.sticker.webp"
+      },
+      "cosmic": {
+        "sticker": "cosmic.sticker.webp"
+      },
+      "cowboykd": {
+        "sticker": "cowboykd.sticker.webp"
+      },
+      "crackoutup": {
+        "sticker": "crackoutup.sticker.webp"
+      },
+      "crashdumu": {
+        "sticker": "crashdumu.sticker.webp"
+      },
+      "crashn": {
+        "sticker": "crashn.sticker.webp"
+      },
+      "creatom": {
+        "sticker": "creatom.sticker.webp"
+      },
+      "crystal": {
+        "sticker": "crystal.sticker.webp"
+      },
+      "crystalp": {
+        "sticker": "crystalp.sticker.webp"
+      },
+      "cvania2u": {
+        "sticker": "cvania2u.sticker.webp"
+      },
+      "cvania3u": {
+        "sticker": "cvania3u.sticker.webp"
+      },
+      "cvaniau": {
+        "sticker": "cvaniau.sticker.webp"
+      },
+      "cyberbal": {
+        "sticker": "cyberbal.sticker.webp"
+      },
+      "cybernod": {
+        "sticker": "cybernod.sticker.webp"
+      },
+      "dancaero": {
+        "sticker": "dancaero.sticker.webp"
+      },
+      "darkmanu": {
+        "sticker": "darkmanu.sticker.webp"
+      },
+      "darkseed": {
+        "sticker": "darkseed.sticker.webp"
+      },
+      "darkwin2": {
+        "sticker": "darkwin2.sticker.webp"
+      },
+      "darkwingu": {
+        "sticker": "darkwingu.sticker.webp"
+      },
+      "dashgalx": {
+        "sticker": "dashgalx.sticker.webp"
+      },
+      "daydream": {
+        "sticker": "daydream.sticker.webp"
+      },
+      "daysthndu": {
+        "sticker": "daysthndu.sticker.webp"
+      },
+      "ddare": {
+        "sticker": "ddare.sticker.webp"
+      },
+      "ddiamond": {
+        "sticker": "ddiamond.sticker.webp"
+      },
+      "ddragon2u": {
+        "sticker": "ddragon2u.sticker.webp"
+      },
+      "ddragon3u": {
+        "sticker": "ddragon3u.sticker.webp"
+      },
+      "ddragonu": {
+        "sticker": "ddragonu.sticker.webp"
+      },
+      "ddribbleu": {
+        "sticker": "ddribbleu.sticker.webp"
+      },
+      "deadtow": {
+        "sticker": "deadtow.sticker.webp"
+      },
+      "deathbot": {
+        "sticker": "deathbot.sticker.webp"
+      },
+      "deathrac": {
+        "sticker": "deathrac.sticker.webp"
+      },
+      "decathln": {
+        "sticker": "decathln.sticker.webp"
+      },
+      "defcrownu": {
+        "sticker": "defcrownu.sticker.webp"
+      },
+      "defdyna": {
+        "sticker": "defdyna.sticker.webp"
+      },
+      "defendr2": {
+        "sticker": "defendr2.sticker.webp"
+      },
+      "dejavu": {
+        "sticker": "dejavu.sticker.webp"
+      },
+      "demnswrd": {
+        "sticker": "demnswrd.sticker.webp"
+      },
+      "desertcm": {
+        "sticker": "desertcm.sticker.webp"
+      },
+      "destempr": {
+        "sticker": "destempr.sticker.webp"
+      },
+      "dicktr": {
+        "sticker": "dicktr.sticker.webp"
+      },
+      "diehardu": {
+        "sticker": "diehardu.sticker.webp"
+      },
+      "digdug2": {
+        "sticker": "digdug2.sticker.webp"
+      },
+      "digger": {
+        "sticker": "digger.sticker.webp"
+      },
+      "dinoriki": {
+        "sticker": "dinoriki.sticker.webp"
+      },
+      "dirtyhar": {
+        "sticker": "dirtyhar.sticker.webp"
+      },
+      "djboy": {
+        "sticker": "djboy.sticker.webp"
+      },
+      "dkong": {
+        "sticker": "dkong.sticker.webp"
+      },
+      "dkong3": {
+        "sticker": "dkong3.sticker.webp"
+      },
+      "dkongcl": {
+        "sticker": "dkongcl.sticker.webp"
+      },
+      "dkongjr": {
+        "sticker": "dkongjr.sticker.webp"
+      },
+      "dkongjrj": {
+        "sticker": "dkongjrj.sticker.webp"
+      },
+      "dkongjrm": {
+        "sticker": "dkongjrm.sticker.webp"
+      },
+      "dlairu": {
+        "sticker": "dlairu.sticker.webp"
+      },
+      "dngmagic": {
+        "sticker": "dngmagic.sticker.webp"
+      },
+      "dquest4c": {
+        "sticker": "dquest4c.sticker.webp"
+      },
+      "dracnigt": {
+        "sticker": "dracnigt.sticker.webp"
+      },
+      "draculau": {
+        "sticker": "draculau.sticker.webp"
+      },
+      "dragona": {
+        "sticker": "dragona.sticker.webp"
+      },
+      "drchaos": {
+        "sticker": "drchaos.sticker.webp"
+      },
+      "drgnfght": {
+        "sticker": "drgnfght.sticker.webp"
+      },
+      "drgnpowr": {
+        "sticker": "drgnpowr.sticker.webp"
+      },
+      "drgstrik": {
+        "sticker": "drgstrik.sticker.webp"
+      },
+      "drjekyll": {
+        "sticker": "drjekyll.sticker.webp"
+      },
+      "drmarioju": {
+        "sticker": "drmarioju.sticker.webp"
+      },
+      "dspirit": {
+        "sticker": "dspirit.sticker.webp"
+      },
+      "dstrike": {
+        "sticker": "dstrike.sticker.webp"
+      },
+      "duck": {
+        "sticker": "duck.sticker.webp"
+      },
+      "duckhunt": {
+        "sticker": "duckhunt.sticker.webp"
+      },
+      "ducktal2u": {
+        "sticker": "ducktal2u.sticker.webp"
+      },
+      "ducktal3": {
+        "sticker": "ducktal3.sticker.webp"
+      },
+      "ducktaleu": {
+        "sticker": "ducktaleu.sticker.webp"
+      },
+      "dudesatt1": {
+        "sticker": "dudesatt1.sticker.webp"
+      },
+      "dwarr": {
+        "sticker": "dwarr.sticker.webp"
+      },
+      "dwarr2": {
+        "sticker": "dwarr2.sticker.webp"
+      },
+      "dwarr3": {
+        "sticker": "dwarr3.sticker.webp"
+      },
+      "dwarr4": {
+        "sticker": "dwarr4.sticker.webp"
+      },
+      "dynowarz": {
+        "sticker": "dynowarz.sticker.webp"
+      },
+      "earthbnd": {
+        "sticker": "earthbnd.sticker.webp"
+      },
+      "earthstr": {
+        "sticker": "earthstr.sticker.webp"
+      },
+      "eggsplod": {
+        "sticker": "eggsplod.sticker.webp"
+      },
+      "ejim2": {
+        "sticker": "ejim2.sticker.webp"
+      },
+      "ejim3": {
+        "sticker": "ejim3.sticker.webp"
+      },
+      "elevator": {
+        "sticker": "elevator.sticker.webp"
+      },
+      "eliminatu": {
+        "sticker": "eliminatu.sticker.webp"
+      },
+      "emperor": {
+        "sticker": "emperor.sticker.webp"
+      },
+      "esbu": {
+        "sticker": "esbu.sticker.webp"
+      },
+      "evertlen": {
+        "sticker": "evertlen.sticker.webp"
+      },
+      "excitbikj1": {
+        "sticker": "excitbikj1.sticker.webp"
+      },
+      "exodus1": {
+        "sticker": "exodus1.sticker.webp"
+      },
+      "f117asf": {
+        "sticker": "f117asf.sticker.webp"
+      },
+      "f15cw": {
+        "sticker": "f15cw.sticker.webp"
+      },
+      "f15seu": {
+        "sticker": "f15seu.sticker.webp"
+      },
+      "f1btw": {
+        "sticker": "f1btw.sticker.webp"
+      },
+      "famfeud": {
+        "sticker": "famfeud.sticker.webp"
+      },
+      "fantzone": {
+        "sticker": "fantzone.sticker.webp"
+      },
+      "faria": {
+        "sticker": "faria.sticker.webp"
+      },
+      "fatfury2": {
+        "sticker": "fatfury2.sticker.webp"
+      },
+      "faxanaduu": {
+        "sticker": "faxanaduu.sticker.webp"
+      },
+      "fcombata": {
+        "sticker": "fcombata.sticker.webp"
+      },
+      "felixu": {
+        "sticker": "felixu.sticker.webp"
+      },
+      "ferrariu": {
+        "sticker": "ferrariu.sticker.webp"
+      },
+      "festrqstu": {
+        "sticker": "festrqstu.sticker.webp"
+      },
+      "ffant": {
+        "sticker": "ffant.sticker.webp"
+      },
+      "ffant2": {
+        "sticker": "ffant2.sticker.webp"
+      },
+      "ffant5": {
+        "sticker": "ffant5.sticker.webp"
+      },
+      "ffight3": {
+        "sticker": "ffight3.sticker.webp"
+      },
+      "fifa97": {
+        "sticker": "fifa97.sticker.webp"
+      },
+      "fighther": {
+        "sticker": "fighther.sticker.webp"
+      },
+      "firehawk": {
+        "sticker": "firehawk.sticker.webp"
+      },
+      "firehres": {
+        "sticker": "firehres.sticker.webp"
+      },
+      "firembc": {
+        "sticker": "firembc.sticker.webp"
+      },
+      "firenice": {
+        "sticker": "firenice.sticker.webp"
+      },
+      "flintrdr": {
+        "sticker": "flintrdr.sticker.webp"
+      },
+      "flintsdph": {
+        "sticker": "flintsdph.sticker.webp"
+      },
+      "flintu": {
+        "sticker": "flintu.sticker.webp"
+      },
+      "flyindrg": {
+        "sticker": "flyindrg.sticker.webp"
+      },
+      "flywarr": {
+        "sticker": "flywarr.sticker.webp"
+      },
+      "fntdizzy": {
+        "sticker": "fntdizzy.sticker.webp"
+      },
+      "forcity": {
+        "sticker": "forcity.sticker.webp"
+      },
+      "fotns": {
+        "sticker": "fotns.sticker.webp"
+      },
+      "franknst": {
+        "sticker": "franknst.sticker.webp"
+      },
+      "freefall": {
+        "sticker": "freefall.sticker.webp"
+      },
+      "freefrce": {
+        "sticker": "freefrce.sticker.webp"
+      },
+      "friday13": {
+        "sticker": "friday13.sticker.webp"
+      },
+      "funhouse": {
+        "sticker": "funhouse.sticker.webp"
+      },
+      "gaiapol": {
+        "sticker": "gaiapol.sticker.webp"
+      },
+      "galagau": {
+        "sticker": "galagau.sticker.webp"
+      },
+      "galaxy5ku": {
+        "sticker": "galaxy5ku.sticker.webp"
+      },
+      "galcrusa": {
+        "sticker": "galcrusa.sticker.webp"
+      },
+      "gargoyl2u": {
+        "sticker": "gargoyl2u.sticker.webp"
+      },
+      "gauntlet": {
+        "sticker": "gauntlet.sticker.webp"
+      },
+      "gauntlt2u": {
+        "sticker": "gauntlt2u.sticker.webp"
+      },
+      "gemfire": {
+        "sticker": "gemfire.sticker.webp"
+      },
+      "genghis": {
+        "sticker": "genghis.sticker.webp"
+      },
+      "georgekou": {
+        "sticker": "georgekou.sticker.webp"
+      },
+      "ghostbs2u": {
+        "sticker": "ghostbs2u.sticker.webp"
+      },
+      "ghostbst": {
+        "sticker": "ghostbst.sticker.webp"
+      },
+      "ghostlio": {
+        "sticker": "ghostlio.sticker.webp"
+      },
+      "ghoulsch": {
+        "sticker": "ghoulsch.sticker.webp"
+      },
+      "gijoe": {
+        "sticker": "gijoe.sticker.webp"
+      },
+      "gijoeaf": {
+        "sticker": "gijoeaf.sticker.webp"
+      },
+      "gilligan": {
+        "sticker": "gilligan.sticker.webp"
+      },
+      "glkdance": {
+        "sticker": "glkdance.sticker.webp"
+      },
+      "gngu": {
+        "sticker": "gngu.sticker.webp"
+      },
+      "gnorman": {
+        "sticker": "gnorman.sticker.webp"
+      },
+      "goal2u": {
+        "sticker": "goal2u.sticker.webp"
+      },
+      "goal3": {
+        "sticker": "goal3.sticker.webp"
+      },
+      "goalu": {
+        "sticker": "goalu.sticker.webp"
+      },
+      "godzill2": {
+        "sticker": "godzill2.sticker.webp"
+      },
+      "godzillau": {
+        "sticker": "godzillau.sticker.webp"
+      },
+      "goldmedlu": {
+        "sticker": "goldmedlu.sticker.webp"
+      },
+      "golfgs": {
+        "sticker": "golfgs.sticker.webp"
+      },
+      "golfu": {
+        "sticker": "golfu.sticker.webp"
+      },
+      "golgo13": {
+        "sticker": "golgo13.sticker.webp"
+      },
+      "goonies2u": {
+        "sticker": "goonies2u.sticker.webp"
+      },
+      "gotcha": {
+        "sticker": "gotcha.sticker.webp"
+      },
+      "gradius2": {
+        "sticker": "gradius2.sticker.webp"
+      },
+      "gradiusu": {
+        "sticker": "gradiusu.sticker.webp"
+      },
+      "grandcmb": {
+        "sticker": "grandcmb.sticker.webp"
+      },
+      "greatwl": {
+        "sticker": "greatwl.sticker.webp"
+      },
+      "gremlin2u": {
+        "sticker": "gremlin2u.sticker.webp"
+      },
+      "guardlgnu": {
+        "sticker": "guardlgnu.sticker.webp"
+      },
+      "gumshoe": {
+        "sticker": "gumshoe.sticker.webp"
+      },
+      "gunnac": {
+        "sticker": "gunnac.sticker.webp"
+      },
+      "gunsmokeu": {
+        "sticker": "gunsmokeu.sticker.webp"
+      },
+      "gwaru": {
+        "sticker": "gwaru.sticker.webp"
+      },
+      "gyromite": {
+        "sticker": "gyromite.sticker.webp"
+      },
+      "gyruss": {
+        "sticker": "gyruss.sticker.webp"
+      },
+      "happyp": {
+        "sticker": "happyp.sticker.webp"
+      },
+      "harlemgt": {
+        "sticker": "harlemgt.sticker.webp"
+      },
+      "hatris": {
+        "sticker": "hatris.sticker.webp"
+      },
+      "hbarrel": {
+        "sticker": "hbarrel.sticker.webp"
+      },
+      "hellfght": {
+        "sticker": "hellfght.sticker.webp"
+      },
+      "herolanc": {
+        "sticker": "herolanc.sticker.webp"
+      },
+      "heroqstu": {
+        "sticker": "heroqstu.sticker.webp"
+      },
+      "highspedu": {
+        "sticker": "highspedu.sticker.webp"
+      },
+      "hillsfar": {
+        "sticker": "hillsfar.sticker.webp"
+      },
+      "hitice": {
+        "sticker": "hitice.sticker.webp"
+      },
+      "hogan": {
+        "sticker": "hogan.sticker.webp"
+      },
+      "hollywds": {
+        "sticker": "hollywds.sticker.webp"
+      },
+      "homea": {
+        "sticker": "homea.sticker.webp"
+      },
+      "homea2u": {
+        "sticker": "homea2u.sticker.webp"
+      },
+      "hooku": {
+        "sticker": "hooku.sticker.webp"
+      },
+      "hoopsu": {
+        "sticker": "hoopsu.sticker.webp"
+      },
+      "hotdance": {
+        "sticker": "hotdance.sticker.webp"
+      },
+      "hotslots": {
+        "sticker": "hotslots.sticker.webp"
+      },
+      "hshred": {
+        "sticker": "hshred.sticker.webp"
+      },
+      "hudsonhu": {
+        "sticker": "hudsonhu.sticker.webp"
+      },
+      "hugeins": {
+        "sticker": "hugeins.sticker.webp"
+      },
+      "huntredh": {
+        "sticker": "huntredh.sticker.webp"
+      },
+      "huntredu": {
+        "sticker": "huntredu.sticker.webp"
+      },
+      "huolong": {
+        "sticker": "huolong.sticker.webp"
+      },
+      "hydlide": {
+        "sticker": "hydlide.sticker.webp"
+      },
+      "icanrem": {
+        "sticker": "icanrem.sticker.webp"
+      },
+      "iceclimb": {
+        "sticker": "iceclimb.sticker.webp"
+      },
+      "icehockyu": {
+        "sticker": "icehockyu.sticker.webp"
+      },
+      "ikari2": {
+        "sticker": "ikari2.sticker.webp"
+      },
+      "ikari3": {
+        "sticker": "ikari3.sticker.webp"
+      },
+      "ikariu": {
+        "sticker": "ikariu.sticker.webp"
+      },
+      "imagefgt": {
+        "sticker": "imagefgt.sticker.webp"
+      },
+      "immortal": {
+        "sticker": "immortal.sticker.webp"
+      },
+      "impmiss2": {
+        "sticker": "impmiss2.sticker.webp"
+      },
+      "indy1": {
+        "sticker": "indy1.sticker.webp"
+      },
+      "indycrst": {
+        "sticker": "indycrst.sticker.webp"
+      },
+      "indyheatu": {
+        "sticker": "indyheatu.sticker.webp"
+      },
+      "infiltrt": {
+        "sticker": "infiltrt.sticker.webp"
+      },
+      "ironswrdu": {
+        "sticker": "ironswrdu.sticker.webp"
+      },
+      "irontanku": {
+        "sticker": "irontanku.sticker.webp"
+      },
+      "isolatwru": {
+        "sticker": "isolatwru.sticker.webp"
+      },
+      "jackal": {
+        "sticker": "jackal.sticker.webp"
+      },
+      "jaws": {
+        "sticker": "jaws.sticker.webp"
+      },
+      "jbjru": {
+        "sticker": "jbjru.sticker.webp"
+      },
+      "jchanu": {
+        "sticker": "jchanu.sticker.webp"
+      },
+      "jelwayqb": {
+        "sticker": "jelwayqb.sticker.webp"
+      },
+      "jeopar25": {
+        "sticker": "jeopar25.sticker.webp"
+      },
+      "jeopardy": {
+        "sticker": "jeopardy.sticker.webp"
+      },
+      "jeoparjr": {
+        "sticker": "jeoparjr.sticker.webp"
+      },
+      "jetsonsu": {
+        "sticker": "jetsonsu.sticker.webp"
+      },
+      "joemacu": {
+        "sticker": "joemacu.sticker.webp"
+      },
+      "jordanb": {
+        "sticker": "jordanb.sticker.webp"
+      },
+      "joshua": {
+        "sticker": "joshua.sticker.webp"
+      },
+      "joust": {
+        "sticker": "joust.sticker.webp"
+      },
+      "jovial": {
+        "sticker": "jovial.sticker.webp"
+      },
+      "joytc": {
+        "sticker": "joytc.sticker.webp"
+      },
+      "jparku": {
+        "sticker": "jparku.sticker.webp"
+      },
+      "jungleu": {
+        "sticker": "jungleu.sticker.webp"
+      },
+      "kabukiu": {
+        "sticker": "kabukiu.sticker.webp"
+      },
+      "karatekd": {
+        "sticker": "karatekd.sticker.webp"
+      },
+      "karnov": {
+        "sticker": "karnov.sticker.webp"
+      },
+      "kickleu": {
+        "sticker": "kickleu.sticker.webp"
+      },
+      "kickmast": {
+        "sticker": "kickmast.sticker.webp"
+      },
+      "kidicars1": {
+        "sticker": "kidicars1.sticker.webp"
+      },
+      "kidklown": {
+        "sticker": "kidklown.sticker.webp"
+      },
+      "kidkool": {
+        "sticker": "kidkool.sticker.webp"
+      },
+      "kidniki": {
+        "sticker": "kidniki.sticker.webp"
+      },
+      "killtomtu": {
+        "sticker": "killtomtu.sticker.webp"
+      },
+      "kingeya": {
+        "sticker": "kingeya.sticker.webp"
+      },
+      "kingkngt": {
+        "sticker": "kingkngt.sticker.webp"
+      },
+      "kingqst5": {
+        "sticker": "kingqst5.sticker.webp"
+      },
+      "kirbyu": {
+        "sticker": "kirbyu.sticker.webp"
+      },
+      "kiwikraz": {
+        "sticker": "kiwikraz.sticker.webp"
+      },
+      "klashbal": {
+        "sticker": "klashbal.sticker.webp"
+      },
+      "klax": {
+        "sticker": "klax.sticker.webp"
+      },
+      "knightru": {
+        "sticker": "knightru.sticker.webp"
+      },
+      "kof96": {
+        "sticker": "kof96.sticker.webp"
+      },
+      "kof97": {
+        "sticker": "kof97.sticker.webp"
+      },
+      "kof99": {
+        "sticker": "kof99.sticker.webp"
+      },
+      "koreaigo": {
+        "sticker": "koreaigo.sticker.webp"
+      },
+      "kotbeach": {
+        "sticker": "kotbeach.sticker.webp"
+      },
+      "krazykr": {
+        "sticker": "krazykr.sticker.webp"
+      },
+      "krion": {
+        "sticker": "krion.sticker.webp"
+      },
+      "krustyfhu": {
+        "sticker": "krustyfhu.sticker.webp"
+      },
+      "kungfuh": {
+        "sticker": "kungfuh.sticker.webp"
+      },
+      "kungfuju": {
+        "sticker": "kungfuju.sticker.webp"
+      },
+      "laserinv": {
+        "sticker": "laserinv.sticker.webp"
+      },
+      "lastact": {
+        "sticker": "lastact.sticker.webp"
+      },
+      "lastninj": {
+        "sticker": "lastninj.sticker.webp"
+      },
+      "laststar": {
+        "sticker": "laststar.sticker.webp"
+      },
+      "ldiamond": {
+        "sticker": "ldiamond.sticker.webp"
+      },
+      "ldrun": {
+        "sticker": "ldrun.sticker.webp"
+      },
+      "leetrevnu": {
+        "sticker": "leetrevnu.sticker.webp"
+      },
+      "legkage": {
+        "sticker": "legkage.sticker.webp"
+      },
+      "legwizrd": {
+        "sticker": "legwizrd.sticker.webp"
+      },
+      "lemmingsu": {
+        "sticker": "lemmingsu.sticker.webp"
+      },
+      "lifefrce": {
+        "sticker": "lifefrce.sticker.webp"
+      },
+      "lilninjbu": {
+        "sticker": "lilninjbu.sticker.webp"
+      },
+      "lilsamsnu": {
+        "sticker": "lilsamsnu.sticker.webp"
+      },
+      "linuscc": {
+        "sticker": "linuscc.sticker.webp"
+      },
+      "lionkin3": {
+        "sticker": "lionkin3.sticker.webp"
+      },
+      "lionkingp1": {
+        "sticker": "lionkingp1.sticker.webp"
+      },
+      "lionkingp2": {
+        "sticker": "lionkingp2.sticker.webp"
+      },
+      "littlelg": {
+        "sticker": "littlelg.sticker.webp"
+      },
+      "littlred": {
+        "sticker": "littlred.sticker.webp"
+      },
+      "locksmit": {
+        "sticker": "locksmit.sticker.webp"
+      },
+      "lolo2u": {
+        "sticker": "lolo2u.sticker.webp"
+      },
+      "lolo3u": {
+        "sticker": "lolo3u.sticker.webp"
+      },
+      "lolou": {
+        "sticker": "lolou.sticker.webp"
+      },
+      "lonerang": {
+        "sticker": "lonerang.sticker.webp"
+      },
+      "loopz": {
+        "sticker": "loopz.sticker.webp"
+      },
+      "lowgmanu": {
+        "sticker": "lowgmanu.sticker.webp"
+      },
+      "lucky777": {
+        "sticker": "lucky777.sticker.webp"
+      },
+      "lunarpolu": {
+        "sticker": "lunarpolu.sticker.webp"
+      },
+      "lweaponu": {
+        "sticker": "lweaponu.sticker.webp"
+      },
+      "lwings": {
+        "sticker": "lwings.sticker.webp"
+      },
+      "machridrju1": {
+        "sticker": "machridrju1.sticker.webp"
+      },
+      "madmax": {
+        "sticker": "madmax.sticker.webp"
+      },
+      "magicarp": {
+        "sticker": "magicarp.sticker.webp"
+      },
+      "magicblka": {
+        "sticker": "magicblka.sticker.webp"
+      },
+      "magicdrg": {
+        "sticker": "magicdrg.sticker.webp"
+      },
+      "magicdrt": {
+        "sticker": "magicdrt.sticker.webp"
+      },
+      "magician": {
+        "sticker": "magician.sticker.webp"
+      },
+      "magicjfb": {
+        "sticker": "magicjfb.sticker.webp"
+      },
+      "magicjw2": {
+        "sticker": "magicjw2.sticker.webp"
+      },
+      "magicjwla": {
+        "sticker": "magicjwla.sticker.webp"
+      },
+      "magickdmu": {
+        "sticker": "magickdmu.sticker.webp"
+      },
+      "magicsch": {
+        "sticker": "magicsch.sticker.webp"
+      },
+      "magicube": {
+        "sticker": "magicube.sticker.webp"
+      },
+      "magimath": {
+        "sticker": "magimath.sticker.webp"
+      },
+      "magmax": {
+        "sticker": "magmax.sticker.webp"
+      },
+      "mansellu": {
+        "sticker": "mansellu.sticker.webp"
+      },
+      "mappylnd": {
+        "sticker": "mappylnd.sticker.webp"
+      },
+      "marbleu": {
+        "sticker": "marbleu.sticker.webp"
+      },
+      "mario1": {
+        "sticker": "mario1.sticker.webp"
+      },
+      "mario16": {
+        "sticker": "mario16.sticker.webp"
+      },
+      "mariomisu": {
+        "sticker": "mariomisu.sticker.webp"
+      },
+      "mariotim": {
+        "sticker": "mariotim.sticker.webp"
+      },
+      "marisf3t": {
+        "sticker": "marisf3t.sticker.webp"
+      },
+      "mastrchua": {
+        "sticker": "mastrchua.sticker.webp"
+      },
+      "mckids": {
+        "sticker": "mckids.sticker.webp"
+      },
+      "mckidsu": {
+        "sticker": "mckidsu.sticker.webp"
+      },
+      "mechatak": {
+        "sticker": "mechatak.sticker.webp"
+      },
+      "megaman2u": {
+        "sticker": "megaman2u.sticker.webp"
+      },
+      "megaman3u": {
+        "sticker": "megaman3u.sticker.webp"
+      },
+      "megaman4u": {
+        "sticker": "megaman4u.sticker.webp"
+      },
+      "megaman5u": {
+        "sticker": "megaman5u.sticker.webp"
+      },
+      "megaman6": {
+        "sticker": "megaman6.sticker.webp"
+      },
+      "megamanu": {
+        "sticker": "megamanu.sticker.webp"
+      },
+      "mendel": {
+        "sticker": "mendel.sticker.webp"
+      },
+      "mermaid": {
+        "sticker": "mermaid.sticker.webp"
+      },
+      "mermatl": {
+        "sticker": "mermatl.sticker.webp"
+      },
+      "metalfgt2": {
+        "sticker": "metalfgt2.sticker.webp"
+      },
+      "metalstr": {
+        "sticker": "metalstr.sticker.webp"
+      },
+      "metlmech": {
+        "sticker": "metlmech.sticker.webp"
+      },
+      "metroidu": {
+        "sticker": "metroidu.sticker.webp"
+      },
+      "mffightu": {
+        "sticker": "mffightu.sticker.webp"
+      },
+      "mgear2u": {
+        "sticker": "mgear2u.sticker.webp"
+      },
+      "mgearu": {
+        "sticker": "mgearu.sticker.webp"
+      },
+      "mickey": {
+        "sticker": "mickey.sticker.webp"
+      },
+      "mickeyan": {
+        "sticker": "mickeyan.sticker.webp"
+      },
+      "mickeysl": {
+        "sticker": "mickeysl.sticker.webp"
+      },
+      "micromacu": {
+        "sticker": "micromacu.sticker.webp"
+      },
+      "mig29sf": {
+        "sticker": "mig29sf.sticker.webp"
+      },
+      "mightmag": {
+        "sticker": "mightmag.sticker.webp"
+      },
+      "millionr": {
+        "sticker": "millionr.sticker.webp"
+      },
+      "milliped": {
+        "sticker": "milliped.sticker.webp"
+      },
+      "milon": {
+        "sticker": "milon.sticker.webp"
+      },
+      "miraclep": {
+        "sticker": "miraclep.sticker.webp"
+      },
+      "miscobra": {
+        "sticker": "miscobra.sticker.webp"
+      },
+      "missimpu": {
+        "sticker": "missimpu.sticker.webp"
+      },
+      "mjacad": {
+        "sticker": "mjacad.sticker.webp"
+      },
+      "mjcompan": {
+        "sticker": "mjcompan.sticker.webp"
+      },
+      "mjsamit": {
+        "sticker": "mjsamit.sticker.webp"
+      },
+      "mjworlda": {
+        "sticker": "mjworlda.sticker.webp"
+      },
+      "mk2": {
+        "sticker": "mk2.sticker.webp"
+      },
+      "mk2sp": {
+        "sticker": "mk2sp.sticker.webp"
+      },
+      "mk3sp": {
+        "sticker": "mk3sp.sticker.webp"
+      },
+      "mk4": {
+        "sticker": "mk4.sticker.webp"
+      },
+      "mktrilgy": {
+        "sticker": "mktrilgy.sticker.webp"
+      },
+      "mkv96": {
+        "sticker": "mkv96.sticker.webp"
+      },
+      "mleagueb": {
+        "sticker": "mleagueb.sticker.webp"
+      },
+      "mmania7": {
+        "sticker": "mmania7.sticker.webp"
+      },
+      "mmansionu": {
+        "sticker": "mmansionu.sticker.webp"
+      },
+      "mnq": {
+        "sticker": "mnq.sticker.webp"
+      },
+      "monopoly": {
+        "sticker": "monopoly.sticker.webp"
+      },
+      "monstpar": {
+        "sticker": "monstpar.sticker.webp"
+      },
+      "monstpoku": {
+        "sticker": "monstpoku.sticker.webp"
+      },
+      "moonrang": {
+        "sticker": "moonrang.sticker.webp"
+      },
+      "motorcp": {
+        "sticker": "motorcp.sticker.webp"
+      },
+      "mspacman": {
+        "sticker": "mspacman.sticker.webp"
+      },
+      "mtrally": {
+        "sticker": "mtrally.sticker.webp"
+      },
+      "mule": {
+        "sticker": "mule.sticker.webp"
+      },
+      "muppet": {
+        "sticker": "muppet.sticker.webp"
+      },
+      "muscle": {
+        "sticker": "muscle.sticker.webp"
+      },
+      "mutantv": {
+        "sticker": "mutantv.sticker.webp"
+      },
+      "mvpbb": {
+        "sticker": "mvpbb.sticker.webp"
+      },
+      "mysteryq": {
+        "sticker": "mysteryq.sticker.webp"
+      },
+      "narc": {
+        "sticker": "narc.sticker.webp"
+      },
+      "nascarch": {
+        "sticker": "nascarch.sticker.webp"
+      },
+      "nbajam2": {
+        "sticker": "nbajam2.sticker.webp"
+      },
+      "nemou": {
+        "sticker": "nemou.sticker.webp"
+      },
+      "nesgolfu": {
+        "sticker": "nesgolfu.sticker.webp"
+      },
+      "nfl": {
+        "sticker": "nfl.sticker.webp"
+      },
+      "ngaiden": {
+        "sticker": "ngaiden.sticker.webp"
+      },
+      "ngaiden2": {
+        "sticker": "ngaiden2.sticker.webp"
+      },
+      "ngaiden3": {
+        "sticker": "ngaiden3.sticker.webp"
+      },
+      "nicklausu": {
+        "sticker": "nicklausu.sticker.webp"
+      },
+      "nightmar": {
+        "sticker": "nightmar.sticker.webp"
+      },
+      "nightshd": {
+        "sticker": "nightshd.sticker.webp"
+      },
+      "ninjacrs": {
+        "sticker": "ninjacrs.sticker.webp"
+      },
+      "ninjakid": {
+        "sticker": "ninjakid.sticker.webp"
+      },
+      "nintenwcu": {
+        "sticker": "nintenwcu.sticker.webp"
+      },
+      "nobuamb": {
+        "sticker": "nobuamb.sticker.webp"
+      },
+      "nobuamb2": {
+        "sticker": "nobuamb2.sticker.webp"
+      },
+      "northnsu": {
+        "sticker": "northnsu.sticker.webp"
+      },
+      "nwc90": {
+        "sticker": "nwc90.sticker.webp"
+      },
+      "offroadu": {
+        "sticker": "offroadu.sticker.webp"
+      },
+      "olympiq": {
+        "sticker": "olympiq.sticker.webp"
+      },
+      "olympusu": {
+        "sticker": "olympusu.sticker.webp"
+      },
+      "opsecrts": {
+        "sticker": "opsecrts.sticker.webp"
+      },
+      "opwolfu": {
+        "sticker": "opwolfu.sticker.webp"
+      },
+      "orb3d": {
+        "sticker": "orb3d.sticker.webp"
+      },
+      "othello": {
+        "sticker": "othello.sticker.webp"
+      },
+      "overlord": {
+        "sticker": "overlord.sticker.webp"
+      },
+      "pacmania": {
+        "sticker": "pacmania.sticker.webp"
+      },
+      "pacmantu": {
+        "sticker": "pacmantu.sticker.webp"
+      },
+      "pacmanu": {
+        "sticker": "pacmanu.sticker.webp"
+      },
+      "palameds": {
+        "sticker": "palameds.sticker.webp"
+      },
+      "panicrstu": {
+        "sticker": "panicrstu.sticker.webp"
+      },
+      "paperbo2u": {
+        "sticker": "paperbo2u.sticker.webp"
+      },
+      "paperboyu": {
+        "sticker": "paperboyu.sticker.webp"
+      },
+      "pebbleb": {
+        "sticker": "pebbleb.sticker.webp"
+      },
+      "peekaboo": {
+        "sticker": "peekaboo.sticker.webp"
+      },
+      "pengseal": {
+        "sticker": "pengseal.sticker.webp"
+      },
+      "pesterm": {
+        "sticker": "pesterm.sticker.webp"
+      },
+      "peterpan": {
+        "sticker": "peterpan.sticker.webp"
+      },
+      "phantomf": {
+        "sticker": "phantomf.sticker.webp"
+      },
+      "piction": {
+        "sticker": "piction.sticker.webp"
+      },
+      "pinball1": {
+        "sticker": "pinball1.sticker.webp"
+      },
+      "pinbotu": {
+        "sticker": "pinbotu.sticker.webp"
+      },
+      "pinbqstu": {
+        "sticker": "pinbqstu.sticker.webp"
+      },
+      "pipedrem": {
+        "sticker": "pipedrem.sticker.webp"
+      },
+      "piratesu": {
+        "sticker": "piratesu.sticker.webp"
+      },
+      "platoon": {
+        "sticker": "platoon.sticker.webp"
+      },
+      "playfoot": {
+        "sticker": "playfoot.sticker.webp"
+      },
+      "pocohon": {
+        "sticker": "pocohon.sticker.webp"
+      },
+      "poke2k": {
+        "sticker": "poke2k.sticker.webp"
+      },
+      "pokeblue": {
+        "sticker": "pokeblue.sticker.webp"
+      },
+      "pokegold": {
+        "sticker": "pokegold.sticker.webp"
+      },
+      "pokegren": {
+        "sticker": "pokegren.sticker.webp"
+      },
+      "pokemon": {
+        "sticker": "pokemon.sticker.webp"
+      },
+      "poker2": {
+        "sticker": "poker2.sticker.webp"
+      },
+      "poker3b": {
+        "sticker": "poker3b.sticker.webp"
+      },
+      "pokermj": {
+        "sticker": "pokermj.sticker.webp"
+      },
+      "poolrad": {
+        "sticker": "poolrad.sticker.webp"
+      },
+      "popeye": {
+        "sticker": "popeye.sticker.webp"
+      },
+      "popoteam": {
+        "sticker": "popoteam.sticker.webp"
+      },
+      "powblad2": {
+        "sticker": "powblad2.sticker.webp"
+      },
+      "powbladeu": {
+        "sticker": "powbladeu.sticker.webp"
+      },
+      "powerp2": {
+        "sticker": "powerp2.sticker.webp"
+      },
+      "powu": {
+        "sticker": "powu.sticker.webp"
+      },
+      "ppadtc": {
+        "sticker": "ppadtc.sticker.webp"
+      },
+      "ppersiau": {
+        "sticker": "ppersiau.sticker.webp"
+      },
+      "pr3": {
+        "sticker": "pr3.sticker.webp"
+      },
+      "pradikus": {
+        "sticker": "pradikus.sticker.webp"
+      },
+      "predatoru": {
+        "sticker": "predatoru.sticker.webp"
+      },
+      "prfctfit": {
+        "sticker": "prfctfit.sticker.webp"
+      },
+      "printomt": {
+        "sticker": "printomt.sticker.webp"
+      },
+      "prohocky": {
+        "sticker": "prohocky.sticker.webp"
+      },
+      "prowresu": {
+        "sticker": "prowresu.sticker.webp"
+      },
+      "pugshuntu": {
+        "sticker": "pugshuntu.sticker.webp"
+      },
+      "punchoutu": {
+        "sticker": "punchoutu.sticker.webp"
+      },
+      "punisher": {
+        "sticker": "punisher.sticker.webp"
+      },
+      "pussboot": {
+        "sticker": "pussboot.sticker.webp"
+      },
+      "puzzle": {
+        "sticker": "puzzle.sticker.webp"
+      },
+      "puzznicu": {
+        "sticker": "puzznicu.sticker.webp"
+      },
+      "pyramid1": {
+        "sticker": "pyramid1.sticker.webp"
+      },
+      "pyramid2": {
+        "sticker": "pyramid2.sticker.webp"
+      },
+      "qbert": {
+        "sticker": "qbert.sticker.webp"
+      },
+      "qboy": {
+        "sticker": "qboy.sticker.webp"
+      },
+      "qix": {
+        "sticker": "qix.sticker.webp"
+      },
+      "quatrarc": {
+        "sticker": "quatrarc.sticker.webp"
+      },
+      "raceamer": {
+        "sticker": "raceamer.sticker.webp"
+      },
+      "racketatu": {
+        "sticker": "racketatu.sticker.webp"
+      },
+      "radgravu": {
+        "sticker": "radgravu.sticker.webp"
+      },
+      "radraceru": {
+        "sticker": "radraceru.sticker.webp"
+      },
+      "radrackt": {
+        "sticker": "radrackt.sticker.webp"
+      },
+      "radracr2": {
+        "sticker": "radracr2.sticker.webp"
+      },
+      "raid2020": {
+        "sticker": "raid2020.sticker.webp"
+      },
+      "raidbung": {
+        "sticker": "raidbung.sticker.webp"
+      },
+      "rallybik": {
+        "sticker": "rallybik.sticker.webp"
+      },
+      "rambo": {
+        "sticker": "rambo.sticker.webp"
+      },
+      "rampage": {
+        "sticker": "rampage.sticker.webp"
+      },
+      "rampartu": {
+        "sticker": "rampartu.sticker.webp"
+      },
+      "rayban": {
+        "sticker": "rayban.sticker.webp"
+      },
+      "rbibb": {
+        "sticker": "rbibb.sticker.webp"
+      },
+      "rbibb2": {
+        "sticker": "rbibb2.sticker.webp"
+      },
+      "rbibb3": {
+        "sticker": "rbibb3.sticker.webp"
+      },
+      "rbislant": {
+        "sticker": "rbislant.sticker.webp"
+      },
+      "rcproam2u": {
+        "sticker": "rcproam2u.sticker.webp"
+      },
+      "rcproamu": {
+        "sticker": "rcproamu.sticker.webp"
+      },
+      "rcr": {
+        "sticker": "rcr.sticker.webp"
+      },
+      "redpig": {
+        "sticker": "redpig.sticker.webp"
+      },
+      "remote": {
+        "sticker": "remote.sticker.webp"
+      },
+      "renegade": {
+        "sticker": "renegade.sticker.webp"
+      },
+      "renstbuk": {
+        "sticker": "renstbuk.sticker.webp"
+      },
+      "rescueu": {
+        "sticker": "rescueu.sticker.webp"
+      },
+      "ringking": {
+        "sticker": "ringking.sticker.webp"
+      },
+      "roadblstu": {
+        "sticker": "roadblstu.sticker.webp"
+      },
+      "roadrunn": {
+        "sticker": "roadrunn.sticker.webp"
+      },
+      "robinhua": {
+        "sticker": "robinhua.sticker.webp"
+      },
+      "robocop2u": {
+        "sticker": "robocop2u.sticker.webp"
+      },
+      "robocop3u": {
+        "sticker": "robocop3u.sticker.webp"
+      },
+      "robocopu": {
+        "sticker": "robocopu.sticker.webp"
+      },
+      "roboterm": {
+        "sticker": "roboterm.sticker.webp"
+      },
+      "robowarru": {
+        "sticker": "robowarru.sticker.webp"
+      },
+      "rockball": {
+        "sticker": "rockball.sticker.webp"
+      },
+      "rocketer": {
+        "sticker": "rocketer.sticker.webp"
+      },
+      "rockinktu": {
+        "sticker": "rockinktu.sticker.webp"
+      },
+      "rocknbal": {
+        "sticker": "rocknbal.sticker.webp"
+      },
+      "rocktrng": {
+        "sticker": "rocktrng.sticker.webp"
+      },
+      "rockybw": {
+        "sticker": "rockybw.sticker.webp"
+      },
+      "rocmanx": {
+        "sticker": "rocmanx.sticker.webp"
+      },
+      "rogerrab": {
+        "sticker": "rogerrab.sticker.webp"
+      },
+      "rollerblu": {
+        "sticker": "rollerblu.sticker.webp"
+      },
+      "rollergu": {
+        "sticker": "rollergu.sticker.webp"
+      },
+      "rollracr": {
+        "sticker": "rollracr.sticker.webp"
+      },
+      "roman3k": {
+        "sticker": "roman3k.sticker.webp"
+      },
+      "roman3k2": {
+        "sticker": "roman3k2.sticker.webp"
+      },
+      "roundbalu": {
+        "sticker": "roundbalu.sticker.webp"
+      },
+      "rthunder": {
+        "sticker": "rthunder.sticker.webp"
+      },
+      "rushatcku": {
+        "sticker": "rushatcku.sticker.webp"
+      },
+      "rygaru": {
+        "sticker": "rygaru.sticker.webp"
+      },
+      "scat": {
+        "sticker": "scat.sticker.webp"
+      },
+      "scontra2": {
+        "sticker": "scontra2.sticker.webp"
+      },
+      "scontra6": {
+        "sticker": "scontra6.sticker.webp"
+      },
+      "scontrax": {
+        "sticker": "scontrax.sticker.webp"
+      },
+      "sdkong": {
+        "sticker": "sdkong.sticker.webp"
+      },
+      "sdkong2": {
+        "sticker": "sdkong2.sticker.webp"
+      },
+      "sdodgeb": {
+        "sticker": "sdodgeb.sticker.webp"
+      },
+      "secrett": {
+        "sticker": "secrett.sticker.webp"
+      },
+      "sectionzu": {
+        "sticker": "sectionzu.sticker.webp"
+      },
+      "seicross": {
+        "sticker": "seicross.sticker.webp"
+      },
+      "sesam123": {
+        "sticker": "sesam123.sticker.webp"
+      },
+      "sesamabc": {
+        "sticker": "sesamabc.sticker.webp"
+      },
+      "sesame": {
+        "sticker": "sesame.sticker.webp"
+      },
+      "sf2010": {
+        "sticker": "sf2010.sticker.webp"
+      },
+      "sf3": {
+        "sticker": "sf3.sticker.webp"
+      },
+      "sf3_9": {
+        "sticker": "sf3_9.sticker.webp"
+      },
+      "shadgateu": {
+        "sticker": "shadgateu.sticker.webp"
+      },
+      "shadninj": {
+        "sticker": "shadninj.sticker.webp"
+      },
+      "shatterhu": {
+        "sticker": "shatterhu.sticker.webp"
+      },
+      "shingen": {
+        "sticker": "shingen.sticker.webp"
+      },
+      "shinobi": {
+        "sticker": "shinobi.sticker.webp"
+      },
+      "shockwav": {
+        "sticker": "shockwav.sticker.webp"
+      },
+      "shootrng": {
+        "sticker": "shootrng.sticker.webp"
+      },
+      "sidepocku": {
+        "sticker": "sidepocku.sticker.webp"
+      },
+      "sidewinda": {
+        "sticker": "sidewinda.sticker.webp"
+      },
+      "silentas": {
+        "sticker": "silentas.sticker.webp"
+      },
+      "silentasa": {
+        "sticker": "silentasa.sticker.webp"
+      },
+      "silentsru": {
+        "sticker": "silentsru.sticker.webp"
+      },
+      "siliusu": {
+        "sticker": "siliusu.sticker.webp"
+      },
+      "silkworm": {
+        "sticker": "silkworm.sticker.webp"
+      },
+      "silvreag": {
+        "sticker": "silvreag.sticker.webp"
+      },
+      "silvrsrf": {
+        "sticker": "silvrsrf.sticker.webp"
+      },
+      "sk5": {
+        "sticker": "sk5.sticker.webp"
+      },
+      "skatedi2": {
+        "sticker": "skatedi2.sticker.webp"
+      },
+      "skatedieu": {
+        "sticker": "skatedieu.sticker.webp"
+      },
+      "skiordieu": {
+        "sticker": "skiordieu.sticker.webp"
+      },
+      "skullxb": {
+        "sticker": "skullxb.sticker.webp"
+      },
+      "skyshark": {
+        "sticker": "skyshark.sticker.webp"
+      },
+      "slalomu": {
+        "sticker": "slalomu.sticker.webp"
+      },
+      "smashtvu": {
+        "sticker": "smashtvu.sticker.webp"
+      },
+      "smb1": {
+        "sticker": "smb1.sticker.webp"
+      },
+      "smb2fdsa": {
+        "sticker": "smb2fdsa.sticker.webp"
+      },
+      "smb2u": {
+        "sticker": "smb2u.sticker.webp"
+      },
+      "smb3": {
+        "sticker": "smb3.sticker.webp"
+      },
+      "smb3j": {
+        "sticker": "smb3j.sticker.webp"
+      },
+      "smb3u": {
+        "sticker": "smb3u.sticker.webp"
+      },
+      "smb4": {
+        "sticker": "smb4.sticker.webp"
+      },
+      "smb6": {
+        "sticker": "smb6.sticker.webp"
+      },
+      "smbdhu": {
+        "sticker": "smbdhu.sticker.webp"
+      },
+      "smbdhwc": {
+        "sticker": "smbdhwc.sticker.webp"
+      },
+      "smkridr": {
+        "sticker": "smkridr.sticker.webp"
+      },
+      "smw": {
+        "sticker": "smw.sticker.webp"
+      },
+      "smw9a": {
+        "sticker": "smw9a.sticker.webp"
+      },
+      "snakernru": {
+        "sticker": "snakernru.sticker.webp"
+      },
+      "snoopy": {
+        "sticker": "snoopy.sticker.webp"
+      },
+      "soccer1": {
+        "sticker": "soccer1.sticker.webp"
+      },
+      "solarjetu": {
+        "sticker": "solarjetu.sticker.webp"
+      },
+      "solitair": {
+        "sticker": "solitair.sticker.webp"
+      },
+      "solomonu": {
+        "sticker": "solomonu.sticker.webp"
+      },
+      "solsticeu": {
+        "sticker": "solsticeu.sticker.webp"
+      },
+      "somarib": {
+        "sticker": "somarib.sticker.webp"
+      },
+      "sonic3d5": {
+        "sticker": "sonic3d5.sticker.webp"
+      },
+      "sonic3d6": {
+        "sticker": "sonic3d6.sticker.webp"
+      },
+      "spacesht": {
+        "sticker": "spacesht.sticker.webp"
+      },
+      "spang": {
+        "sticker": "spang.sticker.webp"
+      },
+      "spang2": {
+        "sticker": "spang2.sticker.webp"
+      },
+      "spelunkr": {
+        "sticker": "spelunkr.sticker.webp"
+      },
+      "spidermnu": {
+        "sticker": "spidermnu.sticker.webp"
+      },
+      "spiknwc": {
+        "sticker": "spiknwc.sticker.webp"
+      },
+      "spikvbalu": {
+        "sticker": "spikvbalu.sticker.webp"
+      },
+      "spiritwf": {
+        "sticker": "spiritwf.sticker.webp"
+      },
+      "spitfall": {
+        "sticker": "spitfall.sticker.webp"
+      },
+      "spot": {
+        "sticker": "spot.sticker.webp"
+      },
+      "spyhunt": {
+        "sticker": "spyhunt.sticker.webp"
+      },
+      "spyvsspyu": {
+        "sticker": "spyvsspyu.sticker.webp"
+      },
+      "sqoon": {
+        "sticker": "sqoon.sticker.webp"
+      },
+      "squashed": {
+        "sticker": "squashed.sticker.webp"
+      },
+      "ssprint": {
+        "sticker": "ssprint.sticker.webp"
+      },
+      "sspyhuntu": {
+        "sticker": "sspyhuntu.sticker.webp"
+      },
+      "stackup": {
+        "sticker": "stackup.sticker.webp"
+      },
+      "stadevntu": {
+        "sticker": "stadevntu.sticker.webp"
+      },
+      "stanley": {
+        "sticker": "stanley.sticker.webp"
+      },
+      "starfrceu": {
+        "sticker": "starfrceu.sticker.webp"
+      },
+      "starship": {
+        "sticker": "starship.sticker.webp"
+      },
+      "starsold": {
+        "sticker": "starsold.sticker.webp"
+      },
+      "startrp2": {
+        "sticker": "startrp2.sticker.webp"
+      },
+      "startrpcu": {
+        "sticker": "startrpcu.sticker.webp"
+      },
+      "starvoyg": {
+        "sticker": "starvoyg.sticker.webp"
+      },
+      "starwarsu": {
+        "sticker": "starwarsu.sticker.webp"
+      },
+      "stealthu": {
+        "sticker": "stealthu.sticker.webp"
+      },
+      "steamg": {
+        "sticker": "steamg.sticker.webp"
+      },
+      "stinger": {
+        "sticker": "stinger.sticker.webp"
+      },
+      "stratega": {
+        "sticker": "stratega.sticker.webp"
+      },
+      "streetcp": {
+        "sticker": "streetcp.sticker.webp"
+      },
+      "strek25": {
+        "sticker": "strek25.sticker.webp"
+      },
+      "strider": {
+        "sticker": "strider.sticker.webp"
+      },
+      "sttng": {
+        "sticker": "sttng.sticker.webp"
+      },
+      "stuntkid": {
+        "sticker": "stuntkid.sticker.webp"
+      },
+      "suikanp": {
+        "sticker": "suikanp.sticker.webp"
+      },
+      "sunday": {
+        "sticker": "sunday.sticker.webp"
+      },
+      "supalada": {
+        "sticker": "supalada.sticker.webp"
+      },
+      "superc": {
+        "sticker": "superc.sticker.webp"
+      },
+      "supercar": {
+        "sticker": "supercar.sticker.webp"
+      },
+      "superman": {
+        "sticker": "superman.sticker.webp"
+      },
+      "supglove": {
+        "sticker": "supglove.sticker.webp"
+      },
+      "supjeopd": {
+        "sticker": "supjeopd.sticker.webp"
+      },
+      "supshin": {
+        "sticker": "supshin.sticker.webp"
+      },
+      "swampu": {
+        "sticker": "swampu.sticker.webp"
+      },
+      "swordmstu": {
+        "sticker": "swordmstu.sticker.webp"
+      },
+      "swordsrpu": {
+        "sticker": "swordsrpu.sticker.webp"
+      },
+      "taboo": {
+        "sticker": "taboo.sticker.webp"
+      },
+      "tagindrg": {
+        "sticker": "tagindrg.sticker.webp"
+      },
+      "tagteam": {
+        "sticker": "tagteam.sticker.webp"
+      },
+      "talespinu": {
+        "sticker": "talespinu.sticker.webp"
+      },
+      "targtren": {
+        "sticker": "targtren.sticker.webp"
+      },
+      "taroqst": {
+        "sticker": "taroqst.sticker.webp"
+      },
+      "tasac": {
+        "sticker": "tasac.sticker.webp"
+      },
+      "tbirds": {
+        "sticker": "tbirds.sticker.webp"
+      },
+      "tdfever": {
+        "sticker": "tdfever.sticker.webp"
+      },
+      "tecmobb": {
+        "sticker": "tecmobb.sticker.webp"
+      },
+      "tecmobwl": {
+        "sticker": "tecmobwl.sticker.webp"
+      },
+      "tecmocupu": {
+        "sticker": "tecmocupu.sticker.webp"
+      },
+      "tecmonba2": {
+        "sticker": "tecmonba2.sticker.webp"
+      },
+      "tecmosbw": {
+        "sticker": "tecmosbw.sticker.webp"
+      },
+      "tecmowrsu": {
+        "sticker": "tecmowrsu.sticker.webp"
+      },
+      "tekken2": {
+        "sticker": "tekken2.sticker.webp"
+      },
+      "tennisju": {
+        "sticker": "tennisju.sticker.webp"
+      },
+      "term2u": {
+        "sticker": "term2u.sticker.webp"
+      },
+      "termintr": {
+        "sticker": "termintr.sticker.webp"
+      },
+      "terracrs": {
+        "sticker": "terracrs.sticker.webp"
+      },
+      "tetris2u": {
+        "sticker": "tetris2u.sticker.webp"
+      },
+      "tetrisu": {
+        "sticker": "tetrisu.sticker.webp"
+      },
+      "thndlght": {
+        "sticker": "thndlght.sticker.webp"
+      },
+      "thunderc": {
+        "sticker": "thunderc.sticker.webp"
+      },
+      "thundwar": {
+        "sticker": "thundwar.sticker.webp"
+      },
+      "tigerhelu": {
+        "sticker": "tigerhelu.sticker.webp"
+      },
+      "tilefate": {
+        "sticker": "tilefate.sticker.webp"
+      },
+      "timedivra": {
+        "sticker": "timedivra.sticker.webp"
+      },
+      "timelordu": {
+        "sticker": "timelordu.sticker.webp"
+      },
+      "timelore": {
+        "sticker": "timelore.sticker.webp"
+      },
+      "tmnt2u": {
+        "sticker": "tmnt2u.sticker.webp"
+      },
+      "tmnt3": {
+        "sticker": "tmnt3.sticker.webp"
+      },
+      "tmnttfu": {
+        "sticker": "tmnttfu.sticker.webp"
+      },
+      "tmntu": {
+        "sticker": "tmntu.sticker.webp"
+      },
+      "toearthu": {
+        "sticker": "toearthu.sticker.webp"
+      },
+      "toitabas": {
+        "sticker": "toitabas.sticker.webp"
+      },
+      "toki": {
+        "sticker": "toki.sticker.webp"
+      },
+      "tombtres": {
+        "sticker": "tombtres.sticker.webp"
+      },
+      "tomjerr3": {
+        "sticker": "tomjerr3.sticker.webp"
+      },
+      "tomjerryu": {
+        "sticker": "tomjerryu.sticker.webp"
+      },
+      "tomsawyr": {
+        "sticker": "tomsawyr.sticker.webp"
+      },
+      "toobin": {
+        "sticker": "toobin.sticker.webp"
+      },
+      "topgun2u": {
+        "sticker": "topgun2u.sticker.webp"
+      },
+      "topgun3": {
+        "sticker": "topgun3.sticker.webp"
+      },
+      "topgunu": {
+        "sticker": "topgunu.sticker.webp"
+      },
+      "totalradu": {
+        "sticker": "totalradu.sticker.webp"
+      },
+      "totrecalu": {
+        "sticker": "totrecalu.sticker.webp"
+      },
+      "toxicc": {
+        "sticker": "toxicc.sticker.webp"
+      },
+      "trackfl2u": {
+        "sticker": "trackfl2u.sticker.webp"
+      },
+      "trackfld": {
+        "sticker": "trackfld.sticker.webp"
+      },
+      "treasmst": {
+        "sticker": "treasmst.sticker.webp"
+      },
+      "trogu": {
+        "sticker": "trogu.sticker.webp"
+      },
+      "trojanu": {
+        "sticker": "trojanu.sticker.webp"
+      },
+      "trollsti": {
+        "sticker": "trollsti.sticker.webp"
+      },
+      "ttoon2u": {
+        "sticker": "ttoon2u.sticker.webp"
+      },
+      "ttoon4": {
+        "sticker": "ttoon4.sticker.webp"
+      },
+      "ttoonadvu": {
+        "sticker": "ttoonadvu.sticker.webp"
+      },
+      "ttooncwu": {
+        "sticker": "ttooncwu.sticker.webp"
+      },
+      "ttoons6": {
+        "sticker": "ttoons6.sticker.webp"
+      },
+      "twincobr": {
+        "sticker": "twincobr.sticker.webp"
+      },
+      "twineagh": {
+        "sticker": "twineagh.sticker.webp"
+      },
+      "twineagl": {
+        "sticker": "twineagl.sticker.webp"
+      },
+      "tysonpoju": {
+        "sticker": "tysonpoju.sticker.webp"
+      },
+      "uaircombu": {
+        "sticker": "uaircombu.sticker.webp"
+      },
+      "ultbaskt": {
+        "sticker": "ultbaskt.sticker.webp"
+      },
+      "ultima3": {
+        "sticker": "ultima3.sticker.webp"
+      },
+      "ultima4": {
+        "sticker": "ultima4.sticker.webp"
+      },
+      "ultima5": {
+        "sticker": "ultima5.sticker.webp"
+      },
+      "ultsoccru": {
+        "sticker": "ultsoccru.sticker.webp"
+      },
+      "ultstunt": {
+        "sticker": "ultstunt.sticker.webp"
+      },
+      "unchartd": {
+        "sticker": "unchartd.sticker.webp"
+      },
+      "uninvite": {
+        "sticker": "uninvite.sticker.webp"
+      },
+      "untoucha": {
+        "sticker": "untoucha.sticker.webp"
+      },
+      "urbnchmp": {
+        "sticker": "urbnchmp.sticker.webp"
+      },
+      "ustrike": {
+        "sticker": "ustrike.sticker.webp"
+      },
+      "vegasdrm": {
+        "sticker": "vegasdrm.sticker.webp"
+      },
+      "venicebv": {
+        "sticker": "venicebv.sticker.webp"
+      },
+      "vice": {
+        "sticker": "vice.sticker.webp"
+      },
+      "videomat": {
+        "sticker": "videomat.sticker.webp"
+      },
+      "vindictr": {
+        "sticker": "vindictr.sticker.webp"
+      },
+      "volley": {
+        "sticker": "volley.sticker.webp"
+      },
+      "wackyrac": {
+        "sticker": "wackyrac.sticker.webp"
+      },
+      "waitnsee": {
+        "sticker": "waitnsee.sticker.webp"
+      },
+      "waixngz2": {
+        "sticker": "waixngz2.sticker.webp"
+      },
+      "waldo": {
+        "sticker": "waldo.sticker.webp"
+      },
+      "wallstrk": {
+        "sticker": "wallstrk.sticker.webp"
+      },
+      "wallybng": {
+        "sticker": "wallybng.sticker.webp"
+      },
+      "wariowdu": {
+        "sticker": "wariowdu.sticker.webp"
+      },
+      "wayneg": {
+        "sticker": "wayneg.sticker.webp"
+      },
+      "waynewld": {
+        "sticker": "waynewld.sticker.webp"
+      },
+      "wctmeet": {
+        "sticker": "wctmeet.sticker.webp"
+      },
+      "wcwwres": {
+        "sticker": "wcwwres.sticker.webp"
+      },
+      "werewolfu": {
+        "sticker": "werewolfu.sticker.webp"
+      },
+      "wh2": {
+        "sticker": "wh2.sticker.webp"
+      },
+      "wheelffe": {
+        "sticker": "wheelffe.sticker.webp"
+      },
+      "wheelfor": {
+        "sticker": "wheelfor.sticker.webp"
+      },
+      "wheelfvw": {
+        "sticker": "wheelfvw.sticker.webp"
+      },
+      "whero": {
+        "sticker": "whero.sticker.webp"
+      },
+      "whompem": {
+        "sticker": "whompem.sticker.webp"
+      },
+      "widget": {
+        "sticker": "widget.sticker.webp"
+      },
+      "wildgunm": {
+        "sticker": "wildgunm.sticker.webp"
+      },
+      "willowu": {
+        "sticker": "willowu.sticker.webp"
+      },
+      "wingames": {
+        "sticker": "wingames.sticker.webp"
+      },
+      "wizardr2": {
+        "sticker": "wizardr2.sticker.webp"
+      },
+      "wizardry": {
+        "sticker": "wizardry.sticker.webp"
+      },
+      "wizardw3u": {
+        "sticker": "wizardw3u.sticker.webp"
+      },
+      "wizardwu": {
+        "sticker": "wizardwu.sticker.webp"
+      },
+      "wld": {
+        "sticker": "wld.sticker.webp"
+      },
+      "wmaniachu": {
+        "sticker": "wmaniachu.sticker.webp"
+      },
+      "wmaniau": {
+        "sticker": "wmaniau.sticker.webp"
+      },
+      "wolverin": {
+        "sticker": "wolverin.sticker.webp"
+      },
+      "worldchmu": {
+        "sticker": "worldchmu.sticker.webp"
+      },
+      "worldgam": {
+        "sticker": "worldgam.sticker.webp"
+      },
+      "wrecking": {
+        "sticker": "wrecking.sticker.webp"
+      },
+      "wurm": {
+        "sticker": "wurm.sticker.webp"
+      },
+      "wwaldo": {
+        "sticker": "wwaldo.sticker.webp"
+      },
+      "wwfkingu": {
+        "sticker": "wwfkingu.sticker.webp"
+      },
+      "wwfsteelu": {
+        "sticker": "wwfsteelu.sticker.webp"
+      },
+      "xenophob": {
+        "sticker": "xenophob.sticker.webp"
+      },
+      "xeviousu": {
+        "sticker": "xeviousu.sticker.webp"
+      },
+      "xexyz": {
+        "sticker": "xexyz.sticker.webp"
+      },
+      "xfire": {
+        "sticker": "xfire.sticker.webp"
+      },
+      "xmen": {
+        "sticker": "xmen.sticker.webp"
+      },
+      "yonoid": {
+        "sticker": "yonoid.sticker.webp"
+      },
+      "yoshi": {
+        "sticker": "yoshi.sticker.webp"
+      },
+      "yoshicoku": {
+        "sticker": "yoshicoku.sticker.webp"
+      },
+      "youngind": {
+        "sticker": "youngind.sticker.webp"
+      },
+      "zanac": {
+        "sticker": "zanac.sticker.webp"
+      },
+      "zelda2u": {
+        "sticker": "zelda2u.sticker.webp"
+      },
+      "zeldau": {
+        "sticker": "zeldau.sticker.webp"
+      },
+      "zenu": {
+        "sticker": "zenu.sticker.webp"
+      },
+      "zombinat": {
+        "sticker": "zombinat.sticker.webp"
+      }
+    },
+    "slots": [
+      "nrom",
+      "uxrom",
+      "cnrom",
+      "sxrom",
+      "txrom"
+    ],
+    "games": [
+      "smb",
+      "dkong",
+      "dkongjr",
+      "dkong3",
+      "mario",
+      "iceclimb",
+      "balonfgt",
+      "excitbik",
+      "kungfu",
+      "galaga",
+      "pacman",
+      "mspacman",
+      "duckhunt",
+      "digdug2",
+      "gradius",
+      "paperboy",
+      "dkongcl",
+      "advislnd",
+      "cvania",
+      "megaman",
+      "ducktale",
+      "rygar",
+      "salamand",
+      "rbislant",
+      "paperbo2",
+      "zelda",
+      "zelda2",
+      "metroid",
+      "megaman2",
+      "tetris",
+      "ffant",
+      "dwarr",
+      "bmaster",
+      "bionicc",
+      "ddragon",
+      "kidicars",
+      "radracer",
+      "cvania2",
+      "bublbobl",
+      "smb2",
+      "smb3",
+      "megaman3",
+      "megaman4",
+      "megaman5",
+      "megaman6",
+      "kirby",
+      "batman",
+      "ddragon2",
+      "advisln3",
+      "bublbob2"
+    ],
+    "extensions": [
+      ".nes",
+      ".unf",
+      ".unif"
+    ]
+  },
+  "bindings": [
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "A",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "B",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 4,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "IPT_SELECT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 8,
+      "keys": [
+        "Enter"
+      ],
+      "label": "IPT_START",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 16,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 32,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 64,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 128,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "ports": [
+    {
+      "tag": "ctrl1:JOYPAD",
+      "init": 0
+    },
+    {
+      "tag": "ctrl2:JOYPAD",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

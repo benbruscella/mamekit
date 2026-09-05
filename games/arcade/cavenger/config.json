@@ -1,0 +1,551 @@
+{
+  "game": "cavenger",
+  "title": "Cosmic Avenger (Universal, 1981)",
+  "family": "ladybug",
+  "dataPath": "games/arcade/cavenger",
+  "board": {
+    "family": "ladybug",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 4000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 24575,
+            "kind": "rom"
+          },
+          {
+            "start": 24576,
+            "end": 28671,
+            "kind": "ram"
+          },
+          {
+            "start": 28672,
+            "end": 29695,
+            "kind": "handler",
+            "write": "video.spr_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 32768,
+            "end": 36863,
+            "kind": "nop",
+            "writeOnly": true
+          },
+          {
+            "start": 36864,
+            "end": 36864,
+            "kind": "handler",
+            "read": "port.IN0"
+          },
+          {
+            "start": 36865,
+            "end": 36865,
+            "kind": "handler",
+            "read": "port.IN1"
+          },
+          {
+            "start": 36866,
+            "end": 36866,
+            "kind": "handler",
+            "read": "port.DSW0"
+          },
+          {
+            "start": 36867,
+            "end": 36867,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "write": "videolatch.write_d0"
+          },
+          {
+            "start": 45056,
+            "end": 49151,
+            "kind": "handler",
+            "write": "sn1.write"
+          },
+          {
+            "start": 49152,
+            "end": 53247,
+            "kind": "handler",
+            "write": "sn2.write"
+          },
+          {
+            "start": 53248,
+            "end": 55295,
+            "kind": "handler",
+            "read": "video.bg_r",
+            "write": "video.bg_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 57344,
+            "end": 57344,
+            "kind": "handler",
+            "read": "port.IN2"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 24575,
+        "kind": "rom"
+      },
+      {
+        "start": 24576,
+        "end": 28671,
+        "kind": "ram"
+      },
+      {
+        "start": 28672,
+        "end": 29695,
+        "kind": "handler",
+        "write": "video.spr_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 32768,
+        "end": 36863,
+        "kind": "nop",
+        "writeOnly": true
+      },
+      {
+        "start": 36864,
+        "end": 36864,
+        "kind": "handler",
+        "read": "port.IN0"
+      },
+      {
+        "start": 36865,
+        "end": 36865,
+        "kind": "handler",
+        "read": "port.IN1"
+      },
+      {
+        "start": 36866,
+        "end": 36866,
+        "kind": "handler",
+        "read": "port.DSW0"
+      },
+      {
+        "start": 36867,
+        "end": 36867,
+        "kind": "handler",
+        "read": "port.DSW1"
+      },
+      {
+        "start": 40960,
+        "end": 40967,
+        "kind": "handler",
+        "write": "videolatch.write_d0"
+      },
+      {
+        "start": 45056,
+        "end": 49151,
+        "kind": "handler",
+        "write": "sn1.write"
+      },
+      {
+        "start": 49152,
+        "end": 53247,
+        "kind": "handler",
+        "write": "sn2.write"
+      },
+      {
+        "start": 53248,
+        "end": 55295,
+        "kind": "handler",
+        "read": "video.bg_r",
+        "write": "video.bg_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 57344,
+        "end": 57344,
+        "kind": "handler",
+        "read": "port.IN2"
+      }
+    ],
+    "customs": [
+      {
+        "port": "IN1",
+        "mask": 64,
+        "member": "vblank",
+        "source": "screen-vblank",
+        "activeLow": true
+      },
+      {
+        "port": "IN1",
+        "mask": 128,
+        "member": "vblank",
+        "source": "screen-vblank",
+        "activeLow": false
+      }
+    ],
+    "inputLatches": [
+      {
+        "port": "COIN",
+        "mask": 1,
+        "activeLow": false,
+        "handler": "ladybug_state.coin1_inserted"
+      },
+      {
+        "port": "COIN",
+        "mask": 2,
+        "activeLow": false,
+        "handler": "ladybug_state.coin2_inserted"
+      }
+    ],
+    "screen": {
+      "width": 240,
+      "height": 192,
+      "xOffset": 8,
+      "yOffset": 32,
+      "refresh": 60.11450381679389,
+      "htotal": 312,
+      "vtotal": 262,
+      "vbstart": 224,
+      "vbend": 32,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "sn76489",
+    "clock": 4000000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489",
+      "SN76489"
+    ],
+    "clocks": [
+      4000000,
+      4000000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "1.c4",
+          "offset": 0,
+          "size": 4096,
+          "crc": "9e0cc781"
+        },
+        {
+          "file": "2.d4",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "5ce5b950"
+        },
+        {
+          "file": "3.e4",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "bc28218d"
+        },
+        {
+          "file": "4.h4",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "2b32e9f5"
+        },
+        {
+          "file": "5.j4",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "d117153e"
+        },
+        {
+          "file": "6.k4",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "c7d366cb"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "9.f7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "63357785"
+        },
+        {
+          "file": "0.h7",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "52ad1133"
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "8.l7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "b022bf2d"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 96,
+      "loads": [
+        {
+          "file": "10-2.k1",
+          "offset": 0,
+          "size": 32,
+          "crc": "42a24dd5"
+        },
+        {
+          "file": "10-1.f4",
+          "offset": 32,
+          "size": 32,
+          "crc": "d736b8de"
+        },
+        {
+          "file": "10-3.c4",
+          "offset": 64,
+          "size": 32,
+          "crc": "27fa3a50"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW0",
+      "mask": 4,
+      "value": 4,
+      "name": "High Score Names"
+    },
+    {
+      "port": "DSW0",
+      "mask": 8,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW0",
+      "mask": 48,
+      "value": 0,
+      "name": "Initial High Score"
+    },
+    {
+      "port": "DSW0",
+      "mask": 192,
+      "value": 192,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin A"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 127
+    },
+    {
+      "tag": "IN2",
+      "init": 255
+    },
+    {
+      "tag": "DSW0",
+      "init": 199
+    },
+    {
+      "tag": "DSW1",
+      "init": 255
+    },
+    {
+      "tag": "COIN",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

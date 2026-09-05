@@ -1,0 +1,463 @@
+{
+  "game": "invaders",
+  "title": "Space Invaders / Space Invaders M (Taito / Midway, 1978)",
+  "fullname": "Space Invaders / Space Invaders M",
+  "year": "1978",
+  "company": "Taito / Midway",
+  "family": "mw8080bw",
+  "driverFile": "src/mame/midw8080/mw8080bw.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Tormod Tjaberg, Mirko Buffoni,Lee Taylor, Valerio Verrando, Zsolt Vasvari",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "i8080",
+      "clock": 1996800,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 8191,
+          "kind": "rom",
+          "readOnly": true
+        },
+        {
+          "start": 8192,
+          "end": 16383,
+          "kind": "ram",
+          "mirror": 16384,
+          "share": "main_ram"
+        },
+        {
+          "start": 16384,
+          "end": 24575,
+          "kind": "rom",
+          "readOnly": true
+        }
+      ],
+      "mask": 32767,
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "mirror": 4,
+            "read": "port.IN0"
+          },
+          {
+            "start": 1,
+            "end": 1,
+            "kind": "handler",
+            "mirror": 4,
+            "read": "port.IN1"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "kind": "handler",
+            "mirror": 4,
+            "read": "port.IN2"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "kind": "nop",
+            "readOnly": true
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "kind": "handler",
+            "write": "soundboard.p1_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "kind": "handler",
+            "write": "soundboard.p2_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "kind": "handler",
+            "mirror": 4,
+            "read": "mb14241.shift_result_r"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "kind": "handler",
+            "write": "mb14241.shift_count_w"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "kind": "handler",
+            "write": "mb14241.shift_data_w"
+          }
+        ],
+        "globalMask": 7
+      }
+    }
+  ],
+  "sound": {
+    "kind": "discrete",
+    "clock": 1996800,
+    "worklet": "invaders-audio",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 260,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 59.541984732824424,
+    "htotal": 320,
+    "vtotal": 262,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "9316b-0869_m739h.h1",
+          "offset": 0,
+          "size": 2048,
+          "crc": "734f5ad8"
+        },
+        {
+          "file": "9316b-0856_m739g.g1",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "6bfaca4a"
+        },
+        {
+          "file": "9316b-0855_m739f.f1",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "0ccead96"
+        },
+        {
+          "file": "9316b-0854_m739e.e1",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "14e538b0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "CONTP1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "CONTP1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "CONTP1",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "value": 0,
+      "name": "Unknown"
+    },
+    {
+      "port": "IN2",
+      "mask": 3,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "IN2",
+      "mask": 128,
+      "value": 0,
+      "name": "Display Coinage"
+    },
+    {
+      "port": "CAB",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "SW6SW7",
+      "mask": 1,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "SW6SW7",
+      "mask": 2,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "SW5",
+      "mask": 1,
+      "value": 0,
+      "name": "Unused"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 209,
+    "contributors": 28,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Michaël Banaan Ananas",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 71,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-17"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 21,
+        "firstCommit": "2016-11-27",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 17,
+        "firstCommit": "2009-08-19",
+        "lastCommit": "2012-12-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 13,
+        "firstCommit": "2014-09-25",
+        "lastCommit": "2025-11-20"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 7,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-03-15"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2025-04-04"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 6,
+        "firstCommit": "2009-10-03",
+        "lastCommit": "2011-09-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-12-13",
+        "lastCommit": "2013-05-31"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 4,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-01",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Colin Douglas Howell",
+        "commits": 3,
+        "firstCommit": "2020-04-01",
+        "lastCommit": "2020-08-11"
+      },
+      {
+        "name": "mariuszw1",
+        "commits": 3,
+        "firstCommit": "2010-09-22",
+        "lastCommit": "2010-09-22"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-09-07",
+        "lastCommit": "2018-12-20"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 2,
+        "firstCommit": "2012-12-20",
+        "lastCommit": "2017-07-23"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-03-31",
+        "lastCommit": "2019-03-31"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2025-09-01",
+        "lastCommit": "2025-09-01"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-06-22",
+        "lastCommit": "2008-06-22"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "eientei95",
+        "commits": 1,
+        "firstCommit": "2022-04-23",
+        "lastCommit": "2022-04-23"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2020-07-23",
+        "lastCommit": "2020-07-23"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 1,
+        "firstCommit": "2010-06-04",
+        "lastCommit": "2010-06-04"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "qwijibo",
+        "commits": 1,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2016-04-30"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2018-04-03",
+        "lastCommit": "2018-04-03"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 48 years ago:\n\nSpace Invaders (c) 1978 Midway Mfg. Co.\n\nExport version manufactured by Midway under license from Taito. For more information about the game itself, please see the original Taito upright model entry; \"Space Invaders\".\n\n- TECHNICAL -\n\nGame ID : 739\n[Upright model]\n\nButtons : 3 (LEFT, RIGHT, FIRE)\n(The US upright model had no joystick)\n\n- TRIVIA -\n\nSpace Invaders was released by Midway Manufacturing, under license by Taito, on November 22, 1978 in the USA.\n\nThe Space Invaders phenomenon stunned many conservative adults of the time who were convinced that video-games soured the minds of their youngsters. Residents of Mesquite, Texas, pushed the issue all the way to the Supreme Court in their efforts to ban the illicit machines from their Bible-belt community. A number of reported incidents of juvenile crime began to surface shortly after the game's release, adding to its 'controversy'. A girl was caught stealing $5,000 from her parents and gangs of youths were reported to have robbed grocery stores just so they would have money to play the game.\n\nOf the reported 350,000 units produced world wide, about 65,000 units were produced in the U.S. alone.\n\nTechnology journalist Jason Whittaker credited the game's success to ending the video game crash of 1977, which had earlier been caused by Pong clones flooding the market, and beginning the golden age of video arcade games. According to The Observer, the home console versions were popular and encouraged users to learn programming; many who later became industry leaders.\n\nSpace Invaders inspired a catchy hit song by 'Uncle Vic' called 'Space Invaders' released over the spring to summer-time period of 1980. The Pretenders also released an instrumental song called 'Space Invaders' on their debut album in 1980.\n\nA Space Invaders unit appears in the 1980 movie 'Midnight Madness', in the 1982 movie 'Jekyll & Hyde... Together Again', in the 1982 movie 'Fast Times at Ridgemont High', in the 1983 movie 'Joysticks', in the 1984 movie 'The Iceman', in the 1991 movie 'Terminator 2 - Judgment Day', and in the 1998 sitcom 'That 70's Show'; Season 4, Episode 8 (Donna's Story).\n\nAn upright unit of the Midway release of Space Invaders appears in the ZZ Top music video, 'Legs'.\n\n- PORTS -\n\nNOTE: For ports released in Japan, please see the Taito upright model entry.\n\n* CONSOLES:\n[US] Atari 2600 (1980) \"Space Invaders [Model CX2632]\" \n[US] Atari 5200 (1982) \"Space Invaders [Model CX5204]\" \nAtari XEGS\n[BR] DynaVision (198?) \n[US] ColecoVision (aug.9, 2003) \"Space Invaders Collection\" \n[EU] Sony PS2 (oct.14, 2005) \"Taito Legends [Model SLES-53438]\" \n[EU] Microsoft XBOX (oct.14, 2005) \"Taito Legends\" \n[US] Sony PS2 (oct.25, 2005) \"Taito Legends [Model SLUS-21122]\" \n[US] Microsoft XBOX (oct.25, 2005) \"Taito Legends\" \n[KO] Sony PS2 (jul.18, 2006) \"Taito Legends [Model SLKA-15056]\" \n\n* HANDHELDS: \n[AU] Nintendo Game Boy (1994) \"Space Invaders [Model DMG-SP-AUS]\" \n[EU] Nintendo Game Boy (1994) \"Space Invaders [Model DMG-SP-NOE]\" \n[UK] Nintendo Game Boy (1994) \"Space Invaders [Model DMG-SP-UKV]\" \n[US] Nintendo Game Boy (oct.1994) \"Space Invaders [Model DMG-SP-USA]\" \n[EU] Sony PSP (oct.6, 2006) \"Taito Legends Power-Up [Model ULES-00473]\" \n[US] Sony PSP (may.17, 2007) \"Taito Legends Power-Up [Model ULUS-10208]\" \n\n* COMPUTERS:\n[EU] Exidy Sorcerer (1978) \"Invaders\" \n[EU] Microtan 65 (1980) \"Space Invasion\" \n[US] TI99/4a (1981) \"TI Invaders [Model PHM 3053]\" by Texas Instruments  \n[US] Tandy Color Computer (1981) \"Space Assault\" \n[US] Tandy Color Computer (1981) \"Color Space Invaders\" \n[US] Commodore Vic 20 \"Avenger\" \n[US] Commodore C64 (1982) \"Avenger [Model C-64 621]\" \n[EU] Commodore C64 (1982) \"Avenger\" \n[EU] BBC B (1982) \"Super Invaders\" by Acornsoft \n[EU] Sinclair ZX-Spectrum (1982) \"Spectral Invaders\" by Bug-Byte \n[EU] Sinclair ZX-Spectrum (1982) \"Space Raiders\" by Sinclair Research \n[EU] Sinclair ZX-Spectrum (1982) \"Invaders\" by Artic Computing (UK) \n[EU] Oric (1983) \"Oric Invaders\" by Arcadia Software \n[US] Tandy Color Computer (1985) \"Super Vaders\" \n[EU] [US] Commodore C64 (1987) \"Arcade Classics\" \n[US] Tandy Color Computer 3 (1988) \"Space Intruders\" : wave 9 is similar to wave 5 of \"Phoenix\".\n[EU] Commodore Amiga (1988) \"Amoeba Invaders\" : included in the cover disk that came with the ST/Amiga Format Magazine (nov.1988, Issue number 5).\n[EU] Atari ST (1989)\n[EU] Sinclair ZX-Spectrum (1993) \"Invaders\" by Design Design Software (UK) : published exclusively on magazine covertape, appeared on side A of covertape \"Your Sinclair issue 85: Christmas Collection 2\".\nPC [MS-DOS] (1997) \"Champ Invaders\" - CHAMProgramming \n[AU] VTech Laser-VZ \"Vz Invaders\" \n[US] Apple II \"Apple Invader\" \n[EU] PC [MS Windows] (oct.14, 2005) \"Taito Legends\" \n[US] PC [MS Windows] (nov.10, 2005) \"Taito Legends\" \n\n* OTHERS:\n[US] LED handheld game (1980) : Black version by Entex \n[US] LED handheld game (1981) : Grey version by Entex \n[US] LCD handheld game (1982) by Tiger Electronics\n[US] LCD handheld game with calculator (1982) by Tiger Electronics\n[US] LCD handheld game (1984) by Tiger Electronics : With larger display\n[EU] LCD handheld game (1999) by Systema \n[US] \"Arcade Legends: Space Invaders TV Game\" (2004) by Radica Games : Also inlcudes Lunar Rescue, Colony 7, Qix and Phoenix.\n[US] Mobile Phones (2007) \"3D Space Invaders\" \n[US] Mobile Phones (2007) \"Space Invaders Trilogy\"\n[US] Atari Flashback 4 (nov.13, 2012) by AtGames \n[US] Atari Flashback 5 (oct.1, 2014) by AtGames\n[US] Atari Flashback 6 (sept.15, 2015) by AtGames\n[US] Atari Flashback 7 (oct.1, 2016) by AtGames\n[US] Atari Flashback 8 (sept.22, 2017) by AtGames\n[US] Atari Flashback 8 Gold Edition (sept.22, 2017) by AtGames\n\n- SERIES -\n\n1. Space Invaders (1978, ARC)\n2. Space Invaders Deluxe (1979, ARC)\n3. Space Invaders II (1980, ARC)\n4. Return of the Invaders (1985, ARC)\n5. Super Space Invaders '91 (1990, ARC)\n6. Space Invaders DX (1994, ARC)\n7. Space Invaders '95 - Attack of the Lunar Loonies (1995, ARC)\n8. Space Invaders (1999, PS)\n9. Space Invaders 25th Silver Anniversary (2003, ARC)\n10. Space Invaders Revolution (2005, DS)\n11. Space Invaders Evolution (2005, PSP)\n12. Space Invaders Extreme (2008, DS/PSP)\n13. Space Invaders Extreme 2 (2009, DS)\n14. Space Invaders Frenzy (2017, ARC)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/31739/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,1791 @@
+{
+  "schemaVersion": 1,
+  "type": "LS157",
+  "className": "ls157_device",
+  "hierarchy": [
+    "ls157_device"
+  ],
+  "sourceFiles": [
+    "src/devices/machine/74157.cpp",
+    "src/devices/machine/74157.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3
+  },
+  "members": [
+    {
+      "name": "m_data_mask",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 15
+    },
+    {
+      "name": "m_a",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_b",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_select",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_strobe",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "a_in_callback",
+      "member": "m_a_in_cb",
+      "slots": 1,
+      "initial": 255
+    },
+    {
+      "signal": "b_in_callback",
+      "member": "m_b_in_cb",
+      "slots": 1,
+      "initial": 255
+    },
+    {
+      "signal": "out_callback",
+      "member": "m_out_cb",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_select"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_strobe"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 72,
+        "column": 1
+      }
+    },
+    {
+      "name": "a_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_data_mask"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_output"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 90,
+        "column": 1
+      }
+    },
+    {
+      "name": "b_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_data_mask"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_output"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 101,
+        "column": 1
+      }
+    },
+    {
+      "name": "ab_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data_mask"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_output"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 113,
+        "column": 1
+      }
+    },
+    {
+      "name": "ba_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data_mask"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_output"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 127,
+        "column": 1
+      }
+    },
+    {
+      "name": "interleave_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data_mask"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BITSWAP"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BITSWAP"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_output"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 141,
+        "column": 1
+      }
+    },
+    {
+      "name": "a0_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_a_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 154,
+        "column": 1
+      }
+    },
+    {
+      "name": "a1_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_a_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 155,
+        "column": 1
+      }
+    },
+    {
+      "name": "a2_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_a_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 156,
+        "column": 1
+      }
+    },
+    {
+      "name": "a3_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_a_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 157,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_a_bit",
+      "parameters": "int bit, bool state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_a"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "bit"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_a"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bit"
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_a"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bit"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_strobe"
+                      }
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_select"
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_out_cb"
+                        },
+                        "property": "isunset"
+                      },
+                      "args": []
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_out_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_a"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 159,
+        "column": 1
+      }
+    },
+    {
+      "name": "b0_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_b_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 178,
+        "column": 1
+      }
+    },
+    {
+      "name": "b1_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_b_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 179,
+        "column": 1
+      }
+    },
+    {
+      "name": "b2_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_b_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 180,
+        "column": 1
+      }
+    },
+    {
+      "name": "b3_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_b_bit"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 181,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_b_bit",
+      "parameters": "int bit, bool state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_b"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "bit"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_b"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bit"
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_b"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bit"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_strobe"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_select"
+                    }
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_out_cb"
+                        },
+                        "property": "isunset"
+                      },
+                      "args": []
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_out_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_b"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 183,
+        "column": 1
+      }
+    },
+    {
+      "name": "select_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_select"
+              },
+              "right": {
+                "kind": "cast",
+                "valueType": "bool",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_select"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "bool",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_output"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 206,
+        "column": 1
+      }
+    },
+    {
+      "name": "strobe_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_strobe"
+              },
+              "right": {
+                "kind": "cast",
+                "valueType": "bool",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_strobe"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "bool",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_strobe"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_out_cb"
+                        },
+                        "property": "isunset"
+                      },
+                      "args": []
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_out_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "update_output"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 220,
+        "column": 1
+      }
+    },
+    {
+      "name": "update_output",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_strobe"
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_out_cb"
+                    },
+                    "property": "isunset"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_select"
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_out_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_b_in_cb"
+                              },
+                              "property": "isunset"
+                            },
+                            "args": []
+                          },
+                          "whenTrue": {
+                            "kind": "identifier",
+                            "name": "m_b"
+                          },
+                          "whenFalse": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "m_b_in_cb"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_data_mask"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_out_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_a_in_cb"
+                              },
+                              "property": "isunset"
+                            },
+                            "args": []
+                          },
+                          "whenTrue": {
+                            "kind": "identifier",
+                            "name": "m_a"
+                          },
+                          "whenFalse": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "m_a_in_cb"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_data_mask"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 240,
+        "column": 1
+      }
+    },
+    {
+      "name": "output_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_strobe"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_select"
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_b_in_cb"
+                          },
+                          "property": "isunset"
+                        },
+                        "args": []
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "m_b"
+                      },
+                      "whenFalse": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_b_in_cb"
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_data_mask"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_a_in_cb"
+                          },
+                          "property": "isunset"
+                        },
+                        "args": []
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "m_a"
+                      },
+                      "whenFalse": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_a_in_cb"
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_data_mask"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.cpp",
+        "line": 258,
+        "column": 1
+      }
+    },
+    {
+      "name": "a_in_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_a_in_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.h",
+        "line": 38,
+        "column": 1
+      }
+    },
+    {
+      "name": "b_in_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_b_in_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.h",
+        "line": 40,
+        "column": 1
+      }
+    },
+    {
+      "name": "out_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.h",
+        "line": 41,
+        "column": 1
+      }
+    },
+    {
+      "name": "ls157_device::a_in_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_a_in_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.h",
+        "line": 38,
+        "column": 94
+      }
+    },
+    {
+      "name": "ls157_device::b_in_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_b_in_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.h",
+        "line": 41,
+        "column": 1
+      }
+    },
+    {
+      "name": "ls157_device::out_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74157.h",
+        "line": 42,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 26,
+    "compiledMethods": 26,
+    "diagnostics": 0
+  }
+}

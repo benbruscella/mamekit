@@ -1,0 +1,852 @@
+{
+  "game": "simpsons",
+  "title": "The Simpsons (4 Players World, set 1) (Konami, 1991)",
+  "fullname": "The Simpsons (4 Players World, set 1)",
+  "year": "1991",
+  "company": "Konami",
+  "family": "simpsons",
+  "driverFile": "src/mame/konami/simpsons.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Ernesto Corvi",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "konami",
+      "clock": 12000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 8191,
+          "kind": "handler",
+          "read": "k052109.read",
+          "write": "k052109.write",
+          "handlerWidth": 8
+        },
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "nop"
+        },
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "ram",
+          "share": "palette",
+          "viewTag": "m_palette_view",
+          "viewEntry": 0,
+          "write": "palette.write8"
+        },
+        {
+          "start": 8064,
+          "end": 8064,
+          "kind": "handler",
+          "read": "port.COIN"
+        },
+        {
+          "start": 8065,
+          "end": 8065,
+          "kind": "handler",
+          "read": "port.TEST"
+        },
+        {
+          "start": 8080,
+          "end": 8080,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 8081,
+          "end": 8081,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 8082,
+          "end": 8082,
+          "kind": "handler",
+          "read": "port.P3"
+        },
+        {
+          "start": 8083,
+          "end": 8083,
+          "kind": "handler",
+          "read": "port.P4"
+        },
+        {
+          "start": 8096,
+          "end": 8103,
+          "kind": "handler",
+          "write": "k053246.k053246_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8112,
+          "end": 8127,
+          "kind": "handler",
+          "write": "k053251.write",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8128,
+          "end": 8128,
+          "kind": "handler",
+          "write": "simpsons_state.coin_counter_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8130,
+          "end": 8130,
+          "kind": "handler",
+          "write": "simpsons_state.eeprom_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8132,
+          "end": 8132,
+          "kind": "handler",
+          "read": "simpsons_state.sound_interrupt_r"
+        },
+        {
+          "start": 8134,
+          "end": 8135,
+          "kind": "handler",
+          "read": "k053260.main_read",
+          "write": "k053260.main_write"
+        },
+        {
+          "start": 8136,
+          "end": 8137,
+          "kind": "handler",
+          "read": "k053246.k053246_r"
+        },
+        {
+          "start": 8138,
+          "end": 8138,
+          "kind": "handler",
+          "read": "watchdog.reset_r"
+        },
+        {
+          "start": 8192,
+          "end": 16383,
+          "kind": "nop"
+        },
+        {
+          "start": 8192,
+          "end": 16383,
+          "kind": "handler",
+          "viewTag": "m_video_view",
+          "viewEntry": 0,
+          "read": "simpsons_state.k052109_r",
+          "write": "simpsons_state.k052109_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8192,
+          "end": 12287,
+          "kind": "handler",
+          "viewTag": "m_video_view",
+          "viewEntry": 1,
+          "read": "simpsons_state.k053247_r",
+          "write": "simpsons_state.k053247_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 12288,
+          "end": 16383,
+          "kind": "ram",
+          "viewTag": "m_video_view",
+          "viewEntry": 1
+        },
+        {
+          "start": 16384,
+          "end": 24575,
+          "kind": "ram"
+        },
+        {
+          "start": 24576,
+          "end": 32767,
+          "kind": "handler",
+          "read": "bank.mainbank",
+          "bank": "mainbank"
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "rom",
+          "romOffset": 491520
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 3579545,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.audiobank",
+          "bank": "audiobank"
+        },
+        {
+          "start": 61440,
+          "end": 63487,
+          "kind": "ram"
+        },
+        {
+          "start": 63488,
+          "end": 63489,
+          "kind": "handler",
+          "read": "ymsnd.read",
+          "write": "ymsnd.write"
+        },
+        {
+          "start": 64000,
+          "end": 64000,
+          "kind": "handler",
+          "write": "simpsons_state.z80_arm_nmi_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 64512,
+          "end": 64559,
+          "kind": "handler",
+          "read": "k053260.read",
+          "write": "k053260.write"
+        },
+        {
+          "start": 65024,
+          "end": 65024,
+          "kind": "handler",
+          "write": "simpsons_state.z80_bankswitch_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "speaker",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "speaker",
+        "targetInput": 1
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0,
+        "target": "speaker",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0,
+        "target": "speaker",
+        "targetInput": 1
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "K053260",
+        "deviceTag": "k053260",
+        "clock": 3579545,
+        "sampleRegion": "k053260",
+        "gain": 0.5,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "write"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 320,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.18560606060606,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 524288,
+      "loads": [
+        {
+          "file": "072-g02.16c",
+          "offset": 0,
+          "size": 131072,
+          "crc": "580ce1d6",
+          "alt": [
+            {
+              "file": "072-s02.16c",
+              "crc": "265f7a47"
+            }
+          ]
+        },
+        {
+          "file": "072-g01.17c",
+          "offset": 131072,
+          "size": 131072,
+          "crc": "9f843def",
+          "alt": [
+            {
+              "file": "072-v01.17c",
+              "crc": "effd6c09"
+            },
+            {
+              "file": "072-p01.17c",
+              "crc": "07ceeaea"
+            },
+            {
+              "file": "072-t01.17c",
+              "crc": "91de5c2d"
+            }
+          ]
+        },
+        {
+          "file": "072-j13.13c",
+          "offset": 262144,
+          "size": 131072,
+          "crc": "aade2abd",
+          "alt": [
+            {
+              "file": "072-m13.13c",
+              "crc": "f36c9423"
+            },
+            {
+              "file": "4 e. devices.13c",
+              "crc": "5f0ada6a"
+            },
+            {
+              "file": "072-x13.13c",
+              "crc": "3304abb9"
+            },
+            {
+              "file": "072-013.13c",
+              "crc": "8781105a"
+            },
+            {
+              "file": "072-_13.13c",
+              "crc": "54e6df66"
+            },
+            {
+              "file": "4.13c",
+              "crc": "c3040e4f"
+            },
+            {
+              "file": "072-213.13c",
+              "crc": "b326a9ae"
+            }
+          ]
+        },
+        {
+          "file": "072-j12.15c",
+          "offset": 393216,
+          "size": 131072,
+          "crc": "479e12f2",
+          "alt": [
+            {
+              "file": "072-l12.15c",
+              "crc": "84f9d9ba"
+            },
+            {
+              "file": "3 e. devices.15c",
+              "crc": "22d00d1f"
+            },
+            {
+              "file": "072-x12.15c",
+              "crc": "fa4fca12"
+            },
+            {
+              "file": "072-012.15c",
+              "crc": "244f9289"
+            },
+            {
+              "file": "072-_12.15c",
+              "crc": "96636225"
+            },
+            {
+              "file": "3.15c",
+              "crc": "eb4f5781"
+            },
+            {
+              "file": "072-112.15c",
+              "crc": "3bd69404"
+            },
+            {
+              "file": "072-212.15c",
+              "crc": "584d9d37"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 163840,
+      "loads": [
+        {
+          "file": "072-e03.6g",
+          "offset": 0,
+          "size": 32768,
+          "crc": "866b7a35",
+          "alt": [
+            {
+              "file": "072-g03.6g",
+              "crc": "76c1850c"
+            }
+          ],
+          "continueSegments": [
+            {
+              "offset": 65536,
+              "size": 98304,
+              "fileOffset": 32768
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "k052109",
+      "size": 1048576,
+      "loads": [
+        {
+          "file": "072-b07.18h",
+          "offset": 0,
+          "size": 524288,
+          "crc": "ba1ec910",
+          "groupSize": 2,
+          "skip": 2
+        },
+        {
+          "file": "072-b06.16h",
+          "offset": 2,
+          "size": 524288,
+          "crc": "cf2bbcab",
+          "groupSize": 2,
+          "skip": 2
+        }
+      ]
+    },
+    {
+      "region": "k053246",
+      "size": 4194304,
+      "loads": [
+        {
+          "file": "072-b08.3n",
+          "offset": 0,
+          "size": 1048576,
+          "crc": "7de500ad",
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "072-b09.8n",
+          "offset": 2,
+          "size": 1048576,
+          "crc": "aa085093",
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "072-b10.12n",
+          "offset": 4,
+          "size": 1048576,
+          "crc": "577dbd53",
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "072-b11.16l",
+          "offset": 6,
+          "size": 1048576,
+          "crc": "55fab05d",
+          "groupSize": 2,
+          "skip": 6
+        }
+      ]
+    },
+    {
+      "region": "k053260",
+      "size": 1310720,
+      "loads": [
+        {
+          "file": "072-d05.1f",
+          "offset": 0,
+          "size": 1048576,
+          "crc": "1397a73b"
+        },
+        {
+          "file": "072-d04.1d",
+          "offset": 1048576,
+          "size": 262144,
+          "crc": "78778013"
+        }
+      ]
+    },
+    {
+      "region": "eeprom",
+      "size": 128,
+      "loads": [
+        {
+          "file": "simpsons.12c.nv",
+          "offset": 0,
+          "size": 128,
+          "crc": "ec3f0449",
+          "alt": [
+            {
+              "file": "simpsons2p.12c.nv",
+              "crc": "fbac4e30"
+            },
+            {
+              "file": "simpsons2pj.12c.nv",
+              "crc": "3550a54e"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 128,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "TEST",
+      "mask": 1,
+      "value": 1,
+      "name": "Service Mode"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-27",
+    "commits": 209,
+    "contributors": 31,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "hap",
+      "Olivier Galibert",
+      "Vas Crabb"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 59,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 28,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "hap",
+        "commits": 19,
+        "firstCommit": "2020-07-05",
+        "lastCommit": "2026-03-14"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 13,
+        "firstCommit": "2016-06-26",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 13,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 11,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2014-06-26"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 7,
+        "firstCommit": "2018-09-07",
+        "lastCommit": "2022-11-02"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-02",
+        "lastCommit": "2023-04-15"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 5,
+        "firstCommit": "2014-03-01",
+        "lastCommit": "2014-10-06"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2022-05-31"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 4,
+        "firstCommit": "2008-08-25",
+        "lastCommit": "2013-05-15"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 4,
+        "firstCommit": "2013-07-13",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 4,
+        "firstCommit": "2018-06-07",
+        "lastCommit": "2018-12-15"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2013-07-05",
+        "lastCommit": "2013-12-23"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2019-05-05",
+        "lastCommit": "2025-09-28"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2010-05-13",
+        "lastCommit": "2013-12-23"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 2,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 2,
+        "firstCommit": "2015-08-15",
+        "lastCommit": "2015-08-16"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2022-06-04"
+      },
+      {
+        "name": "therealmogminer@gmail.com",
+        "commits": 2,
+        "firstCommit": "2016-08-18",
+        "lastCommit": "2016-08-18"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2010-03-07",
+        "lastCommit": "2010-03-07"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2026-06-27",
+        "lastCommit": "2026-06-27"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2018-09-02",
+        "lastCommit": "2018-09-02"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2008-01-02",
+        "lastCommit": "2008-01-02"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "MetalliC",
+        "commits": 1,
+        "firstCommit": "2018-09-03",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "Nathan Woods",
+        "commits": 1,
+        "firstCommit": "2013-03-04",
+        "lastCommit": "2013-03-04"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-02-07",
+        "lastCommit": "2008-02-07"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 35 years ago:\n\nThe Simpsons (c) 1991 Konami.\n\nA jewel heist gone wrong sees Mr Burns's sidekick, Smithers, kidnapping Maggie and making his escape. Between one and four players take on the role of either Homer, Marge, Lisa, or Bart in this colorful, horizontally-scrolling beat-em-up from Konami. Each Simpsons character possesses an attacking move specific to them; Marge is armed with a vacuum cleaner, Lisa has a skipping rope, Bart has his skateboard, and Homer fights with his fists. The players must battle their way through a variety of Simpsons-themed levels - such as Springfield and Krustyland - fighting goons, thugs, zombies, drunks, firemen, and several Simpsons regulars. Many Simpsons characters that don't appear as enemies have 'cameo' scenes in the game (Otto working at a burgerstand in Krustyland, for example). The archetypal 'boss' character awaits the players at the end of every stage. The game ends with a final showdown with the evil Mr. Burns in his luxurious mansion.\n\nThe Simpsons was designed to Konami's typically-high production standards and was, like the 'Ninja Turtles' games that appeared a couple of years' earlier, very faithful to its source material. The colorful, smoothly-animated sprites captured the spirit of the legendary cartoon superbly, and the game's many humorous touches were timed to perfection.\n\n- TECHNICAL -\n\nThere were several distinct versions of this game available in the arcade, the 4-player dedicated cabinet, the 4-player conversion kit (designed to retrofit \"Teenage Mutant Ninja Turtles\", but a lot of them ended up on \"Gauntlet\" machines too), and the 2-player conversion kit (designed to retrofit almost anything). The only real difference in game-play between versions was the maximum amount of players. The Simpsons dedicated cabinet was fairly large and had an over-sized control panel (to accommodate 4 players). The sides were decorated with painted side-art showing all five members of the Simpsons family scampering around (Homer seems to be stepping on the tail of the family cat). Some cabinets may have this same scene as a large sticker, instead of it being painted on. American machines are usually blue in color, while the European ones were usually white. The marquee shows a family photo and has a 'The Simpsons' logo done in yellow. The control panel repeats the graphics from the marquee and has 4 joysticks (one for each player), each of which is a different color. Different Simpsons machines will have different sized monitors, although 25\" and 32\" were the most popular sizes available. \n\nGame ID : GX072 \n\nMain CPU : KONAMI (@ 3 Mhz) \nSound CPU : Zilog Z80 (@ 3.579545 Mhz) \nSound Chips : Yamaha YM2151 (@ 3.579545 Mhz), K053260 (@ 4 Mhz) \n\nPlayers : 4 \nControl : 8-Way Joystick \nButtons : 2 \n= > Attack, Jump\n\n- TRIVIA -\n\nThe Simpsons was released in March 1991. \n\nThis video game is based on the prime-time animated series of the same name created by Matt Groening. \n\nThe Simpsons and \"Aliens\" arcade machines can be seen in the background of the 'Moe's Tavern Stage'. Ever wonder why the Aliens arcade game makes a cameo appearance in The Simpsons? It turns out that both The Simpsons tv show and Aliens (the movie) are made by 20th Century Fox (and of course, Konami got the rights to make the arcade games for both franchises). \n\nSome stuff related to the TV series : \n* In the character profiles, Lisa is said to be age 7. In the TV series, she is 8 years old. \n\n* In the Character profile, Homer's age is 35. His real age is 36. Konami goofed that one. \n\n* Bart wears a blue shirt in this game. In the series, he normally wears an orange shirt. The blue-shirted Bart appeared on various T-shirts and other Simpsons merchandise. This was even referenced in one episode of the series. Homer was waving Lisa (who wears a red dress) around to attract a bull's attention. Then Homer says 'Now for some calming blue', and reaches for Bart. Seeing that Bart is wearing an orange shirt, he says 'Where's your blue shirt?'. Bart replies, 'I don't have a blue shirt'. \n\n* In some parts of the game, the bow in Maggie's hair is pink. Other times, it is the correct blue color. \n\n* The rabbit characters that appear in various places in the game are from Matt Groening's comic strip, 'Life in Hell'. \n\n* Smithers is much more evil in this game than he has ever been in the show. In the series, Smithers is (as Burns himself put it) 'the sober Yin to [Burns'] raging Yang'. In this game he is depicted as a cape-wearing, bomb-throwing psycho. Smithers' voice is wrong - Smithers is colored wrong. The color scheme used in this game appears to be based on the episode 'Homer's Odyssey', in which Smithers was colored incorrectly. In this episode, his skin color was also incorrect : instead being yellow, it was a dark pink color. Also, Smithers has never worn a cape, as he does in this game (Perhaps he has an evil twin who is a cape-wearing mad bomber!). \n\n* Mr. Burns' voice also sounds wrong, except when he says 'Excellent'. The 'Excellent' voice sample was taken directly from the show and the rest of the lines were recorded by a different actor. \n\n* SPOILER ALERT! : After Mr. Burns has been defeated, his eyes turn into Xs as he is lying on the ground. In the series Bart's eyes were drawn as Xs in a dream sequence, when Bart was imagining that school bully Nelson Muntz had beaten him to death and the school nurse had reconstructed his face for his funeral. \n\n* In this game Sideshow Bob helps you by giving you food that restores your health. Since a first season episode where he framed Krusty the Klown for armed robbery and his plans were foiled by the Simpson kids, he is normally a villain. It seems that this game was made before the first season was finished (Or at least the people who worked on the game hadn't seen all of the episodes yet). \n\n* The 'Moe's Tavern' stage in this game does not look much like it's TV counterpart. In this game it seems to be underground and only accessible by hidden elevators (One of the elevators is in a fake 'Krusty' grave in the cemetery stage, the other in a wall of rock in the 'Springfield Butte' stage). Of course, in the series it is just a regular building with a regular door that people walk through off the street. \n\n* In this game, Barney's hair color is the same color as his skin (yellow). He appeared this way in a few early episodes of the first season, but later his hair was colored brown and only the Simpson kids have hair that is the same color as their skin. \n\n* Channel 6 (Stage 7) : The anchorman in this stage is the same one that appears in the episode 'Call of the Simpsons'. In that episode, this anchorman sounds just like Kent Brockman, but looks completely different. The anchorman's hair was colored gray in the episode, but in this game the anchorman is colored like Scott Christian (Early on in the series, an anchor named Scott Christian would frequently be 'filling in for Kent Brockman', the regular anchorman. Eventually Christian was dropped from the series and they just used Kent Brockman). This anchorman is neither Kent Brockman or Scott Christian. If you stand in front of the anchorman, he will get mad. If you jump up on the anchor's desk, he will shrug his shoulders. \n\nIn Stage 7, in the scene where you fight ninjas, the sign reads 'kabuki'. \n\nMichael Jackson used to own this game (4-Player model, serial number: 072251). It was sold at the official Michael Jackson Auction on April 24, 2009.\n\n- UPDATES -\n\n* In the Japanese version, there are nuclear bombs laying around that can be thrown at enemies (for example, in front of the Noiseland Arcade in the first level). These bombs are not present in the other versions. These bombs look the same as the ones Mr. Burns shoots at you on the last level.\n\n* In the Japanese version, you can fill you life meter past full. For example, if your life meter is already full and you get an item that restores your health, you get no benefit in the non-Japanese versions. But in the Japanese version, you will get additional health points, indicated in the meter by a different color (When the life meter is full, it is purple. When it goes past full, the additional health is shown in yellow).\n\n- STAFF -\n\nMain programmer : A. Suzuki\nSoftware designers : Hirotaka_2, Nwk\nGraphic designer : Kengo Nakamura\nMain character designer : Y. Takano\nCharacter designers : K. Nakajima, Noriyuki Yokoki\nSound & effect programmer : Hideaki Shikama\nMusic by: N. Hanzawa\nHardware designer : H. Matsuura\nPackage designers : N. Satoh, K. Kamiya\nSpecial guest : Hiroshi Iuchi (H. Iuchi_4), M. Samejima\nManagement : S. Kido\nSupervisor : Kengo Nakamura\n\n- PORTS -\n\n* CONSOLES: \nMicrosoft XBOX 360 [XBLA] [US] [EU] [AU] [JP] (feb.3, 2012)  \nSony PlayStation 3 [PSN] [US] (feb.7, 2012)  \nSony PlayStation 3 [PSN] [EU] (feb.8, 2012)  \n\n* COMPUTERS: \n[US] Commodore C64 (1991) \nPC [MS-DOS] [US] (1991)  \n\n* OTHERS: \nBlackBerry [US] (dec.9, 2009) [Model 5046]\nApple iPhone/iPod [US] (dec.21, 2009) [Model 344217468]\nWindows Mobile [US] (feb.1, 2010)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2445/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

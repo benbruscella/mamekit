@@ -1,0 +1,195 @@
+Arcade Video game published 44 years ago:
+
+Robotron: 2084 (c) 1982 Williams.
+
+Robotron: 2084 is a single-screen shoot-em-up set in a near future in which mankind has developed super-intelligent, self-aware robots called Robotrons, in order to aid mankind and to build a better world. The robots quickly realised that they don't need the Human Race and have revolted against their creators, vowing to either genetically reprogram the remaining humans to side with the Robotrons, or to wipe them out entirely. 
+
+The player takes on the role of the single human who due to a malfunction in his genetic engineering, cannot be re-programmed by the Robotrons. The free-minded human must destroy the enemy Robotrons and rescue as many of the Earth's remaining human families as possible. 
+
+Robotron: 2084 utilizes a dual joystick control system, with the left stick controlling player movement and the right controlling the direction of fire. The player's only weapon is an Anti-Robot Laser Gun. Each single-screen wave is populated with enemy robots and obstacles, as well as human family members who can be rescued to earn additional points. 
+
+There are three types of trapped humans; Man, Woman and Child and they will wander aimlessly until the player makes contact with them. If a Robotron touches them first, they are either killed or, if touched by the brain-like Robotron, converted into enemy 'progs. 
+
+In addition to the Robotrons, each wave also features static obstacles called Electrodes. These pulsating objects can block the player's path and a collision with one results in instant death. Electrodes come in a number of different shapes and must be avoided or destroyed with the Laser Gun.
+
+ENEMY ROBOTRON UNITS:
+
+* GRUNT: The least sophisticated species of Robot is the Grunt. It has no weapon and possesses only minimal intelligence. Grunts appear in large numbers and will relentlessly pursue players to overrun and destroy them. Each Grunt killed is worth 100 points.
+
+* TANK: Its goal is to kill the player using rebounding Shells. Annihilate the Tank for 300 points; the Shell for 50 points.
+
+* SPHEROID: This pulsating sphere may initially look harmless, but it is the mother-ship that spawns deadly 'Enforcer Embryos'. Players must try to destroy the Spheroid before it ejects the Embryos to earn 1,000 points.
+
+* ENFORCER: The Embryos grow into evil Enforcers. Kill them for 200 points. Let them live and they will lessen the player's chance for survival by launching Enforcer Sparks. Destroy the Sparks for 25 points.
+
+* HULK: In all attack waves except every 5th, the Hulk will stalk his prey. Hulk units are invincible but the player's Gun can only slow it down or divert it from its objective. 
+
+* BRAIN: The Brain is the most clever and dangerous of the Robotrons. Its two-pronged attack will be launched every 5th wave. If it touches the player, it will electrocute them where they stand. It can also fire Cruise Missiles that will relentlessly follow the player until either contact is made or they are shot and destroyed. Kill the Brain for 500 points; destroy the Cruise Missile for 75 points.
+
+The victims of the 2nd prong of the Brain's attack are the defenseless humans. If captured, a human will be irreversibly transformed - literally re-programmed by the Brain's incredible mind powers - into a Prog: a Robot that will viciously turn against its own protector, the player. Annihilate the Progs for 100 points or meet a violent death at their hands.
+
+- TECHNICAL -
+
+Robotron was available in both upright and cocktail format, with the cocktail cabinet being fairly rare. The alternate cabinets also had different graphics (at least the color scheme was different), and are much more difficult to find replacement graphics for. The standard Robotron upright was 6'2" tall and featured white sides and a black front. It had painted side-art in the form of a '2084' logo and a few stripes (this is a very simple design, and is easy to repaint if your cabinet happens to be scratched up). The control panel is covered with a geometric shape design, and has two 8-Way joysticks and two start buttons. These joysticks are of a peculiar design, but can easily be replaced with a pair of modern joysticks (purchase red ball tops ones, because that is what the originals had). The games marquee has the 'Robotron' logo in a font reminiscent of an early 80s computer. This is superimposed over a triangular design made from shapes and lines. The Robotron cocktail cabinet was finished completely with woodgrain laminate. The only graphics were on the control panels, and the small instruction cards that were placed under the top glass. The players would sit across from each other, and the screen image would flip for each player. 
+
+Main CPU : Motorola M6809 (@ 1 Mhz) 
+Sound CPU : M6808 (@ 894.75 Khz) 
+Sound Chips : DAC 
+
+Players : 2 
+Control : Double 8-way joysticks (see 'Trivia' section for more information)
+
+- TRIVIA -
+
+Robotron: 2084 was released in March 1982 in the USA.
+
+Total production is estimated at 18,000 units. The upright cabinet style is common. Both the cabaret (or mini) and cocktail styles were produced in much lower numbers, one estimate citing only 500 cocktails produced. 
+
+The basic play of Robotron was programmed in three days. The design of Robotron was influenced by "Berzerk" and the Commodore PET game 'Chase'. The concept name was 'Robot Wars - 1984'. 
+
+The original name for the production was '2084 - Robotron', but the name Robotron was more commonly used by virtually everyone involved, and the game was renamed shortly before production. This is why the cabinet side artwork simply has the number 2084 vertically. 
+
+Robotron was unique at the time in that the controls were two 8-way joysticks (one for running, one for shooting) rather than the more typical single joystick and fire button. This unique dual-joystick control was created because of two occurrences : Jarvis liked the game Berzerk, but hated the joystick-and-button run-and-shoot configuration; and the fact that Jarvis's right hand had been broken in a car accident shortly after he finished creating Stargate. 
+
+This game shares some sounds from "Defender" and "Stargate". 
+
+The human characters in this game are named Mommy, Daddy and Mikey. The idea and the inspiration for the character Mikey was from the 1970's commercial for 'Life' cereal. 
+
+Williams were sued by Walt Disney Productions for copyright and patent infringement regarding Williams use of 'Tron' in Robotron. Williams won the suit and Walt Disney releases Tron on time. 
+
+A Robotron machine appears in the 1983 movie 'Koyaanisqatsi - Life out of Balance' and on the 1986 movie 'Better Off Dead'.
+
+- UPDATES -
+
+Yellow/Orange label:
+* The default difficulty is 5.
+* The demo calls the Quarks 'Cubeoids'.
+* The default high score is 131682.
+
+Blue label:
+* The default difficulty is 3.
+* The default high score is 151782.
+* The 'shot-in-corner' bug is fixed.
+
+- SCORING -
+
+G.R.U.N.T. (GROUND ROVING UNIT NETWORK TERMINATOR) - The red robots: 100 points 
+SPHEROID - The red circles that travel around the game screen: 1,000 points 
+QUARK - The white boxes with an 'X' in the middle that travel around the game screen: 1,000 points 
+ENFORCER - The blue, 'Robby the Robot' looking robots: 150 points 
+SPARKS (Shot by ENFORCERS): 25 points 
+TANK - The red robots that have tracked wheels underneath them hence making them look like tanks : 200 points 
+TANK SHELLS: 50 points 
+BRAIN - The robots that are blue and have really large heads: 500 points 
+CRUISE MISSILES (shot by BRAINS): 25 points 
+PROG (reprogrammed humans): 100 points 
+FAMILY MEMBERS: 1,000 points for the first human rescued, progressing to 2,000, 3,000, 4,000, then 5,000 for every human rescued after that. The scoring starts over when the player is killed or finishes a wave.
+
+- TIPS AND TRICKS -
+
+* When you start the game, your man will be in the middle of the playing field surrounded by various robots. Depending on the wave that you are on will determine exactly what robots are ready to terminate your existence. The game is straight-forward, take out all the robots (except HULKS) to advance to the next wave. It is vital for your survival that you learn how to 'scoot and shoot'. If you don't learn how operate the controls independently and run in one direction while shooting in other directions, you won't survive very long in this game.
+
+* Equally important to 'scoot and shoot' is your ability to be able to fire on the diagonal. It's easy firing up, down, left, and right, but it takes a little more mastery to fire in the diagonal directions.
+
+* Learn the different things the enemy robots do. For example, the SPEROIDS have a tendency to congregate in the corners. This works to your advantage since you can blast about three or four before they discharge their supply of ENFORCER robots.
+
+* Your main objective is to blast a path through the robots and get to the edge of the screen. It doesn't matter what edge, just get to one. The reason is painfully simple : it give the robots one less direction to assault you from. Plus, you can lead them around in circles blasting them and also cleaning out the corners from the above-mentioned ENFORCERS.
+
+* Enforcer Bug : The enforcer bug is when an enforcer is in the lower right corner and you shoot it diagonal there is a 1 in 3,000 chance the game will reset. The reason for the game resetting is there is a bug in the diagonal explosion code for enforcers. The memory below the screen holds the stack and an unclipped pixel can get 'drawn' into the stack causing the game to lock and the watchdog to kick in and reset the system.
+
+* The only times where you won't want to seek the sides is during the BRAIN and TANK robot waves. The BRAINS fire a homing shot at your man so you need as much room to maneuver as possible so going against the wall would restrict that movement. The same goes for the TANK robots which fire bounce shots. They may miss you initially but you might get hit by the shot as it bounces up. You are safer in the middle area where you have room to maneuver. Just watch out for other enemies (which will be very low in number).
+
+* Try to rescue the humans as long as it doesn't put your man in danger of dying. You can rack up some major points on the BRAIN waves since they are loaded with humans for the BRAIN robots to 're-program'. Again, make sure you have an avenue of escape. Doesn't make sense to save a human, get the extra man, then die. You, in essence, gained nothing from that level. You can also shoot the HULK robots to push them away from humans also. On the BRAIN waves, make sure you pick off the BRAIN robots as soon as possible. This prevents them from reprogramming the humans and leaves you more people to get major points with.
+
+* The 'Mikey' bug - on the first Brain wave. There are a lot of Mommies and only one Mikey. The Brains all go for Mikey - if you can protect him (don't pick him up, though!), the Brains will ignore all other humans, making for a point-fest if you can grab them all. As soon as you die, however, the Brains will grab any human they find. This actually works on all Brain waves, but in the other waves the 'golden human' is a random Daddy or Mommy or Mikey, so you don't know who to protect. It's a bug, but a cool one. For this bug to work, the player must make sure that no humans are left alive in the level previous.
+
+* Since you don't have a limit on your shots, you can put up a 'wall' of energy in whatever direction you move. This can have a very devastating effect if applied right.
+
+* Make sure you take a quick look at the wave to assess where the main threats are. You will have from one to two seconds to get ready for action. If you can survive the initial few seconds as you blast your way toward the edge, your chances of survival will be that much greater. Also be sure to remember what each wave has in store for you, this also will give you a greater chance of getting through the wave.
+
+* If you get tired, you can take a break. That's right, wait for a TANK wave. Eliminate all of the robots except for one. After firing a few shots, the TANK robot will run out. After that, it's just a matter of avoiding the TANK and any other pesky robots.
+
+* During the tank wave, try to avoid shooting the tanks shots for as long as you can. If the tanks fire 20 shots that do not hit anything, the tanks will cease firing.
+
+* ENFORCERS, like their SPHEROID transports, tend to congregate in corners. Use this to your advantage.  Every now and then one or two will zip very fast across the field. Their main threat, though, is volume of fire. When you are on the edges, watch out since their shots tend to roll toward your man.
+
+* See all those pretty shapes on the playing field? They are there as a nuisance. They will kill your man if he hits them. They can, however, be shot out of the way but yield no points.
+
+* Robotron Name Trick : The formula consists of three sequences of buttons, that all must be completed within a quarter of a second of each other, without the player dying on-screen. The moves are as follows...
+1) Fire Up while moving Right and press Player 1 button.
+2) Fire Down while moving Up and press Player 2 button.
+3) Move Down while firing Up.
+The designer's names will appear and stay on the screen until the joystick is released from the Up position. Your game is over(!) once you've done this trick.
+
+- STAFF -
+
+Staff: Larry DeMar (LED), Eugene Jarvis (DRJ) (EPJ), (JER), (KID), (MLG), Steve Ritchie (SSR), (UNA), (JRS), (CJM)
+
+- PORTS -
+
+* CONSOLES: 
+[US] Atari 2600 : Unreleased prototype
+[US] Atari 5200 (1983) "Robotron: 2084 [Model CX5225]" 
+[US] Atari 7800 (1986) "Robotron: 2084 [Model CX7809]" 
+Atari XEGS 
+[US] Sega Genesis (1996) "Williams Arcade's Greatest Hits" 
+[EU] Sega Mega Drive (1996) "Arcade's Greatest Hits [Model T-97126-50]" 
+[US] Sega Saturn (1996) "Arcade's Greatest Hits [Model T-9703H]" 
+[US] Sony PlayStation (apr.10, 1996) "Williams Arcade's Greatest Hits [Model SLUS-00201]" 
+[EU] Sony PlayStation (sept.1, 1996) "Williams Arcade's Greatest Hits [Model SLES-00323]" 
+[US] Nintendo SNES (oct.1996) "Williams Arcade's Greatest Hits [Model SNS-AW8E-USA]" 
+[EU] Nintendo SNES (jan.8, 1997) "Williams Arcade's Greatest Hits [Model SNSP-AW8P-EUR]" 
+[US] Sega Dreamcast (june.27, 2000) "Midway's Greatest Arcade Hits Vol. 1 [Model T-9713N]" 
+[US] Sega Dreamcast (jul.28, 2000) "Midway's Greatest Arcade Hits Vol. 1 [Model T-9710D-50]" 
+[US] Nintendo 64 (nov.14, 2000) "Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]" 
+[US] Sony PS2 (nov.18, 2003) "Midway Arcade Treasures [Model SLUS-20801]" 
+[US] Microsoft XBOX (nov.24, 2003) "Midway Arcade Treasures" 
+[US] Nintendo GameCube (dec.18, 2003) "Midway Arcade Treasures [Model DOL-GAKE-USA]" 
+[EU] Microsoft XBOX (feb.6, 2004) "Midway Arcade Treasures" 
+[EU] Sony PS2 (feb.6, 2004) "Midway Arcade Treasures [Model SLES-51927]" 
+[EU] Microsoft XBOX 360 [XBLA] (dec.2, 2005) : Retired in 2010
+[US] Microsoft XBOX 360 [XBLA] (dec.16, 2005) : Retired in 2010
+[JP] Microsoft XBOX 360 [XBLA] (dec.17, 2005) : Retired in 2010
+[US] Microsoft XBOX 360 (nov.6, 2012) "Midway Arcade Origins" 
+[US] Sony PlayStation 3 (nov.6, 2012) "Midway Arcade Origins [Model BLUS-31083]" 
+[EU] Microsoft XBOX 360 (nov.15, 2012) "Midway Arcade Origins" 
+[EU] Sony PlayStation 3 (nov.15, 2012) "Midway Arcade Origins [Model BLES-01768]" 
+
+* HANDHELDS: 
+[US] Atari Lynx (1991) "Robotron: 2084 [Model PT5003]" 
+[US] Nintendo GBA (nov.22, 2001) "Midway's Greatest Arcade Hits [Model AGB-AM3E-USA]" 
+[EU] Nintendo GBA (nov.30, 2001) "Midway's Greatest Arcade Hits [Model AGB-AM3P-EUR]" 
+
+* COMPUTERS: 
+[EU] BBC Micro (1982) 
+[US] Atari 800 (1983) "Robotron: 2084 [Model RX8033]" 
+[US] Tandy Color Computer (1983) "Robotack" 
+[US] Commodore VIC-20 (1983) "Robotron: 2084 [Model RX-8520]" 
+[EU] Commodore C64 (1983) 
+[US] Commodore C64 (1983) "Robotron: 2084 [Model RX8521]" 
+[US] PC [Booter] (1983) 
+[US] Apple II (1983) 
+[EU] BBC B (1984) by Atarisoft 
+[EU] Sinclair ZX Spectrum : Unreleased
+[EU] Atari ST (1987) 
+[US] PC [MS Windows 3.1/DOS, CD-ROM] (1995) "Williams Arcade Classics" 
+[US] PC [MS Windows 95/DOS, CD-ROM] (1996) "Williams Arcade Classics" 
+[US] PC [MS Windows, CD-ROM] (aug.27, 2004) "Midway Arcade Treasures" 
+[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) "Midway Arcade Treasures" 
+
+* OTHERS: 
+[US] Tiger Game.com (1997) "Williams Arcade Classics [Model 71-722]" 
+[US] Mobile Phones (apr.5, 2005)
+
+- SERIES -
+
+1. Robotron: 2084 (1982, ARC) 
+2. Blaster (1983, ARC) 
+3. Robotron X [Model SLUS-00252] (1996, PSX)
+4. Robotron 64 [Model NUS-NRXE-USA] (1998, N64)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2243/?o=2
+
+— Gaming History (arcade-history.com)

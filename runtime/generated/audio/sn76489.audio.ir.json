@@ -1,0 +1,46 @@
+[
+  {
+    "schemaVersion": 1,
+    "type": "SN76489",
+    "className": "sn76489_device",
+    "feedbackMask": 16384,
+    "whiteNoiseTap1": 1,
+    "whiteNoiseTap2": 2,
+    "negate": true,
+    "stereo": false,
+    "clockDivider": 8,
+    "ncrStyle": false,
+    "segaStyle": false,
+    "writeMethod": "write",
+    "sourceFiles": [
+      "src/devices/sound/sn76496.cpp",
+      "src/devices/sound/sn76496.h"
+    ],
+    "source": {
+      "file": "src/devices/sound/sn76496.cpp",
+      "line": 190
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "type": "SN76489A",
+    "className": "sn76489a_device",
+    "feedbackMask": 65536,
+    "whiteNoiseTap1": 4,
+    "whiteNoiseTap2": 8,
+    "negate": false,
+    "stereo": false,
+    "clockDivider": 8,
+    "ncrStyle": false,
+    "segaStyle": false,
+    "writeMethod": "write",
+    "sourceFiles": [
+      "src/devices/sound/sn76496.cpp",
+      "src/devices/sound/sn76496.h"
+    ],
+    "source": {
+      "file": "src/devices/sound/sn76496.cpp",
+      "line": 195
+    }
+  }
+]

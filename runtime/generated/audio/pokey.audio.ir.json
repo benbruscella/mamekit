@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "type": "POKEY",
+  "className": "pokey_device",
+  "registers": {
+    "AUDF1_C": 0,
+    "AUDC1_C": 1,
+    "AUDF2_C": 2,
+    "AUDC2_C": 3,
+    "AUDF3_C": 4,
+    "AUDC3_C": 5,
+    "AUDF4_C": 6,
+    "AUDC4_C": 7,
+    "AUDCTL_C": 8,
+    "STIMER_C": 9,
+    "SKREST_C": 10,
+    "POTGO_C": 11,
+    "SEROUT_C": 13,
+    "IRQEN_C": 14,
+    "SKCTL_C": 15
+  },
+  "audc": {
+    "NOTPOLY5": 128,
+    "POLY4": 64,
+    "PURE": 32,
+    "VOLUME_ONLY": 16,
+    "VOLUME_MASK": 15
+  },
+  "audctl": {
+    "POLY9": 128,
+    "CH1_HICLK": 64,
+    "CH3_HICLK": 32,
+    "CH12_JOINED": 16,
+    "CH34_JOINED": 8,
+    "CH1_FILTER": 4,
+    "CH2_FILTER": 2,
+    "CLK_15KHZ": 1
+  },
+  "skReset": 3,
+  "div64": 28,
+  "div15": 114,
+  "defaultGain": 744,
+  "poly4": {
+    "size": 4,
+    "taps": [
+      2,
+      3
+    ]
+  },
+  "poly5": {
+    "size": 5,
+    "taps": [
+      2,
+      4
+    ]
+  },
+  "poly9": {
+    "size": 9,
+    "taps": [
+      0,
+      5
+    ]
+  },
+  "poly17": {
+    "size": 17,
+    "taps": [
+      8,
+      13
+    ]
+  },
+  "sourceFiles": [
+    "src/devices/sound/pokey.cpp",
+    "src/devices/sound/pokey.h"
+  ],
+  "source": {
+    "file": "src/devices/sound/pokey.cpp",
+    "line": 840
+  }
+}

@@ -1,0 +1,1059 @@
+{
+  "game": "gauntlet",
+  "title": "Gauntlet (rev 14) (Atari Games, 1985)",
+  "fullname": "Gauntlet (rev 14)",
+  "year": "1985",
+  "company": "Atari Games",
+  "family": "gauntlet",
+  "driverFile": "src/mame/atari/gauntlet.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "m68010",
+      "clock": 7159090.5,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 229375,
+          "kind": "rom",
+          "mirror": 2621440
+        },
+        {
+          "start": 229376,
+          "end": 237567,
+          "kind": "handler",
+          "mirror": 2646016,
+          "read": "bank.slapstic_bank",
+          "bank": "slapstic_bank"
+        },
+        {
+          "start": 262144,
+          "end": 524287,
+          "kind": "rom",
+          "mirror": 2621440
+        },
+        {
+          "start": 8388608,
+          "end": 8396799,
+          "kind": "ram",
+          "mirror": 3129344
+        },
+        {
+          "start": 8396800,
+          "end": 8397823,
+          "kind": "handler",
+          "mirror": 3132416,
+          "umask": 255,
+          "read": "eeprom.read",
+          "write": "eeprom.write"
+        },
+        {
+          "start": 8400896,
+          "end": 8400897,
+          "kind": "handler",
+          "mirror": 3133168,
+          "read": "port.803000"
+        },
+        {
+          "start": 8400898,
+          "end": 8400899,
+          "kind": "handler",
+          "mirror": 3133168,
+          "read": "port.803002"
+        },
+        {
+          "start": 8400900,
+          "end": 8400901,
+          "kind": "handler",
+          "mirror": 3133168,
+          "read": "port.803004"
+        },
+        {
+          "start": 8400902,
+          "end": 8400903,
+          "kind": "handler",
+          "mirror": 3133168,
+          "read": "port.803006"
+        },
+        {
+          "start": 8400904,
+          "end": 8400905,
+          "kind": "handler",
+          "mirror": 3133168,
+          "read": "port.803008"
+        },
+        {
+          "start": 8400911,
+          "end": 8400911,
+          "kind": "handler",
+          "mirror": 3133168,
+          "read": "mainlatch.read"
+        },
+        {
+          "start": 8401152,
+          "end": 8401153,
+          "kind": "handler",
+          "mirror": 3133070,
+          "write": "watchdog.reset16_w"
+        },
+        {
+          "start": 8401184,
+          "end": 8401199,
+          "kind": "handler",
+          "mirror": 3133056,
+          "umask": 255,
+          "write": "outlatch.write_d0"
+        },
+        {
+          "start": 8401216,
+          "end": 8401217,
+          "kind": "handler",
+          "mirror": 3133070,
+          "write": "gauntlet_state.video_int_ack_w"
+        },
+        {
+          "start": 8401232,
+          "end": 8401233,
+          "kind": "handler",
+          "mirror": 3133070,
+          "write": "eeprom.unlock_write16"
+        },
+        {
+          "start": 8401265,
+          "end": 8401265,
+          "kind": "handler",
+          "mirror": 3133070,
+          "write": "soundlatch.write"
+        },
+        {
+          "start": 9437184,
+          "end": 9445375,
+          "kind": "ram",
+          "mirror": 2916352,
+          "share": "playfield",
+          "write": "playfield.write16"
+        },
+        {
+          "start": 9445376,
+          "end": 9453567,
+          "kind": "ram",
+          "mirror": 2916352,
+          "share": "mob"
+        },
+        {
+          "start": 9453568,
+          "end": 9457663,
+          "kind": "ram",
+          "mirror": 2916352
+        },
+        {
+          "start": 9457664,
+          "end": 9461631,
+          "kind": "ram",
+          "mirror": 2916352,
+          "share": "alpha",
+          "write": "alpha.write16"
+        },
+        {
+          "start": 9461614,
+          "end": 9461615,
+          "kind": "ram",
+          "mirror": 2916352,
+          "share": "yscroll",
+          "write": "gauntlet_state.yscroll_w"
+        },
+        {
+          "start": 9461632,
+          "end": 9461759,
+          "kind": "ram",
+          "mirror": 2916352,
+          "share": "mob:slip"
+        },
+        {
+          "start": 9502720,
+          "end": 9504767,
+          "kind": "ram",
+          "mirror": 2947072,
+          "share": "palette",
+          "write": "palette.write16"
+        },
+        {
+          "start": 9633792,
+          "end": 9633793,
+          "kind": "handler",
+          "mirror": 2949118,
+          "share": "xscroll",
+          "write": "gauntlet_state.xscroll_w"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "m6502",
+      "clock": 1789772.625,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "ram",
+          "mirror": 8192
+        },
+        {
+          "start": 4096,
+          "end": 4111,
+          "kind": "handler",
+          "mirror": 10176,
+          "write": "mainlatch.write"
+        },
+        {
+          "start": 4112,
+          "end": 4127,
+          "kind": "handler",
+          "mirror": 10176,
+          "read": "soundlatch.read"
+        },
+        {
+          "start": 4128,
+          "end": 4143,
+          "kind": "handler",
+          "mirror": 10176,
+          "write": "gauntlet_state.mixer_w",
+          "handlerWidth": 8,
+          "read": "port.COIN"
+        },
+        {
+          "start": 4144,
+          "end": 4144,
+          "kind": "handler",
+          "mirror": 10191,
+          "read": "gauntlet_state.switch_6502_r"
+        },
+        {
+          "start": 4144,
+          "end": 4151,
+          "kind": "handler",
+          "mirror": 10184,
+          "write": "soundctl.write_d7"
+        },
+        {
+          "start": 6144,
+          "end": 6159,
+          "kind": "handler",
+          "mirror": 10176,
+          "read": "pokey.read",
+          "write": "pokey.write"
+        },
+        {
+          "start": 6160,
+          "end": 6161,
+          "kind": "handler",
+          "mirror": 10190,
+          "read": "ymsnd.read",
+          "write": "ymsnd.write"
+        },
+        {
+          "start": 6176,
+          "end": 6191,
+          "kind": "handler",
+          "mirror": 10176,
+          "write": "tms.data_w"
+        },
+        {
+          "start": 6192,
+          "end": 6207,
+          "kind": "handler",
+          "mirror": 10176,
+          "read": "gauntlet_state.sound_irq_ack_r",
+          "write": "gauntlet_state.sound_irq_ack_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545.25,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.48,
+        "target": "speaker",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.48,
+        "target": "speaker",
+        "targetInput": 1
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "POKEY",
+        "deviceTag": "pokey",
+        "member": "m_pokey",
+        "clock": 1789772.625,
+        "gain": 0.32,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "write"
+        ]
+      },
+      {
+        "type": "TMS5220C",
+        "deviceTag": "tms",
+        "member": "m_tms5220",
+        "clock": 650826.4090909091,
+        "gain": 0.8,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "data_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 336,
+    "height": 240,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 59.92274758939333,
+    "htotal": 456,
+    "vtotal": 262,
+    "vbstart": 240,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 524288,
+      "loads": [
+        {
+          "file": "136037-1307.9a",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "46fe8743",
+          "alt": [
+            {
+              "file": "136037-1507.9a",
+              "crc": "b5183228"
+            },
+            {
+              "file": "136037-1007.9a",
+              "crc": "6a224cea"
+            },
+            {
+              "file": "136037-1207.9a",
+              "crc": "6dc0610d"
+            },
+            {
+              "file": "136037-907.9a",
+              "crc": "c13a6399"
+            },
+            {
+              "file": "136037-807.9a",
+              "crc": "671c0bc2"
+            },
+            {
+              "file": "136037-207.9a",
+              "crc": "fd871f81"
+            },
+            {
+              "file": "136037-307.9a",
+              "crc": "759827c9"
+            },
+            {
+              "file": "136037-107.9a",
+              "crc": "a5885e14"
+            },
+            {
+              "file": "136041-507.9a",
+              "crc": "8784133f"
+            },
+            {
+              "file": "136041-407.9a",
+              "crc": "cde72140"
+            },
+            {
+              "file": "136041-207.9a",
+              "crc": "0e1af1b4"
+            },
+            {
+              "file": "136041-107.9a",
+              "crc": "3faf74d8"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 0,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        },
+        {
+          "file": "136037-1308.9b",
+          "offset": 32769,
+          "size": 16384,
+          "crc": "276e15c4",
+          "alt": [
+            {
+              "file": "136037-1508.9b",
+              "crc": "afd3c501"
+            },
+            {
+              "file": "136037-1008.9b",
+              "crc": "fa391dab"
+            },
+            {
+              "file": "136037-1208.9b",
+              "crc": "faa306eb"
+            },
+            {
+              "file": "136037-908.9b",
+              "crc": "417607d9"
+            },
+            {
+              "file": "136037-808.9b",
+              "crc": "f2842af4"
+            },
+            {
+              "file": "136037-208.9b",
+              "crc": "bcb2fb1d"
+            },
+            {
+              "file": "136037-308.9b",
+              "crc": "d71262d1"
+            },
+            {
+              "file": "136037-108.9b",
+              "crc": "0087f1ab"
+            },
+            {
+              "file": "136041-508.9b",
+              "crc": "2843bde3"
+            },
+            {
+              "file": "136041-408.9b",
+              "crc": "4ab1af62"
+            },
+            {
+              "file": "136041-208.9b",
+              "crc": "bf51a238"
+            },
+            {
+              "file": "136041-108.9b",
+              "crc": "f1e6d815"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 1,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        },
+        {
+          "file": "136037-205.10a",
+          "offset": 229376,
+          "size": 16384,
+          "crc": "6d99ed51",
+          "alt": [
+            {
+              "file": "136037-105.10a",
+              "crc": "4642cd95"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136037-206.10b",
+          "offset": 229377,
+          "size": 16384,
+          "crc": "545ead91",
+          "alt": [
+            {
+              "file": "136037-106.10b",
+              "crc": "c8df945e"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136037-1409.7a",
+          "offset": 294912,
+          "size": 16384,
+          "crc": "6fb8419c",
+          "alt": [
+            {
+              "file": "136037-1509.7a",
+              "crc": "69e50ae9"
+            },
+            {
+              "file": "136037-1309.7a",
+              "crc": "e8ba39d8"
+            },
+            {
+              "file": "136037-1009.7a",
+              "crc": "75d1f966"
+            },
+            {
+              "file": "136037-1109.7a",
+              "crc": "500194fb"
+            },
+            {
+              "file": "136037-909.7a",
+              "crc": "fb1cdc1c"
+            },
+            {
+              "file": "136037-809.7a",
+              "crc": "05642d60"
+            },
+            {
+              "file": "136037-709.7a",
+              "crc": "73e1ad79"
+            },
+            {
+              "file": "136037-609.7a",
+              "crc": "cd3381de"
+            },
+            {
+              "file": "136037-409.7a",
+              "crc": "c57377b3"
+            },
+            {
+              "file": "136037-309.7a",
+              "crc": "7f03696b"
+            },
+            {
+              "file": "136037-209.7a",
+              "crc": "d810a7dc"
+            },
+            {
+              "file": "136037-109.7a",
+              "crc": "55d87198"
+            },
+            {
+              "file": "136041-609.7a",
+              "crc": "5b4ee415"
+            },
+            {
+              "file": "136041-509.7a",
+              "crc": "fb2ef226"
+            },
+            {
+              "file": "136041-409.7a",
+              "crc": "44e01459"
+            },
+            {
+              "file": "136041-309.7a",
+              "crc": "5acbcd2b"
+            },
+            {
+              "file": "136041-209.7a",
+              "crc": "ddc9b56f"
+            },
+            {
+              "file": "136041-109.7a",
+              "crc": "56d0c5b8"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 262144,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        },
+        {
+          "file": "136037-1410.7b",
+          "offset": 294913,
+          "size": 16384,
+          "crc": "931bd2a0",
+          "alt": [
+            {
+              "file": "136037-1510.7b",
+              "crc": "54e2692c"
+            },
+            {
+              "file": "136037-1310.7b",
+              "crc": "a204d997"
+            },
+            {
+              "file": "136037-1010.7b",
+              "crc": "28a4197b"
+            },
+            {
+              "file": "136037-1110.7b",
+              "crc": "b2969076"
+            },
+            {
+              "file": "136037-910.7b",
+              "crc": "f188e7b3"
+            },
+            {
+              "file": "136037-810.7b",
+              "crc": "36d295e3"
+            },
+            {
+              "file": "136037-710.7b",
+              "crc": "fd248cea"
+            },
+            {
+              "file": "136037-610.7b",
+              "crc": "2cff932a"
+            },
+            {
+              "file": "136037-510.7b",
+              "crc": "1cac2071"
+            },
+            {
+              "file": "136037-410.7b",
+              "crc": "6b971a27"
+            },
+            {
+              "file": "136037-310.7b",
+              "crc": "8d7197fc"
+            },
+            {
+              "file": "136037-210.7b",
+              "crc": "fbba7290"
+            },
+            {
+              "file": "136037-110.7b",
+              "crc": "f84ad06d"
+            },
+            {
+              "file": "136041-610.7b",
+              "crc": "41f5c9e2"
+            },
+            {
+              "file": "136041-510.7b",
+              "crc": "a69be8da"
+            },
+            {
+              "file": "136041-410.7b",
+              "crc": "b58d96d3"
+            },
+            {
+              "file": "136041-310.7b",
+              "crc": "1889ab77"
+            },
+            {
+              "file": "136041-210.7b",
+              "crc": "ffe78a4f"
+            },
+            {
+              "file": "136041-110.7b",
+              "crc": "3b9ae397"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 262145,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "136037-120.16r",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "6ee7f3cc"
+        },
+        {
+          "file": "136037-119.16s",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "fa19861f"
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "136037-104.6p",
+          "offset": 0,
+          "size": 16384,
+          "crc": "6c276a1d"
+        }
+      ]
+    },
+    {
+      "region": "spr_tiles",
+      "size": 262144,
+      "invert": true,
+      "loads": [
+        {
+          "file": "136037-111.1a",
+          "offset": 0,
+          "size": 32768,
+          "crc": "91700f33"
+        },
+        {
+          "file": "136037-112.1b",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "869330be"
+        },
+        {
+          "file": "136037-113.1l",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "d497d0a8"
+        },
+        {
+          "file": "136037-114.1mn",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "29ef9882"
+        },
+        {
+          "file": "136037-115.2a",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "9510b898"
+        },
+        {
+          "file": "136037-116.2b",
+          "offset": 163840,
+          "size": 32768,
+          "crc": "11e0ac5b"
+        },
+        {
+          "file": "136037-117.2l",
+          "offset": 196608,
+          "size": 32768,
+          "crc": "29a5db41"
+        },
+        {
+          "file": "136037-118.2mn",
+          "offset": 229376,
+          "size": 32768,
+          "crc": "8bf3b263"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1280,
+      "loads": [
+        {
+          "file": "74s472-136037-101.7u",
+          "offset": 0,
+          "size": 512,
+          "crc": "2964f76f"
+        },
+        {
+          "file": "74s472-136037-102.5l",
+          "offset": 512,
+          "size": 512,
+          "crc": "4d4fec6c"
+        },
+        {
+          "file": "74s287-136037-103.4r",
+          "offset": 1024,
+          "size": 256,
+          "crc": "6c5ccf08"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "803000",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 16,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 32,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 64,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 128,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 4,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 8,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "803008",
+      "mask": 8,
+      "value": 8,
+      "name": "Service Mode"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 205,
+    "contributors": 26,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Olivier Galibert",
+      "Vas Crabb",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 83,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 25,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 18,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2016-08-26",
+        "lastCommit": "2025-04-09"
+      },
+      {
+        "name": "AJR",
+        "commits": 14,
+        "firstCommit": "2016-01-29",
+        "lastCommit": "2022-02-21"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 10,
+        "firstCommit": "2014-05-12",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 4,
+        "firstCommit": "2009-09-21",
+        "lastCommit": "2012-05-28"
+      },
+      {
+        "name": "hap",
+        "commits": 4,
+        "firstCommit": "2022-08-30",
+        "lastCommit": "2022-11-05"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-03-10"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-06-16",
+        "lastCommit": "2018-08-23"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-10",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "angelosa",
+        "commits": 2,
+        "firstCommit": "2016-10-24",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "cam900",
+        "commits": 2,
+        "firstCommit": "2019-04-28",
+        "lastCommit": "2025-01-01"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2010-01-06"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 2,
+        "firstCommit": "2010-04-26",
+        "lastCommit": "2010-04-28"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2008-03-30",
+        "lastCommit": "2013-05-14"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-04-05",
+        "lastCommit": "2011-04-05"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "ImJezze",
+        "commits": 1,
+        "firstCommit": "2016-02-21",
+        "lastCommit": "2016-02-21"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2014-11-05",
+        "lastCommit": "2014-11-05"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 41 years ago:\n\nGauntlet (c) 1985 Atari Games.\n\nGauntlet is a maze-based shoot-em-up for up to four players. Heavily influenced by classic fantasy conventions, players take on the role of either Thor the Warrior, Thyra the Valkyrie, Merlin the Wizard, or Questor the Elf and must play cooperatively as they explore and fight their way through the enemy-packed mazes. Competitive play is encouraged as players must fight for the limited amount of food, treasure, magic potions and power-up items that litter the dungeons. \n\nEach of Gauntlet's four characters have different strengths and weaknesses: Thyra has the strongest armour, Thor is best at hand-to-hand combat, Questor has the fastest speed and Merlin has the most powerful magic attacks. The object of the game is simply to survive as long as possible while exploring Gauntlet's mazes in search of treasure, food, magic potions and, ultimately, the exit that leads to the next dungeon. \n\nThe potions - shown as blue bottles - that litter the levels offer either improved character abilities (such as 'speed' or 'extra shot power') or can be used as a 'smart bomb', destroying some or all of the on-screen monsters. Potions are also the only way to kill the game's 'Death' character that appears in many of the stages. Magic potions can be kept and used at the player's discretion by pressing 'Magic' button, although each potion can only be used once. \n\nThe first seven mazes are always the same, but from level 8 onwards, players will find themselves on any one of over a hundred different mazes. If players survive for long enough, the mazes will be repeated in a different order. How long a player lasts depends upon the player's 'health' level. Health continually depletes as time progresses and further health is lost by contact with various monsters or their projectiles. Health can be replenished by consuming the food found in the mazes or by inserting more credits. The many treasure chests that litter the levels can be plundered for points, and collecting treasure increases a player's score multiplier when two or more players are playing the game.\n\n- TECHNICAL -\n\nGame ID : 136037\n\nMain CPU : Motorola 68010 (@ 7.15909 Mhz), MOS Technology 6502 (@ 1.789772 Mhz)\nSound Chips : Yamaha YM2151 (@ 3.579545 Mhz), POKEY (Pot Keyboard Integrated Circuit) (@ 1.789772 Mhz), Texas Instruments TMS5220 (@ 650.826 Khz)\n\nControl per player (4): 8-way joystick\nButtons per player (4): 2\n\n- TRIVIA -\n\nGauntlet was released in October 1985.\n\nGauntlet was originally going to be called 'Dungeons' and was inspired not only by TSR's tabletop RPG, 'Dungeons & Dragons', but also by another Atari game called 'Dandy'. Dandy's creator, Jack Palevich, tried fruitlessly to get his name added to the list of credits in Gauntlet. In lieu of public recognition, Atari Games Corp gave Pelvich a Gauntlet cabinet, and he in turn agreed not to sue Atari.\n\nTwo character names were changed before release. The Valkyrie was originally named 'Amazon' and the Warrior was 'Hulk'\" The first character art was produced on January 1, 1984.\n\nGauntlet's revolutionary, non-linear game-play gave players multiple choices, as they were no longer forced into taking a linear route through the game. Like 'Dungeons & Dragons', Gauntlet players could choose their own path, searching for keys, treasures, food and transporters to take them to other levels. Unlike most other games at the time, the player didn't always have to fight; a simpler route through the dungeon could sometimes be found, or players could simply try to make a run for it.\n\nIn the early '80s, arcades were struggling. Manufacturers created more elaborate games that operators could charge more money for ($.50!), but players were resistant to the increase. The question at Atari was: How do we get extra earnings? The idea with Gauntlet was that with four players you earn four times as much with every play. It was a drop-in/drop-out design so if someone died they could immediately rejoin or someone new could step in -- there was no down time, so the quarters just kept coming. Another choice made specifically to increase the coin drop: there was no end to the game. Gauntlet would recycle levels by flipping them horizontally and vertically once the players had run through all of them. Gauntlet was a big success in 1985. But the marketing team at Atari was actually worried about the four-player cabinet. They weren't sure four strangers would want to play a game together and they also had concerns about the four separate coin shoots (which were known to break easily). Confident in his game, Ed Logg convinced the marketing team to just go with it.\n\nAnother Gauntlet milestone was in the game's use of sound effects. Synthesized human voices had been used sporadically in games in the early eighties and while it had proved, on most occasions, to be moderately successful, was still considered something of a novelty. Gauntlet, however, revolutionized the concept of in-game speech and added immeasurably to the game's superb atmosphere. The deep timbre of Gauntlet's very own 'Dungeon Master' would guide players through the levels, informing them that 'Elf needs food, badly', or that 'Wizard is about to die' and the always-good advice that is 'Remember, don't shoot food.'\n\nNote: The game contains exactly 212 sounds (including digitized voices, effects and musics).\n\nIt was common practice to test a new arcade game at select locations before wide release. The operator was given the cabinet for free, but in exchange they couldn't promote it (as a precaution against competition) and they would share the coin drop numbers of it and all the other machines at the location so that Atari could evaluate the new game's success against current games. But when Ed Logg came by to check on Gauntlet during its field test, he found developers from SEGA snapping photos of the cabinet. Atari pulled it from that location and didn't work with the operator henceforth. A year after Gauntlet's release in 1985, SEGA released a four-player arcade game called \"Quartet\" (although it was side-scrolling). \n\n7,848 units were sold in the U.S. A few thousand more were sold in Japan and Europe. Even though Atari considered Gauntlet a success, earlier games like \"Space Invaders\" and \"Ms. Pac-Man\" sold hundreds of thousands of cabinets. One of Gauntlet's contemporaries from Atari, the excellent Temple of Doom game, sold just 2,800 copies. \n\nNote : There were 20 officially released versions (see Updates section for detailed info), including 6 '2-player' versions and various Spanish, German and Japanese versions. Counting 4-player English variants alone, there were 7 releases with various bug-fixes.\n\nThe default high score screen of \"Cyberball 2072\" features names of many Atari arcade games, including GAUNTLET.\n\nCharles Nagle holds the official record for this game with 4,401,169 points on March 28, 2003.\n\nPony Canyon / Scitron released a limited-edition soundtrack album for this game (That's Atari Music Vol.II : G.S.M. Atari Games 2 - PCCB-00070) on September 21, 1991.\n\n- UPDATES -\n\nRevision 1 (4-players)\n* First world release.\n\nRevision 2 (4-players)\n* Added an option called 'Disable Speech?' in the operator menu.\n* Fixed some texts in attract mode.\n\nRevision 3 (4-players)\n* German release only.\n\nRevision 4 (4-players)\n* World release.\n\nRevision 5 (4-players)\n* World release.\n\nRevision 6 (4-players)\n* German release only.\n* Added 'All walls turn into exits' trick (see 'Tips And Tricks' section).\n* Added ability to stop the attract mode with the fire button.\n\nRevision 7 (4-players)\n* World release.\n\nRevision 8 (4-players)\n* German release only.\n* Added an option called 'Reduce Text?' in the operator menu.\n\nRevision 9 (4-players)\n* World release.\n\nRevision 10 (4-players)\n* German release only.\n\nRevision 12 (4-players)\n* Japanese release only.\n\nRevision 13 (4-players)\n* Japanese release only.\n\nRevision 14 (4-players)\n* World release.\n* Sequence of boards may be different : After Level 8, either every other level may be skipped (Level 9 = Level 10, Level 10 = Level 12, etc.), or every two levels may be skipped (Level 9 = Level 11, Level 10 = Level 14, etc.), or boards may be played in their normal order. (It may depend on the route taken to Level 8.)\n\nRevision 15 (4-players)\n* Spanish release only.\n\nRevision 1 (2-players)\n* German release only.\n* Based on the latest 4-players revision.\n\nRevision 2 (2-players)\n* Japanese release only.\n\nRevision 3 (2-players)\n* World release.\n\nRevision 4 (2-players)\n* German release only.\n\nRevision 5 (2-players)\n* Japanese release only.\n\nRevision 6 (2-players)\n* World release.\n\n- TIPS AND TRICKS -\n\n* Hints for Game Play : The following hints will help you use your health more effectively and score more points per coin :\n1) Play cooperatively.\n2) Allow the player with the best ability to use magic (usually Merlin the Wizard, unless one of the other players has acquired the magic potion for extra magic) to pick up the magic potions.\n3) Save keys and potions and use them conservatively.\n4) Pay attention to your marching order. Allow the players with the best fighting ability and armor (usually Thyra the Valkyrie and Thor the Warrior) to lead the way and fend off attacks.\n5) Avoid contact with the ghosts : they take away your health very quickly and you cannot fight them hand-to-hand.\n\n* If you remain motionless (or basically aimless) and stall off about 30 health, all of the doors will open. Everybody knows this, and the game even tells you about it. The game doesn't tell you that if you stall off about 200 health, all the walls will turn into exits! (work on Revision 6 and +) The game designers had to include this because there are some levels which require you to pick up a key before you exit. If you are already filled up with keys, and the doors are all gone, then it would be IMPOSSIBLE for you to exit, and you would starve to death. What they didn't anticipate, is that certain levels of the game which are really difficult, which would require you to take massive health losses to finish, become very simple if all the walls are exits. Or they can be effectively skipped altogether. Because the game has Monty-Hall levels with lots of food on them, you can use this cheat to only play levels which are a wash or increase your health dramatically, and cut your losses to 200 on all the really hard levels.\n\n* The best character to play, in the LONG run, is Questor. His magic is just as good as Merlin's and his fight ability as good as Thor's. His ability to shoot through cracks in addition to all this (when he has the power potions) makes him the best. Thyra is the worst, although some people regard this as a challenge...\n\n* To manipulate the point value of Death, shoot him. Death's point value takes the following progression : 1000-2000-1000-4000-1000-6000-1000-8000, and then back to start. His value keeps from the previous game.\n\n* You can kill Death painlessly by teleporting on top of him.\n\n* If a previous game ended beyond Level 8, Level 8 in the next game becomes the level that the previous game ended on. If you got a really good sequence of boards in a game and you want to repeat them, turn the machine off and on again after you've entered your high score.\n\n- STAFF -\n\nDesigner / Programmer : Ed Logg (ED )\nGame programmer : Bob Flanagan (BF )\nVideo graphics : Sam Comstock (SWC), Susan G. McBride (SGM), Alan Murphy, Will Noble, Dave Pettigrew (D F)\nEngineer : Pat McCarthy (PMC)\nTechnician : Sae Oh (SMO), Cris Drobny (CAD)\nSound designers : Hal Canon (HAL), Earl Vickers (EAR)\nCabinet designer : Ken Hata (KEN)\n\n- PORTS -\n\n* CONSOLES: \n[EU] Sega Master System (1990) \"Gauntlet [Model 25006]\"\n[US] Sony PlayStation (dec.31, 1997) \"Arcade's Greatest Hits - The Atari Collection 2 [Model SLUS-00449]\" \n[EU] Sony PlayStation (june.1998) \"Arcade's Greatest Hits - The Atari Collection 2 [Model SLES-00712]\" \n[US] Sega Dreamcast (nov.15, 2001) \"Midway's Greatest Arcade Hits Vol. 2 [Model T-9714N]\" \n[US] Sony PS2 (nov.18, 2003) \"Midway Arcade Treasures [Model SLUS-20801]\" \n[US] Microsoft XBOX (nov.24, 2003) \"Midway Arcade Treasures\" \n[US] Nintendo GameCube (dec.18, 2003) \"Midway Arcade Treasures [Model DOL-GAKE-USA]\" \n[EU] Microsoft XBOX (feb.6, 2004) \"Midway Arcade Treasures\" \n[EU] Sony PS2 (feb.6, 2004) \"Midway Arcade Treasures [Model SLES-51927]\" \n[US] Microsoft XBOX 360 [XBLA] (nov.22, 2005) : Retired in 2010\n[EU] Microsoft XBOX 360 [XBLA] (dec.2, 2005) : Retired in 2010\n\n[US] Microsoft XBOX 360 (nov.6, 2012) \"Midway Arcade Origins\" \n[US] Sony PlayStation 3 (nov.6, 2012) \"Midway Arcade Origins [Model BLUS-31083]\"\n[EU] Microsoft XBOX 360 (nov.15, 2012) \"Midway Arcade Origins\" \n[EU] Sony PlayStation 3 (nov.15, 2012) \"Midway Arcade Origins [Model BLES-01768]\"\n\n* HANDHELDS: \n[EU] Nintendo GBA (sept.16, 2005) \"2 Games in One! Gauntlet + Rampart [Model AGB-B69P-EUR]\" \n[US] Nintendo GBA (nov.3, 2005) \"2 Games in One! Gauntlet + Rampart [Model AGB-B69E-USA]\" \n[US] Sony PSP (dec.13, 2005) \"Midway Arcade Treasures Extended Play [Model ULUS-10059]\"\n[EU] Sony PSP (feb.24, 2006) \"Midway Arcade Treasures Extended Play [Model ULES-00180]\" \n[US] [EU] [AU] Nintendo DS : Unreleased\n\n* COMPUTERS: \n[EU] BBC Micro (1984) \n[EU] Atari XL/XE [Cassette] (1985) \n[US] Atari XL/XE [Disk] (1985) \n[US] Commodore C64 [Disc] (1986) \n[EU] Commodore C64 [Tape] (1986) \n[US] Tandy Color Computer (1986) \"Gantelet\" \n[JP] MSX (1986) \n[US] [EU] Atari ST (1985) \n[EU] Amstrad CPC (1987) \n[US] Apple IIGS (1987) \n[EU] Amstrad CPC [Tape] (1987) \"Les Tresors d'U.S.GOLD\" \n[EU] Amstrad CPC [Disc] (1987) \"Les Tresors d'U.S.GOLD\" \n[EU] Commodore C64 [Tape] (1987) \"Les Tresors d'U.S.GOLD\" \n[EU] Commodore C64 [Disc] (1987) \"Les Tresors d'U.S.GOLD\" \n[EU] Sinclair ZX Spectrum [Tape](1987) \"Les Tresors d'U.S.GOLD\" \n[EU] Sinclair ZX Spectrum +3 [Disc] (1987) \"Les Tresors d'U.S.GOLD\" \n[EU] Amstrad CPC [Tape] (1988) \"Arcade Force Four\" \n[EU] Amstrad CPC [Disc] (1988) \"Arcade Force Four\" \n[EU] Commodore C64 [Tape] (1988) \"Arcade Force Four\" \n[EU] Commodore C64 [Disc] (1988) \"Arcade Force Four\" \n[EU] Sinclair ZX Spectrum [Tape] (1988) \"Arcade Force Four\" \n[EU] Atari ST (1988) \"Arcade Force Four\" \n[EU] Amstrad CPC (198?) \"El Lingote\" \n[EU] Amstrad CPC (198?) \"Gauntlet And Gauntlet II [Limited Edition]\" \n[EU] Amstrad CPC (1988) \"History In The Making\" \n[EU] Sinclair ZX Spectrum (1988) \"History In The Making\" \n[EU] Commodore C64 (1988) \"History In The Making\" \n[EU] Amstrad CPC (1988) \"Les Geants De L'Arcade\" \n[US] PC [MS-DOS] (1988)\n[EU] Amstrad CPC (1990) \"Micro Club No.02\" \n[US] PC [MS Windows, CD-ROM] (jan.1, 1999) \"Arcade's Greatest Hits - The Atari Collection 2\"\n[US] PC [MS Windows, CD-ROM] (aug.27, 2004) \"Midway Arcade Treasures\" \n[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) \"Midway Arcade Treasures\" \n\n* OTHERS:\n[US] LCD handheld game (1988) by Tiger Electronics.\n[US] Mobile Phones (sept.8, 2004)\n\n- SERIES -\n\n1. Gauntlet (1985, Arcade)\n2. Gauntlet II (1986, Arcade) \n3. Gauntlet - The Deeper Dungeons (1987, Level pack for 8-bit computers) \n4. Gauntlet [Model NES-GL-USA] (1988, NES)\n5. Gauntlet - The Third Encounter [Model PA2024] (1990, Lynx) \n6. Gauntlet III - The Final Quest (1991, Atari ST) \n7. Gauntlet 4 (1993, Mega Drive) \n8. Gauntlet Legends (1998, Arcade) \n9. Gauntlet Dark Legacy (2000, Arcade) \n10. Gauntlet Seven Sorrows (2006, PS2/XBOX)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/938/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

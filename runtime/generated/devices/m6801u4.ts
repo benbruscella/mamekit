@@ -1,0 +1,5571 @@
+// GENERATED from MAME CPU source and opcode DSL; do not edit.
+// Sources:
+// - src/devices/cpu/m6800/m6800.cpp
+// - src/devices/cpu/m6800/m6800.h
+// - src/devices/cpu/m6800/m6801.cpp
+// - src/devices/cpu/m6800/m6801.h
+// - src/devices/cpu/m6800/6800ops.hxx
+import type {
+  Cpu,
+  CpuBus,
+  GeneratedCpuExecutable,
+} from '../../core/generated-cpu.js';
+
+function popcount32(value: number): number {
+  value -= (value >>> 1) & 0x55555555;
+  value = (value & 0x33333333) + ((value >>> 2) & 0x33333333);
+  return (((value + (value >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
+}
+
+/**
+ * The byte halves of a Pair16, as a class rather than a per-instance object.
+ *
+ * These accessors are the hottest path in the whole emulator: the Z80's TDAT
+ * aliases resolve to m_shared_data.b.l, and on Bubble Bobble the four of them
+ * were 23% of total run time. Building the byte view with
+ * Object.defineProperties and a closure per instance gave every pair its own
+ * hidden class and its own accessor functions, so each site went megamorphic
+ * and V8 could not inline through it. One class means one hidden class and one
+ * pair of prototype accessors for every register on every core.
+ */
+class Pair16Bytes {
+  private readonly pair: Pair16;
+
+  constructor(pair: Pair16) { this.pair = pair; }
+
+  get h(): number { return (this.pair.value >>> 8) & 0xff; }
+  set h(next: number) {
+    this.pair.value = ((this.pair.value & 0x00ff) | ((next & 0xff) << 8)) & 0xffff;
+  }
+
+  get l(): number { return this.pair.value & 0xff; }
+  set l(next: number) {
+    this.pair.value = ((this.pair.value & 0xff00) | (next & 0xff)) & 0xffff;
+  }
+}
+
+class Pair16 {
+  /** Read by Pair16Bytes; not part of the emitted core's own vocabulary. */
+  value = 0;
+  readonly b: Pair16Bytes;
+
+  constructor(value = 0) {
+    this.value = value & 0xffff;
+    this.b = new Pair16Bytes(this);
+  }
+
+  get w(): number { return this.value; }
+  set w(value: number) { this.value = value & 0xffff; }
+}
+
+class WordByteRegisterFile {
+  readonly w: Uint16Array;
+  readonly b: Uint8Array;
+
+  constructor(words: number) {
+    const buffer = new ArrayBuffer(words * 2);
+    this.w = new Uint16Array(buffer);
+    this.b = new Uint8Array(buffer);
+  }
+}
+
+class Z8000RegisterFile {
+  readonly W = new Uint16Array(16);
+  readonly B: Record<number, number>;
+  readonly L: Record<number, number>;
+  readonly Q: Record<number, number>;
+
+  constructor() {
+    this.B = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key); const word = this.W[index >>> 1] ?? 0;
+        return index & 1 ? word & 0xff : (word >>> 8) & 0xff;
+      },
+      set: (_target, key, value) => {
+        const index = Number(key); const wordIndex = index >>> 1;
+        const old = this.W[wordIndex] ?? 0;
+        this.W[wordIndex] = index & 1
+          ? (old & 0xff00) | (Number(value) & 0xff)
+          : (old & 0x00ff) | ((Number(value) & 0xff) << 8);
+        return true;
+      },
+    }) as Record<number, number>;
+    this.L = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key) * 2;
+        return ((((this.W[index] ?? 0) << 16) | (this.W[index + 1] ?? 0)) >>> 0);
+      },
+      set: (_target, key, value) => {
+        const index = Number(key) * 2; const data = Number(value) >>> 0;
+        this.W[index] = data >>> 16; this.W[index + 1] = data; return true;
+      },
+    }) as Record<number, number>;
+    this.Q = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key) * 4;
+        return (this.W[index] ?? 0) * 0x1000000000000 +
+          (this.W[index + 1] ?? 0) * 0x100000000 +
+          (this.W[index + 2] ?? 0) * 0x10000 + (this.W[index + 3] ?? 0);
+      },
+      set: (_target, key, value) => {
+        const index = Number(key) * 4; let data = Number(value);
+        this.W[index + 3] = data; data = Math.floor(data / 0x10000);
+        this.W[index + 2] = data; data = Math.floor(data / 0x10000);
+        this.W[index + 1] = data; data = Math.floor(data / 0x10000);
+        this.W[index] = data; return true;
+      },
+    }) as Record<number, number>;
+  }
+}
+
+/** Every method this core lowered from its MAME source. */
+const GENERATED_METHOD_NAMES = new Set<string>(["illegl1","illegl2","illegl3","trap","nop","lsrd","asld","tap","tpa","inx","dex","clv","sev","clc","sec","cli","sei","sba","cba","undoc1","undoc2","tab","tba","xgdx","daa","slp","aba","bra","brn","bhi","bls","bcc","bcs","bne","beq","bvc","bvs","bpl","bmi","bge","blt","bgt","ble","tsx","ins","pula","pulb","des","txs","psha","pshb","pulx","rts","abx","rti","pshx","mul","wai","swi","nega","coma","lsra","rora","asra","asla","rola","deca","inca","tsta","clra","negb","comb","lsrb","rorb","asrb","aslb","rolb","decb","incb","tstb","clrb","neg_ix","aim_ix","oim_ix","com_ix","lsr_ix","eim_ix","ror_ix","asr_ix","asl_ix","rol_ix","dec_ix","tim_ix","inc_ix","tst_ix","jmp_ix","clr_ix","neg_ex","aim_di","oim_di","com_ex","lsr_ex","eim_di","ror_ex","asr_ex","asl_ex","rol_ex","dec_ex","tim_di","inc_ex","tst_ex","jmp_ex","clr_ex","suba_im","cmpa_im","sbca_im","subd_im","anda_im","bita_im","lda_im","sta_im","eora_im","adca_im","ora_im","adda_im","cmpx_im","cpx_im","bsr","lds_im","sts_im","suba_di","cmpa_di","sbca_di","subd_di","anda_di","bita_di","lda_di","sta_di","eora_di","adca_di","ora_di","adda_di","cmpx_di","cpx_di","jsr_di","lds_di","sts_di","suba_ix","cmpa_ix","sbca_ix","subd_ix","anda_ix","bita_ix","lda_ix","sta_ix","eora_ix","adca_ix","ora_ix","adda_ix","cmpx_ix","cpx_ix","jsr_ix","lds_ix","sts_ix","suba_ex","cmpa_ex","sbca_ex","subd_ex","anda_ex","bita_ex","lda_ex","sta_ex","eora_ex","adca_ex","ora_ex","adda_ex","cmpx_ex","cpx_ex","jsr_ex","lds_ex","sts_ex","subb_im","cmpb_im","sbcb_im","addd_im","andb_im","bitb_im","ldb_im","stb_im","eorb_im","adcb_im","orb_im","addb_im","ldd_im","std_im","ldx_im","stx_im","subb_di","cmpb_di","sbcb_di","addd_di","andb_di","bitb_di","ldb_di","stb_di","eorb_di","adcb_di","orb_di","addb_di","ldd_di","std_di","ldx_di","stx_di","subb_ix","cmpb_ix","sbcb_ix","addd_ix","andb_ix","bitb_ix","ldb_ix","stb_ix","eorb_ix","adcb_ix","orb_ix","addb_ix","ldd_ix","adcx_im","std_ix","ldx_ix","stx_ix","subb_ex","cmpb_ex","sbcb_ex","addd_ex","andb_ex","bitb_ex","ldb_ex","stb_ex","eorb_ex","adcb_ex","orb_ex","addb_ex","ldd_ex","addx_ex","std_ex","ldx_ex","stx_ex","btst_ix","stx_nsc","RM16","WM16","enter_interrupt","check_irq_lines","check_irq1_enabled","increment_counter","check_irq2","execute_one","eat_cycles","take_trap"]);
+
+class GeneratedM6801U4 implements Cpu {
+  private readonly bus: CpuBus;
+  private irqData: number | (() => number) = 0xff;
+  private irqHold = false;
+  private readonly internalRam = new Uint8Array(0x10000);
+  private readonly portData = new Uint8Array(4);
+  private readonly portDirection = new Uint8Array(4);
+  private portHandshakeControl = 0;
+  private portHandshakeInputState = 0;
+  private portHandshakeLatched = false;
+  private portHandshakePendingClear = false;
+  private m_ppc = new Pair16(0);
+  private m_pc = new Pair16(0);
+  private m_s = new Pair16(0);
+  private m_x = new Pair16(0);
+  private m_d = new Pair16(0);
+  private m_ea = new Pair16(0);
+  private m_cc = ((0) & 0xff);
+  private m_wai_state = ((0) & 0xff);
+  private m_nmi_state = ((0) & 0xff);
+  private m_nmi_pending = ((0) & 0xff);
+  private m_irq_delay = ((0) & 0xff);
+  private m_irq_state = Uint8Array.from([0, 0, 0, 0, 0]);
+  private flags8i = Uint8Array.from([4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]);
+  private flags8d = Uint8Array.from([4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]);
+  private m_ref = ((0) >>> 0);
+  private cycles = 0;
+  private m_icount = 0;
+
+
+  constructor(bus: CpuBus) {
+    this.bus = bus;
+    this.generatedStart();
+    this.reset();
+  }
+
+  reset(): void {
+    this.resetInternal();
+    this.m_cc = ((192) & 0xff);
+    this.m_cc = ((((this.m_cc) | (16))) & 0xff);
+    this.m_pc.w = ((this.method_RM16(65534)) & 0xffff);
+    this.m_wai_state = ((0) & 0xff);
+    this.m_nmi_state = ((0) & 0xff);
+    this.m_nmi_pending = ((0) & 0xff);
+  }
+
+  step(): number {
+    this.cycles = 0;
+    this.m_icount = 1;
+    this.generatedService();
+    if (this.cycles > 0) return this.cycles;
+    this.generatedFetch();
+    let dispatches = 0;
+    while (true) {
+      if (++dispatches > 8) throw new Error('M6801U4 dispatch loop exceeded 8');
+      switch ((this.m_ref >>> 8) & 0xffff) {
+      case 0x0000: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x0100: {
+        this.method_nop();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0200: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x0300: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x0400: {
+        this.method_lsrd();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x0500: {
+        this.method_asld();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x0600: {
+        this.method_tap();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0700: {
+        this.method_tpa();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0800: {
+        this.method_inx();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x0900: {
+        this.method_dex();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x0a00: {
+        this.method_clv();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0b00: {
+        this.method_sev();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0c00: {
+        this.method_clc();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0d00: {
+        this.method_sec();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0e00: {
+        this.method_cli();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x0f00: {
+        this.method_sei();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x1000: {
+        this.method_sba();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x1100: {
+        this.method_cba();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x1200: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1300: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1400: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1500: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1600: {
+        this.method_tab();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x1700: {
+        this.method_tba();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x1800: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1900: {
+        this.method_daa();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x1a00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1b00: {
+        this.method_aba();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x1c00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1d00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1e00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x1f00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x2000: {
+        this.method_bra();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2100: {
+        this.method_brn();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2200: {
+        this.method_bhi();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2300: {
+        this.method_bls();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2400: {
+        this.method_bcc();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2500: {
+        this.method_bcs();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2600: {
+        this.method_bne();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2700: {
+        this.method_beq();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2800: {
+        this.method_bvc();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2900: {
+        this.method_bvs();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2a00: {
+        this.method_bpl();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2b00: {
+        this.method_bmi();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2c00: {
+        this.method_bge();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2d00: {
+        this.method_blt();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2e00: {
+        this.method_bgt();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x2f00: {
+        this.method_ble();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3000: {
+        this.method_tsx();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3100: {
+        this.method_ins();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3200: {
+        this.method_pula();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x3300: {
+        this.method_pulb();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x3400: {
+        this.method_des();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3500: {
+        this.method_txs();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3600: {
+        this.method_psha();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3700: {
+        this.method_pshb();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3800: {
+        this.method_pulx();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0x3900: {
+        this.method_rts();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0x3a00: {
+        this.method_abx();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x3b00: {
+        this.method_rti();
+        this.cycles = ((this.cycles) + (10));
+        return this.cycles;
+      }
+      case 0x3c00: {
+        this.method_pshx();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x3d00: {
+        this.method_mul();
+        this.cycles = ((this.cycles) + (10));
+        return this.cycles;
+      }
+      case 0x3e00: {
+        this.method_wai();
+        this.cycles = ((this.cycles) + (9));
+        return this.cycles;
+      }
+      case 0x3f00: {
+        this.method_swi();
+        this.cycles = ((this.cycles) + (12));
+        return this.cycles;
+      }
+      case 0x4000: {
+        this.method_nega();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4100: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x4200: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x4300: {
+        this.method_coma();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4400: {
+        this.method_lsra();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4500: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x4600: {
+        this.method_rora();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4700: {
+        this.method_asra();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4800: {
+        this.method_asla();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4900: {
+        this.method_rola();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4a00: {
+        this.method_deca();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4b00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x4c00: {
+        this.method_inca();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4d00: {
+        this.method_tsta();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x4e00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x4f00: {
+        this.method_clra();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5000: {
+        this.method_negb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5100: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x5200: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x5300: {
+        this.method_comb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5400: {
+        this.method_lsrb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5500: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x5600: {
+        this.method_rorb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5700: {
+        this.method_asrb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5800: {
+        this.method_aslb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5900: {
+        this.method_rolb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5a00: {
+        this.method_decb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5b00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x5c00: {
+        this.method_incb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5d00: {
+        this.method_tstb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x5e00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x5f00: {
+        this.method_clrb();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x6000: {
+        this.method_neg_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6100: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x6200: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x6300: {
+        this.method_com_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6400: {
+        this.method_lsr_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6500: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x6600: {
+        this.method_ror_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6700: {
+        this.method_asr_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6800: {
+        this.method_asl_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6900: {
+        this.method_rol_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6a00: {
+        this.method_dec_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6b00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x6c00: {
+        this.method_inc_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6d00: {
+        this.method_tst_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x6e00: {
+        this.method_jmp_ix();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x6f00: {
+        this.method_clr_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7000: {
+        this.method_neg_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7100: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x7200: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x7300: {
+        this.method_com_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7400: {
+        this.method_lsr_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7500: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x7600: {
+        this.method_ror_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7700: {
+        this.method_asr_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7800: {
+        this.method_asl_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7900: {
+        this.method_rol_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7a00: {
+        this.method_dec_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7b00: {
+        this.method_illegl1();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x7c00: {
+        this.method_inc_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7d00: {
+        this.method_tst_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x7e00: {
+        this.method_jmp_ex();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x7f00: {
+        this.method_clr_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x8000: {
+        this.method_suba_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8100: {
+        this.method_cmpa_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8200: {
+        this.method_sbca_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8300: {
+        this.method_subd_im();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x8400: {
+        this.method_anda_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8500: {
+        this.method_bita_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8600: {
+        this.method_lda_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8700: {
+        this.method_sta_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8800: {
+        this.method_eora_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8900: {
+        this.method_adca_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8a00: {
+        this.method_ora_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8b00: {
+        this.method_adda_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0x8c00: {
+        this.method_cpx_im();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x8d00: {
+        this.method_bsr();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0x8e00: {
+        this.method_lds_im();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x8f00: {
+        this.method_sts_im();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9000: {
+        this.method_suba_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9100: {
+        this.method_cmpa_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9200: {
+        this.method_sbca_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9300: {
+        this.method_subd_di();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0x9400: {
+        this.method_anda_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9500: {
+        this.method_bita_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9600: {
+        this.method_lda_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9700: {
+        this.method_sta_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9800: {
+        this.method_eora_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9900: {
+        this.method_adca_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9a00: {
+        this.method_ora_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9b00: {
+        this.method_adda_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0x9c00: {
+        this.method_cpx_di();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0x9d00: {
+        this.method_jsr_di();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0x9e00: {
+        this.method_lds_di();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0x9f00: {
+        this.method_sts_di();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa000: {
+        this.method_suba_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa100: {
+        this.method_cmpa_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa200: {
+        this.method_sbca_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa300: {
+        this.method_subd_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xa400: {
+        this.method_anda_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa500: {
+        this.method_bita_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa600: {
+        this.method_lda_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa700: {
+        this.method_sta_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa800: {
+        this.method_eora_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xa900: {
+        this.method_adca_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xaa00: {
+        this.method_ora_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xab00: {
+        this.method_adda_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xac00: {
+        this.method_cpx_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xad00: {
+        this.method_jsr_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xae00: {
+        this.method_lds_ix();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xaf00: {
+        this.method_sts_ix();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xb000: {
+        this.method_suba_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb100: {
+        this.method_cmpa_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb200: {
+        this.method_sbca_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb300: {
+        this.method_subd_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xb400: {
+        this.method_anda_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb500: {
+        this.method_bita_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb600: {
+        this.method_lda_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb700: {
+        this.method_sta_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb800: {
+        this.method_eora_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xb900: {
+        this.method_adca_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xba00: {
+        this.method_ora_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xbb00: {
+        this.method_adda_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xbc00: {
+        this.method_cpx_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xbd00: {
+        this.method_jsr_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xbe00: {
+        this.method_lds_ex();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xbf00: {
+        this.method_sts_ex();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xc000: {
+        this.method_subb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc100: {
+        this.method_cmpb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc200: {
+        this.method_sbcb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc300: {
+        this.method_addd_im();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xc400: {
+        this.method_andb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc500: {
+        this.method_bitb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc600: {
+        this.method_ldb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc700: {
+        this.method_stb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc800: {
+        this.method_eorb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xc900: {
+        this.method_adcb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xca00: {
+        this.method_orb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xcb00: {
+        this.method_addb_im();
+        this.cycles = ((this.cycles) + (2));
+        return this.cycles;
+      }
+      case 0xcc00: {
+        this.method_ldd_im();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xcd00: {
+        this.method_std_im();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xce00: {
+        this.method_ldx_im();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xcf00: {
+        this.method_stx_im();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd000: {
+        this.method_subb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd100: {
+        this.method_cmpb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd200: {
+        this.method_sbcb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd300: {
+        this.method_addd_di();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xd400: {
+        this.method_andb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd500: {
+        this.method_bitb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd600: {
+        this.method_ldb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd700: {
+        this.method_stb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd800: {
+        this.method_eorb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xd900: {
+        this.method_adcb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xda00: {
+        this.method_orb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xdb00: {
+        this.method_addb_di();
+        this.cycles = ((this.cycles) + (3));
+        return this.cycles;
+      }
+      case 0xdc00: {
+        this.method_ldd_di();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xdd00: {
+        this.method_std_di();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xde00: {
+        this.method_ldx_di();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xdf00: {
+        this.method_stx_di();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe000: {
+        this.method_subb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe100: {
+        this.method_cmpb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe200: {
+        this.method_sbcb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe300: {
+        this.method_addd_ix();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xe400: {
+        this.method_andb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe500: {
+        this.method_bitb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe600: {
+        this.method_ldb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe700: {
+        this.method_stb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe800: {
+        this.method_eorb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xe900: {
+        this.method_adcb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xea00: {
+        this.method_orb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xeb00: {
+        this.method_addb_ix();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xec00: {
+        this.method_ldd_ix();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xed00: {
+        this.method_std_ix();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xee00: {
+        this.method_ldx_ix();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xef00: {
+        this.method_stx_ix();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xf000: {
+        this.method_subb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf100: {
+        this.method_cmpb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf200: {
+        this.method_sbcb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf300: {
+        this.method_addd_ex();
+        this.cycles = ((this.cycles) + (6));
+        return this.cycles;
+      }
+      case 0xf400: {
+        this.method_andb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf500: {
+        this.method_bitb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf600: {
+        this.method_ldb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf700: {
+        this.method_stb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf800: {
+        this.method_eorb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xf900: {
+        this.method_adcb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xfa00: {
+        this.method_orb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xfb00: {
+        this.method_addb_ex();
+        this.cycles = ((this.cycles) + (4));
+        return this.cycles;
+      }
+      case 0xfc00: {
+        this.method_ldd_ex();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xfd00: {
+        this.method_std_ex();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xfe00: {
+        this.method_ldx_ex();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+      case 0xff00: {
+        this.method_stx_ex();
+        this.cycles = ((this.cycles) + (5));
+        return this.cycles;
+      }
+        default:
+          throw new Error('M6801U4 has no generated opcode ' +
+            (((this.m_ref >>> 8) & 0xffff).toString(16).padStart(4, '0')));
+      }
+    }
+  }
+
+  /**
+   * Cycles hardware has taken from this processor, charged against the slice it
+   * is inside.
+   *
+   * MAME device_execute_interface::adjust_icount reduces the remaining
+   * instruction budget; the time still elapses. It is NOT a request to park --
+   * System 1 charges one cycle per slow access and Zaxxon five per sprite entry
+   * copied, and stopping the slice on either starves the processor. The Atari
+   * 2600's WSYNC uses the same call with a whole line's remainder, which parks
+   * the 6507 only because the charge happens to consume what is left.
+   *
+   * Charging the slice the processor is inside, rather than the one after it,
+   * is what matters: deferred, the 2600 lost cycles off every scanline and ran
+   * 244 lines to the frame instead of 262.
+   */
+  stallCycles = 0;
+
+  run(target: number): number {
+    let executed = 0;
+    let stalled = 0;
+    let total = 0;
+    this.stallCycles = 0;
+    while (total < target) {
+      // Cleared before the callback, not after: timing() is where device
+      // timers run, and they read total_cycles(). Leaving the finished
+      // instruction's count here while the slice total already includes it
+      // would report those cycles twice.
+      this.cycles = 0;
+      this.bus.timing?.(total, target);
+      executed += this.step();
+      if (this.stallCycles !== 0) {
+        stalled += this.stallCycles;
+        this.stallCycles = 0;
+      }
+      total = executed + stalled;
+    }
+    this.cycles = 0;
+    this.bus.timing?.(target, target);
+    return total;
+  }
+
+  /**
+   * Cycles consumed so far by the instruction being executed.
+   *
+   * This core charges each cycle before the bus access it pays for, exactly as
+   * MAME's does, so during a read or write this is what MAME's total_cycles()
+   * already includes. Without it the count only moves between instructions,
+   * and hardware that positions itself by *when* the CPU wrote -- the Atari
+   * 2600 puts every sprite on screen this way -- lands whole cycles out.
+   */
+  elapsedCycles(): number {
+    return this.cycles;
+  }
+
+
+  setIrqLine(active: boolean, dataBus: number | (() => number) = 0xff, hold = false): void {
+    if (active) this.irqData = dataBus;
+    this.irqHold = active && hold;
+    this.generatedInput(0, active ? 1 : 0);
+  }
+
+  setInputLine(inputnum: number, state: number): void {
+    this.updateInternalInput(inputnum, state);
+    this.generatedInput(inputnum, state);
+  }
+
+  nmi(): void {
+    this.generatedInput(-1, 1);
+    this.generatedInput(-1, 0);
+  }
+
+  private acknowledgeIrq(level = 0): number {
+    const source = this.irqData;
+    const data = this.bus.acknowledge?.(level) ??
+      (typeof source === 'function' ? source() : source);
+    if (this.irqHold) {
+      this.irqHold = false;
+      this.setIrqLine(false);
+    }
+    return data;
+  }
+
+  private readMemory(address: number): number {
+    const location = address & 65535;
+    if (location === 15) {
+      if (this.portHandshakeControl & 128) {
+        this.portHandshakePendingClear = true;
+      }
+      return this.portHandshakeControl;
+    }
+    if (location === 0) return 0xff;
+    if (location === 2) {
+      const direction = this.portDirection[0];
+      const input = Number(this.bus.signal?.("in_p1_cb", 0) ?? 0xff) & 0xff;
+      return direction === 0xff
+        ? this.portData[0]
+        : (input & ~direction) | (this.portData[0] & direction);
+    }
+    if (location === 1) return 0xff;
+    if (location === 3) {
+      const direction = this.portDirection[1];
+      const input = Number(this.bus.signal?.("in_p2_cb", 0) ?? 0xff) & 0xff;
+      return direction === 0xff
+        ? this.portData[1]
+        : (input & ~direction) | (this.portData[1] & direction);
+    }
+    if (location === 4) return 0xff;
+    if (location === 6) {
+      const direction = this.portDirection[2];
+      if (this.portHandshakePendingClear) {
+        this.portHandshakeControl &= ~128;
+        this.portHandshakePendingClear = false;
+      }
+      const data =
+        (this.portHandshakeControl & 8) ||
+        direction === 0xff
+          ? this.portData[2]
+          : (Number(this.bus.signal?.("in_p3_cb", 0) ?? 0xff) & ~direction) |
+            (this.portData[2] & direction);
+      this.portHandshakeLatched = false;
+      return data & 0xff;
+    }
+    if (location === 5) return 0xff;
+    if (location === 7) {
+      const direction = this.portDirection[3];
+      const input = Number(this.bus.signal?.("in_p4_cb", 0) ?? 0xff) & 0xff;
+      return direction === 0xff
+        ? this.portData[3]
+        : (input & ~direction) | (this.portData[3] & direction);
+    }
+    if ((location >= 64 && location <= 255)) return this.internalRam[location];
+    return this.bus.read(location) & 0xff;
+  }
+
+  private writeMemory(address: number, value: number): void {
+    const location = address & 65535;
+    const data = value & 0xff;
+    if (location === 15) {
+      this.portHandshakeControl = data;
+      return;
+    }
+    if (location === 0) {
+      this.portDirection[0] = data;
+      this.emitPort(0, "out_p1_cb", 255);
+      return;
+    }
+    if (location === 2) {
+      this.portData[0] = data;
+      this.emitPort(0, "out_p1_cb", 255);
+      return;
+    }
+    if (location === 1) {
+      this.portDirection[1] = data;
+      this.emitPort(1, "out_p2_cb", 31);
+      return;
+    }
+    if (location === 3) {
+      this.portData[1] = data;
+      this.emitPort(1, "out_p2_cb", 31);
+      return;
+    }
+    if (location === 4) {
+      this.portDirection[2] = data;
+      this.emitPort(2, "out_p3_cb", 255);
+      return;
+    }
+    if (location === 6) {
+      if (this.portHandshakePendingClear) {
+        this.portHandshakeControl &= ~128;
+        this.portHandshakePendingClear = false;
+      }
+      this.portData[2] = data;
+      this.emitPort(2, "out_p3_cb", 255);
+      return;
+    }
+    if (location === 5) {
+      this.portDirection[3] = data;
+      this.emitPort(3, "out_p4_cb", 255);
+      return;
+    }
+    if (location === 7) {
+      this.portData[3] = data;
+      this.emitPort(3, "out_p4_cb", 255);
+      return;
+    }
+    if ((location >= 64 && location <= 255)) {
+      this.internalRam[location] = data;
+      return;
+    }
+    this.bus.write(location, data);
+  }
+
+  private readOpcode(address: number): number {
+    const location = address & 65535;
+    const value = this.readMemory(location);
+    return value;
+  }
+
+  private emitPort(index: number, signal: string, outputMask: number): void {
+    const direction = this.portDirection[index];
+    const data = (this.portData[index] & direction) | (direction ^ 0xff);
+    this.bus.signal?.(signal, data & outputMask);
+  }
+
+  private resetInternal(): void {
+    this.portDirection.fill(0);
+    this.portHandshakeControl = 0;
+    this.portHandshakeInputState = 0;
+    this.portHandshakeLatched = false;
+    this.portHandshakePendingClear = false;
+  }
+
+  private updateInternalInput(inputnum: number, state: number): void {
+    if (inputnum !== 2) return;
+    if (
+      !this.portHandshakeInputState &&
+      state !== 0 &&
+      !this.portHandshakeLatched &&
+      (this.portHandshakeControl & 8)
+    ) {
+      const direction = this.portDirection[2];
+      const input = Number(
+        this.bus.signal?.(
+          "in_p3_cb",
+          0,
+        ) ?? 0xff,
+      ) & 0xff;
+      this.portData[2] =
+        (input & ~direction) | (this.portData[2] & direction);
+      this.portHandshakeLatched = true;
+      this.portHandshakeControl |= 128;
+    }
+    this.portHandshakeInputState = state;
+  }
+
+  get(name: string): number {
+    switch (name) {
+      case "m_ppc":
+      case "m_ppc.w": return this.m_ppc.w;
+      case "m_ppc.b.h": return this.m_ppc.b.h;
+      case "m_ppc.b.l": return this.m_ppc.b.l;
+      case "m_pc":
+      case "m_pc.w": return this.m_pc.w;
+      case "m_pc.b.h": return this.m_pc.b.h;
+      case "m_pc.b.l": return this.m_pc.b.l;
+      case "m_s":
+      case "m_s.w": return this.m_s.w;
+      case "m_s.b.h": return this.m_s.b.h;
+      case "m_s.b.l": return this.m_s.b.l;
+      case "m_x":
+      case "m_x.w": return this.m_x.w;
+      case "m_x.b.h": return this.m_x.b.h;
+      case "m_x.b.l": return this.m_x.b.l;
+      case "m_d":
+      case "m_d.w": return this.m_d.w;
+      case "m_d.b.h": return this.m_d.b.h;
+      case "m_d.b.l": return this.m_d.b.l;
+      case "m_ea":
+      case "m_ea.w": return this.m_ea.w;
+      case "m_ea.b.h": return this.m_ea.b.h;
+      case "m_ea.b.l": return this.m_ea.b.l;
+      case "m_cc": return this.m_cc;
+      case "m_wai_state": return this.m_wai_state;
+      case "m_nmi_state": return this.m_nmi_state;
+      case "m_nmi_pending": return this.m_nmi_pending;
+      case "m_irq_delay": return this.m_irq_delay;
+      case "m_ref": return this.m_ref;
+      case "cycles": return this.cycles;
+      case "m_icount": return this.m_icount;
+      default: return 0;
+    }
+  }
+
+  /** MAME device_state_interface::state_int, by the CPU's own state index. */
+  stateInt(index: number): number {
+    switch (index) {
+
+      default: return 0;
+    }
+  }
+
+  set(name: string, value: number): void {
+    switch (name) {
+      case "m_ppc":
+      case "m_ppc.w": this.m_ppc.w = value; return;
+      case "m_ppc.b.h": this.m_ppc.b.h = value; return;
+      case "m_ppc.b.l": this.m_ppc.b.l = value; return;
+      case "m_pc":
+      case "m_pc.w": this.m_pc.w = value; return;
+      case "m_pc.b.h": this.m_pc.b.h = value; return;
+      case "m_pc.b.l": this.m_pc.b.l = value; return;
+      case "m_s":
+      case "m_s.w": this.m_s.w = value; return;
+      case "m_s.b.h": this.m_s.b.h = value; return;
+      case "m_s.b.l": this.m_s.b.l = value; return;
+      case "m_x":
+      case "m_x.w": this.m_x.w = value; return;
+      case "m_x.b.h": this.m_x.b.h = value; return;
+      case "m_x.b.l": this.m_x.b.l = value; return;
+      case "m_d":
+      case "m_d.w": this.m_d.w = value; return;
+      case "m_d.b.h": this.m_d.b.h = value; return;
+      case "m_d.b.l": this.m_d.b.l = value; return;
+      case "m_ea":
+      case "m_ea.w": this.m_ea.w = value; return;
+      case "m_ea.b.h": this.m_ea.b.h = value; return;
+      case "m_ea.b.l": this.m_ea.b.l = value; return;
+      case "m_cc": this.m_cc = ((value) & 0xff); return;
+      case "m_wai_state": this.m_wai_state = ((value) & 0xff); return;
+      case "m_nmi_state": this.m_nmi_state = ((value) & 0xff); return;
+      case "m_nmi_pending": this.m_nmi_pending = ((value) & 0xff); return;
+      case "m_irq_delay": this.m_irq_delay = ((value) & 0xff); return;
+      case "m_ref": this.m_ref = ((value) >>> 0); return;
+      case "cycles": this.cycles = value; return;
+      case "m_icount": this.m_icount = value; return;
+      default: return;
+    }
+  }
+
+  hasMethod(name: string): boolean {
+    return GENERATED_METHOD_NAMES.has(name);
+  }
+
+  methodNames(): string[] {
+    return [...GENERATED_METHOD_NAMES];
+  }
+
+  invoke(name: string, ...args: number[]): number {
+    switch (name) {
+      case "illegl1": return this.method_illegl1();
+      case "illegl2": return this.method_illegl2();
+      case "illegl3": return this.method_illegl3();
+      case "trap": return this.method_trap();
+      case "nop": return this.method_nop();
+      case "lsrd": return this.method_lsrd();
+      case "asld": return this.method_asld();
+      case "tap": return this.method_tap();
+      case "tpa": return this.method_tpa();
+      case "inx": return this.method_inx();
+      case "dex": return this.method_dex();
+      case "clv": return this.method_clv();
+      case "sev": return this.method_sev();
+      case "clc": return this.method_clc();
+      case "sec": return this.method_sec();
+      case "cli": return this.method_cli();
+      case "sei": return this.method_sei();
+      case "sba": return this.method_sba();
+      case "cba": return this.method_cba();
+      case "undoc1": return this.method_undoc1();
+      case "undoc2": return this.method_undoc2();
+      case "tab": return this.method_tab();
+      case "tba": return this.method_tba();
+      case "xgdx": return this.method_xgdx();
+      case "daa": return this.method_daa();
+      case "slp": return this.method_slp();
+      case "aba": return this.method_aba();
+      case "bra": return this.method_bra();
+      case "brn": return this.method_brn();
+      case "bhi": return this.method_bhi();
+      case "bls": return this.method_bls();
+      case "bcc": return this.method_bcc();
+      case "bcs": return this.method_bcs();
+      case "bne": return this.method_bne();
+      case "beq": return this.method_beq();
+      case "bvc": return this.method_bvc();
+      case "bvs": return this.method_bvs();
+      case "bpl": return this.method_bpl();
+      case "bmi": return this.method_bmi();
+      case "bge": return this.method_bge();
+      case "blt": return this.method_blt();
+      case "bgt": return this.method_bgt();
+      case "ble": return this.method_ble();
+      case "tsx": return this.method_tsx();
+      case "ins": return this.method_ins();
+      case "pula": return this.method_pula();
+      case "pulb": return this.method_pulb();
+      case "des": return this.method_des();
+      case "txs": return this.method_txs();
+      case "psha": return this.method_psha();
+      case "pshb": return this.method_pshb();
+      case "pulx": return this.method_pulx();
+      case "rts": return this.method_rts();
+      case "abx": return this.method_abx();
+      case "rti": return this.method_rti();
+      case "pshx": return this.method_pshx();
+      case "mul": return this.method_mul();
+      case "wai": return this.method_wai();
+      case "swi": return this.method_swi();
+      case "nega": return this.method_nega();
+      case "coma": return this.method_coma();
+      case "lsra": return this.method_lsra();
+      case "rora": return this.method_rora();
+      case "asra": return this.method_asra();
+      case "asla": return this.method_asla();
+      case "rola": return this.method_rola();
+      case "deca": return this.method_deca();
+      case "inca": return this.method_inca();
+      case "tsta": return this.method_tsta();
+      case "clra": return this.method_clra();
+      case "negb": return this.method_negb();
+      case "comb": return this.method_comb();
+      case "lsrb": return this.method_lsrb();
+      case "rorb": return this.method_rorb();
+      case "asrb": return this.method_asrb();
+      case "aslb": return this.method_aslb();
+      case "rolb": return this.method_rolb();
+      case "decb": return this.method_decb();
+      case "incb": return this.method_incb();
+      case "tstb": return this.method_tstb();
+      case "clrb": return this.method_clrb();
+      case "neg_ix": return this.method_neg_ix();
+      case "aim_ix": return this.method_aim_ix();
+      case "oim_ix": return this.method_oim_ix();
+      case "com_ix": return this.method_com_ix();
+      case "lsr_ix": return this.method_lsr_ix();
+      case "eim_ix": return this.method_eim_ix();
+      case "ror_ix": return this.method_ror_ix();
+      case "asr_ix": return this.method_asr_ix();
+      case "asl_ix": return this.method_asl_ix();
+      case "rol_ix": return this.method_rol_ix();
+      case "dec_ix": return this.method_dec_ix();
+      case "tim_ix": return this.method_tim_ix();
+      case "inc_ix": return this.method_inc_ix();
+      case "tst_ix": return this.method_tst_ix();
+      case "jmp_ix": return this.method_jmp_ix();
+      case "clr_ix": return this.method_clr_ix();
+      case "neg_ex": return this.method_neg_ex();
+      case "aim_di": return this.method_aim_di();
+      case "oim_di": return this.method_oim_di();
+      case "com_ex": return this.method_com_ex();
+      case "lsr_ex": return this.method_lsr_ex();
+      case "eim_di": return this.method_eim_di();
+      case "ror_ex": return this.method_ror_ex();
+      case "asr_ex": return this.method_asr_ex();
+      case "asl_ex": return this.method_asl_ex();
+      case "rol_ex": return this.method_rol_ex();
+      case "dec_ex": return this.method_dec_ex();
+      case "tim_di": return this.method_tim_di();
+      case "inc_ex": return this.method_inc_ex();
+      case "tst_ex": return this.method_tst_ex();
+      case "jmp_ex": return this.method_jmp_ex();
+      case "clr_ex": return this.method_clr_ex();
+      case "suba_im": return this.method_suba_im();
+      case "cmpa_im": return this.method_cmpa_im();
+      case "sbca_im": return this.method_sbca_im();
+      case "subd_im": return this.method_subd_im();
+      case "anda_im": return this.method_anda_im();
+      case "bita_im": return this.method_bita_im();
+      case "lda_im": return this.method_lda_im();
+      case "sta_im": return this.method_sta_im();
+      case "eora_im": return this.method_eora_im();
+      case "adca_im": return this.method_adca_im();
+      case "ora_im": return this.method_ora_im();
+      case "adda_im": return this.method_adda_im();
+      case "cmpx_im": return this.method_cmpx_im();
+      case "cpx_im": return this.method_cpx_im();
+      case "bsr": return this.method_bsr();
+      case "lds_im": return this.method_lds_im();
+      case "sts_im": return this.method_sts_im();
+      case "suba_di": return this.method_suba_di();
+      case "cmpa_di": return this.method_cmpa_di();
+      case "sbca_di": return this.method_sbca_di();
+      case "subd_di": return this.method_subd_di();
+      case "anda_di": return this.method_anda_di();
+      case "bita_di": return this.method_bita_di();
+      case "lda_di": return this.method_lda_di();
+      case "sta_di": return this.method_sta_di();
+      case "eora_di": return this.method_eora_di();
+      case "adca_di": return this.method_adca_di();
+      case "ora_di": return this.method_ora_di();
+      case "adda_di": return this.method_adda_di();
+      case "cmpx_di": return this.method_cmpx_di();
+      case "cpx_di": return this.method_cpx_di();
+      case "jsr_di": return this.method_jsr_di();
+      case "lds_di": return this.method_lds_di();
+      case "sts_di": return this.method_sts_di();
+      case "suba_ix": return this.method_suba_ix();
+      case "cmpa_ix": return this.method_cmpa_ix();
+      case "sbca_ix": return this.method_sbca_ix();
+      case "subd_ix": return this.method_subd_ix();
+      case "anda_ix": return this.method_anda_ix();
+      case "bita_ix": return this.method_bita_ix();
+      case "lda_ix": return this.method_lda_ix();
+      case "sta_ix": return this.method_sta_ix();
+      case "eora_ix": return this.method_eora_ix();
+      case "adca_ix": return this.method_adca_ix();
+      case "ora_ix": return this.method_ora_ix();
+      case "adda_ix": return this.method_adda_ix();
+      case "cmpx_ix": return this.method_cmpx_ix();
+      case "cpx_ix": return this.method_cpx_ix();
+      case "jsr_ix": return this.method_jsr_ix();
+      case "lds_ix": return this.method_lds_ix();
+      case "sts_ix": return this.method_sts_ix();
+      case "suba_ex": return this.method_suba_ex();
+      case "cmpa_ex": return this.method_cmpa_ex();
+      case "sbca_ex": return this.method_sbca_ex();
+      case "subd_ex": return this.method_subd_ex();
+      case "anda_ex": return this.method_anda_ex();
+      case "bita_ex": return this.method_bita_ex();
+      case "lda_ex": return this.method_lda_ex();
+      case "sta_ex": return this.method_sta_ex();
+      case "eora_ex": return this.method_eora_ex();
+      case "adca_ex": return this.method_adca_ex();
+      case "ora_ex": return this.method_ora_ex();
+      case "adda_ex": return this.method_adda_ex();
+      case "cmpx_ex": return this.method_cmpx_ex();
+      case "cpx_ex": return this.method_cpx_ex();
+      case "jsr_ex": return this.method_jsr_ex();
+      case "lds_ex": return this.method_lds_ex();
+      case "sts_ex": return this.method_sts_ex();
+      case "subb_im": return this.method_subb_im();
+      case "cmpb_im": return this.method_cmpb_im();
+      case "sbcb_im": return this.method_sbcb_im();
+      case "addd_im": return this.method_addd_im();
+      case "andb_im": return this.method_andb_im();
+      case "bitb_im": return this.method_bitb_im();
+      case "ldb_im": return this.method_ldb_im();
+      case "stb_im": return this.method_stb_im();
+      case "eorb_im": return this.method_eorb_im();
+      case "adcb_im": return this.method_adcb_im();
+      case "orb_im": return this.method_orb_im();
+      case "addb_im": return this.method_addb_im();
+      case "ldd_im": return this.method_ldd_im();
+      case "std_im": return this.method_std_im();
+      case "ldx_im": return this.method_ldx_im();
+      case "stx_im": return this.method_stx_im();
+      case "subb_di": return this.method_subb_di();
+      case "cmpb_di": return this.method_cmpb_di();
+      case "sbcb_di": return this.method_sbcb_di();
+      case "addd_di": return this.method_addd_di();
+      case "andb_di": return this.method_andb_di();
+      case "bitb_di": return this.method_bitb_di();
+      case "ldb_di": return this.method_ldb_di();
+      case "stb_di": return this.method_stb_di();
+      case "eorb_di": return this.method_eorb_di();
+      case "adcb_di": return this.method_adcb_di();
+      case "orb_di": return this.method_orb_di();
+      case "addb_di": return this.method_addb_di();
+      case "ldd_di": return this.method_ldd_di();
+      case "std_di": return this.method_std_di();
+      case "ldx_di": return this.method_ldx_di();
+      case "stx_di": return this.method_stx_di();
+      case "subb_ix": return this.method_subb_ix();
+      case "cmpb_ix": return this.method_cmpb_ix();
+      case "sbcb_ix": return this.method_sbcb_ix();
+      case "addd_ix": return this.method_addd_ix();
+      case "andb_ix": return this.method_andb_ix();
+      case "bitb_ix": return this.method_bitb_ix();
+      case "ldb_ix": return this.method_ldb_ix();
+      case "stb_ix": return this.method_stb_ix();
+      case "eorb_ix": return this.method_eorb_ix();
+      case "adcb_ix": return this.method_adcb_ix();
+      case "orb_ix": return this.method_orb_ix();
+      case "addb_ix": return this.method_addb_ix();
+      case "ldd_ix": return this.method_ldd_ix();
+      case "adcx_im": return this.method_adcx_im();
+      case "std_ix": return this.method_std_ix();
+      case "ldx_ix": return this.method_ldx_ix();
+      case "stx_ix": return this.method_stx_ix();
+      case "subb_ex": return this.method_subb_ex();
+      case "cmpb_ex": return this.method_cmpb_ex();
+      case "sbcb_ex": return this.method_sbcb_ex();
+      case "addd_ex": return this.method_addd_ex();
+      case "andb_ex": return this.method_andb_ex();
+      case "bitb_ex": return this.method_bitb_ex();
+      case "ldb_ex": return this.method_ldb_ex();
+      case "stb_ex": return this.method_stb_ex();
+      case "eorb_ex": return this.method_eorb_ex();
+      case "adcb_ex": return this.method_adcb_ex();
+      case "orb_ex": return this.method_orb_ex();
+      case "addb_ex": return this.method_addb_ex();
+      case "ldd_ex": return this.method_ldd_ex();
+      case "addx_ex": return this.method_addx_ex();
+      case "std_ex": return this.method_std_ex();
+      case "ldx_ex": return this.method_ldx_ex();
+      case "stx_ex": return this.method_stx_ex();
+      case "btst_ix": return this.method_btst_ix();
+      case "stx_nsc": return this.method_stx_nsc();
+      case "RM16": return this.method_RM16(args[0] ?? 0);
+      case "WM16": return this.method_WM16(args[0] ?? 0, args[1] ?? 0);
+      case "enter_interrupt": return this.method_enter_interrupt(args[0] ?? 0, args[1] ?? 0);
+      case "check_irq_lines": return this.method_check_irq_lines();
+      case "check_irq1_enabled": return this.method_check_irq1_enabled();
+      case "increment_counter": return this.method_increment_counter(args[0] ?? 0);
+      case "check_irq2": return this.method_check_irq2();
+      case "execute_one": return this.method_execute_one();
+      case "eat_cycles": return this.method_eat_cycles();
+      case "take_trap": return this.method_take_trap();
+      default: throw new Error('M6801U4 has no generated method "' + name + '"');
+    }
+  }
+
+  private generatedStart(): void {
+
+  }
+
+  private generatedInput(inputnum: number, state: number): void {
+    switch (inputnum) {
+      case -1:
+        {
+          if ((((((this.m_nmi_state) ? 0 : 1)) && (((Number(state) !== Number(0)) ? 1 : 0))) ? 1 : 0)) {
+            this.m_nmi_pending = ((1) & 0xff);
+          }
+          this.m_nmi_state = ((state) & 0xff);
+          break;
+        }
+      default:
+        {
+          this.m_irq_state[inputnum] = ((state) & 0xff);
+          break;
+        }
+    }
+  }
+
+  private generatedService(): void {
+    if (this.m_irq_delay) {
+      this.m_irq_delay = ((0) & 0xff);
+    } else {
+      this.method_check_irq_lines();
+    }
+    if (((Number(this.cycles) > Number(0)) ? 1 : 0)) {
+      return;
+    }
+    if (((this.m_wai_state) & (((8) | (16))))) {
+      this.cycles = ((this.cycles) + (1));
+      return;
+    }
+  }
+
+  private generatedFetch(): void {
+    this.m_ref = (((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (16))) >>> 0);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+  }
+
+  private method_illegl1(): number {
+    0;
+    return 0;
+  }
+
+  private method_illegl2(): number {
+    0;
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_illegl3(): number {
+    0;
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    return 0;
+  }
+
+  private method_trap(): number {
+    0;
+    this.m_pc.w = ((((this.m_pc.w) - (1))) & 0xffff);
+    this.method_take_trap();
+    return 0;
+  }
+
+  private method_nop(): number {
+
+    return 0;
+  }
+
+  private method_lsrd(): number {
+    let t = 0;
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    t = ((this.m_d.w) & 0xffff);
+    this.m_cc = ((((this.m_cc) | (((t) & (1))))) & 0xff);
+    t = ((((t) >>> (1))) & 0xffff);
+    if (((((t) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    this.m_d.w = ((t) & 0xffff);
+    return 0;
+  }
+
+  private method_asld(): number {
+    let r = 0;
+    let t = 0;
+    t = ((this.m_d.w) & 0xffff);
+    r = ((((t) << (1))) | 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((t) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_tap(): number {
+    this.m_cc = ((this.m_d.b.h) & 0xff);
+    this.method_execute_one();
+    this.method_check_irq_lines();
+    return 0;
+  }
+
+  private method_tpa(): number {
+    this.m_d.b.h = ((this.m_cc) & 0xff);
+    return 0;
+  }
+
+  private method_inx(): number {
+    this.m_x.w = ((((this.m_x.w) + (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (251))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_dex(): number {
+    this.m_x.w = ((((this.m_x.w) - (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (251))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_clv(): number {
+    this.m_cc = ((((this.m_cc) & (253))) & 0xff);
+    return 0;
+  }
+
+  private method_sev(): number {
+    this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    return 0;
+  }
+
+  private method_clc(): number {
+    this.m_cc = ((((this.m_cc) & (254))) & 0xff);
+    return 0;
+  }
+
+  private method_sec(): number {
+    this.m_cc = ((((this.m_cc) | (1))) & 0xff);
+    return 0;
+  }
+
+  private method_cli(): number {
+    this.m_irq_delay = ((((((this.m_cc) & (16))) ? (1) : (0))) & 0xff);
+    this.m_cc = ((((this.m_cc) & ((~16)))) & 0xff);
+    return 0;
+  }
+
+  private method_sei(): number {
+    this.m_cc = ((((this.m_cc) | (16))) & 0xff);
+    return 0;
+  }
+
+  private method_sba(): number {
+    let t = 0;
+    t = ((((this.m_d.b.h) - (this.m_d.b.l))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (this.m_d.b.l))) ^ (t))) ^ (((t) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((t) & 0xff);
+    return 0;
+  }
+
+  private method_cba(): number {
+    let t = 0;
+    t = ((((this.m_d.b.h) - (this.m_d.b.l))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (this.m_d.b.l))) ^ (t))) ^ (((t) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_undoc1(): number {
+    this.m_x.w = ((((this.m_x.w) + ((this.readMemory((((this.m_s.w) + (1))) & 0xffff) & 0xff)))) & 0xffff);
+    return 0;
+  }
+
+  private method_undoc2(): number {
+    this.m_x.w = ((((this.m_x.w) + ((this.readMemory((((this.m_s.w) + (1))) & 0xffff) & 0xff)))) & 0xffff);
+    return 0;
+  }
+
+  private method_tab(): number {
+    this.m_d.b.l = ((this.m_d.b.h) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_tba(): number {
+    this.m_d.b.h = ((this.m_d.b.l) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_xgdx(): number {
+    let t = ((this.m_x.w) & 0xffff);
+    this.m_x.w = ((this.m_d.w) & 0xffff);
+    this.m_d.w = ((t) & 0xffff);
+    return 0;
+  }
+
+  private method_daa(): number {
+    let msn = 0;
+    let lsn = 0;
+    let t = 0;
+    let cf = ((0) & 0xffff);
+    msn = ((((this.m_d.b.h) & (240))) & 0xff);
+    lsn = ((((this.m_d.b.h) & (15))) & 0xff);
+    if ((((((Number(lsn) > Number(9)) ? 1 : 0)) || (((this.m_cc) & (32)))) ? 1 : 0)) {
+      cf = ((((cf) | (6))) & 0xffff);
+    }
+    if ((((((Number(msn) > Number(128)) ? 1 : 0)) && (((Number(lsn) > Number(9)) ? 1 : 0))) ? 1 : 0)) {
+      cf = ((((cf) | (96))) & 0xffff);
+    }
+    if ((((((Number(msn) > Number(144)) ? 1 : 0)) || (((this.m_cc) & (1)))) ? 1 : 0)) {
+      cf = ((((cf) | (96))) & 0xffff);
+    }
+    t = ((((cf) + (this.m_d.b.h))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((t) & 0xff)) & (128))) >>> (4))))) & 0xff);
+    if (((((((t) & 0xff)) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((t) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((t) & 0xff);
+    return 0;
+  }
+
+  private method_slp(): number {
+    this.m_wai_state = ((((this.m_wai_state) | (16))) & 0xff);
+    this.method_check_irq_lines();
+    if (((this.m_wai_state) & (16))) {
+      this.method_eat_cycles();
+    }
+    return 0;
+  }
+
+  private method_aba(): number {
+    let t = 0;
+    t = ((((this.m_d.b.h) + (this.m_d.b.l))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (this.m_d.b.l))) ^ (t))) ^ (((t) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (this.m_d.b.l))) ^ (t))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((t) & 0xff);
+    return 0;
+  }
+
+  private method_bra(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (1) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_brn(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (0) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bhi(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((((this.m_cc) & (5))) ? 0 : 1)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bls(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((this.m_cc) & (5))) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bcc(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((((this.m_cc) & (1))) ? 0 : 1)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bcs(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((this.m_cc) & (1))) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bne(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((((this.m_cc) & (4))) ? 0 : 1)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_beq(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((this.m_cc) & (4))) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bvc(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((((this.m_cc) & (2))) ? 0 : 1)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bvs(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((this.m_cc) & (2))) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bpl(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((((this.m_cc) & (8))) ? 0 : 1)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bmi(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((this.m_cc) & (8))) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bge(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((((((this.m_cc) & (8))) ^ (((((this.m_cc) & (2))) << (2))))) ? 0 : 1)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_blt(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (2))) << (2))))) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_bgt(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if ((((((((((this.m_cc) & (8))) ^ (((((this.m_cc) & (2))) << (2))))) || (((this.m_cc) & (4)))) ? 1 : 0)) ? 0 : 1)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_ble(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    if ((((((((this.m_cc) & (8))) ^ (((((this.m_cc) & (2))) << (2))))) || (((this.m_cc) & (4)))) ? 1 : 0)) {
+      this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    }
+    return 0;
+  }
+
+  private method_tsx(): number {
+    this.m_x.w = ((((this.m_s.w) + (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_ins(): number {
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_pula(): number {
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_d.b.h = (((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) & 0xff);
+    return 0;
+  }
+
+  private method_pulb(): number {
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_d.b.l = (((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) & 0xff);
+    return 0;
+  }
+
+  private method_des(): number {
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_txs(): number {
+    this.m_s.w = ((((this.m_x.w) - (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_psha(): number {
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_pshb(): number {
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_pulx(): number {
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_x.w = (((((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) << (8))) & 0xffff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_x.w = ((((this.m_x.w) | ((this.readMemory((this.m_s.w) & 0xffff) & 0xff)))) & 0xffff);
+    return 0;
+  }
+
+  private method_rts(): number {
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_pc.w = (((((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) << (8))) & 0xffff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) | ((this.readMemory((this.m_s.w) & 0xffff) & 0xff)))) & 0xffff);
+    return 0;
+  }
+
+  private method_abx(): number {
+    this.m_x.w = ((((this.m_x.w) + (this.m_d.b.l))) & 0xffff);
+    return 0;
+  }
+
+  private method_rti(): number {
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_cc = (((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_d.b.l = (((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_d.b.h = (((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_x.w = (((((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) << (8))) & 0xffff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_x.w = ((((this.m_x.w) | ((this.readMemory((this.m_s.w) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_pc.w = (((((this.readMemory((this.m_s.w) & 0xffff) & 0xff)) << (8))) & 0xffff);
+    this.m_s.w = ((((this.m_s.w) + (1))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) | ((this.readMemory((this.m_s.w) & 0xffff) & 0xff)))) & 0xffff);
+    this.method_check_irq_lines();
+    return 0;
+  }
+
+  private method_pshx(): number {
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    return 0;
+  }
+
+  private method_mul(): number {
+    let t = 0;
+    t = ((((this.m_d.b.h) * (this.m_d.b.l))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (254))) & 0xff);
+    if (((t) & (128))) {
+      this.m_cc = ((((this.m_cc) | (1))) & 0xff);
+    }
+    this.m_d.w = ((t) & 0xffff);
+    return 0;
+  }
+
+  private method_wai(): number {
+    this.m_wai_state = ((((this.m_wai_state) | (8))) & 0xff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_cc) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    this.method_check_irq_lines();
+    if (((this.m_wai_state) & (8))) {
+      this.method_eat_cycles();
+    }
+    return 0;
+  }
+
+  private method_swi(): number {
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_cc) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) | (16))) & 0xff);
+    this.m_pc.w = ((this.method_RM16(65530)) & 0xffff);
+    return 0;
+  }
+
+  private method_nega(): number {
+    let r = 0;
+    r = (((-this.m_d.b.h)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((0) ^ (this.m_d.b.h))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_coma(): number {
+    this.m_d.b.h = (((~this.m_d.b.h)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (1))) & 0xff);
+    return 0;
+  }
+
+  private method_lsra(): number {
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((this.m_d.b.h) & (1))))) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) >>> (1))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_rora(): number {
+    let r = 0;
+    r = ((((((this.m_cc) & (1))) << (7))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((this.m_d.b.h) & (1))))) & 0xff);
+    r = ((((r) | (((this.m_d.b.h) >>> (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_asra(): number {
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((this.m_d.b.h) & (1))))) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) >>> (1))) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) | (((((this.m_d.b.h) & (64))) << (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_asla(): number {
+    let r = 0;
+    r = ((((this.m_d.b.h) << (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (this.m_d.b.h))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_rola(): number {
+    let t = 0;
+    let r = 0;
+    t = ((this.m_d.b.h) & 0xffff);
+    r = ((((this.m_cc) & (1))) & 0xffff);
+    r = ((((r) | (((t) << (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((t) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_deca(): number {
+    this.m_d.b.h = ((((this.m_d.b.h) - (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8d[((this.m_d.b.h) & (255))]))) & 0xff);
+    return 0;
+  }
+
+  private method_inca(): number {
+    this.m_d.b.h = ((((this.m_d.b.h) + (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8i[((this.m_d.b.h) & (255))]))) & 0xff);
+    return 0;
+  }
+
+  private method_tsta(): number {
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_clra(): number {
+    this.m_d.b.h = ((0) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    return 0;
+  }
+
+  private method_negb(): number {
+    let r = 0;
+    r = (((-this.m_d.b.l)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((0) ^ (this.m_d.b.l))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_comb(): number {
+    this.m_d.b.l = (((~this.m_d.b.l)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (1))) & 0xff);
+    return 0;
+  }
+
+  private method_lsrb(): number {
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((this.m_d.b.l) & (1))))) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) >>> (1))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_rorb(): number {
+    let r = 0;
+    r = ((((((this.m_cc) & (1))) << (7))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((this.m_d.b.l) & (1))))) & 0xff);
+    r = ((((r) | (((this.m_d.b.l) >>> (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_asrb(): number {
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((this.m_d.b.l) & (1))))) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) >>> (1))) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) | (((((this.m_d.b.l) & (64))) << (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_aslb(): number {
+    let r = 0;
+    r = ((((this.m_d.b.l) << (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (this.m_d.b.l))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_rolb(): number {
+    let t = 0;
+    let r = 0;
+    t = ((this.m_d.b.l) & 0xffff);
+    r = ((((this.m_cc) & (1))) & 0xffff);
+    r = ((((r) | (((t) << (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((t) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_decb(): number {
+    this.m_d.b.l = ((((this.m_d.b.l) - (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8d[((this.m_d.b.l) & (255))]))) & 0xff);
+    return 0;
+  }
+
+  private method_incb(): number {
+    this.m_d.b.l = ((((this.m_d.b.l) + (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8i[((this.m_d.b.l) & (255))]))) & 0xff);
+    return 0;
+  }
+
+  private method_tstb(): number {
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_clrb(): number {
+    this.m_d.b.l = ((0) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    return 0;
+  }
+
+  private method_neg_ix(): number {
+    let r = 0;
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = (((-t)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((0) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_aim_ix(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_oim_ix(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_com_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    t = (((~t)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (1))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_lsr_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((t) & (1))))) & 0xff);
+    t = ((((t) >>> (1))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eim_ix(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_ror_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((((this.m_cc) & (1))) << (7))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((t) & (1))))) & 0xff);
+    r = ((((r) | (((t) >>> (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_asr_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((t) & (1))))) & 0xff);
+    t = ((((t) >>> (1))) & 0xff);
+    t = ((((t) | (((((t) & (64))) << (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_asl_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((t) << (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((t) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_rol_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_cc) & (1))) & 0xffff);
+    r = ((((r) | (((t) << (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((t) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_dec_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    t = ((((t) - (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8d[((t) & (255))]))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_tim_ix(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_inc_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    t = ((((t) + (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8i[((t) & (255))]))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_tst_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_jmp_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_pc.w = ((this.m_ea.w) & 0xffff);
+    return 0;
+  }
+
+  private method_clr_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.readMemory((this.m_ea.w) & 0xffff) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (0) & 0xff), 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    return 0;
+  }
+
+  private method_neg_ex(): number {
+    let r = 0;
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = (((-t)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((0) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_aim_di(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_oim_di(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_com_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    t = (((~t)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (1))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_lsr_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((t) & (1))))) & 0xff);
+    t = ((((t) >>> (1))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eim_di(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_ror_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((((this.m_cc) & (1))) << (7))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((t) & (1))))) & 0xff);
+    r = ((((r) | (((t) >>> (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_asr_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((t) & (1))))) & 0xff);
+    t = ((((t) >>> (1))) & 0xff);
+    t = ((((t) | (((((t) & (64))) << (1))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    if (((((this.m_cc) & (8))) ^ (((((this.m_cc) & (1))) << (3))))) {
+      this.m_cc = ((((this.m_cc) | (2))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_asl_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((t) << (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((t) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_rol_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_cc) & (1))) & 0xffff);
+    r = ((((r) | (((t) << (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((t) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (r) & 0xff), 0);
+    return 0;
+  }
+
+  private method_dec_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    t = ((((t) - (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8d[((t) & (255))]))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_tim_di(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((r) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_inc_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    t = ((((t) + (1))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (this.flags8i[((t) & (255))]))) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (t) & 0xff), 0);
+    return 0;
+  }
+
+  private method_tst_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((t) & (128))) >>> (4))))) & 0xff);
+    if (((((t) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_jmp_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_pc.w = ((this.m_ea.w) & 0xffff);
+    return 0;
+  }
+
+  private method_clr_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    (this.readMemory((this.m_ea.w) & 0xffff) & 0xff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (0) & 0xff), 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    return 0;
+  }
+
+  private method_suba_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpa_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbca_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((((this.m_d.b.h) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_subd_im(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    b = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) >>> 0);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_anda_im(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.h = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bita_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_lda_im(): number {
+    this.m_d.b.h = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sta_im(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((((() => { const previous = this.m_pc.w; this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff); return previous; })())) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eora_im(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.h = ((((this.m_d.b.h) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adca_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((((this.m_d.b.h) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ora_im(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.h = ((((this.m_d.b.h) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adda_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.h) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpx_im(): number {
+    let r = ((0) >>> 0);
+    let d = ((0) >>> 0);
+    let b = ((0) >>> 0);
+    b = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) >>> 0);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((((((d) >>> (8))) & 0xff)) - (((((b) >>> (8))) & 0xff)))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((r) & 0xff)) & (128))) >>> (4))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((((((((d) >>> (8))) & 0xff)) ^ (((((b) >>> (8))) & 0xff)))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    r = ((((d) - (b))) >>> 0);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_cpx_im(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    b = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) >>> 0);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    return 0;
+  }
+
+  private method_bsr(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + ((((((((t) & (128))) ? (((t) | (65280))) : (t))) << 16) >> 16)))) & 0xffff);
+    return 0;
+  }
+
+  private method_lds_im(): number {
+    this.m_s.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sts_im(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((this.m_pc.w) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_s.w);
+    return 0;
+  }
+
+  private method_suba_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpa_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbca_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.h) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_subd_di(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_anda_di(): number {
+    let t = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bita_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_lda_di(): number {
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.h = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sta_di(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eora_di(): number {
+    let t = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adca_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.h) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ora_di(): number {
+    let t = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adda_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpx_di(): number {
+    let r = ((0) >>> 0);
+    let d = ((0) >>> 0);
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((((((d) >>> (8))) & 0xff)) - (((((b) >>> (8))) & 0xff)))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((r) & 0xff)) & (128))) >>> (4))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((((((((d) >>> (8))) & 0xff)) ^ (((((b) >>> (8))) & 0xff)))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    r = ((((d) - (b))) >>> 0);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_cpx_di(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    return 0;
+  }
+
+  private method_jsr_di(): number {
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    this.m_pc.w = ((this.m_ea.w) & 0xffff);
+    return 0;
+  }
+
+  private method_lds_di(): number {
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_s.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sts_di(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_s.w);
+    return 0;
+  }
+
+  private method_suba_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpa_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbca_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.h) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_subd_ix(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_anda_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bita_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_lda_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.h = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sta_ix(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eora_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adca_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.h) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ora_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adda_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpx_ix(): number {
+    let r = ((0) >>> 0);
+    let d = ((0) >>> 0);
+    let b = ((0) >>> 0);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((((((d) >>> (8))) & 0xff)) - (((((b) >>> (8))) & 0xff)))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((r) & 0xff)) & (128))) >>> (4))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((((((((d) >>> (8))) & 0xff)) ^ (((((b) >>> (8))) & 0xff)))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    r = ((((d) - (b))) >>> 0);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_cpx_ix(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    return 0;
+  }
+
+  private method_jsr_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    this.m_pc.w = ((this.m_ea.w) & 0xffff);
+    return 0;
+  }
+
+  private method_lds_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_s.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sts_ix(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_s.w);
+    return 0;
+  }
+
+  private method_suba_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpa_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbca_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.h) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_subd_ex(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_anda_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bita_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((this.m_d.b.h) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_lda_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_d.b.h = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sta_ex(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eora_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adca_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.h) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ora_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.h = ((((this.m_d.b.h) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.h) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.h) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adda_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.h) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.h) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.h) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.h = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpx_ex(): number {
+    let r = ((0) >>> 0);
+    let d = ((0) >>> 0);
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((((((d) >>> (8))) & 0xff)) - (((((b) >>> (8))) & 0xff)))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((r) & 0xff)) & (128))) >>> (4))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((((((((d) >>> (8))) & 0xff)) ^ (((((b) >>> (8))) & 0xff)))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    r = ((((d) - (b))) >>> 0);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_cpx_ex(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((d) - (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    return 0;
+  }
+
+  private method_jsr_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.l) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.h) & 0xff), 0);
+    this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+    this.m_pc.w = ((this.m_ea.w) & 0xffff);
+    return 0;
+  }
+
+  private method_lds_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_s.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_sts_ex(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_s.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_s.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_s.w);
+    return 0;
+  }
+
+  private method_subb_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpb_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbcb_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((((this.m_d.b.l) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_addd_im(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    b = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) >>> 0);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) + (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_andb_im(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.l = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bitb_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_ldb_im(): number {
+    this.m_d.b.l = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stb_im(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((((() => { const previous = this.m_pc.w; this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff); return previous; })())) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eorb_im(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.l = ((((this.m_d.b.l) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adcb_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((((this.m_d.b.l) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_orb_im(): number {
+    let t = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.l = ((((this.m_d.b.l) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_addb_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_d.b.l) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ldd_im(): number {
+    this.m_d.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_std_im(): number {
+    this.m_ea.w = ((this.m_pc.w) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.method_WM16(this.m_ea.w, this.m_d.w);
+    return 0;
+  }
+
+  private method_ldx_im(): number {
+    this.m_x.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stx_im(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((this.m_pc.w) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_x.w);
+    return 0;
+  }
+
+  private method_subb_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpb_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbcb_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.l) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_addd_di(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) + (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_andb_di(): number {
+    let t = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bitb_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_ldb_di(): number {
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.l = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stb_di(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eorb_di(): number {
+    let t = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adcb_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.l) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_orb_di(): number {
+    let t = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_addb_di(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ldd_di(): number {
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_std_di(): number {
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.method_WM16(this.m_ea.w, this.m_d.w);
+    return 0;
+  }
+
+  private method_ldx_di(): number {
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_x.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stx_di(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_x.w);
+    return 0;
+  }
+
+  private method_subb_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpb_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbcb_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.l) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_addd_ix(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) + (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_andb_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bitb_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_ldb_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.b.l = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stb_ix(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eorb_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adcb_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.l) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_orb_ix(): number {
+    let t = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_addb_ix(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ldd_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_d.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adcx_im(): number {
+    let t = 0;
+    let r = 0;
+    t = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    r = ((((this.m_x.w) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_x.w) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_x.w) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_x.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_std_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.method_WM16(this.m_ea.w, this.m_d.w);
+    return 0;
+  }
+
+  private method_ldx_ix(): number {
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.m_x.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stx_ix(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = ((((this.m_x.w) + ((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_x.w);
+    return 0;
+  }
+
+  private method_subb_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_cmpb_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) - (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    return 0;
+  }
+
+  private method_sbcb_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.l) - (t))) - (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_addd_ex(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_d.w) >>> 0);
+    r = ((((d) + (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_d.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_andb_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_bitb_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    r = ((((this.m_d.b.l) & (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_ldb_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_d.b.l = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stb_ex(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    (this.writeMemory((this.m_ea.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+    return 0;
+  }
+
+  private method_eorb_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) ^ (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_adcb_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((((this.m_d.b.l) + (t))) + (((this.m_cc) & (1))))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_orb_ex(): number {
+    let t = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_d.b.l = ((((this.m_d.b.l) | (t))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.b.l) & (128))) >>> (4))))) & 0xff);
+    if (((((this.m_d.b.l) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_addb_ex(): number {
+    let t = 0;
+    let r = 0;
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    t = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xffff);
+    r = ((((this.m_d.b.l) + (t))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (208))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (128))) >>> (4))))) & 0xff);
+    if (((((r) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((this.m_d.b.l) ^ (t))) ^ (r))) ^ (((r) >>> (1))))) & (128))) >>> (6))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (256))) >>> (8))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((((((this.m_d.b.l) ^ (t))) ^ (r))) & (16))) << (1))))) & 0xff);
+    this.m_d.b.l = ((r) & 0xff);
+    return 0;
+  }
+
+  private method_ldd_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_d.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_addx_ex(): number {
+    let r = 0;
+    let d = 0;
+    let b = ((0) >>> 0);
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    b = ((this.method_RM16(this.m_ea.w)) >>> 0);
+    d = ((this.m_x.w) >>> 0);
+    r = ((((d) + (b))) >>> 0);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (32768))) >>> (12))))) & 0xff);
+    if (((((r) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_cc = ((((this.m_cc) | (((((((((((d) ^ (b))) ^ (r))) ^ (((r) >>> (1))))) & (32768))) >>> (14))))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((r) & (65536))) >>> (16))))) & 0xff);
+    this.m_x.w = ((r) & 0xffff);
+    return 0;
+  }
+
+  private method_std_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_d.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_d.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.method_WM16(this.m_ea.w, this.m_d.w);
+    return 0;
+  }
+
+  private method_ldx_ex(): number {
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.m_x.w = ((this.method_RM16(this.m_ea.w)) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stx_ex(): number {
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((this.m_x.w) & (32768))) >>> (12))))) & 0xff);
+    if (((((this.m_x.w) & 0xffff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    this.m_ea.w = (((((((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) << (8))) | ((this.readMemory((((((this.m_pc.w) + (1))) & (65535))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    this.method_WM16(this.m_ea.w, this.m_x.w);
+    return 0;
+  }
+
+  private method_btst_ix(): number {
+    let val = 0;
+    let mask = (((this.readMemory((this.m_pc.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_ea.w = ((((this.m_x.w) + ((this.readMemory((((this.m_pc.w) + (1))) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_pc.w = ((((this.m_pc.w) + (2))) & 0xffff);
+    val = (((((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & (mask))) & 0xff);
+    this.m_cc = ((((this.m_cc) & (240))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((val) & (128))) >>> (4))))) & 0xff);
+    if (((((val) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    return 0;
+  }
+
+  private method_stx_nsc(): number {
+    this.m_ea.w = ((((() => { const previous = this.m_pc.w; this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff); return previous; })())) & 0xffff);
+    let val = (((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)) & 0xff);
+    this.m_ea.w = ((((() => { const previous = this.m_pc.w; this.m_pc.w = ((((this.m_pc.w) + (1))) & 0xffff); return previous; })())) & 0xffff);
+    this.m_ea.w = ((((this.m_x.w) + ((this.readMemory((this.m_ea.w) & 0xffff) & 0xff)))) & 0xffff);
+    this.m_cc = ((((this.m_cc) & (241))) & 0xff);
+    this.m_cc = ((((this.m_cc) | (((((val) & (128))) >>> (4))))) & 0xff);
+    if (((((val) & 0xff)) ? 0 : 1)) {
+      this.m_cc = ((((this.m_cc) | (4))) & 0xff);
+    }
+    (this.writeMemory((this.m_ea.w) & 0xffff, (val) & 0xff), 0);
+    return 0;
+  }
+
+  private method_RM16(Addr: number = 0): number {
+    let result = (((((this.readMemory((Addr) & 0xffff) & 0xff)) << (8))) >>> 0);
+    return ((result) | ((this.readMemory((((((Addr) + (1))) & (65535))) & 0xffff) & 0xff)));
+    return 0;
+  }
+
+  private method_WM16(Addr: number = 0, p: number = 0): number {
+    (this.writeMemory((Addr) & 0xffff, (((p >>> 8) & 0xff)) & 0xff), 0);
+    (this.writeMemory((((((Addr) + (1))) & (65535))) & 0xffff, (((p) & 0xff)) & 0xff), 0);
+    return 0;
+  }
+
+  private method_enter_interrupt(message: number = 0, irq_vector: number = 0): number {
+    let cycles_to_eat = ((0) | 0);
+    0;
+    if (((this.m_wai_state) & (8))) {
+      cycles_to_eat = ((4) | 0);
+      this.m_wai_state = ((((this.m_wai_state) & ((~8)))) & 0xff);
+    } else {
+      (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.l) & 0xff), 0);
+      this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+      (this.writeMemory((this.m_s.w) & 0xffff, (this.m_pc.b.h) & 0xff), 0);
+      this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+      (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.l) & 0xff), 0);
+      this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+      (this.writeMemory((this.m_s.w) & 0xffff, (this.m_x.b.h) & 0xff), 0);
+      this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+      (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.h) & 0xff), 0);
+      this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+      (this.writeMemory((this.m_s.w) & 0xffff, (this.m_d.b.l) & 0xff), 0);
+      this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+      (this.writeMemory((this.m_s.w) & 0xffff, (this.m_cc) & 0xff), 0);
+      this.m_s.w = ((((this.m_s.w) - (1))) & 0xffff);
+      cycles_to_eat = ((12) | 0);
+    }
+    this.m_cc = ((((this.m_cc) | (16))) & 0xff);
+    this.m_pc.w = ((this.method_RM16(irq_vector)) & 0xffff);
+    this.method_increment_counter(cycles_to_eat);
+    return 0;
+  }
+
+  private method_check_irq_lines(): number {
+    if (this.m_nmi_pending) {
+      this.m_wai_state = ((((this.m_wai_state) & ((~16)))) & 0xff);
+      this.m_nmi_pending = ((0) & 0xff);
+      this.method_enter_interrupt(0, 65532);
+    } else {
+      if (this.method_check_irq1_enabled()) {
+        this.m_wai_state = ((((this.m_wai_state) & ((~16)))) & 0xff);
+        if (((((this.m_cc) & (16))) ? 0 : 1)) {
+          this.acknowledgeIrq(0);
+          this.method_enter_interrupt(0, 65528);
+        }
+      } else {
+        this.method_check_irq2();
+      }
+    }
+    return 0;
+  }
+
+  private method_check_irq1_enabled(): number {
+    return ((Number(this.m_irq_state[0]) !== Number(0)) ? 1 : 0);
+    return 0;
+  }
+
+  private method_increment_counter(amount: number = 0): number {
+    this.cycles = ((this.cycles) + (amount));
+    return 0;
+  }
+
+  private method_check_irq2(): number {
+
+    return 0;
+  }
+
+  private method_execute_one(): number {
+
+    return 0;
+  }
+
+  private method_eat_cycles(): number {
+    this.cycles = ((this.cycles) + (1));
+    return 0;
+  }
+
+  private method_take_trap(): number {
+
+    return 0;
+  }
+}
+
+export const cpu: GeneratedCpuExecutable = {
+  type: "M6801U4",
+  summary: {"opcodes":256,"compiledOpcodes":256,"methods":259,"compiledMethods":259,"diagnostics":0},
+  create: (bus: CpuBus): Cpu => new GeneratedM6801U4(bus),
+};
+
+export default cpu;

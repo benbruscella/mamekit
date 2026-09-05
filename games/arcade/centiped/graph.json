@@ -1,0 +1,3214 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/atari/centiped.cpp",
+    "generatedAt": "2026-09-05T03:49:22.270Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/atari/centiped.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/centiped.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:centiped.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "centiped.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/s2650/s2650.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/s2650/s2650.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/rescap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rescap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/sn76496.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/sn76496.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/pokey.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/pokey.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:centiped",
+      "label": "Game",
+      "props": {
+        "name": "centiped",
+        "year": "1980",
+        "company": "Atari",
+        "fullname": "Centipede (revision 4)",
+        "monitor": "ROT270",
+        "cls": "centiped_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2377,
+        "sourceColumn": 1,
+        "sourceEndLine": 2377
+      }
+    },
+    {
+      "id": "romset:centiped",
+      "label": "RomSet",
+      "props": {
+        "name": "centiped",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2029,
+        "sourceColumn": 1,
+        "sourceEndLine": 2029
+      }
+    },
+    {
+      "id": "region:centiped/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2030,
+        "sourceColumn": 2,
+        "sourceEndLine": 2030
+      }
+    },
+    {
+      "id": "rom:centiped/maincpu/136001-407.d1",
+      "label": "Rom",
+      "props": {
+        "file": "136001-407.d1",
+        "offset": 8192,
+        "size": 2048,
+        "crc": "c4d995eb",
+        "sha1": "d0b2f0461cfa35842045d40ffb65e777703b773e",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2031,
+        "sourceColumn": 2,
+        "sourceEndLine": 2031
+      }
+    },
+    {
+      "id": "rom:centiped/maincpu/136001-408.e1",
+      "label": "Rom",
+      "props": {
+        "file": "136001-408.e1",
+        "offset": 10240,
+        "size": 2048,
+        "crc": "bcdebe1b",
+        "sha1": "53f3bf88a79ce40661c0a9381928e55d8c61777a",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2032,
+        "sourceColumn": 2,
+        "sourceEndLine": 2032
+      }
+    },
+    {
+      "id": "rom:centiped/maincpu/136001-409.fh1",
+      "label": "Rom",
+      "props": {
+        "file": "136001-409.fh1",
+        "offset": 12288,
+        "size": 2048,
+        "crc": "66d7b04a",
+        "sha1": "8fa758095b618085090491dfb5ea114cdc87f9df",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2033,
+        "sourceColumn": 2,
+        "sourceEndLine": 2033
+      }
+    },
+    {
+      "id": "rom:centiped/maincpu/136001-410.j1",
+      "label": "Rom",
+      "props": {
+        "file": "136001-410.j1",
+        "offset": 14336,
+        "size": 2048,
+        "crc": "33ce4640",
+        "sha1": "780c2eb320f64fad6b265c0dada961646ed30174",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2034,
+        "sourceColumn": 2,
+        "sourceEndLine": 2034
+      }
+    },
+    {
+      "id": "region:centiped/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2036,
+        "sourceColumn": 2,
+        "sourceEndLine": 2036
+      }
+    },
+    {
+      "id": "rom:centiped/gfx1/136001-211.f7",
+      "label": "Rom",
+      "props": {
+        "file": "136001-211.f7",
+        "offset": 0,
+        "size": 2048,
+        "crc": "880acfb9",
+        "sha1": "6c862352c329776f2f9974a0df9dbe41f9dbc361",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2037,
+        "sourceColumn": 2,
+        "sourceEndLine": 2037
+      }
+    },
+    {
+      "id": "rom:centiped/gfx1/136001-212.hj7",
+      "label": "Rom",
+      "props": {
+        "file": "136001-212.hj7",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "b1397029",
+        "sha1": "974c03d29aeca672fffa4dfc00a06be6a851aacb",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2038,
+        "sourceColumn": 2,
+        "sourceEndLine": 2038
+      }
+    },
+    {
+      "id": "region:centiped/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2040,
+        "sourceColumn": 2,
+        "sourceEndLine": 2040
+      }
+    },
+    {
+      "id": "rom:centiped/proms/136001-213.p4",
+      "label": "Rom",
+      "props": {
+        "file": "136001-213.p4",
+        "offset": 0,
+        "size": 256,
+        "crc": "6fa3093a",
+        "sha1": "2b7aeca74c1ae4156bf1878453a047330f96f0a8",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2041,
+        "sourceColumn": 2,
+        "sourceEndLine": 2041
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "centiped_state",
+        "name": "centiped_base_map",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 695,
+        "sourceColumn": 1,
+        "sourceEndLine": 715,
+        "globalMask": 16383
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 1023,
+        "raw": "map(0x0000, 0x03ff).ram().share(\"rambase\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 698,
+        "sourceColumn": 2,
+        "sourceEndLine": 698,
+        "ram": true,
+        "share": "rambase"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1024,
+        "end": 1983,
+        "raw": "map(0x0400, 0x07bf).ram().w(FUNC(centiped_state::centiped_videoram_w)).share(\"videoram\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 699,
+        "sourceColumn": 2,
+        "sourceEndLine": 699,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:centiped_state.centiped_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "centiped_videoram_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 130,
+        "sourceColumn": 1,
+        "sourceEndLine": 134,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 1984,
+        "end": 2047,
+        "raw": "map(0x07c0, 0x07ff).ram().share(\"spriteram\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 700,
+        "sourceColumn": 2,
+        "sourceEndLine": 700,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 2048,
+        "end": 2048,
+        "raw": "map(0x0800, 0x0800).portr(\"DSW1\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 2,
+        "sourceEndLine": 701,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 2049,
+        "end": 2049,
+        "raw": "map(0x0801, 0x0801).portr(\"DSW2\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 702,
+        "sourceColumn": 2,
+        "sourceEndLine": 702,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 3072,
+        "end": 3072,
+        "raw": "map(0x0c00, 0x0c00).r(FUNC(centiped_state::centiped_IN0_r))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 703,
+        "sourceColumn": 2,
+        "sourceEndLine": 703
+      }
+    },
+    {
+      "id": "handler:centiped_state.centiped_IN0_r",
+      "label": "Handler",
+      "props": {
+        "method": "centiped_IN0_r",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 545,
+        "sourceColumn": 1,
+        "sourceEndLine": 548,
+        "sourceParameters": "",
+        "sourceBody": "return read_trackball(0, 0);"
+      }
+    },
+    {
+      "id": "handler:centiped_state.read_trackball",
+      "label": "Handler",
+      "props": {
+        "method": "read_trackball",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 518,
+        "sourceColumn": 1,
+        "sourceEndLine": 542,
+        "sourceParameters": "int idx, int switch_port",
+        "sourceBody": "uint8_t newpos;\n\tstatic const char *const portnames[] = { \"IN0\", \"IN1\", \"IN2\" };\n\tstatic const char *const tracknames[] = { \"TRACK0_X\", \"TRACK0_Y\", \"TRACK1_X\", \"TRACK1_Y\" };\n\n\t/* adjust idx if we're cocktail flipped */\n\tif (m_flipscreen)\n\t\tidx += 2;\n\n\t/* if we're to read the dipswitches behind the trackball data, do it now */\n\tif (m_dsw_select)\n\t\treturn (ioport(portnames[switch_port])->read() & 0x7f) | m_sign[idx];\n\n\t/* get the new position and adjust the result */\n\tnewpos = ioport(tracknames[idx])->read();\n\tif (newpos != m_oldpos[idx])\n\t{\n\t\tm_sign[idx] = (newpos - m_oldpos[idx]) & 0x80;\n\t\tm_oldpos[idx] = newpos;\n\t}\n\n\t/* blend with the bits from the switch port */\n\treturn (ioport(portnames[switch_port])->read() & 0x70) | (m_oldpos[idx] & 0x0f) | m_sign[idx];"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 3073,
+        "end": 3073,
+        "raw": "map(0x0c01, 0x0c01).portr(\"IN1\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 704,
+        "sourceColumn": 2,
+        "sourceEndLine": 704,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 3074,
+        "end": 3074,
+        "raw": "map(0x0c02, 0x0c02).r(FUNC(centiped_state::centiped_IN2_r))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 705,
+        "sourceColumn": 2,
+        "sourceEndLine": 705
+      }
+    },
+    {
+      "id": "handler:centiped_state.centiped_IN2_r",
+      "label": "Handler",
+      "props": {
+        "method": "centiped_IN2_r",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 551,
+        "sourceColumn": 1,
+        "sourceEndLine": 554,
+        "sourceParameters": "",
+        "sourceBody": "return read_trackball(1, 2);"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 3075,
+        "end": 3075,
+        "raw": "map(0x0c03, 0x0c03).portr(\"IN3\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 706,
+        "sourceColumn": 2,
+        "sourceEndLine": 706,
+        "portRead": "IN3"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 5120,
+        "end": 5135,
+        "raw": "map(0x1400, 0x140f).w(FUNC(centiped_state::centiped_paletteram_w)).share(\"paletteram\")",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 707,
+        "sourceColumn": 2,
+        "sourceEndLine": 707,
+        "share": "paletteram"
+      }
+    },
+    {
+      "id": "handler:centiped_state.centiped_paletteram_w",
+      "label": "Handler",
+      "props": {
+        "method": "centiped_paletteram_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 211,
+        "sourceColumn": 1,
+        "sourceEndLine": 260,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_paletteram[offset] = data;\n\n\t/* bit 2 of the output palette RAM is always pulled high, so we ignore */\n\t/* any palette changes unless the write is to a palette RAM address */\n\t/* that is actually used */\n\tif (offset & 4)\n\t{\n\t\trgb_t color;\n\n\t\tint r = 0xff * ((~data >> 0) & 1);\n\t\tint g = 0xff * ((~data >> 1) & 1);\n\t\tint b = 0xff * ((~data >> 2) & 1);\n\n\t\tif (~data & 0x08) /* alternate = 1 */\n\t\t{\n\t\t\t/* when blue component is not 0, decrease it. When blue component is 0, */\n\t\t\t/* decrease green component. */\n\t\t\tif (b) b = 0xc0;\n\t\t\telse if (g) g = 0xc0;\n\t\t}\n\n\t\tcolor = rgb_t(r, g, b);\n\n\t\t/* character colors, set directly */\n\t\tif ((offset & 0x08) == 0)\n\t\t\tm_palette->set_pen_color(offset & 0x03, color);\n\n\t\t/* sprite colors - set all the applicable ones */\n\t\telse\n\t\t{\n\t\t\tint i;\n\n\t\t\toffset = offset & 0x03;\n\n\t\t\tfor (i = 0; i < 0x100; i += 4)\n\t\t\t{\n\t\t\t\tif (offset == ((i >> 2) & 0x03))\n\t\t\t\t\tm_palette->set_pen_color(i + 4 + 1, color);\n\n\t\t\t\tif (offset == ((i >> 4) & 0x03))\n\t\t\t\t\tm_palette->set_pen_color(i + 4 + 2, color);\n\n\t\t\t\tif (offset == ((i >> 6) & 0x03))\n\t\t\t\t\tm_palette->set_pen_color(i + 4 + 3, color);\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 5632,
+        "end": 5695,
+        "raw": "map(0x1600, 0x163f).nopr().w(FUNC(centiped_state::earom_write))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 708,
+        "sourceColumn": 2,
+        "sourceEndLine": 708,
+        "nopr": true
+      }
+    },
+    {
+      "id": "handler:centiped_state.earom_write",
+      "label": "Handler",
+      "props": {
+        "method": "earom_write",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 674,
+        "sourceColumn": 1,
+        "sourceEndLine": 678,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_earom->set_address(offset & 0x3f);\n\tm_earom->set_data(data);"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 5760,
+        "end": 5760,
+        "raw": "map(0x1680, 0x1680).w(FUNC(centiped_state::earom_control_w))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 709,
+        "sourceColumn": 2,
+        "sourceEndLine": 709
+      }
+    },
+    {
+      "id": "handler:centiped_state.earom_control_w",
+      "label": "Handler",
+      "props": {
+        "method": "earom_control_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 680,
+        "sourceColumn": 1,
+        "sourceEndLine": 685,
+        "sourceConstants": [
+          "CK=1",
+          "C1=2",
+          "C2=4",
+          "CS1=8",
+          "CS2=16"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// CK = DB0, C1 = /DB1, C2 = DB2, CS1 = DB3, /CS2 = GND\n\tm_earom->set_control(BIT(data, 3), 1, !BIT(data, 1), BIT(data, 2));\n\tm_earom->set_clk(BIT(data, 0));"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 5888,
+        "end": 5951,
+        "raw": "map(0x1700, 0x173f).r(FUNC(centiped_state::earom_read))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 710,
+        "sourceColumn": 2,
+        "sourceEndLine": 710
+      }
+    },
+    {
+      "id": "handler:centiped_state.earom_read",
+      "label": "Handler",
+      "props": {
+        "method": "earom_read",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 669,
+        "sourceColumn": 1,
+        "sourceEndLine": 672,
+        "sourceParameters": "",
+        "sourceBody": "return m_earom->data();"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 6144,
+        "end": 6144,
+        "raw": "map(0x1800, 0x1800).w(FUNC(centiped_state::irq_ack_w))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 711,
+        "sourceColumn": 2,
+        "sourceEndLine": 711
+      }
+    },
+    {
+      "id": "handler:centiped_state.irq_ack_w",
+      "label": "Handler",
+      "props": {
+        "method": "irq_ack_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 487,
+        "sourceColumn": 1,
+        "sourceEndLine": 490,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_maincpu->set_input_line(0, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 7168,
+        "end": 7175,
+        "raw": "map(0x1c00, 0x1c07).nopr().w(\"outlatch\", FUNC(ls259_device::write_d7))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 712,
+        "sourceColumn": 2,
+        "sourceEndLine": 712,
+        "nopr": true
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d7",
+      "label": "Handler",
+      "props": {
+        "method": "write_d7",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1014,
+        "sourceColumn": 2,
+        "sourceEndLine": 1014
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 8192,
+        "raw": "map(0x2000, 0x2000).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 713,
+        "sourceColumn": 2,
+        "sourceEndLine": 713
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1015,
+        "sourceColumn": 2,
+        "sourceEndLine": 1015
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_base_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 16383,
+        "raw": "map(0x2000, 0x3fff).rom()",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 714,
+        "sourceColumn": 2,
+        "sourceEndLine": 714,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "centiped_state",
+        "name": "centiped_map",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 718,
+        "sourceColumn": 1,
+        "sourceEndLine": 722,
+        "calls": [
+          "centiped_base_map"
+        ]
+      }
+    },
+    {
+      "id": "map:centiped_state.centiped_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 4111,
+        "raw": "map(0x1000, 0x100f).rw(\"pokey\", FUNC(pokey_device::read), FUNC(pokey_device::write))",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 721,
+        "sourceColumn": 2,
+        "sourceEndLine": 721
+      }
+    },
+    {
+      "id": "handler:pokey_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 976,
+        "sourceColumn": 2,
+        "sourceEndLine": 976
+      }
+    },
+    {
+      "id": "handler:pokey_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 976,
+        "sourceColumn": 2,
+        "sourceEndLine": 976
+      }
+    },
+    {
+      "id": "machine:centiped_state.centiped_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "centiped_state",
+        "name": "centiped_base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_oldpos\",\"bits\":8,\"arrayLength\":4}",
+          "{\"name\":\"m_sign\",\"bits\":8,\"arrayLength\":4}",
+          "{\"name\":\"m_dsw_select\",\"bits\":8}",
+          "{\"name\":\"m_control_select\",\"bits\":8}",
+          "{\"name\":\"m_flipscreen\",\"bits\":8}",
+          "{\"name\":\"m_bullsdrt_sprites_bank\",\"bits\":8}",
+          "{\"name\":\"m_penmask\",\"bits\":8,\"arrayLength\":64}"
+        ],
+        "startHandlers": [
+          "centiped_state.video_start_centiped"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1775,
+        "sourceColumn": 1,
+        "sourceEndLine": 1808
+      }
+    },
+    {
+      "id": "handler:centiped_state.video_start_centiped",
+      "label": "Handler",
+      "props": {
+        "method": "video_start_centiped",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 88,
+        "sourceColumn": 1,
+        "sourceEndLine": 94,
+        "sourceParameters": "",
+        "sourceBody": "init_common();\n\tinit_penmask();\n\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(centiped_state::centiped_get_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);"
+      }
+    },
+    {
+      "id": "handler:centiped_state.init_common",
+      "label": "Handler",
+      "props": {
+        "method": "init_common",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 76,
+        "sourceColumn": 1,
+        "sourceEndLine": 85,
+        "sourceParameters": "",
+        "sourceBody": "save_item(NAME(m_flipscreen));\n\tsave_item(NAME(m_gfx_bank));\n\tsave_item(NAME(m_bullsdrt_sprites_bank));\n\n\tm_flipscreen = 0;\n\tm_gfx_bank = 0;\n\tm_bullsdrt_sprites_bank = 0;"
+      }
+    },
+    {
+      "id": "handler:centiped_state.init_penmask",
+      "label": "Handler",
+      "props": {
+        "method": "init_penmask",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 63,
+        "sourceColumn": 1,
+        "sourceEndLine": 73,
+        "sourceParameters": "",
+        "sourceBody": "for (int i = 0; i < 64; i++)\n\t{\n\t\tuint8_t mask = 1;\n\t\tif (((i >> 0) & 3) == 0) mask |= 2;\n\t\tif (((i >> 2) & 3) == 0) mask |= 4;\n\t\tif (((i >> 4) & 3) == 0) mask |= 8;\n\t\tm_penmask[i] = mask;\n\t}"
+      }
+    },
+    {
+      "id": "handler:centiped_state.centiped_get_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "centiped_get_tile_info",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 19,
+        "sourceColumn": 1,
+        "sourceEndLine": 23,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int data = m_videoram[tile_index];\n\ttileinfo.set(0, (data & 0x3f) + 0x40, 0, TILE_FLIPYX(data >> 6));"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "maincpu",
+        "clock": 1512000,
+        "config": [
+          "M6502(config, m_maincpu, 12096000/8)"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1778,
+        "sourceColumn": 2,
+        "sourceEndLine": 1778
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/earom",
+      "label": "Device",
+      "props": {
+        "type": "ER2055",
+        "tag": "earom",
+        "clock": null,
+        "config": [
+          "ER2055(config, m_earom)"
+        ]
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/outlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "outlatch",
+        "clock": null,
+        "config": [
+          "LS259(config, m_outlatch)",
+          "m_outlatch->q_out_cb<0>().set(FUNC(centiped_state::coin_counter_left_w))",
+          "m_outlatch->q_out_cb<1>().set(FUNC(centiped_state::coin_counter_center_w))",
+          "m_outlatch->q_out_cb<2>().set(FUNC(centiped_state::coin_counter_right_w))",
+          "m_outlatch->q_out_cb<3>().set_output(\"led0\").invert()",
+          "m_outlatch->q_out_cb<4>().set_output(\"led1\").invert()",
+          "m_outlatch->q_out_cb<7>().set(FUNC(centiped_state::flip_screen_w))"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1784,
+        "sourceColumn": 2,
+        "sourceEndLine": 1784
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/outlatch/callback:outlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_outlatch->q_out_cb<0>().set(FUNC(centiped_state::coin_counter_left_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1785,
+        "sourceColumn": 2,
+        "sourceEndLine": 1785,
+        "slot": "0",
+        "targetClass": "centiped_state",
+        "targetMethod": "coin_counter_left_w"
+      }
+    },
+    {
+      "id": "handler:centiped_state.coin_counter_left_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_left_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 1,
+        "sourceEndLine": 641,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, state);"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/outlatch/callback:outlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_outlatch->q_out_cb<1>().set(FUNC(centiped_state::coin_counter_center_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1786,
+        "sourceColumn": 2,
+        "sourceEndLine": 1786,
+        "slot": "1",
+        "targetClass": "centiped_state",
+        "targetMethod": "coin_counter_center_w"
+      }
+    },
+    {
+      "id": "handler:centiped_state.coin_counter_center_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_center_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 644,
+        "sourceColumn": 1,
+        "sourceEndLine": 647,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, state);"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/outlatch/callback:outlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_outlatch->q_out_cb<2>().set(FUNC(centiped_state::coin_counter_right_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1787,
+        "sourceColumn": 2,
+        "sourceEndLine": 1787,
+        "slot": "2",
+        "targetClass": "centiped_state",
+        "targetMethod": "coin_counter_right_w"
+      }
+    },
+    {
+      "id": "handler:centiped_state.coin_counter_right_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_right_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 1,
+        "sourceEndLine": 653,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(2, state);"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_vblank_count(\"screen\", 8)"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1791,
+        "sourceColumn": 2,
+        "sourceEndLine": 1791
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/32v",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "32v",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"32v\").configure_scanline(FUNC(centiped_state::generate_interrupt), \"screen\", 0, 16)"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1794,
+        "sourceColumn": 2,
+        "sourceEndLine": 1794
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/32v/callback:32v:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_scanline",
+        "operation": "configure_scanline",
+        "raw": "TIMER(config, \"32v\").configure_scanline(FUNC(centiped_state::generate_interrupt), \"screen\", 0, 16)",
+        "ownerTag": "32v",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1794,
+        "sourceColumn": 2,
+        "sourceEndLine": 1794,
+        "scanlineStart": 0,
+        "scanlineIncrement": 16,
+        "targetClass": "centiped_state",
+        "targetMethod": "generate_interrupt"
+      }
+    },
+    {
+      "id": "handler:centiped_state.generate_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "generate_interrupt",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 1,
+        "sourceEndLine": 444,
+        "sourceParameters": "int param",
+        "sourceBody": "int scanline = param;\n\n\t/* IRQ is clocked on the rising edge of 16V, equal to the previous 32V */\n\tif (scanline & 16)\n\t\tm_maincpu->set_input_line(0, ((scanline - 1) & 32) ? ASSERT_LINE : CLEAR_LINE);\n\n\t/* do a partial update now to handle sprite multiplexing (Maze Invaders) */\n\tm_screen->update_partial(scanline);"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_refresh_hz(60)",
+          "m_screen->set_size(32*8, 32*8)",
+          "m_screen->set_visarea(0*8, 32*8-1, 0*8, 30*8-1)",
+          "m_screen->set_screen_update(FUNC(centiped_state::screen_update_centiped))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1797,
+        "sourceColumn": 2,
+        "sourceEndLine": 1797,
+        "configCalls": [
+          "set_refresh_hz(60)",
+          "set_size(256,256)",
+          "set_visarea(0,255,0,239)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 60,
+        "screenSize": [
+          256,
+          256
+        ],
+        "screenVisarea": [
+          0,
+          255,
+          0,
+          239
+        ]
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(centiped_state::screen_update_centiped))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1801,
+        "sourceColumn": 2,
+        "sourceEndLine": 1801,
+        "targetClass": "centiped_state",
+        "targetMethod": "screen_update_centiped"
+      }
+    },
+    {
+      "id": "handler:centiped_state.screen_update_centiped",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_centiped",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 414,
+        "sourceColumn": 1,
+        "sourceEndLine": 440,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "rectangle spriteclip = cliprect;\n\n\t/* draw the background */\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\t/* apply the sprite clip */\n\tif (m_flipscreen)\n\t\tspriteclip.min_x += 8;\n\telse\n\t\tspriteclip.max_x -= 8;\n\n\t/* draw the sprites */\n\tfor (int offs = 0; offs < 0x10; offs++)\n\t{\n\t\tint code = ((m_spriteram[offs] & 0x3e) >> 1) | ((m_spriteram[offs] & 0x01) << 6);\n\t\tint color = m_spriteram[offs + 0x30];\n\t\tint flipx = (m_spriteram[offs] >> 6) & 1;\n\t\tint flipy = (m_spriteram[offs] >> 7) & 1;\n\t\tint x = m_spriteram[offs + 0x20];\n\t\tint y = 240 - m_spriteram[offs + 0x10];\n\n\t\tm_gfxdecode->gfx(1)->transmask(bitmap, spriteclip, code, color, flipx, flipy, x, y, m_penmask[color & 0x3f]);\n\t}\n\treturn 0;"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_centiped)"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1804,
+        "sourceColumn": 2,
+        "sourceEndLine": 1804,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped_base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_entries(4+4*4*4*4)"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1805,
+        "sourceColumn": 2,
+        "sourceEndLine": 1805
+      }
+    },
+    {
+      "id": "machine:centiped_state.centiped",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "centiped_state",
+        "name": "centiped",
+        "calls": [
+          "centiped_base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_oldpos\",\"bits\":8,\"arrayLength\":4}",
+          "{\"name\":\"m_sign\",\"bits\":8,\"arrayLength\":4}",
+          "{\"name\":\"m_dsw_select\",\"bits\":8}",
+          "{\"name\":\"m_control_select\",\"bits\":8}",
+          "{\"name\":\"m_flipscreen\",\"bits\":8}",
+          "{\"name\":\"m_bullsdrt_sprites_bank\",\"bits\":8}",
+          "{\"name\":\"m_penmask\",\"bits\":8,\"arrayLength\":64}"
+        ],
+        "resetHandlers": [
+          "centiped_state.machine_reset_centiped"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"outlatch\",\"config\":[\"m_outlatch->q_out_cb<7>().set(FUNC(centiped_state::flip_screen_w))\"]}"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1810,
+        "sourceColumn": 1,
+        "sourceEndLine": 1824
+      }
+    },
+    {
+      "id": "handler:centiped_state.machine_reset_centiped",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset_centiped",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 469,
+        "sourceColumn": 1,
+        "sourceEndLine": 475,
+        "sourceParameters": "",
+        "sourceBody": "m_maincpu->set_input_line(0, CLEAR_LINE);\n\n\tif (m_earom.found())\n\t\tearom_control_w(0);"
+      }
+    },
+    {
+      "id": "machine:centiped_state.centiped/callback:outlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_outlatch->q_out_cb<7>().set(FUNC(centiped_state::flip_screen_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1816,
+        "sourceColumn": 2,
+        "sourceEndLine": 1816,
+        "slot": "7",
+        "targetClass": "centiped_state",
+        "targetMethod": "flip_screen_w"
+      }
+    },
+    {
+      "id": "handler:centiped_state.flip_screen_w",
+      "label": "Handler",
+      "props": {
+        "method": "flip_screen_w",
+        "ownerClass": "centiped_state",
+        "sourceFile": "src/mame/atari/centiped_v.cpp",
+        "sourceLine": 144,
+        "sourceColumn": 1,
+        "sourceEndLine": 147,
+        "sourceParameters": "int state",
+        "sourceBody": "m_flipscreen = state;"
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1819,
+        "sourceColumn": 2,
+        "sourceEndLine": 1819
+      }
+    },
+    {
+      "id": "device:centiped_state.centiped/pokey",
+      "label": "Device",
+      "props": {
+        "type": "POKEY",
+        "tag": "pokey",
+        "clock": 1512000,
+        "config": [
+          "pokey_device &pokey(POKEY(config, \"pokey\", 12096000/8))",
+          "pokey.set_output_opamp_low_pass(RES_K(3.3), CAP_U(0.01), 5.0)",
+          "pokey.add_route(ALL_OUTPUTS, \"mono\", 0.5)"
+        ],
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1821,
+        "sourceColumn": 2,
+        "sourceEndLine": 1821
+      }
+    },
+    {
+      "id": "audioroute:device:centiped_state.centiped/pokey/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.5,
+        "raw": "pokey.add_route(ALL_OUTPUTS, \"mono\", 0.5)",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1823,
+        "sourceColumn": 2,
+        "sourceEndLine": 1823
+      }
+    },
+    {
+      "id": "inputs:centiped",
+      "label": "InputPorts",
+      "props": {
+        "name": "centiped",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1047,
+        "sourceColumn": 8,
+        "sourceEndLine": 1047
+      }
+    },
+    {
+      "id": "inputs:centiped/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "settings": [
+          "0=Upright",
+          "16=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 32,
+        "activeLow": true,
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:centiped/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"screen\", FUNC(screen_device::vblank))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_TILT",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:centiped/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:centiped/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 112,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3",
+      "label": "Port",
+      "props": {
+        "tag": "IN3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:centiped/IN3/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N9:!1,!2\")"
+        ],
+        "name": "Language",
+        "defaultValue": 0,
+        "location": "N9:!1,!2",
+        "settings": [
+          "0=English",
+          "1=German",
+          "2=French",
+          "3=Spanish"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N9:!3,!4\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 4,
+        "location": "N9:!3,!4",
+        "settings": [
+          "0=2",
+          "4=3",
+          "8=4",
+          "12=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N9:!5,!6\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 16,
+        "location": "N9:!5,!6",
+        "settings": [
+          "0=10000",
+          "16=12000",
+          "32=15000",
+          "48=20000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N9:!7\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 64,
+        "location": "N9:!7",
+        "settings": [
+          "64=Easy",
+          "0=Hard"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N9:!8\")"
+        ],
+        "name": "Credit Minimum",
+        "defaultValue": 0,
+        "location": "N9:!8",
+        "settings": [
+          "0=1",
+          "128=2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N8:!1,!2\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 2,
+        "location": "N8:!1,!2",
+        "settings": [
+          "3=2C 1C",
+          "2=1C 1C",
+          "1=1C 2C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N8:!3,!4\")"
+        ],
+        "name": "Right Coin",
+        "defaultValue": 0,
+        "location": "N8:!3,!4",
+        "settings": [
+          "0=*1",
+          "4=*4",
+          "8=*5",
+          "12=*6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N8:!5\")"
+        ],
+        "name": "Left Coin",
+        "defaultValue": 0,
+        "location": "N8:!5",
+        "settings": [
+          "0=*1",
+          "16=*2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 224,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"N8:!6,!7,!8\")"
+        ],
+        "name": "Bonus Coins",
+        "defaultValue": 0,
+        "location": "N8:!6,!7,!8",
+        "settings": [
+          "0=None",
+          "32=3 credits/2 coins",
+          "64=5 credits/4 coins",
+          "96=6 credits/4 coins",
+          "128=6 credits/5 coins",
+          "160=4 credits/3 coins"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK0_X",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK0_X",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK0_X/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_X",
+        "modifiers": [
+          "PORT_SENSITIVITY(50)",
+          "PORT_KEYDELTA(10)",
+          "PORT_REVERSE"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK0_Y",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK0_Y",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK0_Y/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_Y",
+        "modifiers": [
+          "PORT_SENSITIVITY(50)",
+          "PORT_KEYDELTA(10)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK1_X",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK1_X",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK1_X/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_X",
+        "modifiers": [
+          "PORT_SENSITIVITY(50)",
+          "PORT_KEYDELTA(10)",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK1_Y",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK1_Y",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:centiped/TRACK1_Y/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_Y",
+        "modifiers": [
+          "PORT_SENSITIVITY(50)",
+          "PORT_KEYDELTA(10)",
+          "PORT_REVERSE",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:centiped4",
+      "label": "InputPorts",
+      "props": {
+        "name": "centiped4",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1175,
+        "sourceColumn": 8,
+        "sourceEndLine": 1175
+      }
+    },
+    {
+      "id": "inputs:centiped4/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:centiped4/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:centiped4/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:centiped4/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:centiped4/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:centiped4/IN3",
+      "label": "Port",
+      "props": {
+        "tag": "IN3",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:centiped4/IN3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 15
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!1,!2\")"
+        ],
+        "name": "Language",
+        "defaultValue": 0,
+        "location": "SW1:!1,!2",
+        "settings": [
+          "0=English",
+          "1=German",
+          "2=French",
+          "3=Spanish"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!3,!4\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 4,
+        "location": "SW1:!3,!4",
+        "settings": [
+          "0=2",
+          "4=3",
+          "8=4",
+          "12=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!5,!6\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 16,
+        "location": "SW1:!5,!6",
+        "settings": [
+          "0=10000",
+          "16=12000",
+          "32=15000",
+          "48=20000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!7\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 64,
+        "location": "SW1:!7",
+        "settings": [
+          "64=Easy",
+          "0=Hard"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!8\")"
+        ],
+        "name": "Credit Minimum",
+        "defaultValue": 0,
+        "location": "SW1:!8",
+        "settings": [
+          "0=1",
+          "128=2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!1,!2\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 2,
+        "location": "SW2:!1,!2",
+        "settings": [
+          "3=2C 1C",
+          "2=1C 1C",
+          "1=1C 2C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 28,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!3,!4,!5\")"
+        ],
+        "name": "Game Time",
+        "defaultValue": 0,
+        "location": "SW2:!3,!4,!5",
+        "settings": [
+          "0=Untimed",
+          "4=1 Minute",
+          "8=2 Minutes",
+          "12=3 Minutes",
+          "16=4 Minutes",
+          "20=5 Minutes",
+          "24=6 Minutes",
+          "28=7 Minutes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 224,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!6,!7,!8\")"
+        ],
+        "name": "Bonus Coins",
+        "defaultValue": 0,
+        "location": "SW2:!6,!7,!8",
+        "settings": [
+          "0=None",
+          "32=3 credits/2 coins",
+          "64=5 credits/4 coins",
+          "96=6 credits/4 coins",
+          "128=6 credits/5 coins",
+          "160=4 credits/3 coins"
+        ]
+      }
+    },
+    {
+      "id": "inputs:centiped4/TRACK1_X",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK1_X",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:centiped4/TRACK1_X/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 255
+      }
+    },
+    {
+      "id": "inputs:centiped4/TRACK1_Y",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK1_Y",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:centiped4/TRACK1_Y/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 255
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 8,
+        "height": 16,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_centiped",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_centiped",
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1734,
+        "sourceColumn": 8,
+        "sourceEndLine": 1734
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_centiped/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx1",
+        "offset": 0,
+        "layout": "gfx_8x8x2_planar",
+        "colorBase": 0,
+        "colorCount": 1,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_centiped/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx1",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 4,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:centiped",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2377,
+        "sourceColumn": 1,
+        "sourceEndLine": 2377
+      }
+    },
+    {
+      "from": "game:centiped",
+      "to": "machine:centiped_state.centiped",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:centiped",
+      "to": "inputs:centiped4",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:centiped",
+      "to": "romset:centiped",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:centiped.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:cpu/s2650/s2650.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:sound/sn76496.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:sound/pokey.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/centiped.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:centiped_state.centiped",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1810,
+        "sourceColumn": 1,
+        "sourceEndLine": 1824
+      }
+    },
+    {
+      "from": "machine:centiped_state.centiped",
+      "to": "handler:centiped_state.machine_reset_centiped",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:centiped_state.centiped",
+      "to": "machine:centiped_state.centiped_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:centiped_state.centiped",
+      "to": "map:centiped_state.centiped_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:centiped_state.centiped",
+      "to": "machine:centiped_state.centiped/callback:outlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:centiped_state.centiped",
+      "to": "device:centiped_state.centiped/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped",
+      "to": "device:centiped_state.centiped/pokey",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1175,
+        "sourceColumn": 8,
+        "sourceEndLine": 1175
+      }
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped4/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped4/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped4/IN3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped4/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped4/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped4/TRACK1_X",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped4",
+      "to": "inputs:centiped4/TRACK1_Y",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:centiped",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 2029,
+        "sourceColumn": 1,
+        "sourceEndLine": 2029
+      }
+    },
+    {
+      "from": "romset:centiped",
+      "to": "region:centiped/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:centiped",
+      "to": "region:centiped/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:centiped",
+      "to": "region:centiped/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:centiped_state.machine_reset_centiped",
+      "to": "handler:centiped_state.earom_control_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1775,
+        "sourceColumn": 1,
+        "sourceEndLine": 1808
+      }
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "handler:centiped_state.video_start_centiped",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/earom",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/outlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/32v",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "gfxdecode:gfx_centiped",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:centiped_state.centiped_base",
+      "to": "device:centiped_state.centiped_base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:centiped_state.centiped_map",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 718,
+        "sourceColumn": 1,
+        "sourceEndLine": 722
+      }
+    },
+    {
+      "from": "map:centiped_state.centiped_map",
+      "to": "map:centiped_state.centiped_base_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:centiped_state.centiped_map",
+      "to": "map:centiped_state.centiped_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "machine:centiped_state.centiped/callback:outlatch:0",
+      "to": "handler:centiped_state.flip_screen_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:centiped_state.centiped/pokey",
+      "to": "audioroute:device:centiped_state.centiped/pokey/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1047,
+        "sourceColumn": 8,
+        "sourceEndLine": 1047
+      }
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/IN3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/TRACK0_X",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/TRACK0_Y",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/TRACK1_X",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped",
+      "to": "inputs:centiped/TRACK1_Y",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:centiped4/IN0",
+      "to": "inputs:centiped4/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/IN1",
+      "to": "inputs:centiped4/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/IN1",
+      "to": "inputs:centiped4/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/IN3",
+      "to": "inputs:centiped4/IN3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW1",
+      "to": "inputs:centiped4/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW1",
+      "to": "inputs:centiped4/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW1",
+      "to": "inputs:centiped4/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW1",
+      "to": "inputs:centiped4/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW1",
+      "to": "inputs:centiped4/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW2",
+      "to": "inputs:centiped4/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW2",
+      "to": "inputs:centiped4/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/DSW2",
+      "to": "inputs:centiped4/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/TRACK1_X",
+      "to": "inputs:centiped4/TRACK1_X/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped4/TRACK1_Y",
+      "to": "inputs:centiped4/TRACK1_Y/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:centiped/maincpu",
+      "to": "rom:centiped/maincpu/136001-407.d1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:centiped/maincpu",
+      "to": "rom:centiped/maincpu/136001-408.e1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:centiped/maincpu",
+      "to": "rom:centiped/maincpu/136001-409.fh1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:centiped/maincpu",
+      "to": "rom:centiped/maincpu/136001-410.j1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:centiped/gfx1",
+      "to": "rom:centiped/gfx1/136001-211.f7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:centiped/gfx1",
+      "to": "rom:centiped/gfx1/136001-212.hj7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:centiped/proms",
+      "to": "rom:centiped/proms/136001-213.p4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:centiped_state.video_start_centiped",
+      "to": "handler:centiped_state.init_common",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:centiped_state.video_start_centiped",
+      "to": "handler:centiped_state.init_penmask",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:centiped_state.video_start_centiped",
+      "to": "handler:centiped_state.centiped_get_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/outlatch",
+      "to": "device:centiped_state.centiped_base/outlatch/callback:outlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/outlatch",
+      "to": "device:centiped_state.centiped_base/outlatch/callback:outlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/outlatch",
+      "to": "device:centiped_state.centiped_base/outlatch/callback:outlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/32v",
+      "to": "device:centiped_state.centiped_base/32v/callback:32v:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/screen",
+      "to": "device:centiped_state.centiped_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_centiped",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 1734,
+        "sourceColumn": 8,
+        "sourceEndLine": 1734
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_centiped",
+      "to": "gfxdecode:gfx_centiped/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_centiped",
+      "to": "gfxdecode:gfx_centiped/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/centiped.cpp",
+        "sourceLine": 695,
+        "sourceColumn": 1,
+        "sourceEndLine": 715
+      }
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map",
+      "to": "map:centiped_state.centiped_base_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:centiped_state.centiped_map/range0",
+      "to": "handler:pokey_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "map:centiped_state.centiped_map/range0",
+      "to": "handler:pokey_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "inputs:centiped/IN0",
+      "to": "inputs:centiped/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN0",
+      "to": "inputs:centiped/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN0",
+      "to": "inputs:centiped/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN0",
+      "to": "inputs:centiped/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN0",
+      "to": "inputs:centiped/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN1",
+      "to": "inputs:centiped/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN2",
+      "to": "inputs:centiped/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN2",
+      "to": "inputs:centiped/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN2",
+      "to": "inputs:centiped/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/IN3",
+      "to": "inputs:centiped/IN3/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW1",
+      "to": "inputs:centiped/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW1",
+      "to": "inputs:centiped/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW1",
+      "to": "inputs:centiped/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW1",
+      "to": "inputs:centiped/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW1",
+      "to": "inputs:centiped/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW2",
+      "to": "inputs:centiped/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW2",
+      "to": "inputs:centiped/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW2",
+      "to": "inputs:centiped/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/DSW2",
+      "to": "inputs:centiped/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/TRACK0_X",
+      "to": "inputs:centiped/TRACK0_X/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/TRACK0_Y",
+      "to": "inputs:centiped/TRACK0_Y/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/TRACK1_X",
+      "to": "inputs:centiped/TRACK1_X/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:centiped/TRACK1_Y",
+      "to": "inputs:centiped/TRACK1_Y/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/outlatch/callback:outlatch:0",
+      "to": "handler:centiped_state.coin_counter_left_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/outlatch/callback:outlatch:1",
+      "to": "handler:centiped_state.coin_counter_center_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/outlatch/callback:outlatch:2",
+      "to": "handler:centiped_state.coin_counter_right_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/32v/callback:32v:0",
+      "to": "handler:centiped_state.generate_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:centiped_state.centiped_base/screen/callback:screen:0",
+      "to": "handler:centiped_state.screen_update_centiped",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_centiped/e0",
+      "to": "gfxlayout:gfx_8x8x2_planar",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_centiped/e1",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range1",
+      "to": "handler:centiped_state.centiped_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range5",
+      "to": "handler:centiped_state.centiped_IN0_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range7",
+      "to": "handler:centiped_state.centiped_IN2_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range9",
+      "to": "handler:centiped_state.centiped_paletteram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range10",
+      "to": "handler:centiped_state.earom_write",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range11",
+      "to": "handler:centiped_state.earom_control_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range12",
+      "to": "handler:centiped_state.earom_read",
+      "rel": "READS"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range13",
+      "to": "handler:centiped_state.irq_ack_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range14",
+      "to": "handler:ls259_device.write_d7",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "outlatch"
+      }
+    },
+    {
+      "from": "map:centiped_state.centiped_base_map/range15",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/atari/centiped.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:centiped_state.centiped_IN0_r",
+      "to": "handler:centiped_state.read_trackball",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:centiped_state.centiped_IN2_r",
+      "to": "handler:centiped_state.read_trackball",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

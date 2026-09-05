@@ -1,0 +1,4005 @@
+{
+    "schemaVersion": 4,
+    "game": "gunsmoke",
+    "family": "gunsmoke",
+    "driverFile": "src/mame/capcom/gunsmoke.cpp",
+    "callbacks": [
+        {
+            "id": "device:gunsmoke_state.gunsmoke/maincpu/callback:maincpu:0",
+            "ownerTag": "maincpu",
+            "signal": "set_vblank_int",
+            "operation": "set_vblank_int",
+            "targetTag": "screen",
+            "targetClass": "gunsmoke_state",
+            "targetMethod": "irq0_line_hold",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 565,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+            "ownerTag": "audiocpu",
+            "signal": "set_periodic_int",
+            "operation": "set_periodic_int",
+            "targetClass": "gunsmoke_state",
+            "targetMethod": "irq0_line_hold",
+            "periodHz": 238.54961832061068,
+            "periodExpr": "attotime::from_ticks(384 * 262 / 4, 12_MHz_XTAL / 2)",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 571,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "gunsmoke_state",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 578,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/palette/callback:palette_init",
+            "ownerTag": "palette",
+            "signal": "palette_init",
+            "operation": "palette_init",
+            "targetClass": "gunsmoke_state",
+            "targetMethod": "palette",
+            "entries": 256,
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 583
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:gunsmoke_state.gunsmoke/maincpu/callback:maincpu:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "irq",
+                "delivery": "hold"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 565,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "audiocpu",
+                "line": "irq",
+                "delivery": "hold"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 571,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 3000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 32767,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 32768,
+                        "end": 49151,
+                        "kind": "handler",
+                        "read": "bank.mainbank",
+                        "bank": "mainbank"
+                    },
+                    {
+                        "start": 49152,
+                        "end": 49152,
+                        "kind": "handler",
+                        "read": "port.SYSTEM"
+                    },
+                    {
+                        "start": 49153,
+                        "end": 49153,
+                        "kind": "handler",
+                        "read": "port.P1"
+                    },
+                    {
+                        "start": 49154,
+                        "end": 49154,
+                        "kind": "handler",
+                        "read": "port.P2"
+                    },
+                    {
+                        "start": 49155,
+                        "end": 49155,
+                        "kind": "handler",
+                        "read": "port.DSW1"
+                    },
+                    {
+                        "start": 49156,
+                        "end": 49156,
+                        "kind": "handler",
+                        "read": "port.DSW2"
+                    },
+                    {
+                        "start": 50377,
+                        "end": 50379,
+                        "kind": "handler",
+                        "read": "gunsmoke_state.protection_r"
+                    },
+                    {
+                        "start": 51200,
+                        "end": 51200,
+                        "kind": "handler",
+                        "write": "soundlatch.write"
+                    },
+                    {
+                        "start": 51204,
+                        "end": 51204,
+                        "kind": "handler",
+                        "write": "gunsmoke_state.control_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 51206,
+                        "end": 51206,
+                        "kind": "handler",
+                        "write": "spriteram.write"
+                    },
+                    {
+                        "start": 53248,
+                        "end": 54271,
+                        "kind": "ram",
+                        "share": "videoram",
+                        "write": "gunsmoke_state.videoram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 54272,
+                        "end": 55295,
+                        "kind": "ram",
+                        "share": "colorram",
+                        "write": "gunsmoke_state.colorram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 55296,
+                        "end": 55297,
+                        "kind": "ram",
+                        "share": "scrollx"
+                    },
+                    {
+                        "start": 55298,
+                        "end": 55298,
+                        "kind": "ram",
+                        "share": "scrolly"
+                    },
+                    {
+                        "start": 55302,
+                        "end": 55302,
+                        "kind": "handler",
+                        "write": "gunsmoke_state.layer_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 57344,
+                        "end": 61439,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 61440,
+                        "end": 65535,
+                        "kind": "ram",
+                        "share": "spriteram"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 3000000,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 563,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "type": "z80",
+                "clock": 3000000,
+                "region": "audiocpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 32767,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 49152,
+                        "end": 51199,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 51200,
+                        "end": 51200,
+                        "kind": "handler",
+                        "read": "soundlatch.read"
+                    },
+                    {
+                        "start": 57344,
+                        "end": 57345,
+                        "kind": "handler",
+                        "write": "ym1.write"
+                    },
+                    {
+                        "start": 57346,
+                        "end": 57347,
+                        "kind": "handler",
+                        "write": "ym2.write"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 3000000,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 567,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 3000000,
+                "cycleClock": 3000000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "kind": "cpu",
+                "clock": 3000000,
+                "cycleClock": 3000000,
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            },
+            {
+                "share": "colorram",
+                "member": "m_colorram"
+            }
+        ],
+        "startHandlers": [
+            "gunsmoke_state.video_start"
+        ],
+        "resetHandlers": [
+            "gunsmoke_state.machine_reset"
+        ],
+        "banks": [
+            {
+                "tag": "mainbank",
+                "member": "m_mainbank",
+                "region": "maincpu",
+                "entryOffsets": [
+                    32768,
+                    49152,
+                    65536,
+                    81920
+                ],
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 540,
+                    "column": 1
+                }
+            }
+        ],
+        "screen": {
+            "width": 256,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 16,
+            "refresh": 59.63740458015267,
+            "htotal": 384,
+            "vtotal": 262,
+            "vbstart": 240,
+            "vbend": 16,
+            "updateMode": "frame",
+            "rotate": 270,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 576,
+                "column": 2
+            }
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+                "ownerTag": "audiocpu",
+                "signal": "set_periodic_int",
+                "line": 0,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 571,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+                "ownerTag": "audiocpu",
+                "signal": "set_periodic_int",
+                "line": 65,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 571,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+                "ownerTag": "audiocpu",
+                "signal": "set_periodic_int",
+                "line": 131,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 571,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+                "ownerTag": "audiocpu",
+                "signal": "set_periodic_int",
+                "line": 196,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 571,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:gunsmoke_state.gunsmoke/maincpu/callback:maincpu:0",
+                "ownerTag": "maincpu",
+                "signal": "set_vblank_int",
+                "line": 240,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 565,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "gunsmoke_state.screen_update",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 319,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:gunsmoke_state.gunsmoke/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 3000000,
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 563,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/audiocpu",
+            "tag": "audiocpu",
+            "type": "Z80",
+            "member": "m_audiocpu",
+            "clock": 3000000,
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 567,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/spriteram",
+            "tag": "spriteram",
+            "type": "BUFFERED_SPRITERAM8",
+            "member": "m_spriteram",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 574,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        6000000,
+                        384,
+                        0,
+                        256,
+                        262,
+                        16,
+                        240
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 576,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 581,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 583,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 586,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/soundlatch",
+            "tag": "soundlatch",
+            "type": "GENERIC_LATCH_8",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 588,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/ym1",
+            "tag": "ym1",
+            "type": "YM2203",
+            "clock": 1500000,
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 590,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gunsmoke_state.gunsmoke/ym2",
+            "tag": "ym2",
+            "type": "YM2203",
+            "clock": 1500000,
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 596,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:gunsmoke_state.protection_r",
+            "ownerClass": "gunsmoke_state",
+            "method": "protection_r",
+            "parameters": "offs_t offset",
+            "body": "/*\n\t    The routine at 0x0e69 tries to read data starting at 0xc4c9.\n\t    If this value is zero, it interprets the next two bytes as a\n\t    jump address.\n\n\t    This was resulting in a reboot which happens at the end of level 3\n\t    if you go too far to the right of the screen when fighting the level boss.\n\n\t    A non-zero for the first byte seems to be harmless\n\t    (although it may not be the correct behaviour).\n\n\t    This could be some devious protection or it could be a bug in the\n\t    arcade game.  It's hard to tell without pulling the code apart.\n\t*/\n\n\t\n\treturn TABLE(offset, 0xff, 0x00, 0x00);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "TABLE"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 255
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 341,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:generic_latch_8_device.write",
+            "ownerClass": "generic_latch_8_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 374,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.control_w",
+            "ownerClass": "gunsmoke_state",
+            "method": "control_w",
+            "parameters": "uint8_t data",
+            "body": "// bits 0 and 1 are for coin counters\n\tmachine().bookkeeping().coin_counter_w(1, data & 0x01);\n\tmachine().bookkeeping().coin_counter_w(0, data & 0x02);\n\n\t// bits 2 and 3 select the ROM bank\n\tm_mainbank->set_entry((data & 0x0c) >> 2);\n\n\t// bit 5 resets the sound CPU? - we ignore it\n\n\t// bit 6 flips screen\n\tflip_screen_set(data & 0x40);\n\n\t// bit 7 enables characters?\n\tm_chon = data & 0x80;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_mainbank"
+                                },
+                                "property": "set_entry"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 12
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "flip_screen_set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 64
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_chon"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 128
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 225,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:buffered_spriteram8_device.write",
+            "ownerClass": "buffered_spriteram8_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 376,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.videoram_w",
+            "ownerClass": "gunsmoke_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_videoram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 213,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.colorram_w",
+            "ownerClass": "gunsmoke_state",
+            "method": "colorram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_colorram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_colorram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 219,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.layer_w",
+            "ownerClass": "gunsmoke_state",
+            "method": "layer_w",
+            "parameters": "uint8_t data",
+            "body": "// bits 0-2 select the sprite 3 bank\n\tm_sprite3bank = data & 0x07;\n\n\t// bit 4 enables bg 1?\n\tm_bgon = data & 0x10;\n\n\t// bit 5 enables sprites?\n\tm_objon = data & 0x20;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_sprite3bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 7
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bgon"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 16
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_objon"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 243,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:generic_latch_8_device.read",
+            "ownerClass": "generic_latch_8_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 390,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ym2203_device.write",
+            "ownerClass": "ym2203_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 392,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.machine_reset",
+            "ownerClass": "gunsmoke_state",
+            "method": "machine_reset",
+            "body": "m_chon = 0;\n\tm_objon = 0;\n\tm_bgon = 0;\n\tm_sprite3bank = 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_chon"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_objon"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bgon"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_sprite3bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 552,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.video_start",
+            "ownerClass": "gunsmoke_state",
+            "method": "video_start",
+            "body": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gunsmoke_state::get_bg_tile_info)), TILEMAP_SCAN_COLS, 32, 32, 2048, 8);\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gunsmoke_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\n\tm_fg_tilemap->configure_groups(*m_gfxdecode->gfx(0), 0x4f);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "gunsmoke_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_COLS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 2048
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_fg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "gunsmoke_state::get_fg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "configure_groups"
+                            },
+                            "args": [
+                                {
+                                    "kind": "unary",
+                                    "operator": "*",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_gfxdecode"
+                                            },
+                                            "property": "gfx"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 79
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 279,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.get_bg_tile_info",
+            "ownerClass": "gunsmoke_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "uint8_t *tilerom = memregion(\"bgtiles\")->base();\n\n\tint offs = tile_index * 2;\n\tint attr = tilerom[offs + 1];\n\tint code = tilerom[offs] + ((attr & 0x01) << 8);\n\tint color = (attr & 0x3c) >> 2;\n\tint flags = TILE_FLIPYX((attr & 0xc0) >> 6);\n\n\ttileinfo.set(1, code, color, flags);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "tilerom",
+                        "valueType": "auto*",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "memregion"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "bgtiles"
+                                        }
+                                    ]
+                                },
+                                "property": "base"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "offs",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "attr",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "tilerom"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tilerom"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "attr"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 60
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "flags",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "TILE_FLIPYX"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "attr"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 192
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 6
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "flags"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 255,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:gunsmoke_state.get_fg_tile_info",
+            "ownerClass": "gunsmoke_state",
+            "method": "get_fg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int attr = m_colorram[tile_index];\n\tint code = m_videoram[tile_index] + ((attr & 0xe0) << 2);\n\tint color = attr & 0x1f;\n\n\ttileinfo.group = color;\n\n\ttileinfo.set(0, code, color, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "attr",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_colorram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 224
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "attr"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 31
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "member",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "tileinfo"
+                            },
+                            "property": "group"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "color"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 268,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:gunsmoke_state.irq0_line_hold",
+            "ownerClass": "gunsmoke_state",
+            "method": "irq0_line_hold",
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 571,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gunsmoke_state.screen_update",
+            "ownerClass": "gunsmoke_state",
+            "method": "screen_update",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "m_bg_tilemap->set_scrollx(0, m_scrollx[0] + 256 * m_scrollx[1]);\n\tm_bg_tilemap->set_scrolly(0, m_scrolly[0]);\n\n\tif (m_bgon)\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\telse\n\t\tbitmap.fill(m_palette->black_pen(), cliprect);\n\n\tif (m_objon)\n\t\tdraw_sprites(bitmap, cliprect);\n\n\tif (m_chon)\n\t\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_scrollx"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_scrollx"
+                                        },
+                                        "index": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "*",
+                                        "left": {
+                                            "kind": "number",
+                                            "value": 256
+                                        },
+                                        "right": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_scrollx"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_scrolly"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_scrolly"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_bgon"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "draw"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "screen"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        "property": "fill"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_palette"
+                                                },
+                                                "property": "black_pen"
+                                            },
+                                            "args": []
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_objon"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "draw_sprites"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_chon"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_fg_tilemap"
+                                        },
+                                        "property": "draw"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "screen"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 319,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:gunsmoke_state.draw_sprites",
+            "ownerClass": "gunsmoke_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "const u8 *spriteram = m_spriteram->buffer();\n\n\tfor (int offs = m_spriteram->bytes() - 32; offs >= 0; offs -= 32)\n\t{\n\t\tint attr = spriteram[offs + 1];\n\t\tint bank = (attr & 0xc0) >> 6;\n\t\tint code = spriteram[offs];\n\t\tint color = attr & 0x0f;\n\t\tint flipx = 0;\n\t\tint flipy = attr & 0x10;\n\t\tint sx = spriteram[offs + 3] - ((attr & 0x20) << 3);\n\t\tint sy = spriteram[offs + 2];\n\n\t\tif (bank == 3)\n\t\t\tbank += m_sprite3bank;\n\n\t\tcode += 256 * bank;\n\n\t\tif (flip_screen())\n\t\t{\n\t\t\tsx = 240 - sx;\n\t\t\tsy = 240 - sy;\n\t\t\tflipx = !flipx;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\tm_gfxdecode->gfx(2)->transpen(bitmap, cliprect, code, color, flipx, flipy, sx, sy, 0);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "spriteram",
+                        "valueType": "auto*",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_spriteram"
+                                },
+                                "property": "buffer"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "property": "bytes"
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "-=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 32
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "attr",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "bank",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "attr"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 192
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 6
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "code",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "color",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "flipx",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "flipy",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "sx",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "attr"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 32
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "sy",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "bank"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "bank"
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                            "kind": "identifier",
+                                            "name": "m_sprite3bank"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 256
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "bank"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "flip_screen"
+                                    },
+                                    "args": []
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "sx"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 240
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "sx"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "sy"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 240
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "sy"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "flipx"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "!",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "flipx"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "flipy"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "!",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "flipy"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_gfxdecode"
+                                                },
+                                                "property": "gfx"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            ]
+                                        },
+                                        "property": "transpen"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "code"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "color"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "flipx"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "flipy"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "sx"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "sy"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 287,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:gunsmoke_state.palette",
+            "ownerClass": "gunsmoke_state",
+            "method": "palette",
+            "parameters": "palette_device &palette",
+            "body": "const uint8_t *color_prom = memregion(\"proms\")->base();\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x100; i++)\n\t{\n\t\tint const r = pal4bit(color_prom[i + 0x000]);\n\t\tint const g = pal4bit(color_prom[i + 0x100]);\n\t\tint const b = pal4bit(color_prom[i + 0x200]);\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x300;\n\n\t// characters use colors 0x40-0x4f\n\tfor (int i = 0; i < 0x80; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] | 0x40;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\t// background tiles use colors 0-0x3f\n\tfor (int i = 0x100; i < 0x200; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] | ((color_prom[i + 0x100] & 0x03) << 4);\n\t\tpalette.set_pen_indirect(i - 0x80, ctabentry);\n\t}\n\n\t// sprites use colors 0x80-0xff\n\tfor (int i = 0x300; i < 0x400; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] | ((color_prom[i + 0x100] & 0x07) << 4) | 0x80;\n\t\tpalette.set_pen_indirect(i - 0x180, ctabentry);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "color_prom",
+                        "valueType": "auto*",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "memregion"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "proms"
+                                        }
+                                    ]
+                                },
+                                "property": "base"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 256
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "r",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal4bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "color_prom"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "g",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal4bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "color_prom"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 256
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "b",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal4bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "color_prom"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 512
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_indirect_color"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "rgb_t"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "r"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "g"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "b"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "color_prom"
+                        },
+                        "operator": "+=",
+                        "value": {
+                            "kind": "number",
+                            "value": 768
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 128
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "ctabentry",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "color_prom"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 64
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ctabentry"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 256
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 512
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "ctabentry",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "color_prom"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "binary",
+                                                    "operator": "+",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "i"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 256
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 128
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ctabentry"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 768
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1024
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "ctabentry",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "color_prom"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "color_prom"
+                                                    },
+                                                    "index": {
+                                                        "kind": "binary",
+                                                        "operator": "+",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "i"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 256
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 7
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 384
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ctabentry"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 174,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:gunsmoke_state.main_map",
+            "className": "gunsmoke_state",
+            "name": "main_map",
+            "ranges": [
+                {
+                    "id": "map:gunsmoke_state.main_map/range0",
+                    "start": 0,
+                    "end": 32767,
+                    "raw": "map(0x0000, 0x7fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 32767,
+                        "raw": "map(0x0000, 0x7fff).rom()",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 366,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 366,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 366,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range1",
+                    "start": 32768,
+                    "end": 49151,
+                    "raw": "map(0x8000, 0xbfff).bankr(m_mainbank)",
+                    "props": {
+                        "start": 32768,
+                        "end": 49151,
+                        "raw": "map(0x8000, 0xbfff).bankr(m_mainbank)",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 367,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 367,
+                        "bankRead": "mainbank"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 367,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range2",
+                    "start": 49152,
+                    "end": 49152,
+                    "raw": "map(0xc000, 0xc000).portr(\"SYSTEM\")",
+                    "props": {
+                        "start": 49152,
+                        "end": 49152,
+                        "raw": "map(0xc000, 0xc000).portr(\"SYSTEM\")",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 368,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 368,
+                        "portRead": "SYSTEM"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 368,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range3",
+                    "start": 49153,
+                    "end": 49153,
+                    "raw": "map(0xc001, 0xc001).portr(\"P1\")",
+                    "props": {
+                        "start": 49153,
+                        "end": 49153,
+                        "raw": "map(0xc001, 0xc001).portr(\"P1\")",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 369,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 369,
+                        "portRead": "P1"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 369,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range4",
+                    "start": 49154,
+                    "end": 49154,
+                    "raw": "map(0xc002, 0xc002).portr(\"P2\")",
+                    "props": {
+                        "start": 49154,
+                        "end": 49154,
+                        "raw": "map(0xc002, 0xc002).portr(\"P2\")",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 370,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 370,
+                        "portRead": "P2"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 370,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range5",
+                    "start": 49155,
+                    "end": 49155,
+                    "raw": "map(0xc003, 0xc003).portr(\"DSW1\")",
+                    "props": {
+                        "start": 49155,
+                        "end": 49155,
+                        "raw": "map(0xc003, 0xc003).portr(\"DSW1\")",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 371,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 371,
+                        "portRead": "DSW1"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 371,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range6",
+                    "start": 49156,
+                    "end": 49156,
+                    "raw": "map(0xc004, 0xc004).portr(\"DSW2\")",
+                    "props": {
+                        "start": 49156,
+                        "end": 49156,
+                        "raw": "map(0xc004, 0xc004).portr(\"DSW2\")",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 372,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 372,
+                        "portRead": "DSW2"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 372,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range7",
+                    "start": 50377,
+                    "end": 50379,
+                    "raw": "map(0xc4c9, 0xc4cb).r(FUNC(gunsmoke_state::protection_r))",
+                    "read": "gunsmoke_state.protection_r",
+                    "props": {
+                        "start": 50377,
+                        "end": 50379,
+                        "raw": "map(0xc4c9, 0xc4cb).r(FUNC(gunsmoke_state::protection_r))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 373,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 373
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 373,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range8",
+                    "start": 51200,
+                    "end": 51200,
+                    "raw": "map(0xc800, 0xc800).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+                    "write": "soundlatch.write",
+                    "props": {
+                        "start": 51200,
+                        "end": 51200,
+                        "raw": "map(0xc800, 0xc800).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 374,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 374
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 374,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range9",
+                    "start": 51204,
+                    "end": 51204,
+                    "raw": "map(0xc804, 0xc804).w(FUNC(gunsmoke_state::control_w))",
+                    "write": "gunsmoke_state.control_w",
+                    "props": {
+                        "start": 51204,
+                        "end": 51204,
+                        "raw": "map(0xc804, 0xc804).w(FUNC(gunsmoke_state::control_w))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 375,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 375
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 375,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range10",
+                    "start": 51206,
+                    "end": 51206,
+                    "raw": "map(0xc806, 0xc806).w(m_spriteram, FUNC(buffered_spriteram8_device::write))",
+                    "write": "spriteram.write",
+                    "props": {
+                        "start": 51206,
+                        "end": 51206,
+                        "raw": "map(0xc806, 0xc806).w(m_spriteram, FUNC(buffered_spriteram8_device::write))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 376,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 376
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 376,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range11",
+                    "start": 53248,
+                    "end": 54271,
+                    "raw": "map(0xd000, 0xd3ff).ram().w(FUNC(gunsmoke_state::videoram_w)).share(m_videoram)",
+                    "write": "gunsmoke_state.videoram_w",
+                    "props": {
+                        "start": 53248,
+                        "end": 54271,
+                        "raw": "map(0xd000, 0xd3ff).ram().w(FUNC(gunsmoke_state::videoram_w)).share(m_videoram)",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 377,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 377,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 377,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range12",
+                    "start": 54272,
+                    "end": 55295,
+                    "raw": "map(0xd400, 0xd7ff).ram().w(FUNC(gunsmoke_state::colorram_w)).share(m_colorram)",
+                    "write": "gunsmoke_state.colorram_w",
+                    "props": {
+                        "start": 54272,
+                        "end": 55295,
+                        "raw": "map(0xd400, 0xd7ff).ram().w(FUNC(gunsmoke_state::colorram_w)).share(m_colorram)",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 378,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 378,
+                        "ram": true,
+                        "share": "colorram"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 378,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range13",
+                    "start": 55296,
+                    "end": 55297,
+                    "raw": "map(0xd800, 0xd801).ram().share(m_scrollx)",
+                    "props": {
+                        "start": 55296,
+                        "end": 55297,
+                        "raw": "map(0xd800, 0xd801).ram().share(m_scrollx)",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 379,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 379,
+                        "ram": true,
+                        "share": "scrollx"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 379,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range14",
+                    "start": 55298,
+                    "end": 55298,
+                    "raw": "map(0xd802, 0xd802).ram().share(m_scrolly)",
+                    "props": {
+                        "start": 55298,
+                        "end": 55298,
+                        "raw": "map(0xd802, 0xd802).ram().share(m_scrolly)",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 380,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 380,
+                        "ram": true,
+                        "share": "scrolly"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 380,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range15",
+                    "start": 55302,
+                    "end": 55302,
+                    "raw": "map(0xd806, 0xd806).w(FUNC(gunsmoke_state::layer_w))",
+                    "write": "gunsmoke_state.layer_w",
+                    "props": {
+                        "start": 55302,
+                        "end": 55302,
+                        "raw": "map(0xd806, 0xd806).w(FUNC(gunsmoke_state::layer_w))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 381,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 381
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 381,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range16",
+                    "start": 57344,
+                    "end": 61439,
+                    "raw": "map(0xe000, 0xefff).ram()",
+                    "props": {
+                        "start": 57344,
+                        "end": 61439,
+                        "raw": "map(0xe000, 0xefff).ram()",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 382,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 382,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 382,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.main_map/range17",
+                    "start": 61440,
+                    "end": 65535,
+                    "raw": "map(0xf000, 0xffff).ram().share(\"spriteram\")",
+                    "props": {
+                        "start": 61440,
+                        "end": 65535,
+                        "raw": "map(0xf000, 0xffff).ram().share(\"spriteram\")",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 383,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 383,
+                        "ram": true,
+                        "share": "spriteram"
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 383,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 364,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:gunsmoke_state.sound_map",
+            "className": "gunsmoke_state",
+            "name": "sound_map",
+            "ranges": [
+                {
+                    "id": "map:gunsmoke_state.sound_map/range0",
+                    "start": 0,
+                    "end": 32767,
+                    "raw": "map(0x0000, 0x7fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 32767,
+                        "raw": "map(0x0000, 0x7fff).rom()",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 388,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 388,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 388,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.sound_map/range1",
+                    "start": 49152,
+                    "end": 51199,
+                    "raw": "map(0xc000, 0xc7ff).ram()",
+                    "props": {
+                        "start": 49152,
+                        "end": 51199,
+                        "raw": "map(0xc000, 0xc7ff).ram()",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 389,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 389,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 389,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.sound_map/range2",
+                    "start": 51200,
+                    "end": 51200,
+                    "raw": "map(0xc800, 0xc800).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+                    "read": "soundlatch.read",
+                    "props": {
+                        "start": 51200,
+                        "end": 51200,
+                        "raw": "map(0xc800, 0xc800).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 390,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 390
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 390,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.sound_map/range3",
+                    "start": 57344,
+                    "end": 57345,
+                    "raw": "map(0xe000, 0xe001).w(\"ym1\", FUNC(ym2203_device::write))",
+                    "write": "ym1.write",
+                    "props": {
+                        "start": 57344,
+                        "end": 57345,
+                        "raw": "map(0xe000, 0xe001).w(\"ym1\", FUNC(ym2203_device::write))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 391,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 391
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 391,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gunsmoke_state.sound_map/range4",
+                    "start": 57346,
+                    "end": 57347,
+                    "raw": "map(0xe002, 0xe003).w(\"ym2\", FUNC(ym2203_device::write))",
+                    "write": "ym2.write",
+                    "props": {
+                        "start": 57346,
+                        "end": 57347,
+                        "raw": "map(0xe002, 0xe003).w(\"ym2\", FUNC(ym2203_device::write))",
+                        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+                        "sourceLine": 392,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 392
+                    },
+                    "source": {
+                        "file": "src/mame/capcom/gunsmoke.cpp",
+                        "line": 392,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 386,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_chon",
+            "bits": 8
+        },
+        {
+            "name": "m_objon",
+            "bits": 8
+        },
+        {
+            "name": "m_bgon",
+            "bits": 8
+        },
+        {
+            "name": "m_sprite3bank",
+            "bits": 8
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "chars",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 32,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 1024,
+                    "planes": 2,
+                    "planeOffsets": [
+                        4,
+                        0
+                    ],
+                    "xOffsets": [
+                        11,
+                        10,
+                        9,
+                        8,
+                        3,
+                        2,
+                        1,
+                        0
+                    ],
+                    "yOffsets": [
+                        112,
+                        96,
+                        80,
+                        64,
+                        48,
+                        32,
+                        16,
+                        0
+                    ],
+                    "charIncrement": 128
+                }
+            },
+            {
+                "region": "tiles",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 128,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 32,
+                    "height": 32,
+                    "total": 512,
+                    "planes": 4,
+                    "planeOffsets": [
+                        1048580,
+                        1048576,
+                        4,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        8,
+                        9,
+                        10,
+                        11,
+                        512,
+                        513,
+                        514,
+                        515,
+                        520,
+                        521,
+                        522,
+                        523,
+                        1024,
+                        1025,
+                        1026,
+                        1027,
+                        1032,
+                        1033,
+                        1034,
+                        1035,
+                        1536,
+                        1537,
+                        1538,
+                        1539,
+                        1544,
+                        1545,
+                        1546,
+                        1547
+                    ],
+                    "yOffsets": [
+                        0,
+                        16,
+                        32,
+                        48,
+                        64,
+                        80,
+                        96,
+                        112,
+                        128,
+                        144,
+                        160,
+                        176,
+                        192,
+                        208,
+                        224,
+                        240,
+                        256,
+                        272,
+                        288,
+                        304,
+                        320,
+                        336,
+                        352,
+                        368,
+                        384,
+                        400,
+                        416,
+                        432,
+                        448,
+                        464,
+                        480,
+                        496
+                    ],
+                    "charIncrement": 2048
+                }
+            },
+            {
+                "region": "sprites",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 384,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": 2048,
+                    "planes": 4,
+                    "planeOffsets": [
+                        1048580,
+                        1048576,
+                        4,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        8,
+                        9,
+                        10,
+                        11,
+                        256,
+                        257,
+                        258,
+                        259,
+                        264,
+                        265,
+                        266,
+                        267
+                    ],
+                    "yOffsets": [
+                        0,
+                        16,
+                        32,
+                        48,
+                        64,
+                        80,
+                        96,
+                        112,
+                        128,
+                        144,
+                        160,
+                        176,
+                        192,
+                        208,
+                        224,
+                        240
+                    ],
+                    "charIncrement": 512
+                }
+            }
+        ],
+        "palette": {
+            "region": "proms",
+            "colorCount": 256,
+            "min": 0,
+            "max": 255,
+            "scaler": 1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "offsets": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "weights": [
+                        17,
+                        34,
+                        68,
+                        136
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                },
+                {
+                    "channel": "g",
+                    "bits": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "offsets": [
+                        256,
+                        256,
+                        256,
+                        256
+                    ],
+                    "weights": [
+                        17,
+                        34,
+                        68,
+                        136
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                },
+                {
+                    "channel": "b",
+                    "bits": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "offsets": [
+                        512,
+                        512,
+                        512,
+                        512
+                    ],
+                    "weights": [
+                        17,
+                        34,
+                        68,
+                        136
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                }
+            ],
+            "lookupOffset": 768,
+            "lookupCount": 128,
+            "lookupMask": 3,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 64,
+                    "lookupOffset": 768,
+                    "lookupCount": 128,
+                    "lookupTerms": [
+                        {
+                            "region": "proms",
+                            "offset": 768,
+                            "mask": 255,
+                            "shift": 0
+                        }
+                    ]
+                },
+                {
+                    "penOffset": 128,
+                    "colorOr": 0,
+                    "lookupOffset": 1024,
+                    "lookupCount": 256,
+                    "lookupTerms": [
+                        {
+                            "region": "proms",
+                            "offset": 1024,
+                            "mask": 255,
+                            "shift": 0
+                        },
+                        {
+                            "region": "proms",
+                            "offset": 1280,
+                            "mask": 3,
+                            "shift": 4
+                        }
+                    ]
+                },
+                {
+                    "penOffset": 384,
+                    "colorOr": 128,
+                    "lookupOffset": 1536,
+                    "lookupCount": 256,
+                    "lookupTerms": [
+                        {
+                            "region": "proms",
+                            "offset": 1536,
+                            "mask": 255,
+                            "shift": 0
+                        },
+                        {
+                            "region": "proms",
+                            "offset": 1792,
+                            "mask": 7,
+                            "shift": 4
+                        }
+                    ]
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/mame/capcom/gunsmoke.cpp",
+                "line": 174,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 32,
+                "tileHeight": 32,
+                "columns": 2048,
+                "rows": 8,
+                "mapper": "TILEMAP_SCAN_COLS",
+                "tileInfo": "gunsmoke_state.get_bg_tile_info",
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 279,
+                    "column": 1
+                }
+            },
+            {
+                "member": "m_fg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "gunsmoke_state.get_fg_tile_info",
+                "transparentIndirect": 79,
+                "source": {
+                    "file": "src/mame/capcom/gunsmoke.cpp",
+                    "line": 279,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {},
+        "source": {
+            "file": "src/mame/capcom/gunsmoke.cpp",
+            "line": 279,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "ym2203",
+        "deviceTag": "ym1",
+        "deviceTags": [
+            "ym1",
+            "ym2"
+        ],
+        "deviceType": "YM2203",
+        "writeMethods": [
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.22,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.22,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 0.22,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 3,
+                "gain": 0.14,
+                "target": "mono"
+            },
+            {
+                "chip": 1,
+                "channel": 0,
+                "gain": 0.22,
+                "target": "mono"
+            },
+            {
+                "chip": 1,
+                "channel": 1,
+                "gain": 0.22,
+                "target": "mono"
+            },
+            {
+                "chip": 1,
+                "channel": 2,
+                "gain": 0.22,
+                "target": "mono"
+            },
+            {
+                "chip": 1,
+                "channel": 3,
+                "gain": 0.14,
+                "target": "mono"
+            }
+        ]
+    }
+}

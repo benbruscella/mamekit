@@ -1,0 +1,4449 @@
+{
+    "schemaVersion": 4,
+    "game": "mario",
+    "family": "mario",
+    "driverFile": "src/mame/nintendo/mario.cpp",
+    "callbacks": [
+        {
+            "id": "device:mario_state.mario_base/maincpu/callback:maincpu:0",
+            "ownerTag": "maincpu",
+            "signal": "busack_cb",
+            "operation": "set",
+            "targetTag": "z80dma",
+            "targetClass": "z80dma_device",
+            "targetMethod": "bai_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 837,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/z80dma/callback:z80dma:0",
+            "ownerTag": "z80dma",
+            "signal": "out_busreq_callback",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "Z80_INPUT_LINE_BUSREQ",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 841,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/z80dma/callback:z80dma:1",
+            "ownerTag": "z80dma",
+            "signal": "in_mreq_callback",
+            "operation": "set",
+            "targetClass": "mario_state",
+            "targetMethod": "memory_read_byte",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 842,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/z80dma/callback:z80dma:2",
+            "ownerTag": "z80dma",
+            "signal": "out_mreq_callback",
+            "operation": "set",
+            "targetClass": "mario_state",
+            "targetMethod": "memory_write_byte",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 843,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:0",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 0,
+            "targetClass": "mario_state",
+            "targetMethod": "gfx_bank_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 846,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:1",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set_nop",
+            "slot": 1,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 847,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:2",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 2,
+            "targetClass": "mario_state",
+            "targetMethod": "flip_screen_set",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 848,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:3",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 3,
+            "targetClass": "mario_state",
+            "targetMethod": "palette_bank_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 849,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:4",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 4,
+            "targetClass": "mario_state",
+            "targetMethod": "nmi_mask_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 850,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:5",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 5,
+            "targetTag": "z80dma",
+            "targetClass": "z80dma_device",
+            "targetMethod": "rdy_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 851,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:6",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 6,
+            "targetClass": "mario_state",
+            "targetMethod": "coin_counter_2_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 852,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:7",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 7,
+            "targetClass": "mario_state",
+            "targetMethod": "coin_counter_1_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 853,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "mario_state",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 860,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/screen/callback:screen:1",
+            "ownerTag": "screen",
+            "signal": "screen_vblank",
+            "operation": "set",
+            "targetClass": "mario_state",
+            "targetMethod": "vblank_irq",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 862,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audiocpu/callback:audiocpu:0",
+            "ownerTag": "audiocpu",
+            "signal": "p1_in_cb",
+            "operation": "set",
+            "targetTag": "soundlatch1",
+            "targetClass": "generic_latch_8_device",
+            "targetMethod": "read",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 876,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audiocpu/callback:audiocpu:1",
+            "ownerTag": "audiocpu",
+            "signal": "p2_in_cb",
+            "operation": "set",
+            "targetTag": "soundlatch2",
+            "targetClass": "generic_latch_8_device",
+            "targetMethod": "read",
+            "transforms": [
+                "mask(0xef)"
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 877,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audiocpu/callback:audiocpu:2",
+            "ownerTag": "audiocpu",
+            "signal": "p2_out_cb",
+            "operation": "set",
+            "targetTag": "soundlatch2",
+            "targetClass": "generic_latch_8_device",
+            "targetMethod": "write",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 878,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audiocpu/callback:audiocpu:3",
+            "ownerTag": "audiocpu",
+            "signal": "p2_out_cb",
+            "operation": "append_inputline",
+            "targetTag": "audiocpu",
+            "inputLine": "MCS48_INPUT_EA",
+            "transforms": [
+                "bit(5)",
+                "invert"
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 879,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audiocpu/callback:audiocpu:4",
+            "ownerTag": "audiocpu",
+            "signal": "t0_in_cb",
+            "operation": "set",
+            "targetTag": "soundlatch3",
+            "targetClass": "generic_latch_8_device",
+            "targetMethod": "read",
+            "transforms": [
+                "bit(0)"
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 880,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audiocpu/callback:audiocpu:5",
+            "ownerTag": "audiocpu",
+            "signal": "t1_in_cb",
+            "operation": "set",
+            "targetTag": "soundlatch3",
+            "targetClass": "generic_latch_8_device",
+            "targetMethod": "read",
+            "transforms": [
+                "bit(1)"
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 881,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/palette/callback:palette_init",
+            "ownerTag": "palette",
+            "signal": "palette_init",
+            "operation": "palette_init",
+            "targetClass": "mario_state",
+            "targetMethod": "palette",
+            "entries": 256,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 865
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:mario_state.mario_base/maincpu/callback:maincpu:0",
+            "effect": {
+                "kind": "device-method",
+                "tag": "z80dma",
+                "method": "bai_w",
+                "ownerClass": "z80dma_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 837,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/z80dma/callback:z80dma:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "halt",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 841,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/z80dma/callback:z80dma:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.memory_read_byte"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 842,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/z80dma/callback:z80dma:2",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.memory_write_byte"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 843,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.gfx_bank_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 846,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:1",
+            "effect": {
+                "kind": "unconnected"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 847,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:2",
+            "effect": {
+                "kind": "video-control",
+                "control": "flip-screen"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 848,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.palette_bank_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 849,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:4",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.nmi_mask_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 850,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:5",
+            "effect": {
+                "kind": "device-method",
+                "tag": "z80dma",
+                "method": "rdy_w",
+                "ownerClass": "z80dma_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 851,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:6",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.coin_counter_2_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 852,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/mainlatch/callback:mainlatch:7",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.coin_counter_1_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 853,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario_base/screen/callback:screen:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "mario_state.vblank_irq"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 862,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario/audiocpu/callback:audiocpu:0",
+            "effect": {
+                "kind": "device-method",
+                "tag": "soundlatch1",
+                "method": "read",
+                "ownerClass": "generic_latch_8_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 876,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario/audiocpu/callback:audiocpu:1",
+            "effect": {
+                "kind": "device-method",
+                "tag": "soundlatch2",
+                "method": "read",
+                "ownerClass": "generic_latch_8_device"
+            },
+            "transforms": [
+                {
+                    "kind": "mask",
+                    "value": 239
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 877,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario/audiocpu/callback:audiocpu:2",
+            "effect": {
+                "kind": "device-method",
+                "tag": "soundlatch2",
+                "method": "write",
+                "ownerClass": "generic_latch_8_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 878,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario/audiocpu/callback:audiocpu:3",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "audiocpu",
+                "line": "irq1",
+                "delivery": "level"
+            },
+            "transforms": [
+                {
+                    "kind": "bit",
+                    "bit": 5
+                },
+                {
+                    "kind": "invert"
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 879,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario/audiocpu/callback:audiocpu:4",
+            "effect": {
+                "kind": "device-method",
+                "tag": "soundlatch3",
+                "method": "read",
+                "ownerClass": "generic_latch_8_device"
+            },
+            "transforms": [
+                {
+                    "kind": "bit",
+                    "bit": 0
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 880,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mario_state.mario/audiocpu/callback:audiocpu:5",
+            "effect": {
+                "kind": "device-method",
+                "tag": "soundlatch3",
+                "method": "read",
+                "ownerClass": "generic_latch_8_device"
+            },
+            "transforms": [
+                {
+                    "kind": "bit",
+                    "bit": 1
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 881,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "regionBindings": {
+            "m_soundrom": "soundrom"
+        },
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 4000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 24575,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 26623,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 26624,
+                        "end": 28671,
+                        "kind": "ram",
+                        "share": "nvram"
+                    },
+                    {
+                        "start": 28672,
+                        "end": 29695,
+                        "kind": "ram",
+                        "share": "spriteram"
+                    },
+                    {
+                        "start": 29696,
+                        "end": 30719,
+                        "kind": "ram",
+                        "share": "videoram",
+                        "write": "mario_state.videoram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 31744,
+                        "end": 31744,
+                        "kind": "handler",
+                        "read": "port.IN0"
+                    },
+                    {
+                        "start": 31872,
+                        "end": 31872,
+                        "kind": "handler",
+                        "read": "port.IN1"
+                    },
+                    {
+                        "start": 32000,
+                        "end": 32000,
+                        "kind": "handler",
+                        "write": "mario_state.scroll_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 32256,
+                        "end": 32256,
+                        "kind": "handler",
+                        "write": "soundlatch0.write"
+                    },
+                    {
+                        "start": 32384,
+                        "end": 32391,
+                        "kind": "handler",
+                        "write": "mainlatch.write_d0"
+                    },
+                    {
+                        "start": 32640,
+                        "end": 32640,
+                        "kind": "handler",
+                        "read": "port.DSW"
+                    },
+                    {
+                        "start": 61440,
+                        "end": 65535,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 31744,
+                        "end": 31744,
+                        "kind": "handler",
+                        "write": "mario_state.walk_w_0",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 31872,
+                        "end": 31872,
+                        "kind": "handler",
+                        "write": "mario_state.walk_w_1",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 32512,
+                        "end": 32519,
+                        "kind": "handler",
+                        "write": "mario_state.samples_w",
+                        "handlerWidth": 8
+                    }
+                ],
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 0,
+                            "end": 0,
+                            "kind": "handler",
+                            "read": "z80dma.read",
+                            "write": "z80dma.write"
+                        }
+                    ],
+                    "globalMask": 255,
+                    "space": {
+                        "ownerTag": "maincpu",
+                        "name": "io",
+                        "dataWidth": 8,
+                        "addressShift": 0,
+                        "endianness": "big"
+                    }
+                },
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 4000000,
+                "source": {
+                    "file": "src/mame/nintendo/mario.cpp",
+                    "line": 834,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "type": "m58715",
+                "clock": 11000000,
+                "region": "soundrom",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 4095,
+                        "kind": "rom",
+                        "romOffset": 0
+                    }
+                ],
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 0,
+                            "end": 255,
+                            "kind": "handler",
+                            "read": "mario_state.tune_r",
+                            "write": "mario_state.dac_w",
+                            "handlerWidth": 8
+                        }
+                    ],
+                    "space": {
+                        "ownerTag": "audiocpu",
+                        "name": "io",
+                        "dataWidth": 8,
+                        "addressShift": 0,
+                        "endianness": "big"
+                    }
+                },
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 733333.3333333334,
+                "source": {
+                    "file": "src/mame/nintendo/mario.cpp",
+                    "line": 873,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 4000000,
+                "cycleClock": 4000000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "kind": "cpu",
+                "clock": 11000000,
+                "cycleClock": 733333.3333333334,
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            }
+        ],
+        "startHandlers": [
+            "mario_state.video_start"
+        ],
+        "resetHandlers": [
+            "mario_state.machine_reset"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 16,
+            "refresh": 59.18560606060606,
+            "htotal": 384,
+            "vtotal": 264,
+            "vbstart": 240,
+            "vbend": 16,
+            "updateMode": "frame",
+            "rotate": 0,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 858,
+                "column": 2
+            }
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:mario_state.mario_base/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 16,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/nintendo/mario.cpp",
+                    "line": 862,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:mario_state.mario_base/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 240,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/nintendo/mario.cpp",
+                    "line": 862,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "mario_state.screen_update",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 579,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:mario_state.mario_base/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 4000000,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 834,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/z80dma",
+            "tag": "z80dma",
+            "type": "Z80DMA",
+            "member": "m_z80dma",
+            "clock": 4000000,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 840,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/mainlatch",
+            "tag": "mainlatch",
+            "type": "LS259",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 845,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/nvram",
+            "tag": "nvram",
+            "type": "NVRAM",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 855,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        6000000,
+                        384,
+                        0,
+                        256,
+                        264,
+                        16,
+                        240
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 858,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 864,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario_base/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 865,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audiocpu",
+            "tag": "audiocpu",
+            "type": "M58715",
+            "member": "m_audiocpu",
+            "clock": 11000000,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 873,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 883,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/snd_nl",
+            "tag": "snd_nl",
+            "type": "NETLIST_SOUND",
+            "clock": 48000,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 888,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audio_snd[0]",
+            "tag": "audio_snd[0]",
+            "type": "NETLIST_LOGIC_INPUT",
+            "member": "m_audio_snd[0]",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 890,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audio_snd[1]",
+            "tag": "audio_snd[1]",
+            "type": "NETLIST_LOGIC_INPUT",
+            "member": "m_audio_snd[1]",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 891,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/audio_snd[2]",
+            "tag": "audio_snd[2]",
+            "type": "NETLIST_LOGIC_INPUT",
+            "member": "m_audio_snd[2]",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 892,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/snd_nl:dac",
+            "tag": "snd_nl:dac",
+            "type": "NETLIST_INT_INPUT",
+            "member": "m_audio_dac",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 893,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/snd_nl:cout0",
+            "tag": "snd_nl:cout0",
+            "type": "NETLIST_STREAM_OUTPUT",
+            "clock": 0,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 895,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mario_state.mario/soundlatch0",
+            "tag": "soundlatch0",
+            "type": "GENERIC_LATCH_8",
+            "member": "m_soundlatch[0]"
+        },
+        {
+            "id": "device:mario_state.mario/soundlatch1",
+            "tag": "soundlatch1",
+            "type": "GENERIC_LATCH_8",
+            "member": "m_soundlatch[1]"
+        },
+        {
+            "id": "device:mario_state.mario/soundlatch2",
+            "tag": "soundlatch2",
+            "type": "GENERIC_LATCH_8",
+            "member": "m_soundlatch[2]"
+        },
+        {
+            "id": "device:mario_state.mario/soundlatch3",
+            "tag": "soundlatch3",
+            "type": "GENERIC_LATCH_8",
+            "member": "m_soundlatch[3]"
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:mario_state.videoram_w",
+            "ownerClass": "mario_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 502,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.scroll_w",
+            "ownerClass": "mario_state",
+            "method": "scroll_w",
+            "parameters": "uint8_t data",
+            "body": "m_bg_tilemap->set_scrolly(0, data + 17);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_scrolly"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 17
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 520,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:generic_latch_8_device.write",
+            "ownerClass": "generic_latch_8_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 878,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ls259_device.write_d0",
+            "ownerClass": "ls259_device",
+            "method": "write_d0",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 647,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mario_state.walk_w_0",
+            "ownerClass": "mario_state",
+            "method": "walk_w_0",
+            "parameters": "uint8_t data",
+            "body": "m_audio_snd[N]->write(0);\n\n\t// WR is asserted for 3 cycles\n\tm_walk_timer[N]->adjust(attotime::from_ticks(3, m_maincpu->clock()), N);",
+            "constants": {
+                "N": 0
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_audio_snd"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "N"
+                                    }
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_walk_timer"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "N"
+                                    }
+                                },
+                                "property": "adjust"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "attotime::from_ticks"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "clock"
+                                            },
+                                            "args": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "N"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 343,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.walk_w_1",
+            "ownerClass": "mario_state",
+            "method": "walk_w_1",
+            "parameters": "uint8_t data",
+            "body": "m_audio_snd[N]->write(0);\n\n\t// WR is asserted for 3 cycles\n\tm_walk_timer[N]->adjust(attotime::from_ticks(3, m_maincpu->clock()), N);",
+            "constants": {
+                "N": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_audio_snd"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "N"
+                                    }
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_walk_timer"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "N"
+                                    }
+                                },
+                                "property": "adjust"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "attotime::from_ticks"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "clock"
+                                            },
+                                            "args": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "N"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 343,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.samples_w",
+            "ownerClass": "mario_state",
+            "method": "samples_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "data &= 1;\n\n\tswitch (offset)\n\t{\n\t\t// death\n\t\tcase 0:\n\t\t\tm_audiocpu->set_input_line(0, data ? ASSERT_LINE : CLEAR_LINE);\n\t\t\tbreak;\n\n\t\t// get coin, ice\n\t\tcase 1: case 2:\n\t\t{\n\t\t\tconst uint8_t mask = 1 << (offset - 1);\n\t\t\tm_soundlatch[3]->write((m_soundlatch[3]->read() & ~mask) | (data ? mask : 0));\n\t\t\tbreak;\n\t\t}\n\n\t\t// crab, turtle, fly, coin\n\t\tcase 3: case 4: case 5: case 6:\n\t\t{\n\t\t\tconst uint8_t mask = 1 << (offset - 3);\n\t\t\tm_soundlatch[1]->write((m_soundlatch[1]->read() & ~mask) | (data ? mask : 0));\n\t\t\tbreak;\n\t\t}\n\n\t\t// skid\n\t\tcase 7:\n\t\t\tm_audio_snd[2]->write(data ^ 1);\n\t\t\tbreak;\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "data"
+                        },
+                        "operator": "&=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "op": "switch",
+                        "expression": {
+                            "kind": "identifier",
+                            "name": "offset"
+                        },
+                        "cases": [
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_audiocpu"
+                                                },
+                                                "property": "set_input_line"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                },
+                                                {
+                                                    "kind": "conditional",
+                                                    "condition": {
+                                                        "kind": "identifier",
+                                                        "name": "data"
+                                                    },
+                                                    "whenTrue": {
+                                                        "kind": "identifier",
+                                                        "name": "ASSERT_LINE"
+                                                    },
+                                                    "whenFalse": {
+                                                        "kind": "identifier",
+                                                        "name": "CLEAR_LINE"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 1
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "declare",
+                                        "name": "mask",
+                                        "valueType": "uint8_t",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 1
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "-",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offset"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_soundlatch"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 3
+                                                    }
+                                                },
+                                                "property": "write"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "|",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "index",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_soundlatch"
+                                                                    },
+                                                                    "index": {
+                                                                        "kind": "number",
+                                                                        "value": 3
+                                                                    }
+                                                                },
+                                                                "property": "read"
+                                                            },
+                                                            "args": []
+                                                        },
+                                                        "right": {
+                                                            "kind": "unary",
+                                                            "operator": "~",
+                                                            "operand": {
+                                                                "kind": "identifier",
+                                                                "name": "mask"
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "conditional",
+                                                        "condition": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "whenTrue": {
+                                                            "kind": "identifier",
+                                                            "name": "mask"
+                                                        },
+                                                        "whenFalse": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 3
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 4
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 5
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 6
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "declare",
+                                        "name": "mask",
+                                        "valueType": "uint8_t",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 1
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "-",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offset"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_soundlatch"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                },
+                                                "property": "write"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "|",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "index",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_soundlatch"
+                                                                    },
+                                                                    "index": {
+                                                                        "kind": "number",
+                                                                        "value": 1
+                                                                    }
+                                                                },
+                                                                "property": "read"
+                                                            },
+                                                            "args": []
+                                                        },
+                                                        "right": {
+                                                            "kind": "unary",
+                                                            "operator": "~",
+                                                            "operand": {
+                                                                "kind": "identifier",
+                                                                "name": "mask"
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "conditional",
+                                                        "condition": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "whenTrue": {
+                                                            "kind": "identifier",
+                                                            "name": "mask"
+                                                        },
+                                                        "whenFalse": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 7
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_audio_snd"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 2
+                                                    }
+                                                },
+                                                "property": "write"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "^",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "data"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 351,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:z80dma_device.read",
+            "ownerClass": "z80dma_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 669,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:z80dma_device.write",
+            "ownerClass": "z80dma_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 669,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mario_state.tune_r",
+            "ownerClass": "mario_state",
+            "method": "tune_r",
+            "parameters": "offs_t offset",
+            "body": "if (!machine().side_effects_disabled())\n\t{\n\t\t// retry_access() forces the MCU to catch up before Z80 does the read\n\t\tif (!m_z80_sync)\n\t\t\tm_maincpu->retry_access();\n\n\t\tm_z80_sync = !m_z80_sync;\n\t}\n\n\tconst uint8_t p2 = m_soundlatch[2]->read();\n\n\tif (BIT(p2, 7))\n\t\treturn m_soundlatch[0]->read();\n\telse\n\t\treturn m_soundrom[(p2 & 0x0f) << 8 | offset];",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "side_effects_disabled"
+                                },
+                                "args": []
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "m_z80_sync"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "retry_access"
+                                            },
+                                            "args": []
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_z80_sync"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "m_z80_sync"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "declare",
+                        "name": "p2",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_soundlatch"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "p2"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 7
+                                }
+                            ]
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_soundlatch"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        },
+                                        "property": "read"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_soundrom"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "p2"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 15
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 8
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 323,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.dac_w",
+            "ownerClass": "mario_state",
+            "method": "dac_w",
+            "parameters": "uint8_t data",
+            "body": "m_audio_dac->write(data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_audio_dac"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 172,
+                "column": 31
+            }
+        },
+        {
+            "id": "handler:mario_state.machine_reset",
+            "ownerClass": "mario_state",
+            "method": "machine_reset",
+            "body": "m_nmi_mask = false;\n\tm_z80_sync = false;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_nmi_mask"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_z80_sync"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 265,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.video_start",
+            "ownerClass": "mario_state",
+            "method": "video_start",
+            "body": "m_bg_tilemap = &machine().tilemap().create(\n\t\t\t*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(mario_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS,\n\t\t\t8, 8, 32, 32);\n\n\tm_gfxdecode->gfx(0)->set_granularity(8);\n\n\tsave_item(NAME(m_gfx_bank));\n\tsave_item(NAME(m_palette_bank));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "mario_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        },
+                                        "property": "gfx"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                },
+                                "property": "set_granularity"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_gfx_bank"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_palette_bank"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 411,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.get_bg_tile_info",
+            "ownerClass": "mario_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int code = m_videoram[tile_index] + 256 * m_gfx_bank;\n\tint color = 8 + (m_videoram[tile_index] >> 5) + 16 * m_palette_bank;\n\n\ttileinfo.set(0, code, color, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 256
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "m_gfx_bank"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 8
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_videoram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "tile_index"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 5
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 16
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "m_palette_bank"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 403,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:z80dma_device.bai_w",
+            "ownerClass": "z80dma_device",
+            "method": "bai_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 837,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mario_state.memory_read_byte",
+            "ownerClass": "mario_state",
+            "method": "memory_read_byte",
+            "parameters": "offs_t offset",
+            "body": "address_space& prog_space = m_maincpu->space(AS_PROGRAM);\n\treturn prog_space.read_byte(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "prog_space",
+                        "valueType": "address_space&",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "space"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "AS_PROGRAM"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "prog_space"
+                                },
+                                "property": "read_byte"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 594,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.memory_write_byte",
+            "ownerClass": "mario_state",
+            "method": "memory_write_byte",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "address_space& prog_space = m_maincpu->space(AS_PROGRAM);\n\treturn prog_space.write_byte(offset, data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "prog_space",
+                        "valueType": "address_space&",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "space"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "AS_PROGRAM"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "prog_space"
+                                },
+                                "property": "write_byte"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 600,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.gfx_bank_w",
+            "ownerClass": "mario_state",
+            "method": "gfx_bank_w",
+            "parameters": "int state",
+            "body": "m_gfx_bank = state;\n\tmachine().tilemap().mark_all_dirty();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_gfx_bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "state"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "tilemap"
+                                    },
+                                    "args": []
+                                },
+                                "property": "mark_all_dirty"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 508,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.flip_screen_set",
+            "ownerClass": "mario_state",
+            "method": "flip_screen_set",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 848,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mario_state.palette_bank_w",
+            "ownerClass": "mario_state",
+            "method": "palette_bank_w",
+            "parameters": "int state",
+            "body": "m_palette_bank = state;\n\tmachine().tilemap().mark_all_dirty();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_palette_bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "state"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "tilemap"
+                                    },
+                                    "args": []
+                                },
+                                "property": "mark_all_dirty"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 514,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.nmi_mask_w",
+            "ownerClass": "mario_state",
+            "method": "nmi_mask_w",
+            "parameters": "int state",
+            "body": "m_nmi_mask = state;\n\tif (!state)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_nmi_mask"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "state"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "state"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INPUT_LINE_NMI"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 606,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:z80dma_device.rdy_w",
+            "ownerClass": "z80dma_device",
+            "method": "rdy_w",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 851,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mario_state.coin_counter_2_w",
+            "ownerClass": "mario_state",
+            "method": "coin_counter_2_w",
+            "parameters": "int state",
+            "body": "machine().bookkeeping().coin_counter_w(1, state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 618,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.coin_counter_1_w",
+            "ownerClass": "mario_state",
+            "method": "coin_counter_1_w",
+            "parameters": "int state",
+            "body": "machine().bookkeeping().coin_counter_w(0, state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 613,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.screen_update",
+            "ownerClass": "mario_state",
+            "method": "screen_update",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 579,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:mario_state.draw_sprites",
+            "ownerClass": "mario_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "const uint8_t flip = flip_screen() ? 0xff : 0;\n\tint offs = 0;\n\n\twhile (offs != m_spriteram.bytes())\n\t{\n\t\tif (m_spriteram[offs])\n\t\t{\n\t\t\t// from schematics...\n\t\t\tint y = (m_spriteram[offs + 0] + (flip ? 0xf7 : 0xf9) + 1) & 0xff;\n\t\t\tint x = m_spriteram[offs + 3];\n\t\t\t// sprite will be drawn if (y + scanline) & 0xF0 = 0xF0\n\t\t\ty = 240 - y; // logical screen position\n\n\t\t\ty ^= flip; // physical screen location\n\t\t\tx ^= flip; // physical screen location\n\n\t\t\tint code = m_spriteram[offs + 2];\n\t\t\tint color = (m_spriteram[offs + 1] & 0x0f) + 16 * m_palette_bank;\n\t\t\tint flipx = (m_spriteram[offs + 1] & 0x80);\n\t\t\tint flipy = (m_spriteram[offs + 1] & 0x40);\n\n\t\t\tif (flip)\n\t\t\t{\n\t\t\t\ty -= 14;\n\t\t\t\tx -= 7;\n\t\t\t\tflipx = !flipx;\n\t\t\t\tflipy = !flipy;\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\ty += 1;\n\t\t\t\tx -= 8;\n\t\t\t}\n\n\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap, cliprect,\n\t\t\t\t\tcode,\n\t\t\t\t\tcolor,\n\t\t\t\t\tflipx, flipy,\n\t\t\t\t\tx, y, 0);\n\t\t}\n\n\t\toffs += 4;\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "flip",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "flip_screen"
+                                },
+                                "args": []
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 255
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "offs",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "while",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "property": "bytes"
+                                },
+                                "args": []
+                            }
+                        },
+                        "body": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "declare",
+                                        "name": "y",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "+",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_spriteram"
+                                                        },
+                                                        "index": {
+                                                            "kind": "binary",
+                                                            "operator": "+",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "offs"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 0
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "conditional",
+                                                        "condition": {
+                                                            "kind": "identifier",
+                                                            "name": "flip"
+                                                        },
+                                                        "whenTrue": {
+                                                            "kind": "number",
+                                                            "value": 247
+                                                        },
+                                                        "whenFalse": {
+                                                            "kind": "number",
+                                                            "value": 249
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 255
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "x",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 240
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        },
+                                        "operator": "^=",
+                                        "value": {
+                                            "kind": "identifier",
+                                            "name": "flip"
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        },
+                                        "operator": "^=",
+                                        "value": {
+                                            "kind": "identifier",
+                                            "name": "flip"
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "code",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "color",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_spriteram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "binary",
+                                                        "operator": "+",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "offs"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 15
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "*",
+                                                "left": {
+                                                    "kind": "number",
+                                                    "value": 16
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "m_palette_bank"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "flipx",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_spriteram"
+                                                },
+                                                "index": {
+                                                    "kind": "binary",
+                                                    "operator": "+",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "offs"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 128
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "flipy",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_spriteram"
+                                                },
+                                                "index": {
+                                                    "kind": "binary",
+                                                    "operator": "+",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "offs"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 64
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "flip"
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "y"
+                                                },
+                                                "operator": "-=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 14
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "operator": "-=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 7
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "flipx"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipx"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "flipy"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipy"
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "else": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "y"
+                                                },
+                                                "operator": "+=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "operator": "-=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 8
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gfxdecode"
+                                                        },
+                                                        "property": "gfx"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "transpen"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipy"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "y"
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 532,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:mario_state.vblank_irq",
+            "ownerClass": "mario_state",
+            "method": "vblank_irq",
+            "parameters": "int state",
+            "body": "if (state && m_nmi_mask)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "state"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "m_nmi_mask"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INPUT_LINE_NMI"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ASSERT_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 623,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:generic_latch_8_device.read",
+            "ownerClass": "generic_latch_8_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 914,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mario_state.palette",
+            "ownerClass": "mario_state",
+            "method": "palette",
+            "parameters": "palette_device &palette",
+            "body": "set_palette(0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_palette"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 490,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mario_state.set_palette",
+            "ownerClass": "mario_state",
+            "method": "set_palette",
+            "parameters": "int monitor",
+            "body": "uint8_t const *const color_prom = memregion(\"proms\")->base();\n\n\tstd::vector<rgb_t> rgb;\n\tif (monitor == 0)\n\t\tcompute_res_net_all(rgb, color_prom, mario_decode_info, mario_net_info);\n\telse\n\t\tcompute_res_net_all(rgb, color_prom + 256, mario_decode_info, mario_net_info_std);\n\n\tm_palette->set_pen_colors(0, rgb);\n\tm_palette->palette()->normalize_range(0, 255);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "color_prom",
+                        "valueType": "auto*",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "memregion"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "proms"
+                                        }
+                                    ]
+                                },
+                                "property": "base"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "rgb",
+                        "valueType": "auto",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "ARRAY"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "monitor"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "compute_res_net_all"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "rgb"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "color_prom"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "mario_decode_info"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "mario_net_info"
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "compute_res_net_all"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "rgb"
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "color_prom"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 256
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "mario_decode_info"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "mario_net_info_std"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_palette"
+                                },
+                                "property": "set_pen_colors"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "rgb"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_palette"
+                                        },
+                                        "property": "palette"
+                                    },
+                                    "args": []
+                                },
+                                "property": "normalize_range"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 255
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 476,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:mario_state.base_map",
+            "className": "mario_state",
+            "name": "base_map",
+            "ranges": [
+                {
+                    "id": "map:mario_state.base_map/range0",
+                    "start": 0,
+                    "end": 24575,
+                    "raw": "map(0x0000, 0x5fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 24575,
+                        "raw": "map(0x0000, 0x5fff).rom()",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 638,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 638,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 638,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range1",
+                    "start": 24576,
+                    "end": 26623,
+                    "raw": "map(0x6000, 0x67ff).ram()",
+                    "props": {
+                        "start": 24576,
+                        "end": 26623,
+                        "raw": "map(0x6000, 0x67ff).ram()",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 639,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 639,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 639,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range2",
+                    "start": 26624,
+                    "end": 28671,
+                    "raw": "map(0x6800, 0x6fff).ram().share(\"nvram\")",
+                    "props": {
+                        "start": 26624,
+                        "end": 28671,
+                        "raw": "map(0x6800, 0x6fff).ram().share(\"nvram\")",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 640,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 640,
+                        "ram": true,
+                        "share": "nvram"
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 640,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range3",
+                    "start": 28672,
+                    "end": 29695,
+                    "raw": "map(0x7000, 0x73ff).ram().share(\"spriteram\")",
+                    "props": {
+                        "start": 28672,
+                        "end": 29695,
+                        "raw": "map(0x7000, 0x73ff).ram().share(\"spriteram\")",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 641,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 641,
+                        "ram": true,
+                        "share": "spriteram"
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 641,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range4",
+                    "start": 29696,
+                    "end": 30719,
+                    "raw": "map(0x7400, 0x77ff).ram().w(FUNC(mario_state::videoram_w)).share(\"videoram\")",
+                    "write": "mario_state.videoram_w",
+                    "props": {
+                        "start": 29696,
+                        "end": 30719,
+                        "raw": "map(0x7400, 0x77ff).ram().w(FUNC(mario_state::videoram_w)).share(\"videoram\")",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 642,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 642,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 642,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range5",
+                    "start": 31744,
+                    "end": 31744,
+                    "raw": "map(0x7c00, 0x7c00).portr(\"IN0\")",
+                    "props": {
+                        "start": 31744,
+                        "end": 31744,
+                        "raw": "map(0x7c00, 0x7c00).portr(\"IN0\")",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 643,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 643,
+                        "portRead": "IN0"
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 643,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range6",
+                    "start": 31872,
+                    "end": 31872,
+                    "raw": "map(0x7c80, 0x7c80).portr(\"IN1\")",
+                    "props": {
+                        "start": 31872,
+                        "end": 31872,
+                        "raw": "map(0x7c80, 0x7c80).portr(\"IN1\")",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 644,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 644,
+                        "portRead": "IN1"
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 644,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range7",
+                    "start": 32000,
+                    "end": 32000,
+                    "raw": "map(0x7d00, 0x7d00).w(FUNC(mario_state::scroll_w))",
+                    "write": "mario_state.scroll_w",
+                    "props": {
+                        "start": 32000,
+                        "end": 32000,
+                        "raw": "map(0x7d00, 0x7d00).w(FUNC(mario_state::scroll_w))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 645,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 645
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 645,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range8",
+                    "start": 32256,
+                    "end": 32256,
+                    "raw": "map(0x7e00, 0x7e00).w(m_soundlatch[0], FUNC(generic_latch_8_device::write))",
+                    "write": "soundlatch0.write",
+                    "props": {
+                        "start": 32256,
+                        "end": 32256,
+                        "raw": "map(0x7e00, 0x7e00).w(m_soundlatch[0], FUNC(generic_latch_8_device::write))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 646,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 646
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 646,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range9",
+                    "start": 32384,
+                    "end": 32391,
+                    "raw": "map(0x7e80, 0x7e87).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+                    "write": "mainlatch.write_d0",
+                    "props": {
+                        "start": 32384,
+                        "end": 32391,
+                        "raw": "map(0x7e80, 0x7e87).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 647,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 647
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 647,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range10",
+                    "start": 32640,
+                    "end": 32640,
+                    "raw": "map(0x7f80, 0x7f80).portr(\"DSW\")",
+                    "props": {
+                        "start": 32640,
+                        "end": 32640,
+                        "raw": "map(0x7f80, 0x7f80).portr(\"DSW\")",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 648,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 648,
+                        "portRead": "DSW"
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 648,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.base_map/range11",
+                    "start": 61440,
+                    "end": 65535,
+                    "raw": "map(0xf000, 0xffff).rom()",
+                    "props": {
+                        "start": 61440,
+                        "end": 65535,
+                        "raw": "map(0xf000, 0xffff).rom()",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 649,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 649,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 649,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 636,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:mario_state.mario_map",
+            "className": "mario_state",
+            "name": "mario_map",
+            "ranges": [
+                {
+                    "id": "map:mario_state.mario_map/range0",
+                    "start": 31744,
+                    "end": 31744,
+                    "raw": "map(0x7c00, 0x7c00).w(FUNC(mario_state::walk_w<0>))",
+                    "write": "mario_state.walk_w_0",
+                    "props": {
+                        "start": 31744,
+                        "end": 31744,
+                        "raw": "map(0x7c00, 0x7c00).w(FUNC(mario_state::walk_w<0>))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 655,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 655
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 655,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.mario_map/range1",
+                    "start": 31872,
+                    "end": 31872,
+                    "raw": "map(0x7c80, 0x7c80).w(FUNC(mario_state::walk_w<1>))",
+                    "write": "mario_state.walk_w_1",
+                    "props": {
+                        "start": 31872,
+                        "end": 31872,
+                        "raw": "map(0x7c80, 0x7c80).w(FUNC(mario_state::walk_w<1>))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 656,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 656
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 656,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mario_state.mario_map/range2",
+                    "start": 32512,
+                    "end": 32519,
+                    "raw": "map(0x7f00, 0x7f07).w(FUNC(mario_state::samples_w))",
+                    "write": "mario_state.samples_w",
+                    "props": {
+                        "start": 32512,
+                        "end": 32519,
+                        "raw": "map(0x7f00, 0x7f07).w(FUNC(mario_state::samples_w))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 657,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 657
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 657,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 652,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:mario_state.mario_io_map",
+            "className": "mario_state",
+            "name": "mario_io_map",
+            "ranges": [
+                {
+                    "id": "map:mario_state.mario_io_map/range0",
+                    "start": 0,
+                    "end": 0,
+                    "raw": "map(0x00, 0x00).rw(m_z80dma, FUNC(z80dma_device::read), FUNC(z80dma_device::write))",
+                    "read": "z80dma.read",
+                    "write": "z80dma.write",
+                    "props": {
+                        "start": 0,
+                        "end": 0,
+                        "raw": "map(0x00, 0x00).rw(m_z80dma, FUNC(z80dma_device::read), FUNC(z80dma_device::write))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 669,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 669
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 669,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 666,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:mario_state.mario_sound_map",
+            "className": "mario_state",
+            "name": "mario_sound_map",
+            "ranges": [
+                {
+                    "id": "map:mario_state.mario_sound_map/range0",
+                    "start": 0,
+                    "end": 4095,
+                    "raw": "map(0x0000, 0x0fff).rom().region(m_soundrom, 0)",
+                    "props": {
+                        "start": 0,
+                        "end": 4095,
+                        "raw": "map(0x0000, 0x0fff).rom().region(m_soundrom, 0)",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 676,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 676,
+                        "rom": true,
+                        "region": "soundrom",
+                        "regionOffset": 0
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 676,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 674,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:mario_state.mario_sound_io_map",
+            "className": "mario_state",
+            "name": "mario_sound_io_map",
+            "ranges": [
+                {
+                    "id": "map:mario_state.mario_sound_io_map/range0",
+                    "start": 0,
+                    "end": 255,
+                    "raw": "map(0x00, 0xff).r(FUNC(mario_state::tune_r)).w(FUNC(mario_state::dac_w))",
+                    "read": "mario_state.tune_r",
+                    "write": "mario_state.dac_w",
+                    "props": {
+                        "start": 0,
+                        "end": 255,
+                        "raw": "map(0x00, 0xff).r(FUNC(mario_state::tune_r)).w(FUNC(mario_state::dac_w))",
+                        "sourceFile": "src/mame/nintendo/mario.cpp",
+                        "sourceLine": 681,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 681
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/mario.cpp",
+                        "line": 681,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 679,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_gfx_bank",
+            "bits": 8
+        },
+        {
+            "name": "m_palette_bank",
+            "bits": 8
+        },
+        {
+            "name": "m_nmi_mask",
+            "bits": 1
+        },
+        {
+            "name": "m_z80_sync",
+            "bits": 1
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "gfx1",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 32,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 512,
+                    "planes": 2,
+                    "planeOffsets": [
+                        32768,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56
+                    ],
+                    "charIncrement": 64
+                }
+            },
+            {
+                "region": "gfx2",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 32,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": 256,
+                    "planes": 3,
+                    "planeOffsets": [
+                        131072,
+                        65536,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        32768,
+                        32769,
+                        32770,
+                        32771,
+                        32772,
+                        32773,
+                        32774,
+                        32775
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56,
+                        64,
+                        72,
+                        80,
+                        88,
+                        96,
+                        104,
+                        112,
+                        120
+                    ],
+                    "charIncrement": 128
+                }
+            }
+        ],
+        "regionBindings": {
+            "m_soundrom": "soundrom"
+        },
+        "palette": {
+            "region": "proms",
+            "colorCount": 256,
+            "min": 0,
+            "max": 255,
+            "scaler": -1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": [
+                        5,
+                        6,
+                        7
+                    ],
+                    "offsets": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "resistances": [
+                        1000,
+                        470,
+                        220
+                    ],
+                    "pulldown": 0,
+                    "pullup": 470
+                },
+                {
+                    "channel": "g",
+                    "bits": [
+                        2,
+                        3,
+                        4
+                    ],
+                    "offsets": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "resistances": [
+                        1000,
+                        470,
+                        220
+                    ],
+                    "pulldown": 0,
+                    "pullup": 470
+                },
+                {
+                    "channel": "b",
+                    "bits": [
+                        0,
+                        1
+                    ],
+                    "offsets": [
+                        0,
+                        0
+                    ],
+                    "resistances": [
+                        470,
+                        220
+                    ],
+                    "pulldown": 0,
+                    "pullup": 680
+                }
+            ],
+            "resNet": {
+                "input": "ttl",
+                "monitor": "sanyo",
+                "amplifiers": [
+                    "darlington",
+                    "darlington",
+                    "emitter"
+                ]
+            },
+            "normalize": {
+                "start": 0,
+                "end": 255,
+                "lumMin": 0,
+                "lumMax": 255
+            },
+            "lookupOffset": 0,
+            "lookupCount": 256,
+            "lookupMask": 255,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 0,
+                    "lookupOffset": 0,
+                    "lookupCount": 256,
+                    "direct": true
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/mame/nintendo/mario.cpp",
+                "line": 490,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "mario_state.get_bg_tile_info",
+                "source": {
+                    "file": "src/mame/nintendo/mario.cpp",
+                    "line": 411,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {},
+        "source": {
+            "file": "src/mame/nintendo/mario.cpp",
+            "line": 411,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "dac",
+        "deviceTag": "snd_nl:dac",
+        "deviceTags": [
+            "snd_nl:dac"
+        ],
+        "deviceType": "NETLIST_INT_INPUT",
+        "deviceTypes": [
+            "NETLIST_INT_INPUT"
+        ],
+        "dacs": [
+            {
+                "deviceTag": "snd_nl:dac",
+                "bits": 8,
+                "mapper": "unsigned",
+                "gain": 1
+            }
+        ],
+        "writeMethods": [
+            "data_w",
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1
+    }
+}

@@ -1,0 +1,1019 @@
+{
+  "game": "mspacman",
+  "title": "Ms. Pac-Man (Midway / General Computer Corporation, 1981)",
+  "fullname": "Ms. Pac-Man",
+  "year": "1981",
+  "company": "Midway / General Computer Corporation",
+  "family": "pacman",
+  "driverFile": "src/mame/pacman/pacman.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria,Stephane Humbert",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 65535,
+          "kind": "handler",
+          "read": "bank.bank1",
+          "bank": "bank1"
+        },
+        {
+          "start": 16384,
+          "end": 32767,
+          "kind": "nop",
+          "mirror": 32768
+        },
+        {
+          "start": 16384,
+          "end": 17407,
+          "kind": "ram",
+          "mirror": 40960,
+          "share": "videoram",
+          "write": "pacman_state.pacman_videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 17408,
+          "end": 18431,
+          "kind": "ram",
+          "mirror": 40960,
+          "share": "colorram",
+          "write": "pacman_state.pacman_colorram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 18432,
+          "end": 19455,
+          "kind": "handler",
+          "mirror": 40960,
+          "readOnly": true,
+          "read": "pacman_state.pacman_read_nop"
+        },
+        {
+          "start": 19456,
+          "end": 20463,
+          "kind": "ram",
+          "mirror": 40960
+        },
+        {
+          "start": 20464,
+          "end": 20479,
+          "kind": "ram",
+          "mirror": 40960,
+          "share": "spriteram"
+        },
+        {
+          "start": 20480,
+          "end": 20487,
+          "kind": "handler",
+          "mirror": 44856,
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 20544,
+          "end": 20575,
+          "kind": "handler",
+          "mirror": 44800,
+          "write": "namco.pacman_sound_w"
+        },
+        {
+          "start": 20576,
+          "end": 20591,
+          "kind": "ram",
+          "mirror": 44800,
+          "share": "spriteram2",
+          "writeOnly": true
+        },
+        {
+          "start": 20592,
+          "end": 20607,
+          "kind": "nop",
+          "mirror": 44800,
+          "readOnly": true
+        },
+        {
+          "start": 20608,
+          "end": 20608,
+          "kind": "nop",
+          "mirror": 44863,
+          "readOnly": true
+        },
+        {
+          "start": 20672,
+          "end": 20672,
+          "kind": "handler",
+          "mirror": 44863,
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.IN0"
+        },
+        {
+          "start": 20544,
+          "end": 20544,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.IN1"
+        },
+        {
+          "start": 20608,
+          "end": 20608,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.DSW1"
+        },
+        {
+          "start": 20672,
+          "end": 20672,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.DSW2"
+        },
+        {
+          "start": 56,
+          "end": 63,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_disable_decode_r_56",
+          "write": "pacman_state.mspacman_disable_decode_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 944,
+          "end": 951,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_disable_decode_r_944",
+          "write": "pacman_state.mspacman_disable_decode_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 5632,
+          "end": 5639,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_disable_decode_r_5632",
+          "write": "pacman_state.mspacman_disable_decode_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8480,
+          "end": 8487,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_disable_decode_r_8480",
+          "write": "pacman_state.mspacman_disable_decode_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16368,
+          "end": 16375,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_disable_decode_r_16368",
+          "write": "pacman_state.mspacman_disable_decode_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16376,
+          "end": 16383,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_enable_decode_r_16376",
+          "write": "pacman_state.mspacman_enable_decode_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 32775,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_disable_decode_r_32768",
+          "write": "pacman_state.mspacman_disable_decode_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 38896,
+          "end": 38903,
+          "kind": "handler",
+          "read": "pacman_state.mspacman_disable_decode_r_38896",
+          "write": "pacman_state.mspacman_disable_decode_w",
+          "handlerWidth": 8
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "write": "pacman_state.pacman_interrupt_vector_w",
+            "handlerWidth": 8
+          }
+        ],
+        "globalMask": 255
+      }
+    }
+  ],
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 288,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "pacman.6e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c1e6ab10",
+          "alt": [
+            {
+              "file": "boot1",
+              "crc": "d16b31b7"
+            },
+            {
+              "file": "mpe1.6e",
+              "crc": "3ad0ae2f"
+            },
+            {
+              "file": "p3.6e",
+              "crc": "df673b57"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "1a6fb2d4",
+          "alt": [
+            {
+              "file": "pacfast.6f",
+              "crc": "720dc3ee"
+            },
+            {
+              "file": "boot2",
+              "crc": "0d32de5e"
+            },
+            {
+              "file": "2_faspac.7d",
+              "crc": "a8d6c227"
+            },
+            {
+              "file": "2.bin",
+              "crc": "04e6c486"
+            },
+            {
+              "file": "p4.6f",
+              "crc": "7591f606"
+            },
+            {
+              "file": "mspacatk.2",
+              "crc": "0af09d31"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6h",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "bcdd1beb",
+          "alt": [
+            {
+              "file": "boot3",
+              "crc": "1821ee0b"
+            },
+            {
+              "file": "p5.6h",
+              "crc": "c8ef1a7f"
+            },
+            {
+              "file": "pacman.7fh",
+              "crc": "513f4d5c"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6j",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "817d94e3",
+          "alt": [
+            {
+              "file": "boot4",
+              "crc": "165a9dd8"
+            },
+            {
+              "file": "4.7f",
+              "crc": "66e68887"
+            },
+            {
+              "file": "misspacmanfalgas_3.bin",
+              "crc": "e086219d"
+            },
+            {
+              "file": "4-cpu.6j",
+              "crc": "e30f2dae"
+            },
+            {
+              "file": "7k",
+              "crc": "629c4399"
+            },
+            {
+              "file": "mpe4.6j",
+              "crc": "d5e5d2aa"
+            },
+            {
+              "file": "p6.6j",
+              "crc": "d498f435"
+            },
+            {
+              "file": "pacman.7hj",
+              "crc": "70694c8e"
+            }
+          ]
+        },
+        {
+          "file": "u5",
+          "offset": 32768,
+          "size": 2048,
+          "crc": "f45fbbcd",
+          "alt": [
+            {
+              "file": "rom-e.bin",
+              "crc": "59cb7ea0"
+            }
+          ]
+        },
+        {
+          "file": "u6",
+          "offset": 36864,
+          "size": 4096,
+          "crc": "a90e7000",
+          "alt": [
+            {
+              "file": "u6pacatk",
+              "crc": "f6d83f4d"
+            },
+            {
+              "file": "u6a.bin",
+              "crc": "3fdcb271"
+            },
+            {
+              "file": "boot6",
+              "crc": "368cb165"
+            },
+            {
+              "file": "6.bin",
+              "crc": "206a9623"
+            },
+            {
+              "file": "mpe6.6m",
+              "crc": "375f0693"
+            },
+            {
+              "file": "p8.s2",
+              "crc": "aba3096d"
+            },
+            {
+              "file": "p1.bin",
+              "crc": "aa3887c5"
+            },
+            {
+              "file": "mspacatk.6",
+              "crc": "3b5db308"
+            }
+          ]
+        },
+        {
+          "file": "u7",
+          "offset": 45056,
+          "size": 4096,
+          "crc": "c82cd714",
+          "alt": [
+            {
+              "file": "u7a.bin",
+              "crc": "5fafec7c"
+            },
+            {
+              "file": "3.u7",
+              "crc": "bd972c0c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "5e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "5c281d01",
+          "alt": [
+            {
+              "file": "5e",
+              "crc": "5431d4c4"
+            },
+            {
+              "file": "5.5e",
+              "crc": "c45d4857"
+            },
+            {
+              "file": "p1.5e",
+              "crc": "04333722"
+            }
+          ]
+        },
+        {
+          "file": "5f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "615af909",
+          "alt": [
+            {
+              "file": "5f",
+              "crc": "ceb50654"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 288,
+      "loads": [
+        {
+          "file": "82s123.7f",
+          "offset": 0,
+          "size": 32,
+          "crc": "2fc650bd",
+          "alt": [
+            {
+              "file": "mb7051.7f",
+              "crc": "ff344446"
+            },
+            {
+              "file": "8h",
+              "crc": "2c3cc909"
+            },
+            {
+              "file": "82s123.h7",
+              "crc": "3545e7e9"
+            }
+          ]
+        },
+        {
+          "file": "82s126.4a",
+          "offset": 32,
+          "size": 256,
+          "crc": "3eb3a8e4",
+          "alt": [
+            {
+              "file": "4a",
+              "crc": "4c8e83a4"
+            },
+            {
+              "file": "82s129.4a",
+              "crc": "63efb927"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "82s126.1m",
+          "offset": 0,
+          "size": 256,
+          "crc": "a9cc86bf",
+          "alt": [
+            {
+              "file": "1m",
+              "crc": "0922b031"
+            },
+            {
+              "file": "1m",
+              "crc": "7b1f9b71"
+            }
+          ]
+        },
+        {
+          "file": "82s126.3m",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66",
+          "alt": [
+            {
+              "file": "3m",
+              "crc": "05197026"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "F1"
+      ],
+      "label": "Rack Test (Cheat)",
+      "activeLow": true,
+      "activeValue": 0,
+      "toggle": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 16,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 1,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 8,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Difficulty"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-20",
+    "commits": 437,
+    "contributors": 52,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "Michaël Banaan Ananas",
+      "Vas Crabb"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 84,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 47,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2026-03-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 40,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 37,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 34,
+        "firstCommit": "2016-09-26",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 24,
+        "firstCommit": "2013-03-19",
+        "lastCommit": "2016-03-28"
+      },
+      {
+        "name": "hap",
+        "commits": 16,
+        "firstCommit": "2015-11-04",
+        "lastCommit": "2026-04-29"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 16,
+        "firstCommit": "2010-11-11",
+        "lastCommit": "2017-08-15"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 14,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2020-11-02"
+      },
+      {
+        "name": "AJR",
+        "commits": 13,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 10,
+        "firstCommit": "2021-02-16",
+        "lastCommit": "2024-03-31"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 9,
+        "firstCommit": "2018-10-02",
+        "lastCommit": "2026-07-20"
+      },
+      {
+        "name": "smf-",
+        "commits": 9,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2020-04-02"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 8,
+        "firstCommit": "2011-04-26",
+        "lastCommit": "2011-12-12"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 6,
+        "firstCommit": "2016-06-18",
+        "lastCommit": "2020-12-10"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 5,
+        "firstCommit": "2009-07-06",
+        "lastCommit": "2012-07-17"
+      },
+      {
+        "name": "RobertoFresca",
+        "commits": 5,
+        "firstCommit": "2015-11-29",
+        "lastCommit": "2016-01-24"
+      },
+      {
+        "name": "briantro",
+        "commits": 4,
+        "firstCommit": "2016-12-24",
+        "lastCommit": "2017-11-02"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 4,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "angelosa",
+        "commits": 3,
+        "firstCommit": "2016-09-22",
+        "lastCommit": "2017-09-15"
+      },
+      {
+        "name": "braintro",
+        "commits": 3,
+        "firstCommit": "2018-03-14",
+        "lastCommit": "2018-06-13"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-29",
+        "lastCommit": "2014-04-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 3,
+        "firstCommit": "2009-05-03",
+        "lastCommit": "2009-11-16"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "cam900",
+        "commits": 2,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2026-04-03"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2008-05-25",
+        "lastCommit": "2008-07-28"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MASH",
+        "commits": 2,
+        "firstCommit": "2016-08-27",
+        "lastCommit": "2018-08-05"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-24"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-03",
+        "lastCommit": "2008-08-03"
+      },
+      {
+        "name": "Antonio Paradossi",
+        "commits": 1,
+        "firstCommit": "2016-02-23",
+        "lastCommit": "2016-02-23"
+      },
+      {
+        "name": "arbee",
+        "commits": 1,
+        "firstCommit": "2016-06-18",
+        "lastCommit": "2016-06-18"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "Devin Acker",
+        "commits": 1,
+        "firstCommit": "2020-10-09",
+        "lastCommit": "2020-10-09"
+      },
+      {
+        "name": "eientei95",
+        "commits": 1,
+        "firstCommit": "2022-06-25",
+        "lastCommit": "2022-06-25"
+      },
+      {
+        "name": "Ian Eure",
+        "commits": 1,
+        "firstCommit": "2020-12-07",
+        "lastCommit": "2020-12-07"
+      },
+      {
+        "name": "Liron486",
+        "commits": 1,
+        "firstCommit": "2026-04-29",
+        "lastCommit": "2026-04-29"
+      },
+      {
+        "name": "Luca Elia",
+        "commits": 1,
+        "firstCommit": "2016-11-13",
+        "lastCommit": "2016-11-13"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2014-11-09",
+        "lastCommit": "2014-11-09"
+      },
+      {
+        "name": "mariuszw1",
+        "commits": 1,
+        "firstCommit": "2010-11-21",
+        "lastCommit": "2010-11-21"
+      },
+      {
+        "name": "MASHinfo",
+        "commits": 1,
+        "firstCommit": "2016-09-11",
+        "lastCommit": "2016-09-11"
+      },
+      {
+        "name": "mdeslaur",
+        "commits": 1,
+        "firstCommit": "2022-08-12",
+        "lastCommit": "2022-08-12"
+      },
+      {
+        "name": "MetalliC",
+        "commits": 1,
+        "firstCommit": "2018-06-07",
+        "lastCommit": "2018-06-07"
+      },
+      {
+        "name": "Osso13",
+        "commits": 1,
+        "firstCommit": "2015-01-19",
+        "lastCommit": "2015-01-19"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      },
+      {
+        "name": "Stiletto",
+        "commits": 1,
+        "firstCommit": "2016-12-24",
+        "lastCommit": "2016-12-24"
+      },
+      {
+        "name": "Uncle Petros",
+        "commits": 1,
+        "firstCommit": "2025-11-26",
+        "lastCommit": "2025-11-26"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nMs. Pac-Man (c) 1982 Midway. \n\nIn this, the first proper sequel to Namco's legendary pill eating maze game, players must once again run around a number of mazes, eating all of the pills that are scattered throughout. The ever-present ghosts (Blinky, Pinky, Inky and Sue) return to hamper the player's progress. The infamous 'Power Pills' are also present and correct, with four appearing in each maze. \n\nNamco introduced a number of changes and enhancements over the original game. The first difference is in the main character. For the first time in video-game history, the game's lead character was female. Ms. Pac-Man is almost identical to the original character with two main differences; she wears a bow in her 'hair', and is also wearing lipstick. \n\nAnother change from the original is that the bonus fruit items are no longer static but now move randomly around the mazes. \n\nMs Pac-Man features four different maze layouts, which alternate every two to four rounds : \n\nThe first maze is only encountered in Rounds 1 and 2, and has 220 dots and 4 Power Pills. There are two sets of tunnels in this maze equidistant from the center of the maze. You must clear this maze two times before moving on to the next maze. \n\nThe second maze is only encountered in Rounds 3, 4, and 5, and has 240 dots and 4 Power Pills. There are two sets of tunnels in this maze; one set in the lower half, and the other set at the very top. You must clear this maze three times before moving on to the next maze. \n\nThe third maze is first encountered in Round 6 and has 238 dots and 4 Power Pills. Unlike all other mazes, there is only one set of tunnels in this maze, slightly above the center of the board. You must clear this maze four times before moving on to the next maze. \n\nThe fourth and final unique maze is first encountered in Round 10 and has 234 dots and 4 Power Pills. There are two sets of tunnels in this maze, directly next to one another in the middle of the maze. The turns at the entrance to the tunnels change the usual immediate accessibility of the tunnels and should be taken in to account. You must clear this maze four times before moving on to the next maze. \n\nAfter Round 13, the game alternates every four rounds between the third and fourth mazes. \n\nFinally, the ghosts' movement patterns are also completely different from those of the original game. \n\nAs in the original game, intermission scenes will be played after certain rounds. Ms. Pac-Man's intermissions tell the story of how Pac-Man and Ms. Pac-Man met, fell in love, and had a baby. Ms. Pac-Man's intermissions are also preceded by a sign and a title. 3 intermissions are present : \n\n1) Act I - They Meet : Pac-Man, the star of the original game, enters the screen being chased by Inky while Ms. Pac-Man enters from the other side being chased by Pinky. As the two of them are about to collide, they quickly move upwards, causing Inky and Pinky to collide. Pac-Man and Ms. Pac-Man face each other at the top of the screen, and a heart appears above them. This intermission is played after Round 2. \n\n2) Act II - The Chase : Pac-Man and Ms. Pac-Man are seen giving each other a playful chase. One chases the other in one direction, and they take turns alternating who chases who and in what direction. After three turns, they chase each other twice more at a faster speed. This intermission is played after Round 5. \n\n3) Act III - Junior : Pac-Man and Ms. Pac-Man anxiously await the arrival of a stork, who flies overhead with a bundle. As the stork is about to pass over them, he releases the bundle, which drops to the ground in front of Pac-Man and Ms. Pac-Man, and opens up to reveal a baby Pac. This intermission, which is played after Rounds 9, 13, and 17, would later serve as the introductory sequence to \"Jr. Pac-Man\". \n\nNo intermission is present between rounds after the 18th one.\n\n- TECHNICAL -\n\n[Upright model] \n[No. 595] \n\nThe upright model came in the standard Namco/Midway cabinet. This is the same 'swoopy' cabinet that \"Galaxian\", \"Galaga\", and \"Pac-Man\" came in as well. These featured painted side-art of Ms. Pac-Man and the ghosts, along with some pink accent lines. The last 10, 000 or so Ms. Pac-Man machines to roll off the assembly line had sticker side-art instead, it was the same basic scene, but the colors were brighter, and there were a few minor differences in the layout of the graphics. The marquee showed an image of Ms. Pac-Man lounging on her own logo, with a ghost off to the side. The exact colors used on the marquee varied a bit over the production run (as did the paint codes used on the side). The control panel and monitor bezel had a single design that covered both of them, that of a blue background with a pink or maroon stripe going around it, with a few game instructions printed upon them. \n\nMain CPU : Zilog Z80 (@ 3.072 Mhz) \nSound Chips : Namco 3-channel WSG (@ 96 Khz)  \n\nPlayers : 2 \nControl : 4-way joystick\n\n- TRIVIA -\n\nMs. Pac-Man was released on January 13, 1982 (Wednesday) in the USA, even if the copyright year is 1981.\n\nHaving won their enhancement kit lawsuit against Atari, General Computing went to Bally Midway and showed them an enhancement kit that they were working on for Pac-Man called Crazy Otto. Crazy Otto was a character similar to Pac-Man with the exception that he had legs. GCC was going to bluff Midway into letting them release their enhancement kit by telling them that they won their lawsuit against Atari, and that they just wanted Midway's blessing. Midway suggested that they create a sequel to the original Pac-Man instead of an enhancement kit, and GCC got to work on Ms. Pac-Man. Ms. Pac-Man had two prior names before settling on the one that everyone knows. 'Mrs. Pac-Man' was the original, but some of the women employees at Midway had a problem with that, so it was changed to 'Miss Pac-Man'. When someone pointed out the third intermission, where Pac and Ms. Pac welcome \"Jr. Pac-Man\" (or Baby Pac-Man) into the fold, they changed it to the final name of 'Ms. Pac-Man'. Midway released \"Baby Pac-Man\" as a pinball/video hybrid, and General Computing sued the company, claiming they had created the concept of a Pac Family. They won the suit and were awarded royalties from Pac Family merchandise. \n\nThe logo for General Computer Corporation is present among the graphics, probably a leftover from the game's days as Crazy Otto.\n\nIn its initial run, 110,000 units were produced in the U.S. making it the best selling domestic arcade video game of all time. \n\nThe game added a few improvements over the original : \n* Non-deterministic artificial intelligence for the ghosts, making it harder for enthusiasts to follow set patterns through levels. \n* A variety of different mazes used through the game. \n* Bonus items (such as cherries and pretzels) entered the maze and bounced through it, rather than appear in a set location as in the original, making the player go out of his way to attain it. \n* Brand new sound effects, including a new 'death' sound and opening theme. \n\nIt was also one of the more successful of early arcade games in the female demographic, which has been attributed to 'Ms. Pac-Man' being a girl - although the Ms. Pac-Man sprite was little more than \"Pac-Man\" with eyelashes, a bow, lipstick and a dimple. \n\nAfter the 255th level, the maze (including dots) disappears. The game becomes unplayable, since there are no more dots to eat. \n\nChris Ayra holds the record for this game on 'Regular' settings with 920,310 points on August 16, 1998. \n\nVictor Kunisada holds the record for this game on 'Speed-Up' settings with 922,810 points on June 16, 2001. \n\nVancouver, Canada (Reuters) - Little 7-year old Al Nagac attained the Guinness World Record for Ms. Pac-Man v.2.97 with a score of 18,976,048. Al was exhausted and dehydrated and asked for several glasses of skim milk after shattering the longtime record of 11,056,736 set by Faith DeRivera, who was onhand to congratulate the victor with a kiss on the cheek. \n\nA Ms. Pac-Man unit appears in the 1983 movie 'WarGames', in the 1983 movie 'Joysticks', in the 1984 movie 'Tightrope' (the cab appears in the background of the bar scene), in the 1990 movie 'The Grifters', in the 1999 movie 'Man In The Moon' and in the 2002 movie 'Van Wilder'. \n\nMilton Bradley (MB) released a board game based on this video game in 1983. Up to 4 players can play. The maze is divided into four colored areas, representing each player; the object of the game is to clear all the dots in your colored area. Only one player at a time controls Ms. Pac-Man; the other players control the ghosts. Once a ghost catches Ms. Pac-Man, the player controlling that ghost takes over control of Ms. Pac-Man. \n\nMichael Jackson used to own this game (Midway upright). It was sold at the official Michael Jackson Auction on April 24th, 2009.\n\n- SCORING -\n\nDot : 10 points \nPower pill (energizer) : 50 points \nGhosts : 200, 400, 800, 1,600 points \nCherry : 100 points \nStrawberry : 200 points \nPeach : 500 points \nPretzel : 700 points \nApple : 1,000 points \nPear : 2,000 points \nBanana : 5,000 points\n\n- TIPS AND TRICKS -\n\n* The most dangerous section of the first maze is the long path at the very top. It is safest to clear it when the ghosts are blue, or at least 3 of them occupy the bottom half of the maze. \n\n* There are a couple of dangerous sections in the second maze. The pathways above and below the T section at the top of the maze can be particularly easy to get trapped in. It is easiest to clear these when all 4 ghosts are close on your tail, or after eating one of the top two power pellets. The two sections directly above the lower escape tunnels on either side should also be cleared with caution. \n\n* The most dangerous section of the 3rd maze is the center of the bottom, directly below where you begin. It is advisable to clear it out as early as possible before the ghosts can organize and trap you. The top section of the maze presents the ghosts with many pathways to reach you, so use caution. \n\n* The most dangerous sections of the 4th maze is the section that you begin in, and the section directly above the ghosts' den. The very top section of the maze should also be cleared with caution. \n\n* Secret Message : the message 'GENERAL COMPUTER CORPORATION Hello, Nakamura!' is buried at the end of the Ms. Pac-Man ROM image (Masaya Nakamura was head of Namco). \n\n* There's a fairly well-known glitch in the game - if you put a coin in when the Ms. Pac-Man marquee title first appears but before Blinky appears then the first board will be blue instead of pink and will remain blue until you either finish the board or lose a life, after which the board will return to its normal color.\n\n- STAFF -\n\nCo-Creator: Steve Golson\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600 (1982) \"Ms. Pac-Man [Model CX2675]\"\n[US] Atari 5200 (1983) \"Ms. Pac-Man [Model CX5243]\"\n[US] Atari 7800 (1984) \"Ms. Pac-Man [Model CX7807]\"\n[US] Atari XEGS (198?)\n\nNintendo NES\n[US] (1990) by Tengen \n[US] (nov.1993) \"Ms. Pac-Man [Model NES-M9-USA]\"\n\nSega Master System\n[EU] (1991) \"Ms. Pac-Man [Model 301030]\"\n[BR] (1991) by Tec Toy \n\nSega Mega Drive / Genesis\n[US] (1991) by Tengen\n[EU] (1992) by Time Warner Interactive \n\nNintendo SNES\n[US] (sept.1996) \"Ms. Pac-Man [Model SNS-AN8E-USA]\"\n[EU] (mar.27, 1997) \"Ms. Pac-Man [Model SNSP-AN8P-EUR]\"\n\nSony PlayStation\n[JP] (june.21, 1996) \"Namco Museum Vol.3 [Model SLPS-00390]\"\n[AU] (1997) \"Namco Museum Vol.3 [Model SCES-00268]\"\n[US] (jan.31, 1997) \"Namco Museum Vol.3 [Model SLUS-00398]\"\n[EU] (feb.1997) \"Namco Museum Vol.3 [Model SCES-00268]\"\n\nNintendo 64\n[US] (oct.31, 1999) \"Namco Museum 64 [Model NUS-NNME-USA]\"\n\nSega Dreamcast\n[US] (june.25, 2000) \"Namco Museum [Model T-1403N]\"\n\nSony PlayStation 2\n[US] (dec.4, 2001) \"Namco Museum [Model SLUS-20273]\"\n[US] (aug.30, 2005) \"Namco Museum - 50th Anniversary [Model SLUS-21164]\"\n[JP] (jan.26, 2006) \"Namco Museum Arcade Hits! [Model SLPS-25590]\"\n[EU] (mar.31, 2006) \"Namco Museum - 50th Anniversary [Model SLES-53957]\"\n\nNintendo GameCube\n[US] (oct.9, 2002) \"Namco Museum [Model DOL-GNME-USA]\"\n[US] (aug.30, 2005) \"Namco Museum - 50th Anniversary [Model DOL-G5NE-USA]\"\n[EU] (may.5, 2006) \"Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]\"\n\nMicrosoft XBOX \n[US] (oct.9, 2002) \"Namco Museum\"\n[US] (aug.30, 2005) \"Namco Museum - 50th Anniversary [Model NMO-2201A-NM]\"\n[EU] (mar.24, 2006) \"Namco Museum - 50th Anniversary\"\n\nMicrosoft XBOX 360 [XBLA]\n[US] [EU] [JP] (jan.10, 2007) \n[US] (nov.4, 2008) \"Namco Museum - Virtual Arcade [Model 21022]\"\n[EU] (may.15, 2009) \"Namco Museum - Virtual Arcade\"\n[AU] (june.3, 2009) \"Namco Museum - Virtual Arcade\"\n[JP] (nov.5, 2009) \"Namco Museum - Virtual Arcade [Model 2RD-00001]\"\n[KO] [EU] [AU] (feb.26, 2014) \"Pac-Man Museum\" as DLC.\n[US] (feb.26, 2014) \"Pac-Man Museum\" as DLC.\n[JP] (june.25, 2014) \"Pac-Man Museum\" as DLC.\n\nSony PlayStation 3 [PSN]\n[US] (feb.25, 2014) \"Pac-Man Museum [Model NPUB-31383]\" as DLC.\n[EU] [AU] (feb.26, 2014) \"Pac-Man Museum [Model NPEB-01892]\" as DLC.\n[KO] (feb.26, 2014) \"Pac-Man Museum\" as DLC.\n[JP] (june.25, 2014) \"Pac-Man Museum\" as DLC.\n\nMicrosoft XBOX One [XBOX Store]\n[US] [EU] [AU] [JP] (apr.20, 2016) \"Arcade Game Series - Ms. Pac-Man\" \n\nSony PlayStation 4 [PSN]\n[US] (apr.20, 2016) \"Arcade Game Series - Ms. Pac-Man [Model CUSA-03957]\" \n[EU] [AU] (apr.20, 2016) \"Arcade Game Series - Ms. Pac-Man [Model CUSA-03864]\" \n[JP] (apr.20, 2016) \"Arcade Game Series - Ms. Pac-Man [Model CUSA-03671]\" \n\n* HANDHELDS: \n[US] Atari Lynx (1990) \"Ms. Pac-Man [Model PA2057]\" \n\nNintendo Game Boy\n[EU] (1993) \"Ms. Pac-Man [Model DMG-N4]\"\n[US] (oct.1993) \"Ms. Pac-Man [Model DMG-N4-USA]\"\n\n[US] Sega Game Gear (1995)\n\nNintendo Game Boy Color\n[US] (1999) \"Ms. Pac-Man - Special Color Edition [Model DMG-AQCE-USA]\"\n[EU] (1999) \"Ms. Pac-Man - Special Colour Edition [Model DMG-AQCP-EUR]\"\n\nNintendo Game Boy Advance \n[US] (june.10, 2001) \"Namco Museum [Model AGB-ANME-USA]\"\n[JP] (dec.7, 2001) \"Namco Museum [Model AGB-ANMJ-JPN]\"\n[EU] (dec.7, 2001) \"Namco Museum [Model AGB-ANMP-EUR]\"\n[US] (aug.30, 2005) \"Namco Museum - 50th Anniversary [Model AGB-B5NE-USA]\"\n[EU] (mar.31, 2006) \"Namco Museum - 50th Anniversary [Model AGB-B5NP-EUR]\"\n\nSony PSP\n[JP] (feb.24, 2005) \"Namco Museum [Model ULJS-00012]\"\n[US] (aug.23, 2005) \"Namco Museum Battle Collection [Model ULUS-10035]\"\n\n* COMPUTERS: \n[US] Atari 800 (1982) \"Ms. Pac-Man [Model RX8043]\" \n[US] Apple II (1983) \n[EU] Commodore C64 (1983) \n[US] Commodore C64 (1983) \"Ms. Pac-Man [Model RX8545]\" \n[US] PC [Booter] (1983) \n[US] Commodore VIC-20 (1983) \n[US] Texas Instruments TI-99/4A (1983) \nTandy Color Computer (1983) \"Miss Gobbler\" \nTandy Color Computer (1984) \"Ms. Maze\" \n[EU] Sinclair ZX Spectrum (1984)\n\nPC [MS Windows]\n[JP] (june.9, 1998) \"Namco History Vol.3\"\n[US] (jul.31, 1998) \"Microsoft Revenge of Arcade\"\n[US] (2000) \"Microsoft Return of Arcade Anniversary Edition\"\n[US] (oct.25, 2005) \"Namco Museum - 50th Anniversary\"\n[AU] (mar.27, 2006) \"Namco Museum - 50th Anniversary\"\n[EU] (may.19, 2006) \"Namco Museum - 50th Anniversary\"\n\nSteam\n[US] [EU] (feb.25, 2014) \"Pac-Man Museum\" : as DLC.\n[US] (apr.19, 2016) \"Arcade Game Series - Ms. Pac-Man [Model 403410]\" \n\n* OTHERS: \n[US] VFD handheld game (1981) by Coleco \n[US] LCD handheld game (1992) by Micro Games of America \n[US] Arcade (1998) \"Galaxy Games StarPak 2\" \n[US] Arcade (2001) \"Ms. Pac-Man/Galaga - Class of 1981\" \n[US] Mobile Phones (june.13, 2003) \n[US] Ms. Pac-Man TV Game (2004) by Jakk's Pacific \n[US] Arcade (2005) \"Pac-Man - 25th Anniversary Edition\" \n[US] Ms. Pac-Man TV Game Wireless Version (2005) by Jakk's Pacific \n[US] Mobile Phone (jan.5, 2005) \"Ms. Pac-Man for Prizes\"\n[US] Apple iPod (feb.27, 2007) \"Ms. Pac-Man [Model 284736660]\" \n[US] Apple iPhone (jul.9, 2008) \n[US] Blackberry (nov.23, 2009) \"Ms. Pac-Man [Model 4532]\" \n[US] Windows Mobile (mar.23, 2010) \"Ms. Pac-Man by Namco\" \n[US] Arcade (2010) \"Pac-Man's Arcade Party\": included in home cabaret and cocktail models only.\n[US] Apple iPhone/iPad (feb.10, 2011) \"Ms. Pac-Man for iPad [Model 404072981]\" \n[US] Android Market (mar.18, 2011) by Namco\n[US] Arcade (2018) \"Pac-Man's Pixel Bash\": only available if the machine is set to Free Play.\n\n- SERIES -\n\n1. Pac-Man (1980, ARC)\n2. Ms. Pac-Man (1981, ARC)\n3. Super Pac-Man (1982, ARC) \n4. Pac-Man Plus (1982, ARC)\n5. Jr. Pac-Man (1983, ARC)\n6. Professor Pac-Man (1983, ARC)\n7. Pac-Land (1984, ARC) \n8. Pac-Mania (1987, ARC) \n9. Pac-Attack (1993, SNES, Genesis; 1994, Game Boy, Game Gear)\n10. Pac-Man 2 - The New Adventures [Model SNS-25-USA] (1994, SNES, Genesis)\n11. Pac-In-Time [Model SNS-APTE-USA] (1994, SNES, PC) \n12. Pac-Man Arrangement (1996, ARC) : part of \"Namco Classics Collection Vol.2\"\n13. Pac-Man VR (1996, ARC)\n14. Pac-Man World [Model SLUS-00439] (1999, PS) \n15. Pac-Man - Adventures in Time (2000, PC)\n16. Ms. Pac-Man - Maze Madness [Model SLUS-01018] (2000, PS) \n17. Ms. Pac-Man - Quest for the Golden Maze (2001, PC)\n18. Pac-Man All-Stars (2002, PC)\n19. Pac-Man Fever [Model SLUS-20197] (2002, PS)\n20. Pac-Man World 2 [Model SLUS-20224] (2002, PS2, GC, XBOX) \n21. Pac-Man Vs. [Model DOL-PRJE-USA] (2003, GC)\n22. Pac-Pix [Model NTR-APCE-USA] (2005, DS) \n23. Pac-Man Pinball Advance [Model AGB-BP8E-USA] (2005, GBA)\n24. Pac-Man Arrangement (2005, PSP) : part of \"Namco Museum Battle Collection [Model ULUS-10035]\" \n25. Pac'n Roll [Model NTR-APNE-USA] (2005, DS) \n26. Pac-Man World 3 [Model SLUS-21219] (2005, PSP, PS2, GC, XBOX, PC, DS)\n27. Pac-Man World Rally [Model SLUS-21328] (2006, GameCube, PS2, PSP, PC)\n28. Pac-Man Championship Edition (2007, XBLA) \n29. Pac-Man Championship Edition DX (2010, XBLA, PSN) \n30. Pac-Man Party [Model RVL-SP7E-USA] (2010, Wii)\n31. Pac-Man Battle Royale (2011, ARC) \n32. Pac-Man Tilt (2011, 3DS) : part of \"Pac-Man & Galaga Dimensions [Model CTR-APGE-USA]\"\n33. Pac-Man Championship Edition DX+ (2013, XBLA, PSN, Steam)\n34. Pac-Man Dash! (2013, Android/iOS)\n35. Pac-Man and the Ghostly Adventures (2013, 3DS, XBOX 360, PS3, Wii U, PC)\n36. Pac-Man and the Ghostly Adventures 2 (2014, 3DS, XBOX 360, PS3, Wii U, PC)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1698/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

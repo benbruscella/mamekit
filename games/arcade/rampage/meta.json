@@ -1,0 +1,190 @@
+{
+  "game": "rampage",
+  "title": "Rampage (Rev 3, 8/27/86) (Bally Midway, 1986)",
+  "fullname": "Rampage (Rev 3, 8/27/86)",
+  "year": "1986",
+  "manufacturer": "Bally Midway",
+  "family": "mcr3",
+  "driverFile": "src/mame/bally/mcr3.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-24",
+    "commits": 210,
+    "contributors": 27,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "David Haywood",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 71,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2013-10-16"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 36,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 19,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-05-24"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 13,
+        "firstCommit": "2013-11-20",
+        "lastCommit": "2016-03-28"
+      },
+      {
+        "name": "AJR",
+        "commits": 11,
+        "firstCommit": "2016-04-14",
+        "lastCommit": "2022-07-30"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 7,
+        "firstCommit": "2017-12-20",
+        "lastCommit": "2023-08-29"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-02",
+        "lastCommit": "2025-04-14"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 5,
+        "firstCommit": "2011-01-30",
+        "lastCommit": "2013-11-04"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 5,
+        "firstCommit": "2012-10-08",
+        "lastCommit": "2013-11-21"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 4,
+        "firstCommit": "2018-06-22",
+        "lastCommit": "2018-08-24"
+      },
+      {
+        "name": "smf-",
+        "commits": 4,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-25",
+        "lastCommit": "2008-03-09"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-04-30"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2011-12-09",
+        "lastCommit": "2012-04-22"
+      },
+      {
+        "name": "cam900",
+        "commits": 2,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-03"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 2,
+        "firstCommit": "2008-10-12",
+        "lastCommit": "2009-03-04"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 2,
+        "firstCommit": "2016-12-18",
+        "lastCommit": "2016-12-21"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2014-04-28"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2014-01-11"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 2,
+        "firstCommit": "2018-05-20",
+        "lastCommit": "2018-05-26"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "arbee",
+        "commits": 1,
+        "firstCommit": "2020-11-18",
+        "lastCommit": "2020-11-18"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 1,
+        "firstCommit": "2020-11-19",
+        "lastCommit": "2020-11-19"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2012-11-25",
+        "lastCommit": "2012-11-25"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

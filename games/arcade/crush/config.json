@@ -1,0 +1,759 @@
+{
+  "game": "crush",
+  "title": "Crush Roller (set 1) (Alpha Denshi Co. / Kural Samno Electric, Ltd., 1981)",
+  "family": "pacman",
+  "dataPath": "games/arcade/crush",
+  "board": {
+    "family": "pacman",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom",
+            "mirror": 32768
+          },
+          {
+            "start": 16384,
+            "end": 17407,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "videoram",
+            "write": "pacman_state.pacman_videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 17408,
+            "end": 18431,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "colorram",
+            "write": "pacman_state.pacman_colorram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 18432,
+            "end": 19455,
+            "kind": "handler",
+            "mirror": 40960,
+            "readOnly": true,
+            "read": "pacman_state.pacman_read_nop"
+          },
+          {
+            "start": 19456,
+            "end": 20463,
+            "kind": "ram",
+            "mirror": 40960
+          },
+          {
+            "start": 20464,
+            "end": 20479,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "spriteram"
+          },
+          {
+            "start": 20480,
+            "end": 20487,
+            "kind": "handler",
+            "mirror": 44856,
+            "write": "mainlatch.write_d0"
+          },
+          {
+            "start": 20544,
+            "end": 20575,
+            "kind": "handler",
+            "mirror": 44800,
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 20576,
+            "end": 20591,
+            "kind": "ram",
+            "mirror": 44800,
+            "share": "spriteram2",
+            "writeOnly": true
+          },
+          {
+            "start": 20592,
+            "end": 20607,
+            "kind": "nop",
+            "mirror": 44800,
+            "readOnly": true
+          },
+          {
+            "start": 20608,
+            "end": 20608,
+            "kind": "nop",
+            "mirror": 44863,
+            "readOnly": true
+          },
+          {
+            "start": 20672,
+            "end": 20672,
+            "kind": "handler",
+            "mirror": 44863,
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 20480,
+            "end": 20480,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.IN0"
+          },
+          {
+            "start": 20544,
+            "end": 20544,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.IN1"
+          },
+          {
+            "start": 20608,
+            "end": 20608,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.DSW1"
+          },
+          {
+            "start": 20672,
+            "end": 20672,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.DSW2"
+          },
+          {
+            "start": 20484,
+            "end": 20484,
+            "kind": "handler",
+            "write": "pacman_state.maketrax_protection_w"
+          },
+          {
+            "start": 20608,
+            "end": 20671,
+            "kind": "handler",
+            "read": "pacman_state.maketrax_special_port2_r"
+          },
+          {
+            "start": 20672,
+            "end": 20735,
+            "kind": "handler",
+            "read": "pacman_state.maketrax_special_port3_r"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "write": "pacman_state.pacman_interrupt_vector_w",
+              "handlerWidth": 8
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom",
+        "mirror": 32768
+      },
+      {
+        "start": 16384,
+        "end": 17407,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "videoram",
+        "write": "pacman_state.pacman_videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 17408,
+        "end": 18431,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "colorram",
+        "write": "pacman_state.pacman_colorram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 18432,
+        "end": 19455,
+        "kind": "handler",
+        "mirror": 40960,
+        "readOnly": true,
+        "read": "pacman_state.pacman_read_nop"
+      },
+      {
+        "start": 19456,
+        "end": 20463,
+        "kind": "ram",
+        "mirror": 40960
+      },
+      {
+        "start": 20464,
+        "end": 20479,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "spriteram"
+      },
+      {
+        "start": 20480,
+        "end": 20487,
+        "kind": "handler",
+        "mirror": 44856,
+        "write": "mainlatch.write_d0"
+      },
+      {
+        "start": 20544,
+        "end": 20575,
+        "kind": "handler",
+        "mirror": 44800,
+        "write": "namco.pacman_sound_w"
+      },
+      {
+        "start": 20576,
+        "end": 20591,
+        "kind": "ram",
+        "mirror": 44800,
+        "share": "spriteram2",
+        "writeOnly": true
+      },
+      {
+        "start": 20592,
+        "end": 20607,
+        "kind": "nop",
+        "mirror": 44800,
+        "readOnly": true
+      },
+      {
+        "start": 20608,
+        "end": 20608,
+        "kind": "nop",
+        "mirror": 44863,
+        "readOnly": true
+      },
+      {
+        "start": 20672,
+        "end": 20672,
+        "kind": "handler",
+        "mirror": 44863,
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 20480,
+        "end": 20480,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.IN0"
+      },
+      {
+        "start": 20544,
+        "end": 20544,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.IN1"
+      },
+      {
+        "start": 20608,
+        "end": 20608,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.DSW1"
+      },
+      {
+        "start": 20672,
+        "end": 20672,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.DSW2"
+      },
+      {
+        "start": 20484,
+        "end": 20484,
+        "kind": "handler",
+        "write": "pacman_state.maketrax_protection_w"
+      },
+      {
+        "start": 20608,
+        "end": 20671,
+        "kind": "handler",
+        "read": "pacman_state.maketrax_special_port2_r"
+      },
+      {
+        "start": 20672,
+        "end": 20735,
+        "kind": "handler",
+        "read": "pacman_state.maketrax_special_port3_r"
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "write": "pacman_state.pacman_interrupt_vector_w",
+          "handlerWidth": 8
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 288,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 60.60606060606061,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 224,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "crushkrl.6e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "a8dd8f54",
+          "alt": [
+            {
+              "file": "1.6e",
+              "crc": "50a1a776"
+            },
+            {
+              "file": "maketrax.6e",
+              "crc": "0150fb4a"
+            },
+            {
+              "file": "kr.6e",
+              "crc": "69f6e2da"
+            },
+            {
+              "file": "cr1.bin",
+              "crc": "e2e84cd1"
+            },
+            {
+              "file": "cr5.7d",
+              "crc": "4954d51d"
+            },
+            {
+              "file": "cre.bin",
+              "crc": "e1ecc4da"
+            },
+            {
+              "file": "11105-0.0j",
+              "crc": "dd425429"
+            },
+            {
+              "file": "mbrush.6e",
+              "crc": "750fbff7"
+            },
+            {
+              "file": "pain1.6e",
+              "crc": "fb2eb6dc"
+            }
+          ]
+        },
+        {
+          "file": "crushkrl.6f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "91387299",
+          "alt": [
+            {
+              "file": "2.6f",
+              "crc": "5b03c1f8"
+            },
+            {
+              "file": "maketrax.6f",
+              "crc": "77531691"
+            },
+            {
+              "file": "kr.6f",
+              "crc": "abf34d23"
+            },
+            {
+              "file": "cr2.bin",
+              "crc": "ec020e6f"
+            },
+            {
+              "file": "cr6.7e",
+              "crc": "27eb4299"
+            },
+            {
+              "file": "crf.bin",
+              "crc": "b5193960"
+            },
+            {
+              "file": "11105-1.1j",
+              "crc": "f9d89eef"
+            },
+            {
+              "file": "pain2.6f",
+              "crc": "39f92fb0"
+            }
+          ]
+        },
+        {
+          "file": "crushkrl.6h",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "d4455f27",
+          "alt": [
+            {
+              "file": "3.6h",
+              "crc": "ae5b39fb"
+            },
+            {
+              "file": "maketrax.6h",
+              "crc": "a2cdc51e"
+            },
+            {
+              "file": "maketrxb.6h",
+              "crc": "6ad342c9"
+            },
+            {
+              "file": "kr.6h",
+              "crc": "76a2e2e2"
+            },
+            {
+              "file": "cr7.7h",
+              "crc": "d297108e"
+            },
+            {
+              "file": "crg.bin",
+              "crc": "964b9f24"
+            },
+            {
+              "file": "11105-2.2j",
+              "crc": "40c23a27"
+            },
+            {
+              "file": "pain3.6h",
+              "crc": "f80435b1"
+            }
+          ]
+        },
+        {
+          "file": "crushkrl.6j",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "d59fc251",
+          "alt": [
+            {
+              "file": "4.6j",
+              "crc": "ddf63743"
+            },
+            {
+              "file": "maketrax.6j",
+              "crc": "0b4b5e0a"
+            },
+            {
+              "file": "maketrxb.6j",
+              "crc": "be27f729"
+            },
+            {
+              "file": "kr.6j",
+              "crc": "33e0e3bb"
+            },
+            {
+              "file": "cr4.bin",
+              "crc": "9936ae06"
+            },
+            {
+              "file": "cr8.7j",
+              "crc": "bcc40eaf"
+            },
+            {
+              "file": "crh.bin",
+              "crc": "dfd2380e"
+            },
+            {
+              "file": "11105-3.3j",
+              "crc": "5802644f"
+            },
+            {
+              "file": "mbrush.6j",
+              "crc": "6fd719d0"
+            },
+            {
+              "file": "pain4-pennello2.6j",
+              "crc": "0cb678dc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "maketrax.5e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "91bad2da",
+          "alt": [
+            {
+              "file": "5.5e",
+              "crc": "b1c86cd7"
+            },
+            {
+              "file": "kr.5e",
+              "crc": "e0380be8"
+            },
+            {
+              "file": "pain5.5e",
+              "crc": "bd819afc"
+            }
+          ]
+        },
+        {
+          "file": "maketrax.5f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "aea79f55",
+          "alt": [
+            {
+              "file": "6.5f",
+              "crc": "b5c14376"
+            },
+            {
+              "file": "kr.5f",
+              "crc": "63fec9ee"
+            },
+            {
+              "file": "pain6.5f",
+              "crc": "014e5ed3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 288,
+      "loads": [
+        {
+          "file": "82s123.7f",
+          "offset": 0,
+          "size": 32,
+          "crc": "2fc650bd",
+          "alt": [
+            {
+              "file": "82s123.7f",
+              "crc": "ff344446"
+            }
+          ]
+        },
+        {
+          "file": "2s140.4a",
+          "offset": 32,
+          "size": 256,
+          "crc": "63efb927",
+          "alt": [
+            {
+              "file": "82s129.bin",
+              "crc": "2bc5d339"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "82s126.1m",
+          "offset": 0,
+          "size": 256,
+          "crc": "a9cc86bf"
+        },
+        {
+          "file": "82s126.3m",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 1,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 16,
+      "value": 16,
+      "name": "First Pattern"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 32,
+      "name": "Teleport Holes"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 239
+    },
+    {
+      "tag": "IN1",
+      "init": 111
+    },
+    {
+      "tag": "DSW1",
+      "init": 49
+    },
+    {
+      "tag": "DSW2",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

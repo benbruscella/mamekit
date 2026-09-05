@@ -1,0 +1,171 @@
+{
+  "type": "GOTTLIEB_SOUND_SPEECH_REV1A",
+  "uses": [
+    {
+      "game": "qbert",
+      "tags": [
+        "r1sound"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "GOTTLIEB_SOUND_SPEECH_REV1A",
+    "className": "gottlieb_sound_speech_r1a_device",
+    "shortName": "gotsndspr1a",
+    "description": "Gottlieb Sound/Speech rev. 1 w/SC-01-A",
+    "sourceFile": "src/mame/shared/gottlieb_a.cpp",
+    "sourceLine": 40,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(GOTTLIEB_SOUND_SPEECH_REV1A, gottlieb_sound_speech_r1a_device, \"gotsndspr1a\", \"Gottlieb Sound/Speech rev. 1 w/SC-01-A\")"
+  },
+  "methods": [
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/shared/gottlieb_a.cpp",
+      "sourceLine": 510,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "gottlieb_sound_speech_r1_device::device_add_mconfig"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "VOTRAX_SC01A"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    "property": "replace"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_votrax"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "convert_speech_clock"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_votrax"
+                    },
+                    "property": "ar_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "nmi"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "input_merger_device::in_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_votrax"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0.8,
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/shared/gottlieb_a.cpp",
+    "src/mame/shared/gottlieb_a.h"
+  ]
+}

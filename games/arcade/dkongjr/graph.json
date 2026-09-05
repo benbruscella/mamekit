@@ -1,0 +1,4585 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/nintendo/dkong.cpp",
+    "generatedAt": "2026-09-05T03:49:28.554Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Couriersud"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/nintendo/dkong.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/dkong.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:dkong.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "dkong.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/s2650/s2650.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/s2650/s2650.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/eepromser.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/eepromser.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/sn76496.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/sn76496.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/discrete.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/discrete.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/nintendo/dkong_a.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/dkong_a.cpp"
+      }
+    },
+    {
+      "id": "game:dkongjr",
+      "label": "Game",
+      "props": {
+        "name": "dkongjr",
+        "year": "1982",
+        "company": "Nintendo of America",
+        "fullname": "Donkey Kong Junior (US set F-2)",
+        "monitor": "ROT270",
+        "cls": "dkong_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 3925,
+        "sourceColumn": 1,
+        "sourceEndLine": 3925
+      }
+    },
+    {
+      "id": "romset:dkongjr",
+      "label": "RomSet",
+      "props": {
+        "name": "dkongjr",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2539,
+        "sourceColumn": 1,
+        "sourceEndLine": 2539
+      }
+    },
+    {
+      "id": "region:dkongjr/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2045,
+        "sourceColumn": 2,
+        "sourceEndLine": 2045
+      }
+    },
+    {
+      "id": "rom:dkongjr/maincpu/djr1-c_5b_f-2.5b",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-c_5b_f-2.5b",
+        "offset": 0,
+        "size": 4096,
+        "crc": "dea28158",
+        "sha1": "08baf84ae6f9b40a2c743fe1d8c158c74a40e95a",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2541,
+        "sourceColumn": 2,
+        "sourceEndLine": 2541,
+        "continueSegments": [
+          12288,
+          4096,
+          4096
+        ]
+      }
+    },
+    {
+      "id": "rom:dkongjr/maincpu/djr1-c_5c_f-2.5c",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-c_5c_f-2.5c",
+        "offset": 8192,
+        "size": 2048,
+        "crc": "6fb5faf6",
+        "sha1": "ce1cfde71a9e2a8b5896a6301d386f72869a1d2e",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2543,
+        "sourceColumn": 2,
+        "sourceEndLine": 2543,
+        "continueSegments": [
+          18432,
+          2048,
+          2048,
+          4096,
+          2048,
+          4096,
+          22528,
+          2048,
+          6144
+        ]
+      }
+    },
+    {
+      "id": "rom:dkongjr/maincpu/djr1-c_5e_f-2.5e",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-c_5e_f-2.5e",
+        "offset": 16384,
+        "size": 2048,
+        "crc": "d042b6a8",
+        "sha1": "57ac237d273496b44220b4437118115ef11dbd9f",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2547,
+        "sourceColumn": 2,
+        "sourceEndLine": 2547,
+        "continueSegments": [
+          10240,
+          2048,
+          2048,
+          20480,
+          2048,
+          4096,
+          6144,
+          2048,
+          6144
+        ]
+      }
+    },
+    {
+      "id": "region:dkongjr/soundcpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundcpu",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2052,
+        "sourceColumn": 2,
+        "sourceEndLine": 2052
+      }
+    },
+    {
+      "id": "rom:dkongjr/soundcpu/djr1-c_3h.3h",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-c_3h.3h",
+        "offset": 0,
+        "size": 4096,
+        "crc": "715da5f8",
+        "sha1": "f708c3fd374da65cbd9fe2e191152f5d865414a0",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2554,
+        "sourceColumn": 2,
+        "sourceEndLine": 2554
+      }
+    },
+    {
+      "id": "region:dkongjr/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2058,
+        "sourceColumn": 2,
+        "sourceEndLine": 2058
+      }
+    },
+    {
+      "id": "rom:dkongjr/gfx1/djr1-v.3n",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-v.3n",
+        "offset": 0,
+        "size": 4096,
+        "crc": "8d51aca9",
+        "sha1": "64887564b079d98e98aafa53835e398f34fe4e3f",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2557,
+        "sourceColumn": 2,
+        "sourceEndLine": 2557
+      }
+    },
+    {
+      "id": "rom:dkongjr/gfx1/djr1-v.3p",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-v.3p",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "4ef64ba5",
+        "sha1": "41a7a4005087951f57f62c9751d62a8c495e6bb3",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2558,
+        "sourceColumn": 2,
+        "sourceEndLine": 2558
+      }
+    },
+    {
+      "id": "region:dkongjr/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2062,
+        "sourceColumn": 2,
+        "sourceEndLine": 2062
+      }
+    },
+    {
+      "id": "rom:dkongjr/gfx2/djr1-v_7c.7c",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-v_7c.7c",
+        "offset": 0,
+        "size": 2048,
+        "crc": "dc7f4164",
+        "sha1": "07a6242e95b5c3b8dfdcd4b4950f463dba16dd77",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2561,
+        "sourceColumn": 2,
+        "sourceEndLine": 2561
+      }
+    },
+    {
+      "id": "rom:dkongjr/gfx2/djr1-v_7d.7d",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-v_7d.7d",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "0ce7dcf6",
+        "sha1": "0654b77526c49f0dfa077ac4f1f69cf5cb2e2f64",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2562,
+        "sourceColumn": 2,
+        "sourceEndLine": 2562
+      }
+    },
+    {
+      "id": "rom:dkongjr/gfx2/djr1-v_7e.7e",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-v_7e.7e",
+        "offset": 4096,
+        "size": 2048,
+        "crc": "24d1ff17",
+        "sha1": "696854bf3dc5447d33b4815db357e6ce3834d867",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2563,
+        "sourceColumn": 2,
+        "sourceEndLine": 2563
+      }
+    },
+    {
+      "id": "rom:dkongjr/gfx2/djr1-v_7f.7f",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-v_7f.7f",
+        "offset": 6144,
+        "size": 2048,
+        "crc": "0f8c083f",
+        "sha1": "0b688ae9da296b2447fffa5e135fd6a56ec3e790",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2564,
+        "sourceColumn": 2,
+        "sourceEndLine": 2564
+      }
+    },
+    {
+      "id": "region:dkongjr/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 768,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2071,
+        "sourceColumn": 2,
+        "sourceEndLine": 2071
+      }
+    },
+    {
+      "id": "rom:dkongjr/proms/djr1-c-2e.2e",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-c-2e.2e",
+        "offset": 0,
+        "size": 256,
+        "crc": "463dc7ad",
+        "sha1": "b2c9f22facc8885be2d953b056eb8dcddd4f34cb",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2567,
+        "sourceColumn": 2,
+        "sourceEndLine": 2567
+      }
+    },
+    {
+      "id": "rom:dkongjr/proms/djr1-c-2f.2f",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-c-2f.2f",
+        "offset": 256,
+        "size": 256,
+        "crc": "47ba0042",
+        "sha1": "dbec3f4b8013628c5b8f83162e5f8b1f82f6ee5f",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2568,
+        "sourceColumn": 2,
+        "sourceEndLine": 2568
+      }
+    },
+    {
+      "id": "rom:dkongjr/proms/djr1-v-2n.2n",
+      "label": "Rom",
+      "props": {
+        "file": "djr1-v-2n.2n",
+        "offset": 512,
+        "size": 256,
+        "crc": "dbf185bf",
+        "sha1": "2697a991a4afdf079dd0b7e732f71c7618f43b70",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2569,
+        "sourceColumn": 2,
+        "sourceEndLine": 2569
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "dkong_state",
+        "name": "dkong_map",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 793,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 20479,
+        "raw": "map(0x0000, 0x4fff).rom()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 795,
+        "sourceColumn": 2,
+        "sourceEndLine": 795,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 27647,
+        "raw": "map(0x6000, 0x6bff).ram()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 796,
+        "sourceColumn": 2,
+        "sourceEndLine": 796,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 29695,
+        "raw": "map(0x7000, 0x73ff).ram().share(\"sprite_ram\")",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 797,
+        "sourceColumn": 2,
+        "sourceEndLine": 797,
+        "ram": true,
+        "share": "sprite_ram"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 29696,
+        "end": 30719,
+        "raw": "map(0x7400, 0x77ff).ram().w(FUNC(dkong_state::dkong_videoram_w)).share(\"video_ram\")",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798,
+        "ram": true,
+        "share": "video_ram"
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_videoram_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 454,
+        "sourceColumn": 1,
+        "sourceEndLine": 461,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (m_video_ram[offset] != data)\n\t{\n\t\tm_video_ram[offset] = data;\n\t\tm_bg_tilemap->mark_tile_dirty(offset);\n\t}"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 30720,
+        "end": 30735,
+        "raw": "map(0x7800, 0x780f).rw(m_dma8257, FUNC(i8257_device::read), FUNC(i8257_device::write))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 799,
+        "sourceColumn": 2,
+        "sourceEndLine": 799
+      }
+    },
+    {
+      "id": "handler:i8257_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "i8257_device",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933
+      }
+    },
+    {
+      "id": "handler:i8257_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "i8257_device",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 31744,
+        "end": 31744,
+        "raw": "map(0x7c00, 0x7c00).portr(\"IN0\").w(\"ls175.3d\", FUNC(latch8_device::write))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 800,
+        "sourceColumn": 2,
+        "sourceEndLine": 800,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "handler:latch8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1419,
+        "sourceColumn": 2,
+        "sourceEndLine": 1419
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 31872,
+        "end": 31872,
+        "raw": "map(0x7c80, 0x7c80).portr(\"IN1\").w(FUNC(dkong_state::radarscp_grid_color_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 801,
+        "sourceColumn": 2,
+        "sourceEndLine": 801,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "handler:dkong_state.radarscp_grid_color_w",
+      "label": "Handler",
+      "props": {
+        "method": "radarscp_grid_color_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 504,
+        "sourceColumn": 1,
+        "sourceEndLine": 508,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_grid_col = (data & 0x07) ^ 0x07;\n\t/* popmessage(\"Gridcol: %d\", m_grid_col); */"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 32000,
+        "end": 32000,
+        "raw": "map(0x7d00, 0x7d00).r(FUNC(dkong_state::dkong_in2_r))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 803,
+        "sourceColumn": 2,
+        "sourceEndLine": 803
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_in2_r",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_in2_r",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 624,
+        "sourceColumn": 1,
+        "sourceEndLine": 635,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "// 2 board DK and all DKjr has a watchdog\n\tif (m_watchdog)\n\t\tm_watchdog->watchdog_reset();\n\n\tuint8_t r = ioport(\"IN2\")->read();\n\tmachine().bookkeeping().coin_counter_w(offset, r >> 7);\n\tif (ioport(\"SERVICE1\")->read() & 1)\n\t\tr |= 0x80; /* service ==> coin */\n\treturn r;"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 32000,
+        "end": 32007,
+        "raw": "map(0x7d00, 0x7d07).w(m_dev_6h, FUNC(latch8_device::bit0_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 804,
+        "sourceColumn": 2,
+        "sourceEndLine": 804
+      }
+    },
+    {
+      "id": "handler:latch8_device.bit0_w",
+      "label": "Handler",
+      "props": {
+        "method": "bit0_w",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 889,
+        "sourceColumn": 2,
+        "sourceEndLine": 889
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 32128,
+        "end": 32128,
+        "raw": "map(0x7d80, 0x7d80).portr(\"DSW0\").w(FUNC(dkong_state::dkong_audio_irq_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 806,
+        "sourceColumn": 2,
+        "sourceEndLine": 806,
+        "portRead": "DSW0"
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_audio_irq_w",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_audio_irq_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1257,
+        "sourceColumn": 1,
+        "sourceEndLine": 1263,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "if (data)\n\t\tm_soundcpu->set_input_line(0, ASSERT_LINE);\n\telse\n\t\tm_soundcpu->set_input_line(0, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 32129,
+        "end": 32129,
+        "raw": "map(0x7d81, 0x7d81).w(FUNC(dkong_state::radarscp_grid_enable_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 807,
+        "sourceColumn": 2,
+        "sourceEndLine": 807
+      }
+    },
+    {
+      "id": "handler:dkong_state.radarscp_grid_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "radarscp_grid_enable_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 499,
+        "sourceColumn": 1,
+        "sourceEndLine": 502,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_grid_on = data & 0x01;"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 32130,
+        "end": 32130,
+        "raw": "map(0x7d82, 0x7d82).w(FUNC(dkong_state::dkong_flipscreen_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 808,
+        "sourceColumn": 2,
+        "sourceEndLine": 808
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_flipscreen_w",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_flipscreen_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 510,
+        "sourceColumn": 1,
+        "sourceEndLine": 513,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_flip = data & 0x01;"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 32131,
+        "end": 32131,
+        "raw": "map(0x7d83, 0x7d83).w(FUNC(dkong_state::dkong_spritebank_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 809,
+        "sourceColumn": 2,
+        "sourceEndLine": 809
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_spritebank_w",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_spritebank_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 515,
+        "sourceColumn": 1,
+        "sourceEndLine": 518,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_sprite_bank = data & 0x01;"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 32132,
+        "end": 32132,
+        "raw": "map(0x7d84, 0x7d84).w(FUNC(dkong_state::nmi_mask_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 810,
+        "sourceColumn": 2,
+        "sourceEndLine": 810
+      }
+    },
+    {
+      "id": "handler:dkong_state.nmi_mask_w",
+      "label": "Handler",
+      "props": {
+        "method": "nmi_mask_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 780,
+        "sourceColumn": 1,
+        "sourceEndLine": 785,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_nmi_mask = data & 1;\n\tif (!m_nmi_mask)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 32133,
+        "end": 32133,
+        "raw": "map(0x7d85, 0x7d85).w(FUNC(dkong_state::p8257_drq_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 811,
+        "sourceColumn": 2,
+        "sourceEndLine": 811
+      }
+    },
+    {
+      "id": "handler:dkong_state.p8257_drq_w",
+      "label": "Handler",
+      "props": {
+        "method": "p8257_drq_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 1,
+        "sourceEndLine": 622,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_dma8257->dreq0_w(data & 0x01);\n\tm_dma8257->dreq1_w(data & 0x01);\n\tmachine().scheduler().abort_timeslice(); // transfer occurs immediately\n\tmachine().scheduler().perfect_quantum(attotime::from_usec(100)); // smooth things out a bit"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 32134,
+        "end": 32135,
+        "raw": "map(0x7d86, 0x7d87).w(FUNC(dkong_state::dkong_palettebank_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 2,
+        "sourceEndLine": 812
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_palettebank_w",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_palettebank_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 481,
+        "sourceColumn": 1,
+        "sourceEndLine": 497,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "int newbank;\n\n\tnewbank = m_palette_bank;\n\n\tif (data & 1)\n\t\tnewbank |= 1 << offset;\n\telse\n\t\tnewbank &= ~(1 << offset);\n\n\tif (m_palette_bank != newbank)\n\t{\n\t\tm_palette_bank = newbank;\n\t\tm_bg_tilemap->mark_all_dirty();\n\t}"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "dkong_state",
+        "name": "dkongjr_map",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 815,
+        "sourceColumn": 1,
+        "sourceEndLine": 843
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 24575,
+        "raw": "map(0x0000, 0x5fff).rom()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 817,
+        "sourceColumn": 2,
+        "sourceEndLine": 817,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 27647,
+        "raw": "map(0x6000, 0x6bff).ram()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 2,
+        "sourceEndLine": 818,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 27648,
+        "end": 28671,
+        "raw": "map(0x6c00, 0x6fff).ram()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 819,
+        "sourceColumn": 2,
+        "sourceEndLine": 819,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 29695,
+        "raw": "map(0x7000, 0x73ff).ram().share(\"sprite_ram\")",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 820,
+        "sourceColumn": 2,
+        "sourceEndLine": 820,
+        "ram": true,
+        "share": "sprite_ram"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 29696,
+        "end": 30719,
+        "raw": "map(0x7400, 0x77ff).ram().w(FUNC(dkong_state::dkong_videoram_w)).share(\"video_ram\")",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 821,
+        "sourceColumn": 2,
+        "sourceEndLine": 821,
+        "ram": true,
+        "share": "video_ram"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 30720,
+        "end": 30735,
+        "raw": "map(0x7800, 0x780f).rw(m_dma8257, FUNC(i8257_device::read), FUNC(i8257_device::write))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 822,
+        "sourceColumn": 2,
+        "sourceEndLine": 822
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 31744,
+        "end": 31744,
+        "raw": "map(0x7c00, 0x7c00).portr(\"IN0\").w(\"ls174.3d\", FUNC(latch8_device::write))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 824,
+        "sourceColumn": 2,
+        "sourceEndLine": 824,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 31872,
+        "end": 31879,
+        "raw": "map(0x7c80, 0x7c87).w(\"ls259.4h\", FUNC(latch8_device::bit0_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 826,
+        "sourceColumn": 2,
+        "sourceEndLine": 826
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 31872,
+        "end": 31872,
+        "raw": "map(0x7c80, 0x7c80).portr(\"IN1\").w(FUNC(dkong_state::dkongjr_gfxbank_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 827,
+        "sourceColumn": 2,
+        "sourceEndLine": 827,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkongjr_gfxbank_w",
+      "label": "Handler",
+      "props": {
+        "method": "dkongjr_gfxbank_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 463,
+        "sourceColumn": 1,
+        "sourceEndLine": 470,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "if (m_gfx_bank != (data & 0x01))\n\t{\n\t\tm_gfx_bank = data & 0x01;\n\t\tm_bg_tilemap->mark_all_dirty();\n\t}"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 32000,
+        "end": 32000,
+        "raw": "map(0x7d00, 0x7d00).r(FUNC(dkong_state::dkong_in2_r))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 2,
+        "sourceEndLine": 829
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 32000,
+        "end": 32007,
+        "raw": "map(0x7d00, 0x7d07).w(m_dev_6h, FUNC(latch8_device::bit0_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 830,
+        "sourceColumn": 2,
+        "sourceEndLine": 830
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 32128,
+        "end": 32135,
+        "raw": "map(0x7d80, 0x7d87).w(\"ls259.5h\", FUNC(latch8_device::bit0_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 832,
+        "sourceColumn": 2,
+        "sourceEndLine": 832
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 32128,
+        "end": 32128,
+        "raw": "map(0x7d80, 0x7d80).portr(\"DSW0\").w(FUNC(dkong_state::dkong_audio_irq_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 833,
+        "sourceColumn": 2,
+        "sourceEndLine": 833,
+        "portRead": "DSW0"
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 32130,
+        "end": 32130,
+        "raw": "map(0x7d82, 0x7d82).w(FUNC(dkong_state::dkong_flipscreen_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 834,
+        "sourceColumn": 2,
+        "sourceEndLine": 834
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 32131,
+        "end": 32131,
+        "raw": "map(0x7d83, 0x7d83).w(FUNC(dkong_state::dkong_spritebank_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 835,
+        "sourceColumn": 2,
+        "sourceEndLine": 835
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 32132,
+        "end": 32132,
+        "raw": "map(0x7d84, 0x7d84).w(FUNC(dkong_state::nmi_mask_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 836,
+        "sourceColumn": 2,
+        "sourceEndLine": 836
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 32133,
+        "end": 32133,
+        "raw": "map(0x7d85, 0x7d85).w(FUNC(dkong_state::p8257_drq_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 837,
+        "sourceColumn": 2,
+        "sourceEndLine": 837
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 32134,
+        "end": 32135,
+        "raw": "map(0x7d86, 0x7d87).w(FUNC(dkong_state::dkong_palettebank_w))",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 838,
+        "sourceColumn": 2,
+        "sourceEndLine": 838
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range18",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 40959,
+        "raw": "map(0x8000, 0x9fff).rom()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 840,
+        "sourceColumn": 2,
+        "sourceEndLine": 840,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range19",
+      "label": "AddressRange",
+      "props": {
+        "start": 45056,
+        "end": 49151,
+        "raw": "map(0xb000, 0xbfff).rom()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 841,
+        "sourceColumn": 2,
+        "sourceEndLine": 841,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_map/range20",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 57343,
+        "raw": "map(0xd000, 0xdfff).rom()",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 842,
+        "sourceColumn": 2,
+        "sourceEndLine": 842,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "dkong_state",
+        "name": "dkong_sound_map",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1272,
+        "sourceColumn": 1,
+        "sourceEndLine": 1275
+      }
+    },
+    {
+      "id": "map:dkong_state.dkong_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).rom()",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1274,
+        "sourceColumn": 2,
+        "sourceEndLine": 1274,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_sound_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "dkong_state",
+        "name": "dkongjr_sound_io_map",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1282,
+        "sourceColumn": 1,
+        "sourceEndLine": 1285
+      }
+    },
+    {
+      "id": "map:dkong_state.dkongjr_sound_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).mirror(0xff).r(\"ls174.3d\", FUNC(latch8_device::read))",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1284,
+        "sourceColumn": 2,
+        "sourceEndLine": 1284,
+        "mirror": 255
+      }
+    },
+    {
+      "id": "handler:latch8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1418,
+        "sourceColumn": 2,
+        "sourceEndLine": 1418
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_p1_w",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_p1_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1245,
+        "sourceColumn": 1,
+        "sourceEndLine": 1248,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_discrete->write(DS_DAC,data);"
+      }
+    },
+    {
+      "id": "machine:dkong_state.dkong_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "dkong_state",
+        "name": "dkong_base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_hardware_type\",\"bits\":8}",
+          "{\"name\":\"m_nmi_mask\",\"bits\":8}",
+          "{\"name\":\"m_vidhw\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_gfx3_len\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_sig30Hz\",\"bits\":8}",
+          "{\"name\":\"m_lfsr_5I\",\"bits\":8}",
+          "{\"name\":\"m_grid_sig\",\"bits\":8}",
+          "{\"name\":\"m_rflip_sig\",\"bits\":8}",
+          "{\"name\":\"m_star_ff\",\"bits\":8}",
+          "{\"name\":\"m_blue_level\",\"bits\":8}",
+          "{\"name\":\"m_decrypt_counter\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_protect_type\",\"bits\":8}",
+          "{\"name\":\"m_hunchloopback\",\"bits\":8}",
+          "{\"name\":\"m_prot_cnt\",\"bits\":8}",
+          "{\"name\":\"m_main_fo\",\"bits\":8}",
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_palette_bank\",\"bits\":8}",
+          "{\"name\":\"m_grid_on\",\"bits\":8}",
+          "{\"name\":\"m_grid_col\",\"bits\":16}",
+          "{\"name\":\"m_sprite_bank\",\"bits\":8}",
+          "{\"name\":\"m_dma_latch\",\"bits\":8}",
+          "{\"name\":\"m_flip\",\"bits\":8}",
+          "{\"name\":\"m_pixelcnt\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_counter\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_rev_map\",\"bits\":16,\"signed\":true,\"arrayLength\":512}"
+        ],
+        "startHandlers": [
+          "dkong_state.video_start_dkong"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1770,
+        "sourceColumn": 1,
+        "sourceEndLine": 1801
+      }
+    },
+    {
+      "id": "handler:dkong_state.video_start_dkong",
+      "label": "Handler",
+      "props": {
+        "method": "video_start_dkong",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 1,
+        "sourceEndLine": 963,
+        "sourceConstants": [
+          "HARDWARE_TKG04=0",
+          "HARDWARE_TRS01=1",
+          "HARDWARE_TRS02=2",
+          "HARDWARE_TKG02=3"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "VIDEO_START_CALL_MEMBER(dkong_base);\n\n\tm_scanline_timer = timer_alloc(FUNC(dkong_state::scanline_callback), this);\n\tm_scanline_timer->adjust(m_screen->time_until_pos(0));\n\n\tswitch (m_hardware_type)\n\t{\n\t\tcase HARDWARE_TRS02:\n\t\t\tm_screen->register_screen_bitmap(m_bg_bits);\n\t\t\tm_gfx3 = memregion(\"gfx3\")->base();\n\t\t\tm_gfx3_len = memregion(\"gfx3\")->bytes();\n\t\t\t[[fallthrough]];\n\t\tcase HARDWARE_TKG04:\n\t\tcase HARDWARE_TKG02:\n\t\t\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(dkong_state::dkong_bg_tile_info)), TILEMAP_SCAN_ROWS,  8, 8, 32, 32);\n\t\t\tbreak;\n\t\tcase HARDWARE_TRS01:\n\t\t\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(dkong_state::radarscp1_bg_tile_info)), TILEMAP_SCAN_ROWS,  8, 8, 32, 32);\n\n\t\t\tm_screen->register_screen_bitmap(m_bg_bits);\n\t\t\tm_gfx4 = memregion(\"gfx4\")->base();\n\t\t\tm_gfx3 = memregion(\"gfx3\")->base();\n\t\t\tm_gfx3_len = memregion(\"gfx3\")->bytes();\n\n\t\t\tbreak;\n\t\tdefault:\n\t\t\tfatalerror(\"Invalid hardware type in dkong_video_start\\n\");\n\t}"
+      }
+    },
+    {
+      "id": "handler:dkong_state.scanline_callback",
+      "label": "Handler",
+      "props": {
+        "method": "scanline_callback",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 852,
+        "sourceColumn": 1,
+        "sourceEndLine": 866,
+        "sourceConstants": [
+          "VTOTAL=264",
+          "HARDWARE_TRS01=1",
+          "HARDWARE_TRS02=2"
+        ],
+        "sourceParameters": "int param",
+        "sourceBody": "int scanline = param;\n\n\tif ((m_hardware_type == HARDWARE_TRS02) || (m_hardware_type == HARDWARE_TRS01))\n\t\tradarscp_scanline(scanline);\n\n\t/* update any video up to the current scanline */\n//  m_screen->update_now();\n\tm_screen->update_partial(m_screen->vpos());\n\n\tscanline = (scanline+1) % VTOTAL;\n\t/* come back at the next appropriate scanline */\n\tm_scanline_timer->adjust(m_screen->time_until_pos(scanline), scanline);"
+      }
+    },
+    {
+      "id": "handler:dkong_state.radarscp_scanline",
+      "label": "Handler",
+      "props": {
+        "method": "radarscp_scanline",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 819,
+        "sourceColumn": 1,
+        "sourceEndLine": 850,
+        "sourceConstants": [
+          "RADARSCP_BCK_COL_OFFSET=256",
+          "RADARSCP_GRID_COL_OFFSET=512",
+          "RADARSCP_STAR_COL=520"
+        ],
+        "sourceParameters": "int scanline",
+        "sourceBody": "uint8_t const *const table = m_gfx3;\n\tint         table_len = m_gfx3_len;\n\tconst rectangle &visarea = m_screen->visible_area();\n\n\tint y = scanline;\n\tradarscp_step(y);\n\tif (y <= visarea.min_y || y > visarea.max_y)\n\t\tm_counter = 0;\n\tint offset = (m_flip ^ m_rflip_sig) ? 0x000 : 0x400;\n\tint x = 0;\n\twhile (x < m_screen->width())\n\t{\n\t\tuint16_t *const pixel = &m_bg_bits.pix(y, x);\n\t\tif ((m_counter < table_len) && (x == 4 * (table[m_counter|offset] & 0x7f)))\n\t\t{\n\t\t\tif ( m_star_ff && (table[m_counter|offset] & 0x80) )    /* star */\n\t\t\t\t*pixel = RADARSCP_STAR_COL;\n\t\t\telse if (m_grid_sig && !(table[m_counter|offset] & 0x80))           /* radar */\n\t\t\t\t*pixel = RADARSCP_GRID_COL_OFFSET+m_grid_col;\n\t\t\telse\n\t\t\t\t*pixel = RADARSCP_BCK_COL_OFFSET + m_blue_level;\n\t\t\tm_counter++;\n\t\t}\n\t\telse\n\t\t\t*pixel = RADARSCP_BCK_COL_OFFSET + m_blue_level;\n\t\tx++;\n\t}\n\twhile ((m_counter < table_len) && (x < 4 * (table[m_counter|offset] & 0x7f)))\n\t\tm_counter++;"
+      }
+    },
+    {
+      "id": "handler:dkong_state.radarscp_step",
+      "label": "Handler",
+      "props": {
+        "method": "radarscp_step",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 670,
+        "sourceColumn": 1,
+        "sourceEndLine": 792,
+        "sourceConstants": [
+          "HTOTAL=384",
+          "VTOTAL=264",
+          "HARDWARE_TRS01=1"
+        ],
+        "sourceParameters": "int line_cnt",
+        "sourceBody": "/* Condensator is illegible in schematics for TRS2 board.\n\t * TRS1 board states 3.3u.\n\t */\n\n\tdouble vg3i;\n\tdouble diff;\n\tint sig;\n\n\t/* vsync is divided by 2 by a LS161\n\t * The resulting 30 Hz signal clocks a LFSR (LS164) operating as a\n\t * random number generator.\n\t */\n\n\tif ( line_cnt == 0)\n\t{\n\t\tm_sig30Hz = (1-m_sig30Hz);\n\t\tif (m_sig30Hz)\n\t\t\tm_lfsr_5I = (machine().rand() > RAND_MAX/2);\n\t}\n\n\t/* sound2 mixes in a 30Hz noise signal.\n\t * With the current model this has no real effect\n\t * Included for completeness\n\t */\n\n\t/* Now mix with SND02 (sound 2) line - on 74ls259, bit2 */\n\tm_rflip_sig = m_dev_6h->bit2_r() & m_lfsr_5I;\n\n\t/* blue background generation */\n\n\tline_cnt += (256 - 8) + 1; // offset 8 needed to match monitor pictures\n\tif (line_cnt>511)\n\t\tline_cnt -= VTOTAL;\n\n\tsig = m_rflip_sig ^ ((line_cnt & 0x80)>>7);\n\n\tif (m_hardware_type == HARDWARE_TRS01)\n\t\tm_rflip_sig = !m_rflip_sig;\n\n\tif  (sig) /*  128VF */\n\t\tdiff = (0.0 - m_cv1);\n\telse\n\t\tdiff = (4.8 - m_cv1);\n\tdiff = diff - diff*exp(0.0 - (1.0/RC1 * dt) );\n\tm_cv1 += diff;\n\n\tdiff = (m_cv1 - m_cv2 - m_vg1);\n\tdiff = diff - diff*exp(0.0 - (1.0/RC2 * dt) );\n\tm_cv2 += diff;\n\n\t// FIXME: use the inverse function\n\t// Solve the amplifier by iteration\n\tfor (int j=1; j<=11; j++)// 11% = 1/75 / (1/75+1/10)\n\t{\n\t\tdouble f = (double) j / 100.0;\n\t\tm_vg1 = (m_cv1 - m_cv2)*(1-f) + f * m_vg2;\n\t\tm_vg2 = 5*CD4049(m_vg1/5);\n\t}\n\t// FIXME: use the inverse function\n\t// Solve the amplifier by iteration 50% = both resistors equal\n\tfor (int j=10; j<=20; j++)\n\t{\n\t\tdouble f = (double) j / 40.0;\n\t\tvg3i = (1.0-f) * m_vg2 + f * m_vg3;\n\t\tm_vg3 = 5*CD4049(vg3i/5);\n\t}\n\n#define RC17 (33e-6 * 1e3 * (0*4.7+1.0/(1.0/10.0+1.0/20.0+0.0/0.3)))\n\tdiff = (m_vg3 - m_vc17);\n\tdiff = diff - diff*exp(0.0 - (1.0/RC17 * dt) );\n\tm_vc17 += diff;\n\n\tdouble vo = (m_vg3 - m_vc17);\n\tvo = vo + 20.0 / (20.0+10.0) * 5;\n\n\t// Transistor is marked as OMIT in TRS-02 schems.\n\t//vo = vo - 0.7;\n\n\n\t//double vo = (vg3o - vg3)/4.7 + 5.0/16.0;\n\t//vo = vo / (1.0 / 4.7 + 1.0 / 16.0 + 1.0 / 30.0 );\n\t//printf(\"%f %f\\n\", vg3, vc17);\n\n\tm_blue_level = (int)(vo/5.0*255);\n\t//printf(\"%d\\n\", m_blue_level);\n\n\t/*\n\t * Grid signal\n\t *\n\t * Mixed with ANS line (bit 5) from Port B of 8039\n\t */\n\tif (m_grid_on && m_dev_vp2->bit5_r())\n\t{\n\t\tdiff = (0.0 - m_cv3);\n\t\tdiff = diff - diff*exp(0.0 - (1.0/RC32 * dt) );\n\t}\n\telse\n\t{\n\t\tdiff = (5.0 - m_cv3);\n\t\tdiff = diff - diff*exp(0.0 - (1.0/RC31 * dt) );\n\t}\n\tm_cv3 += diff;\n\n\tdiff = (m_vg2 - 0.8 * m_cv3 - m_cv4);\n\tdiff = diff - diff*exp(0.0 - (1.0/RC4 * dt) );\n\tm_cv4 += diff;\n\n\tif (CD4049(CD4049((m_vg2 - m_cv4)/5.0))>2.4/5.0) /* TTL - Level */\n\t\tm_grid_sig = 0;\n\telse\n\t\tm_grid_sig = 1;\n\n\t/* stars */\n\tm_pixelcnt += HTOTAL;\n\tif (m_pixelcnt > period2 )\n\t{\n\t\tm_star_ff = !m_star_ff;\n\t\tm_pixelcnt = m_pixelcnt - period2;\n\t}"
+      }
+    },
+    {
+      "id": "handler:dkong_state.CD4049",
+      "label": "Handler",
+      "props": {
+        "method": "CD4049",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 1,
+        "sourceEndLine": 656,
+        "sourceParameters": "double x",
+        "sourceBody": "if (x>0)\n\t\treturn exp(-m_cd4049_a * pow(x,m_cd4049_b));\n\telse\n\t\treturn 1.0;"
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "dkong_bg_tile_info",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 1,
+        "sourceEndLine": 437,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code = m_video_ram[tile_index] + 256 * m_gfx_bank;\n\tint color = (m_color_codes[tile_index % 32 + 32 * (tile_index / 32 / 4)] & 0x0f) + 0x10 * m_palette_bank;\n\n\ttileinfo.set(0, code, color, 0);"
+      }
+    },
+    {
+      "id": "handler:dkong_state.radarscp1_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "radarscp1_bg_tile_info",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 439,
+        "sourceColumn": 1,
+        "sourceEndLine": 446,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code = m_video_ram[tile_index] + 256 * m_gfx_bank;\n\tint color = (m_color_codes[tile_index % 32] & 0x0f);\n\tcolor = color | (m_palette_bank<<4);\n\n\ttileinfo.set(0, code, color, 0);"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_maincpu, CLOCK_1H)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &dkong_state::dkong_map)",
+          "downcast<z80_device &>(*m_maincpu).busack_cb().set(m_dma8257, FUNC(i8257_device::hlda_w))"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1773,
+        "sourceColumn": 2,
+        "sourceEndLine": 1773
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "busack_cb",
+        "operation": "set",
+        "raw": "downcast<z80_device &>(*m_maincpu).busack_cb().set(m_dma8257, FUNC(i8257_device::hlda_w))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1775,
+        "sourceColumn": 2,
+        "sourceEndLine": 1775,
+        "targetClass": "i8257_device",
+        "targetMethod": "hlda_w",
+        "targetTag": "dma8257"
+      }
+    },
+    {
+      "id": "handler:i8257_device.hlda_w",
+      "label": "Handler",
+      "props": {
+        "method": "hlda_w",
+        "ownerClass": "i8257_device",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1973,
+        "sourceColumn": 2,
+        "sourceEndLine": 1973
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/dma8257",
+      "label": "Device",
+      "props": {
+        "type": "I8257",
+        "tag": "dma8257",
+        "clock": 3072000,
+        "config": [
+          "I8257(config, m_dma8257, CLOCK_1H)",
+          "m_dma8257->out_hrq_cb().set_inputline(m_maincpu, Z80_INPUT_LINE_BUSREQ)",
+          "m_dma8257->in_memr_cb().set(FUNC(dkong_state::memory_read_byte))",
+          "m_dma8257->out_memw_cb().set(FUNC(dkong_state::memory_write_byte))",
+          "m_dma8257->in_ior_cb<1>().set(FUNC(dkong_state::p8257_ctl_r))",
+          "m_dma8257->out_iow_cb<0>().set(FUNC(dkong_state::p8257_ctl_w))",
+          "m_dma8257->set_reverse_rw_mode(true)"
+        ]
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/dma8257/callback:dma8257:0",
+      "label": "Callback",
+      "props": {
+        "signal": "out_hrq_cb",
+        "operation": "set_inputline",
+        "raw": "m_dma8257->out_hrq_cb().set_inputline(m_maincpu, Z80_INPUT_LINE_BUSREQ)",
+        "ownerTag": "dma8257",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1781,
+        "sourceColumn": 2,
+        "sourceEndLine": 1781,
+        "inputLine": "Z80_INPUT_LINE_BUSREQ",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/dma8257/callback:dma8257:1",
+      "label": "Callback",
+      "props": {
+        "signal": "in_memr_cb",
+        "operation": "set",
+        "raw": "m_dma8257->in_memr_cb().set(FUNC(dkong_state::memory_read_byte))",
+        "ownerTag": "dma8257",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1782,
+        "sourceColumn": 2,
+        "sourceEndLine": 1782,
+        "targetClass": "dkong_state",
+        "targetMethod": "memory_read_byte"
+      }
+    },
+    {
+      "id": "handler:dkong_state.memory_read_byte",
+      "label": "Handler",
+      "props": {
+        "method": "memory_read_byte",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 437,
+        "sourceColumn": 1,
+        "sourceEndLine": 441,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "address_space& prog_space = m_maincpu->space(AS_PROGRAM);\n\treturn prog_space.read_byte(offset);"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/dma8257/callback:dma8257:2",
+      "label": "Callback",
+      "props": {
+        "signal": "out_memw_cb",
+        "operation": "set",
+        "raw": "m_dma8257->out_memw_cb().set(FUNC(dkong_state::memory_write_byte))",
+        "ownerTag": "dma8257",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1783,
+        "sourceColumn": 2,
+        "sourceEndLine": 1783,
+        "targetClass": "dkong_state",
+        "targetMethod": "memory_write_byte"
+      }
+    },
+    {
+      "id": "handler:dkong_state.memory_write_byte",
+      "label": "Handler",
+      "props": {
+        "method": "memory_write_byte",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 443,
+        "sourceColumn": 1,
+        "sourceEndLine": 447,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "address_space& prog_space = m_maincpu->space(AS_PROGRAM);\n\tprog_space.write_byte(offset, data);"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/dma8257/callback:dma8257:3",
+      "label": "Callback",
+      "props": {
+        "signal": "in_ior_cb",
+        "operation": "set",
+        "raw": "m_dma8257->in_ior_cb<1>().set(FUNC(dkong_state::p8257_ctl_r))",
+        "ownerTag": "dma8257",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1784,
+        "sourceColumn": 2,
+        "sourceEndLine": 1784,
+        "slot": "1",
+        "targetClass": "dkong_state",
+        "targetMethod": "p8257_ctl_r"
+      }
+    },
+    {
+      "id": "handler:dkong_state.p8257_ctl_r",
+      "label": "Handler",
+      "props": {
+        "method": "p8257_ctl_r",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 1,
+        "sourceEndLine": 597,
+        "sourceParameters": "",
+        "sourceBody": "return m_dma_latch;"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/dma8257/callback:dma8257:4",
+      "label": "Callback",
+      "props": {
+        "signal": "out_iow_cb",
+        "operation": "set",
+        "raw": "m_dma8257->out_iow_cb<0>().set(FUNC(dkong_state::p8257_ctl_w))",
+        "ownerTag": "dma8257",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1785,
+        "sourceColumn": 2,
+        "sourceEndLine": 1785,
+        "slot": "0",
+        "targetClass": "dkong_state",
+        "targetMethod": "p8257_ctl_w"
+      }
+    },
+    {
+      "id": "handler:dkong_state.p8257_ctl_w",
+      "label": "Handler",
+      "props": {
+        "method": "p8257_ctl_w",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 599,
+        "sourceColumn": 1,
+        "sourceEndLine": 602,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_dma_latch = data;"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(PIXEL_CLOCK, HTOTAL, HBEND, HBSTART, VTOTAL, VBEND, VBSTART)",
+          "m_screen->set_screen_update(FUNC(dkong_state::screen_update_dkong))",
+          "m_screen->set_palette(m_palette)",
+          "m_screen->screen_vblank().set(FUNC(dkong_state::vblank_irq))"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1791,
+        "sourceColumn": 2,
+        "sourceEndLine": 1791,
+        "configCalls": [
+          "set_raw(6144000,384,0,256,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6144000,
+          384,
+          0,
+          256,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "PIXEL_CLOCK",
+          "HTOTAL",
+          "HBEND",
+          "HBSTART",
+          "VTOTAL",
+          "VBEND",
+          "VBSTART"
+        ]
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(dkong_state::screen_update_dkong))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1793,
+        "sourceColumn": 2,
+        "sourceEndLine": 1793,
+        "targetClass": "dkong_state",
+        "targetMethod": "screen_update_dkong"
+      }
+    },
+    {
+      "id": "handler:dkong_state.screen_update_dkong",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_dkong",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 965,
+        "sourceColumn": 1,
+        "sourceEndLine": 987,
+        "sourceConstants": [
+          "HARDWARE_TKG04=0",
+          "HARDWARE_TRS01=1",
+          "HARDWARE_TRS02=2",
+          "HARDWARE_TKG02=3"
+        ],
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "machine().tilemap().set_flip_all(m_flip ? TILEMAP_FLIPX | TILEMAP_FLIPY : 0);\n\n\tswitch (m_hardware_type)\n\t{\n\t\tcase HARDWARE_TKG02:\n\t\tcase HARDWARE_TKG04:\n\t\t\tcheck_palette();\n\t\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\t\t\tdraw_sprites(bitmap, cliprect, 0x40, 1);\n\t\t\tbreak;\n\t\tcase HARDWARE_TRS01:\n\t\tcase HARDWARE_TRS02:\n\t\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\t\t\tdraw_sprites(bitmap, cliprect, 0x40, 1);\n\t\t\tradarscp_draw_background(bitmap, cliprect);\n\t\t\tbreak;\n\t\tdefault:\n\t\t\tfatalerror(\"Invalid hardware type in dkong_video_update\\n\");\n\t}\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:dkong_state.check_palette",
+      "label": "Handler",
+      "props": {
+        "method": "check_palette",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 868,
+        "sourceColumn": 1,
+        "sourceEndLine": 891,
+        "sourceConstants": [
+          "DKONG_RADARSCP_CONVERSION=0",
+          "DKONG_BOARD=1"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "ioport_port *port;\n\tint newset;\n\n\tport = ioport(\"VIDHW\");\n\tif (port != nullptr)\n\t{\n\t\tnewset = port->read();\n\t\tif (newset != m_vidhw)\n\t\t{\n\t\t\tm_vidhw = newset;\n\t\t\tswitch (newset)\n\t\t\t{\n\t\t\t\tcase DKONG_RADARSCP_CONVERSION:\n\t\t\t\t\tradarscp_palette(*m_palette);\n\t\t\t\t\tbreak;\n\t\t\t\tcase DKONG_BOARD:\n\t\t\t\t\tdkong2b_palette(*m_palette);\n\t\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:dkong_state.radarscp_palette",
+      "label": "Handler",
+      "props": {
+        "method": "radarscp_palette",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 261,
+        "sourceColumn": 1,
+        "sourceEndLine": 319,
+        "sourceConstants": [
+          "RADARSCP_BCK_COL_OFFSET=256",
+          "RADARSCP_GRID_COL_OFFSET=512",
+          "RADARSCP_STAR_COL=520",
+          "DKONG_RADARSCP_CONVERSION=0"
+        ],
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "const uint8_t *color_prom = memregion(\"proms\")->base();\n\n\tfor (int i = 0; i < 256; i++)\n\t{\n\t\t// red component\n\t\tint const r = compute_res_net((color_prom[256] >> 1) & 0x07, 0, radarscp_net_info);\n\t\t// green component\n\t\tint const g = compute_res_net(((color_prom[256] << 2) & 0x04) | ((color_prom[0] >> 2) & 0x03), 1, radarscp_net_info);\n\t\t// blue component\n\t\tint const b = compute_res_net((color_prom[0] >> 0) & 0x03, 2, radarscp_net_info);\n\n\t\tpalette.set_pen_color(i, r, g, b);\n\t\tcolor_prom++;\n\t}\n\n\t// Now treat tri-state black background generation\n\tfor (int i = 0; i < 256; i++)\n\t\tif ((m_vidhw != DKONG_RADARSCP_CONVERSION) && ((i & 0x03) == 0x00)) // NOR => CS=1 => Tristate => real black\n\t\t{\n\t\t\tint const r = compute_res_net(1, 0, radarscp_net_bck_info);\n\t\t\tint const g = compute_res_net(1, 1, radarscp_net_bck_info);\n\t\t\tint const b = compute_res_net(1, 2, radarscp_net_bck_info);\n\t\t\tpalette.set_pen_color(i,r,g,b);\n\t\t}\n\n\t// Star color\n\tpalette.set_pen_color(RADARSCP_STAR_COL,\n\t\t\tcompute_res_net(1, 0, radarscp_stars_net_info),\n\t\t\tcompute_res_net(0, 1, radarscp_stars_net_info),\n\t\t\tcompute_res_net(0, 2, radarscp_stars_net_info));\n\n\t// Oscillating background\n\tfor (int i = 0; i < 256; i++)\n\t{\n\t\tint const r = compute_res_net(0, 0, radarscp_blue_net_info);\n\t\tint const g = compute_res_net(0, 1, radarscp_blue_net_info);\n\t\tint const b = compute_res_net(i, 2, radarscp_blue_net_info);\n\n\t\tpalette.set_pen_color(RADARSCP_BCK_COL_OFFSET + i, r, g, b);\n\t}\n\n\t// Grid\n\tfor (int i = 0; i < 8; i++)\n\t{\n\t\tint const r = compute_res_net(BIT(i, 0), 0, radarscp_grid_net_info);\n\t\tint const g = compute_res_net(BIT(i, 1), 1, radarscp_grid_net_info);\n\t\tint const b = compute_res_net(BIT(i, 2), 2, radarscp_grid_net_info);\n\n\t\tpalette.set_pen_color(RADARSCP_GRID_COL_OFFSET + i, r, g, b);\n\t}\n\n\tpalette.palette()->normalize_range(0, RADARSCP_GRID_COL_OFFSET + 7);\n\n\tcolor_prom += 256;\n\t// color_prom now points to the beginning of the character color codes\n\tm_color_codes = color_prom; // we'll need it later"
+      }
+    },
+    {
+      "id": "handler:dkong_state.dkong2b_palette",
+      "label": "Handler",
+      "props": {
+        "method": "dkong2b_palette",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 201,
+        "sourceColumn": 1,
+        "sourceEndLine": 224,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "const uint8_t *color_prom = memregion(\"proms\")->base();\n\n\tstd::vector<rgb_t> rgb;\n\tcompute_res_net_all(rgb, color_prom, dkong_decode_info, dkong_net_info);\n\tpalette.set_pen_colors(0, rgb);\n\n\t// Now treat tri-state black background generation\n\tfor (int i = 0; i < 256; i++)\n\t\tif ((i & 0x03) == 0x00)  // NOR => CS=1 => Tristate => real black\n\t\t{\n\t\t\tint const r = compute_res_net(1, 0, dkong_net_bck_info);\n\t\t\tint const g = compute_res_net(1, 1, dkong_net_bck_info);\n\t\t\tint const b = compute_res_net(1, 2, dkong_net_bck_info);\n\t\t\tpalette.set_pen_color(i, r, g, b);\n\t\t}\n\n\tpalette.palette()->normalize_range(0, 255);\n\n\tcolor_prom += 512;\n\t// color_prom now points to the beginning of the character color codes\n\tm_color_codes = color_prom; // we'll need it later"
+      }
+    },
+    {
+      "id": "handler:dkong_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 526,
+        "sourceColumn": 1,
+        "sourceEndLine": 630,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, uint32_t mask_bank, uint32_t shift_bits",
+        "sourceBody": "int offs;\n\tint scanline_vf;    /* buffering scanline including flip */\n\tint scanline_vfc;   /* line buffering scanline including flip - this is the cached scanline_vf */\n\tint scanline;       /* current scanline */\n\tint add_y;\n\tint add_x;\n\tint num_sprt;\n\n\t/* Draw the sprites. There are two pecularities which have been mentioned by\n\t * a Donkey Kong II author at CAX 2008:\n\t * 1) On real hardware, sprites wrap around from the right to the left instead\n\t *    of clipping.\n\t * 2) On real hardware, there is a limit of 16 sprites per scanline.\n\t *    Sprites after the 16th (starting from the left) simply don't show.\n\t *\n\t * 2) is in line with the real hardware which buffers the sprite data\n\t * for one scanline. The ram is 64x9 and a sprite takes 4 bytes.\n\t * ==> 16 sprites per scanline.\n\t *\n\t * TODO: 9th bit is not understood right now.\n\t *\n\t * 1) is due to limitation of signals to 8 bit.\n\t *\n\t * This is quite different from galaxian. The dkong hardware updates sprites\n\t * only once every frame by dma. The number of sprites can not be processed\n\t * directly, Thus the preselection. The buffering takes place during the\n\t * active phase of the video signal. The scanline is than rendered into the linebuffer\n\t * during HBLANK.\n\t *\n\t * A sprite will be drawn:\n\t * a) FlipQ = 1 : (sprite_y + 0xF9 + scanline) & 0xF0 == 0xF0\n\t * b) FlipQ = 0 : (sprite_y + 0xF7 + (scanline ^ 0xFF)) & 0xF0 == 0xF0\n\t *\n\t * FlipQ = 1 (\"Normal Play\"):\n\t *\n\t * sprite_y = 0x20\n\t *\n\t * scanline\n\t * 0x10, 0xEF, 0x208, 0x00\n\t * 0x18, 0xE7, 0x200, 0x00\n\t * 0x19, 0xE6, 0x1FF, 0xF0\n\t * 0x20, 0xDF, 0x1F8, 0xF0\n\t *\n\t */\n\n\tscanline_vf = (cliprect.max_y - 1) & 0xFF;\n\tscanline_vfc = (cliprect.max_y - 1) & 0xFF;\n\tscanline = cliprect.max_y & 0xFF;\n\n\tif (m_flip)\n\t{\n\t\tscanline_vf ^= 0xFF;\n\t\tscanline_vfc ^= 0xFF;\n\t\tadd_y = 0xF7;\n\t\tadd_x = 0xF7;\n\t}\n\telse\n\t{\n\t\tadd_y = 0xF9;\n\t\tadd_x = 0xF7;\n\t}\n\n\tfor (offs = m_sprite_bank<<9, num_sprt=0; (num_sprt < 16) && (offs < (m_sprite_bank<<9) + 0x200) /* sprite_ram_size */; offs += 4)\n\t{\n\t\tint y = m_sprite_ram[offs];\n\t\tint do_draw = (((y + add_y + 1 + scanline_vf) & 0xF0) == 0xF0) ? 1 : 0;\n\n\t\tif (do_draw)\n\t\t{\n\t\t\t/* sprite_ram[offs + 2] & 0x40 is used by Donkey Kong 3 only */\n\t\t\t/* sprite_ram[offs + 2] & 0x30 don't seem to be used (they are */\n\t\t\t/* probably not part of the color code, since Mario Bros, which */\n\t\t\t/* has similar hardware, uses a memory mapped port to change */\n\t\t\t/* palette bank, so it's limited to 16 color codes) */\n\n\t\t\tint code = (m_sprite_ram[offs + 1] & 0x7f) + ((m_sprite_ram[offs + 2] & mask_bank) << shift_bits);\n\t\t\tint color = (m_sprite_ram[offs + 2] & 0x0f) + 16 * m_palette_bank;\n\t\t\tint flipx = m_sprite_ram[offs + 2] & 0x80;\n\t\t\tint flipy = m_sprite_ram[offs + 1] & 0x80;\n\n\t\t\t/* On the real board, the x and y are read inverted after the first\n\t\t\t * buffer stage. This due to the fact that the 82S09 delivers complements\n\t\t\t * of stored data on read!\n\t\t\t */\n\n\t\t\tint x = (m_sprite_ram[offs + 3] + add_x + 1) & 0xFF;\n\t\t\tif (m_flip)\n\t\t\t{\n\t\t\t\tx = (x ^ 0xFF) - 15;\n\t\t\t\tflipx = !flipx;\n\t\t\t}\n\t\t\ty = scanline - ((y + add_y + 1 + scanline_vfc) & 0x0F);\n\n\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap,cliprect, code, color, flipx, flipy, x, y, 0);\n\n\t\t\t// wraparound\n\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap,cliprect, code, color, flipx, flipy, m_flip ? x + 256 : x - 256, y, 0);\n\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap,cliprect, code, color, flipx, flipy, x, y - 256, 0);\n\n\t\t\tnum_sprt++;\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:dkong_state.radarscp_draw_background",
+      "label": "Handler",
+      "props": {
+        "method": "radarscp_draw_background",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong_v.cpp",
+        "sourceLine": 794,
+        "sourceColumn": 1,
+        "sourceEndLine": 817,
+        "sourceConstants": [
+          "HARDWARE_TRS01=1"
+        ],
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "const uint8_t     *htable = nullptr;\n\n\tif (m_hardware_type == HARDWARE_TRS01)\n\t\thtable = m_gfx4;\n\n\tint y = cliprect.min_y;\n\twhile (y <= cliprect.max_y)\n\t{\n\t\tint x = cliprect.min_x;\n\t\twhile (x <= cliprect.max_x)\n\t\t{\n\t\t\tuint16_t *const pixel = &bitmap.pix(y, x);\n\t\t\tuint8_t draw_ok = !(*pixel & 0x01) && !(*pixel & 0x02);\n\t\t\tif (m_hardware_type == HARDWARE_TRS01) /*  Check again from schematics */\n\t\t\t\tdraw_ok = draw_ok  && !((htable[ (!m_rflip_sig<<7) | (x>>2)] >>2) & 0x01);\n\t\t\tif (draw_ok)\n\t\t\t\t*pixel = m_bg_bits.pix(y, x);\n\t\t\tx++;\n\t\t}\n\t\ty++;\n\t}"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "m_screen->screen_vblank().set(FUNC(dkong_state::vblank_irq))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1795,
+        "sourceColumn": 2,
+        "sourceEndLine": 1795,
+        "targetClass": "dkong_state",
+        "targetMethod": "vblank_irq"
+      }
+    },
+    {
+      "id": "handler:dkong_state.vblank_irq",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_irq",
+        "ownerClass": "dkong_state",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1764,
+        "sourceColumn": 1,
+        "sourceEndLine": 1768,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_nmi_mask)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_dkong)"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1797,
+        "sourceColumn": 2,
+        "sourceEndLine": 1797,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(dkong_state::dkong2b_palette), DK2B_PALETTE_LENGTH)"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1798,
+        "sourceColumn": 2,
+        "sourceEndLine": 1798,
+        "clockExpr": "FUNC(dkong_state::dkong2b_palette)"
+      }
+    },
+    {
+      "id": "machine:dkong_state.dkongjr",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "dkong_state",
+        "name": "dkongjr",
+        "calls": [
+          "dkong_base",
+          "dkongjr_audio"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_hardware_type\",\"bits\":8}",
+          "{\"name\":\"m_nmi_mask\",\"bits\":8}",
+          "{\"name\":\"m_vidhw\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_gfx3_len\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_sig30Hz\",\"bits\":8}",
+          "{\"name\":\"m_lfsr_5I\",\"bits\":8}",
+          "{\"name\":\"m_grid_sig\",\"bits\":8}",
+          "{\"name\":\"m_rflip_sig\",\"bits\":8}",
+          "{\"name\":\"m_star_ff\",\"bits\":8}",
+          "{\"name\":\"m_blue_level\",\"bits\":8}",
+          "{\"name\":\"m_decrypt_counter\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_protect_type\",\"bits\":8}",
+          "{\"name\":\"m_hunchloopback\",\"bits\":8}",
+          "{\"name\":\"m_prot_cnt\",\"bits\":8}",
+          "{\"name\":\"m_main_fo\",\"bits\":8}",
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_palette_bank\",\"bits\":8}",
+          "{\"name\":\"m_grid_on\",\"bits\":8}",
+          "{\"name\":\"m_grid_col\",\"bits\":16}",
+          "{\"name\":\"m_sprite_bank\",\"bits\":8}",
+          "{\"name\":\"m_dma_latch\",\"bits\":8}",
+          "{\"name\":\"m_flip\",\"bits\":8}",
+          "{\"name\":\"m_pixelcnt\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_counter\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_rev_map\",\"bits\":16,\"signed\":true,\"arrayLength\":512}"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1921,
+        "sourceColumn": 1,
+        "sourceEndLine": 1931
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, m_watchdog)"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1930,
+        "sourceColumn": 2,
+        "sourceEndLine": 1930
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_DS_SOUND0_INP",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_DS_SOUND0_INP",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1397,
+        "sourceColumn": 2,
+        "sourceEndLine": 1397
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_DS_SOUND1_INP",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_DS_SOUND1_INP",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1398,
+        "sourceColumn": 2,
+        "sourceEndLine": 1398
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_DS_SOUND2_INP",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_DS_SOUND2_INP",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1399,
+        "sourceColumn": 2,
+        "sourceEndLine": 1399
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_DS_SOUND7_INP",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_DS_SOUND7_INP",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1400,
+        "sourceColumn": 2,
+        "sourceEndLine": 1400
+      }
+    },
+    {
+      "id": "handler:latch8_device.bit3_r",
+      "label": "Handler",
+      "props": {
+        "method": "bit3_r",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1410,
+        "sourceColumn": 2,
+        "sourceEndLine": 1410
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_DS_DISCHARGE_INV",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_DS_DISCHARGE_INV",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1412,
+        "sourceColumn": 2,
+        "sourceEndLine": 1412
+      }
+    },
+    {
+      "id": "handler:latch8_device.bit5_q_r",
+      "label": "Handler",
+      "props": {
+        "method": "bit5_q_r",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1420,
+        "sourceColumn": 2,
+        "sourceEndLine": 1420
+      }
+    },
+    {
+      "id": "handler:latch8_device.bit4_q_r",
+      "label": "Handler",
+      "props": {
+        "method": "bit4_q_r",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1421,
+        "sourceColumn": 2,
+        "sourceEndLine": 1421
+      }
+    },
+    {
+      "id": "machine:dkong_state.dkongjr_audio",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "dkong_state",
+        "name": "dkongjr_audio",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_hardware_type\",\"bits\":8}",
+          "{\"name\":\"m_nmi_mask\",\"bits\":8}",
+          "{\"name\":\"m_vidhw\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_gfx3_len\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_sig30Hz\",\"bits\":8}",
+          "{\"name\":\"m_lfsr_5I\",\"bits\":8}",
+          "{\"name\":\"m_grid_sig\",\"bits\":8}",
+          "{\"name\":\"m_rflip_sig\",\"bits\":8}",
+          "{\"name\":\"m_star_ff\",\"bits\":8}",
+          "{\"name\":\"m_blue_level\",\"bits\":8}",
+          "{\"name\":\"m_decrypt_counter\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_protect_type\",\"bits\":8}",
+          "{\"name\":\"m_hunchloopback\",\"bits\":8}",
+          "{\"name\":\"m_prot_cnt\",\"bits\":8}",
+          "{\"name\":\"m_main_fo\",\"bits\":8}",
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_palette_bank\",\"bits\":8}",
+          "{\"name\":\"m_grid_on\",\"bits\":8}",
+          "{\"name\":\"m_grid_col\",\"bits\":16}",
+          "{\"name\":\"m_sprite_bank\",\"bits\":8}",
+          "{\"name\":\"m_dma_latch\",\"bits\":8}",
+          "{\"name\":\"m_flip\",\"bits\":8}",
+          "{\"name\":\"m_pixelcnt\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_counter\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_rev_map\",\"bits\":16,\"signed\":true,\"arrayLength\":512}"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1391,
+        "sourceColumn": 1,
+        "sourceEndLine": 1426
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls174.3d",
+      "label": "Device",
+      "props": {
+        "type": "LATCH8",
+        "tag": "ls174.3d",
+        "clock": null,
+        "config": [
+          "LATCH8(config, \"ls174.3d\").set_maskout(0xe0)"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1394,
+        "sourceColumn": 2,
+        "sourceEndLine": 1394
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "label": "Device",
+      "props": {
+        "type": "LATCH8",
+        "tag": "ls259.6h",
+        "clock": null,
+        "config": [
+          "LATCH8(config, m_dev_6h)",
+          "m_dev_6h->write_cb<0>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND0_INP>))",
+          "m_dev_6h->write_cb<1>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND1_INP>))",
+          "m_dev_6h->write_cb<2>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND2_INP>))",
+          "m_dev_6h->write_cb<7>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND7_INP>))"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1396,
+        "sourceColumn": 2,
+        "sourceEndLine": 1396
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:0",
+      "label": "Callback",
+      "props": {
+        "signal": "write_cb",
+        "operation": "set",
+        "raw": "m_dev_6h->write_cb<0>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND0_INP>))",
+        "ownerTag": "ls259.6h",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1397,
+        "sourceColumn": 2,
+        "sourceEndLine": 1397,
+        "slot": "0",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_DS_SOUND0_INP"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:1",
+      "label": "Callback",
+      "props": {
+        "signal": "write_cb",
+        "operation": "set",
+        "raw": "m_dev_6h->write_cb<1>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND1_INP>))",
+        "ownerTag": "ls259.6h",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1398,
+        "sourceColumn": 2,
+        "sourceEndLine": 1398,
+        "slot": "1",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_DS_SOUND1_INP"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:2",
+      "label": "Callback",
+      "props": {
+        "signal": "write_cb",
+        "operation": "set",
+        "raw": "m_dev_6h->write_cb<2>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND2_INP>))",
+        "ownerTag": "ls259.6h",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1399,
+        "sourceColumn": 2,
+        "sourceEndLine": 1399,
+        "slot": "2",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_DS_SOUND2_INP"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:3",
+      "label": "Callback",
+      "props": {
+        "signal": "write_cb",
+        "operation": "set",
+        "raw": "m_dev_6h->write_cb<7>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND7_INP>))",
+        "ownerTag": "ls259.6h",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1400,
+        "sourceColumn": 2,
+        "sourceEndLine": 1400,
+        "slot": "7",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_DS_SOUND7_INP"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.5h",
+      "label": "Device",
+      "props": {
+        "type": "LATCH8",
+        "tag": "ls259.5h",
+        "clock": null,
+        "config": [
+          "latch8_device &dev_5h(LATCH8(config, \"ls259.5h\"))",
+          "dev_5h.write_cb<1>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND9_INP>))"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1402,
+        "sourceColumn": 2,
+        "sourceEndLine": 1402
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.5h/callback:ls259_5h:0",
+      "label": "Callback",
+      "props": {
+        "signal": "write_cb",
+        "operation": "set",
+        "raw": "dev_5h.write_cb<1>().set(\"discrete\", FUNC(discrete_device::write_line<DS_SOUND9_INP>))",
+        "ownerTag": "ls259.5h",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1403,
+        "sourceColumn": 2,
+        "sourceEndLine": 1403,
+        "slot": "1",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_DS_SOUND9_INP"
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_DS_SOUND9_INP",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_DS_SOUND9_INP",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1403,
+        "sourceColumn": 2,
+        "sourceEndLine": 1403
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/ls259.4h",
+      "label": "Device",
+      "props": {
+        "type": "LATCH8",
+        "tag": "ls259.4h",
+        "clock": null,
+        "config": [
+          "LATCH8(config, \"ls259.4h\")"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1405,
+        "sourceColumn": 2,
+        "sourceEndLine": 1405
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "label": "Device",
+      "props": {
+        "type": "LATCH8",
+        "tag": "virtual_p2",
+        "clock": null,
+        "config": [
+          "LATCH8(config, m_dev_vp2)",
+          "m_dev_vp2->set_xorvalue(0x70)",
+          "m_dev_vp2->read_cb<6>().set(\"ls259.4h\", FUNC(latch8_device::bit1_r))",
+          "m_dev_vp2->read_cb<5>().set(m_dev_6h, FUNC(latch8_device::bit3_r))",
+          "m_dev_vp2->read_cb<4>().set(m_dev_6h, FUNC(latch8_device::bit6_r))",
+          "m_dev_vp2->write_cb<7>().set(\"discrete\", FUNC(discrete_device::write_line<DS_DISCHARGE_INV>))"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1407,
+        "sourceColumn": 2,
+        "sourceEndLine": 1407,
+        "configCalls": [
+          "set_xorvalue(112)"
+        ]
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:0",
+      "label": "Callback",
+      "props": {
+        "signal": "read_cb",
+        "operation": "set",
+        "raw": "m_dev_vp2->read_cb<6>().set(\"ls259.4h\", FUNC(latch8_device::bit1_r))",
+        "ownerTag": "virtual_p2",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1409,
+        "sourceColumn": 2,
+        "sourceEndLine": 1409,
+        "slot": "6",
+        "targetTag": "ls259.4h",
+        "targetClass": "latch8_device",
+        "targetMethod": "bit1_r"
+      }
+    },
+    {
+      "id": "handler:latch8_device.bit1_r",
+      "label": "Handler",
+      "props": {
+        "method": "bit1_r",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1409,
+        "sourceColumn": 2,
+        "sourceEndLine": 1409
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:1",
+      "label": "Callback",
+      "props": {
+        "signal": "read_cb",
+        "operation": "set",
+        "raw": "m_dev_vp2->read_cb<5>().set(m_dev_6h, FUNC(latch8_device::bit3_r))",
+        "ownerTag": "virtual_p2",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1410,
+        "sourceColumn": 2,
+        "sourceEndLine": 1410,
+        "slot": "5",
+        "targetClass": "latch8_device",
+        "targetMethod": "bit3_r",
+        "targetTag": "ls259.6h"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:2",
+      "label": "Callback",
+      "props": {
+        "signal": "read_cb",
+        "operation": "set",
+        "raw": "m_dev_vp2->read_cb<4>().set(m_dev_6h, FUNC(latch8_device::bit6_r))",
+        "ownerTag": "virtual_p2",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1411,
+        "sourceColumn": 2,
+        "sourceEndLine": 1411,
+        "slot": "4",
+        "targetClass": "latch8_device",
+        "targetMethod": "bit6_r",
+        "targetTag": "ls259.6h"
+      }
+    },
+    {
+      "id": "handler:latch8_device.bit6_r",
+      "label": "Handler",
+      "props": {
+        "method": "bit6_r",
+        "ownerClass": "latch8_device",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1411,
+        "sourceColumn": 2,
+        "sourceEndLine": 1411
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:3",
+      "label": "Callback",
+      "props": {
+        "signal": "write_cb",
+        "operation": "set",
+        "raw": "m_dev_vp2->write_cb<7>().set(\"discrete\", FUNC(discrete_device::write_line<DS_DISCHARGE_INV>))",
+        "ownerTag": "virtual_p2",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1412,
+        "sourceColumn": 2,
+        "sourceEndLine": 1412,
+        "slot": "7",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_DS_DISCHARGE_INV"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/soundcpu",
+      "label": "Device",
+      "props": {
+        "type": "MB8884",
+        "tag": "soundcpu",
+        "clock": 6000000,
+        "config": [
+          "MB8884(config, m_soundcpu, I8035_CLOCK)",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &dkong_state::dkong_sound_map)",
+          "m_soundcpu->set_addrmap(AS_IO, &dkong_state::dkongjr_sound_io_map)",
+          "m_soundcpu->p1_out_cb().set(FUNC(dkong_state::dkong_p1_w))",
+          "m_soundcpu->p2_in_cb().set(m_dev_vp2, FUNC(latch8_device::read))",
+          "m_soundcpu->p2_out_cb().set(m_dev_vp2, FUNC(latch8_device::write))",
+          "m_soundcpu->t0_in_cb().set(m_dev_6h, FUNC(latch8_device::bit5_q_r))",
+          "m_soundcpu->t1_in_cb().set(m_dev_6h, FUNC(latch8_device::bit4_q_r))"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1414,
+        "sourceColumn": 2,
+        "sourceEndLine": 1414
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "p1_out_cb",
+        "operation": "set",
+        "raw": "m_soundcpu->p1_out_cb().set(FUNC(dkong_state::dkong_p1_w))",
+        "ownerTag": "soundcpu",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1417,
+        "sourceColumn": 2,
+        "sourceEndLine": 1417,
+        "targetClass": "dkong_state",
+        "targetMethod": "dkong_p1_w"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:1",
+      "label": "Callback",
+      "props": {
+        "signal": "p2_in_cb",
+        "operation": "set",
+        "raw": "m_soundcpu->p2_in_cb().set(m_dev_vp2, FUNC(latch8_device::read))",
+        "ownerTag": "soundcpu",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1418,
+        "sourceColumn": 2,
+        "sourceEndLine": 1418,
+        "targetClass": "latch8_device",
+        "targetMethod": "read",
+        "targetTag": "virtual_p2"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:2",
+      "label": "Callback",
+      "props": {
+        "signal": "p2_out_cb",
+        "operation": "set",
+        "raw": "m_soundcpu->p2_out_cb().set(m_dev_vp2, FUNC(latch8_device::write))",
+        "ownerTag": "soundcpu",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1419,
+        "sourceColumn": 2,
+        "sourceEndLine": 1419,
+        "targetClass": "latch8_device",
+        "targetMethod": "write",
+        "targetTag": "virtual_p2"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:3",
+      "label": "Callback",
+      "props": {
+        "signal": "t0_in_cb",
+        "operation": "set",
+        "raw": "m_soundcpu->t0_in_cb().set(m_dev_6h, FUNC(latch8_device::bit5_q_r))",
+        "ownerTag": "soundcpu",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1420,
+        "sourceColumn": 2,
+        "sourceEndLine": 1420,
+        "targetClass": "latch8_device",
+        "targetMethod": "bit5_q_r",
+        "targetTag": "ls259.6h"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:4",
+      "label": "Callback",
+      "props": {
+        "signal": "t1_in_cb",
+        "operation": "set",
+        "raw": "m_soundcpu->t1_in_cb().set(m_dev_6h, FUNC(latch8_device::bit4_q_r))",
+        "ownerTag": "soundcpu",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1421,
+        "sourceColumn": 2,
+        "sourceEndLine": 1421,
+        "targetClass": "latch8_device",
+        "targetMethod": "bit4_q_r",
+        "targetTag": "ls259.6h"
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1423,
+        "sourceColumn": 2,
+        "sourceEndLine": 1423
+      }
+    },
+    {
+      "id": "device:dkong_state.dkongjr_audio/discrete",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "discrete",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, \"discrete\", dkongjr_discrete).add_route(ALL_OUTPUTS, \"mono\", 0.5)"
+        ],
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1425,
+        "sourceColumn": 2,
+        "sourceEndLine": 1425,
+        "clockExpr": "dkongjr_discrete"
+      }
+    },
+    {
+      "id": "audioroute:device:dkong_state.dkongjr_audio/discrete/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.5,
+        "raw": "DISCRETE(config, \"discrete\", dkongjr_discrete).add_route(ALL_OUTPUTS, \"mono\", 0.5)",
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1425,
+        "sourceColumn": 2,
+        "sourceEndLine": 1425
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4",
+      "label": "InputPorts",
+      "props": {
+        "name": "dkong_in0_4",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 978,
+        "sourceColumn": 8,
+        "sourceEndLine": 978
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in0_4/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4",
+      "label": "InputPorts",
+      "props": {
+        "name": "dkong_in1_4",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 990,
+        "sourceColumn": 8,
+        "sourceEndLine": 990
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in1_4/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2",
+      "label": "InputPorts",
+      "props": {
+        "name": "dkong_in2",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1026,
+        "sourceColumn": 8,
+        "sourceEndLine": 1026
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_SERVICE",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_START1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_START2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"virtual_p2\", FUNC(latch8_device::bit4_q_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/IN2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_COIN1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/SERVICE1",
+      "label": "Port",
+      "props": {
+        "tag": "SERVICE1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:dkong_in2/SERVICE1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkong_dsw0",
+      "label": "InputPorts",
+      "props": {
+        "name": "dkong_dsw0",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1045,
+        "sourceColumn": 8,
+        "sourceEndLine": 1045
+      }
+    },
+    {
+      "id": "inputs:dkong_dsw0/DSW0",
+      "label": "Port",
+      "props": {
+        "tag": "DSW0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:dkong_dsw0/DSW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:!1,!2\" )"
+        ],
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW1:!1,!2",
+        "settings": [
+          "0=3",
+          "1=4",
+          "2=5",
+          "3=6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:dkong_dsw0/DSW0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:!3,!4\" )"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW1:!3,!4",
+        "settings": [
+          "0=7000",
+          "4=10000",
+          "8=15000",
+          "12=20000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:dkong_dsw0/DSW0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 112,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:!5,!6,!7\" )"
+        ],
+        "name": "Coinage",
+        "defaultValue": 0,
+        "location": "SW1:!5,!6,!7",
+        "settings": [
+          "112=5C 1C",
+          "80=4C 1C",
+          "48=3C 1C",
+          "16=2C 1C",
+          "0=1C 1C",
+          "32=1C 2C",
+          "64=1C 3C",
+          "96=1C 4C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:dkong_dsw0/DSW0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:!8\" )"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 128,
+        "location": "SW1:!8",
+        "settings": [
+          "128=Upright",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:dkongjr",
+      "label": "InputPorts",
+      "props": {
+        "name": "dkongjr",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1230,
+        "sourceColumn": 8,
+        "sourceEndLine": 1230
+      }
+    },
+    {
+      "id": "inputs:dkongjr/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:dkongjr/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:dkongjr/DSW0",
+      "label": "Port",
+      "props": {
+        "tag": "DSW0",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:dkongjr/DSW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:!3,!4\" )"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW1:!3,!4",
+        "settings": [
+          "0=10000",
+          "4=15000",
+          "8=20000",
+          "12=25000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:dkongjr/TST",
+      "label": "Port",
+      "props": {
+        "tag": "TST",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:dkongjr/TST/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_OTHER",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_A)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:dkongjr/TST/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_OTHER",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_B)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(1,4)+1",
+          "RGN_FRAC(1,4)+2",
+          "RGN_FRAC(1,4)+3",
+          "RGN_FRAC(1,4)+4",
+          "RGN_FRAC(1,4)+5",
+          "RGN_FRAC(1,4)+6",
+          "RGN_FRAC(1,4)+7"
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_dkong",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_dkong",
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1686,
+        "sourceColumn": 8,
+        "sourceEndLine": 1686
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_dkong/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx1",
+        "offset": 0,
+        "layout": "gfx_8x8x2_planar",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_dkong/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx2",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:dkong_state.dkong_base/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(dkong_state::dkong2b_palette), DK2B_PALETTE_LENGTH)",
+        "ownerTag": "palette",
+        "targetClass": "dkong_state",
+        "targetMethod": "dkong2b_palette",
+        "entries": 521,
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1798
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:dkongjr",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 3925,
+        "sourceColumn": 1,
+        "sourceEndLine": 3925
+      }
+    },
+    {
+      "from": "game:dkongjr",
+      "to": "machine:dkong_state.dkongjr",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:dkongjr",
+      "to": "inputs:dkongjr",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:dkongjr",
+      "to": "romset:dkongjr",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:dkong.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:cpu/s2650/s2650.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:machine/eepromser.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:sound/sn76496.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1921,
+        "sourceColumn": 1,
+        "sourceEndLine": 1931
+      }
+    },
+    {
+      "from": "machine:dkong_state.dkongjr",
+      "to": "machine:dkong_state.dkong_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:dkong_state.dkongjr",
+      "to": "machine:dkong_state.dkongjr_audio",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:dkong_state.dkongjr",
+      "to": "map:dkong_state.dkongjr_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:dkong_state.dkongjr",
+      "to": "device:dkong_state.dkongjr/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1230,
+        "sourceColumn": 8,
+        "sourceEndLine": 1230
+      }
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "inputs:dkong_in0_4",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "inputs:dkong_in1_4",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "inputs:dkong_in2",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "inputs:dkong_dsw0",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "inputs:dkongjr/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "inputs:dkongjr/DSW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:dkongjr",
+      "to": "inputs:dkongjr/TST",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:dkongjr",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 2539,
+        "sourceColumn": 1,
+        "sourceEndLine": 2539
+      }
+    },
+    {
+      "from": "romset:dkongjr",
+      "to": "region:dkongjr/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:dkongjr",
+      "to": "region:dkongjr/soundcpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:dkongjr",
+      "to": "region:dkongjr/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:dkongjr",
+      "to": "region:dkongjr/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:dkongjr",
+      "to": "region:dkongjr/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1770,
+        "sourceColumn": 1,
+        "sourceEndLine": 1801
+      }
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "handler:dkong_state.video_start_dkong",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "device:dkong_state.dkong_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "device:dkong_state.dkong_base/dma8257",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "device:dkong_state.dkong_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "device:dkong_state.dkong_base/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "gfxdecode:gfx_dkong",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:dkong_state.dkong_base",
+      "to": "device:dkong_state.dkong_base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "file:src/mame/nintendo/dkong_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1391,
+        "sourceColumn": 1,
+        "sourceEndLine": 1426
+      }
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/ls174.3d",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/ls259.5h",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/ls259.4h",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/soundcpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:dkong_state.dkongjr_audio",
+      "to": "device:dkong_state.dkongjr_audio/discrete",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 815,
+        "sourceColumn": 1,
+        "sourceEndLine": 843
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range18",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range19",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map",
+      "to": "map:dkong_state.dkongjr_map/range20",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "inputs:dkong_in0_4",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 978,
+        "sourceColumn": 8,
+        "sourceEndLine": 978
+      }
+    },
+    {
+      "from": "inputs:dkong_in0_4",
+      "to": "inputs:dkong_in0_4/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:dkong_in1_4",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 990,
+        "sourceColumn": 8,
+        "sourceEndLine": 990
+      }
+    },
+    {
+      "from": "inputs:dkong_in1_4",
+      "to": "inputs:dkong_in1_4/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:dkong_in2",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1026,
+        "sourceColumn": 8,
+        "sourceEndLine": 1026
+      }
+    },
+    {
+      "from": "inputs:dkong_in2",
+      "to": "inputs:dkong_in2/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:dkong_in2",
+      "to": "inputs:dkong_in2/SERVICE1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:dkong_dsw0",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1045,
+        "sourceColumn": 8,
+        "sourceEndLine": 1045
+      }
+    },
+    {
+      "from": "inputs:dkong_dsw0",
+      "to": "inputs:dkong_dsw0/DSW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:dkongjr/IN2",
+      "to": "inputs:dkongjr/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkongjr/DSW0",
+      "to": "inputs:dkongjr/DSW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkongjr/TST",
+      "to": "inputs:dkongjr/TST/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkongjr/TST",
+      "to": "inputs:dkongjr/TST/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:dkongjr/maincpu",
+      "to": "rom:dkongjr/maincpu/djr1-c_5b_f-2.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/maincpu",
+      "to": "rom:dkongjr/maincpu/djr1-c_5c_f-2.5c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/maincpu",
+      "to": "rom:dkongjr/maincpu/djr1-c_5e_f-2.5e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/soundcpu",
+      "to": "rom:dkongjr/soundcpu/djr1-c_3h.3h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/gfx1",
+      "to": "rom:dkongjr/gfx1/djr1-v.3n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/gfx1",
+      "to": "rom:dkongjr/gfx1/djr1-v.3p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/gfx2",
+      "to": "rom:dkongjr/gfx2/djr1-v_7c.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/gfx2",
+      "to": "rom:dkongjr/gfx2/djr1-v_7d.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/gfx2",
+      "to": "rom:dkongjr/gfx2/djr1-v_7e.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/gfx2",
+      "to": "rom:dkongjr/gfx2/djr1-v_7f.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/proms",
+      "to": "rom:dkongjr/proms/djr1-c-2e.2e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/proms",
+      "to": "rom:dkongjr/proms/djr1-c-2f.2f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:dkongjr/proms",
+      "to": "rom:dkongjr/proms/djr1-v-2n.2n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:dkong_state.video_start_dkong",
+      "to": "handler:dkong_state.scanline_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:dkong_state.video_start_dkong",
+      "to": "handler:dkong_state.dkong_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:dkong_state.video_start_dkong",
+      "to": "handler:dkong_state.radarscp1_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/maincpu",
+      "to": "device:dkong_state.dkong_base/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/maincpu",
+      "to": "map:dkong_state.dkong_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257",
+      "to": "device:dkong_state.dkong_base/dma8257/callback:dma8257:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257",
+      "to": "device:dkong_state.dkong_base/dma8257/callback:dma8257:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257",
+      "to": "device:dkong_state.dkong_base/dma8257/callback:dma8257:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257",
+      "to": "device:dkong_state.dkong_base/dma8257/callback:dma8257:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257",
+      "to": "device:dkong_state.dkong_base/dma8257/callback:dma8257:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/screen",
+      "to": "device:dkong_state.dkong_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/screen",
+      "to": "device:dkong_state.dkong_base/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_dkong",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 1686,
+        "sourceColumn": 8,
+        "sourceEndLine": 1686
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_dkong",
+      "to": "gfxdecode:gfx_dkong/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_dkong",
+      "to": "gfxdecode:gfx_dkong/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/palette",
+      "to": "device:dkong_state.dkong_base/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong_a.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong_a.cpp",
+      "to": "file:dkong.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong_a.cpp",
+      "to": "file:sound/discrete.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/dkong_a.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.5h",
+      "to": "device:dkong_state.dkongjr_audio/ls259.5h/callback:ls259_5h:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "to": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "to": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "to": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "to": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu",
+      "to": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu",
+      "to": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu",
+      "to": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu",
+      "to": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu",
+      "to": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu",
+      "to": "map:dkong_state.dkong_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu",
+      "to": "map:dkong_state.dkongjr_sound_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/discrete",
+      "to": "audioroute:device:dkong_state.dkongjr_audio/discrete/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range4",
+      "to": "handler:dkong_state.dkong_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range5",
+      "to": "handler:i8257_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "dma8257"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range5",
+      "to": "handler:i8257_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "dma8257"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range6",
+      "to": "handler:latch8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ls174.3d"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range7",
+      "to": "handler:latch8_device.bit0_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ls259.4h"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range8",
+      "to": "handler:dkong_state.dkongjr_gfxbank_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range9",
+      "to": "handler:dkong_state.dkong_in2_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range10",
+      "to": "handler:latch8_device.bit0_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ls259.6h"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range11",
+      "to": "handler:latch8_device.bit0_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ls259.5h"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range12",
+      "to": "handler:dkong_state.dkong_audio_irq_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range13",
+      "to": "handler:dkong_state.dkong_flipscreen_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range14",
+      "to": "handler:dkong_state.dkong_spritebank_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range15",
+      "to": "handler:dkong_state.nmi_mask_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range16",
+      "to": "handler:dkong_state.p8257_drq_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_map/range17",
+      "to": "handler:dkong_state.dkong_palettebank_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in0_4/IN0",
+      "to": "inputs:dkong_in0_4/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in1_4/IN1",
+      "to": "inputs:dkong_in1_4/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/IN2",
+      "to": "inputs:dkong_in2/IN2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_in2/SERVICE1",
+      "to": "inputs:dkong_in2/SERVICE1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_dsw0/DSW0",
+      "to": "inputs:dkong_dsw0/DSW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_dsw0/DSW0",
+      "to": "inputs:dkong_dsw0/DSW0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_dsw0/DSW0",
+      "to": "inputs:dkong_dsw0/DSW0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:dkong_dsw0/DSW0",
+      "to": "inputs:dkong_dsw0/DSW0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "handler:dkong_state.scanline_callback",
+      "to": "handler:dkong_state.radarscp_scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/maincpu/callback:maincpu:0",
+      "to": "handler:i8257_device.hlda_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong.cpp",
+        "sourceLine": 793,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkong_map",
+      "to": "map:dkong_state.dkong_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257/callback:dma8257:0",
+      "to": "device:dkong_state.dkong_base/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257/callback:dma8257:1",
+      "to": "handler:dkong_state.memory_read_byte",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257/callback:dma8257:2",
+      "to": "handler:dkong_state.memory_write_byte",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257/callback:dma8257:3",
+      "to": "handler:dkong_state.p8257_ctl_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/dma8257/callback:dma8257:4",
+      "to": "handler:dkong_state.p8257_ctl_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/screen/callback:screen:0",
+      "to": "handler:dkong_state.screen_update_dkong",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/screen/callback:screen:1",
+      "to": "handler:dkong_state.vblank_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_dkong/e0",
+      "to": "gfxlayout:gfx_8x8x2_planar",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_dkong/e1",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:dkong_state.dkong_base/palette/callback:palette_init",
+      "to": "handler:dkong_state.dkong2b_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:0",
+      "to": "handler:discrete_device.write_line_DS_SOUND0_INP",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:1",
+      "to": "handler:discrete_device.write_line_DS_SOUND1_INP",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:2",
+      "to": "handler:discrete_device.write_line_DS_SOUND2_INP",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.6h/callback:ls259_6h:3",
+      "to": "handler:discrete_device.write_line_DS_SOUND7_INP",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/ls259.5h/callback:ls259_5h:0",
+      "to": "handler:discrete_device.write_line_DS_SOUND9_INP",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:0",
+      "to": "handler:latch8_device.bit1_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:0",
+      "to": "device:dkong_state.dkongjr_audio/ls259.4h",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:1",
+      "to": "handler:latch8_device.bit3_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:1",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:2",
+      "to": "handler:latch8_device.bit6_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:2",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/virtual_p2/callback:virtual_p2:3",
+      "to": "handler:discrete_device.write_line_DS_DISCHARGE_INV",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:0",
+      "to": "handler:dkong_state.dkong_p1_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:1",
+      "to": "handler:latch8_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:1",
+      "to": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:2",
+      "to": "handler:latch8_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:2",
+      "to": "device:dkong_state.dkongjr_audio/virtual_p2",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:3",
+      "to": "handler:latch8_device.bit5_q_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:3",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:4",
+      "to": "handler:latch8_device.bit4_q_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:dkong_state.dkongjr_audio/soundcpu/callback:soundcpu:4",
+      "to": "device:dkong_state.dkongjr_audio/ls259.6h",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:dkong_state.dkong_sound_map",
+      "to": "file:src/mame/nintendo/dkong_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1272,
+        "sourceColumn": 1,
+        "sourceEndLine": 1275
+      }
+    },
+    {
+      "from": "map:dkong_state.dkong_sound_map",
+      "to": "map:dkong_state.dkong_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_sound_io_map",
+      "to": "file:src/mame/nintendo/dkong_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/dkong_a.cpp",
+        "sourceLine": 1282,
+        "sourceColumn": 1,
+        "sourceEndLine": 1285
+      }
+    },
+    {
+      "from": "map:dkong_state.dkongjr_sound_io_map",
+      "to": "map:dkong_state.dkongjr_sound_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "handler:dkong_state.radarscp_scanline",
+      "to": "handler:dkong_state.radarscp_step",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range3",
+      "to": "handler:dkong_state.dkong_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range4",
+      "to": "handler:i8257_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "dma8257"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range4",
+      "to": "handler:i8257_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "dma8257"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range5",
+      "to": "handler:latch8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ls175.3d"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range6",
+      "to": "handler:dkong_state.radarscp_grid_color_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range7",
+      "to": "handler:dkong_state.dkong_in2_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range8",
+      "to": "handler:latch8_device.bit0_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ls259.6h"
+      }
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range9",
+      "to": "handler:dkong_state.dkong_audio_irq_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range10",
+      "to": "handler:dkong_state.radarscp_grid_enable_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range11",
+      "to": "handler:dkong_state.dkong_flipscreen_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range12",
+      "to": "handler:dkong_state.dkong_spritebank_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range13",
+      "to": "handler:dkong_state.nmi_mask_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range14",
+      "to": "handler:dkong_state.p8257_drq_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:dkong_state.dkong_map/range15",
+      "to": "handler:dkong_state.dkong_palettebank_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:dkong_state.screen_update_dkong",
+      "to": "handler:dkong_state.check_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:dkong_state.screen_update_dkong",
+      "to": "handler:dkong_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:dkong_state.screen_update_dkong",
+      "to": "handler:dkong_state.radarscp_draw_background",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/nintendo/dkong.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:dkong_state.dkongjr_sound_io_map/range0",
+      "to": "handler:latch8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ls174.3d"
+      }
+    },
+    {
+      "from": "handler:dkong_state.radarscp_step",
+      "to": "handler:dkong_state.CD4049",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:dkong_state.check_palette",
+      "to": "handler:dkong_state.radarscp_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:dkong_state.check_palette",
+      "to": "handler:dkong_state.dkong2b_palette",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

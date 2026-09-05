@@ -1,0 +1,699 @@
+{
+  "game": "arkanoid",
+  "title": "Arkanoid (World, older) (Taito, 1986)",
+  "family": "arkanoid",
+  "dataPath": "games/arcade/arkanoid",
+  "board": {
+    "family": "arkanoid",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 6000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 49151,
+            "kind": "rom"
+          },
+          {
+            "start": 49152,
+            "end": 51199,
+            "kind": "ram",
+            "mirror": 2048
+          },
+          {
+            "start": 53248,
+            "end": 53249,
+            "kind": "handler",
+            "mirror": 4070,
+            "write": "aysnd.address_data_w"
+          },
+          {
+            "start": 53249,
+            "end": 53249,
+            "kind": "handler",
+            "mirror": 4070,
+            "read": "aysnd.data_r"
+          },
+          {
+            "start": 53256,
+            "end": 53256,
+            "kind": "handler",
+            "mirror": 4071,
+            "write": "arkanoid_state.arkanoid_d008_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53256,
+            "end": 53256,
+            "kind": "handler",
+            "mirror": 4067,
+            "read": "port.SYSTEM2"
+          },
+          {
+            "start": 53260,
+            "end": 53260,
+            "kind": "handler",
+            "mirror": 4067,
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 53264,
+            "end": 53264,
+            "kind": "handler",
+            "mirror": 4071,
+            "write": "watchdog.reset_w",
+            "read": "port.BUTTONS"
+          },
+          {
+            "start": 53272,
+            "end": 53272,
+            "kind": "handler",
+            "mirror": 4071,
+            "read": "mcu.data_r",
+            "write": "mcu.data_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 57344,
+            "end": 59391,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "arkanoid_state.arkanoid_videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 59392,
+            "end": 59455,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 59456,
+            "end": 61439,
+            "kind": "ram"
+          },
+          {
+            "start": 61440,
+            "end": 65535,
+            "kind": "nop",
+            "writeOnly": true
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 49151,
+        "kind": "rom"
+      },
+      {
+        "start": 49152,
+        "end": 51199,
+        "kind": "ram",
+        "mirror": 2048
+      },
+      {
+        "start": 53248,
+        "end": 53249,
+        "kind": "handler",
+        "mirror": 4070,
+        "write": "aysnd.address_data_w"
+      },
+      {
+        "start": 53249,
+        "end": 53249,
+        "kind": "handler",
+        "mirror": 4070,
+        "read": "aysnd.data_r"
+      },
+      {
+        "start": 53256,
+        "end": 53256,
+        "kind": "handler",
+        "mirror": 4071,
+        "write": "arkanoid_state.arkanoid_d008_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 53256,
+        "end": 53256,
+        "kind": "handler",
+        "mirror": 4067,
+        "read": "port.SYSTEM2"
+      },
+      {
+        "start": 53260,
+        "end": 53260,
+        "kind": "handler",
+        "mirror": 4067,
+        "read": "port.SYSTEM"
+      },
+      {
+        "start": 53264,
+        "end": 53264,
+        "kind": "handler",
+        "mirror": 4071,
+        "write": "watchdog.reset_w",
+        "read": "port.BUTTONS"
+      },
+      {
+        "start": 53272,
+        "end": 53272,
+        "kind": "handler",
+        "mirror": 4071,
+        "read": "mcu.data_r",
+        "write": "mcu.data_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 57344,
+        "end": 59391,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "arkanoid_state.arkanoid_videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 59392,
+        "end": 59455,
+        "kind": "ram",
+        "share": "spriteram"
+      },
+      {
+        "start": 59456,
+        "end": 61439,
+        "kind": "ram"
+      },
+      {
+        "start": 61440,
+        "end": 65535,
+        "kind": "nop",
+        "writeOnly": true
+      }
+    ],
+    "customs": [
+      {
+        "port": "SYSTEM",
+        "mask": 192,
+        "member": "arkanoid_semaphore_input_r",
+        "handler": "arkanoid_state.arkanoid_semaphore_input_r",
+        "activeLow": false
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 59.18560606060606,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 3000000,
+    "chips": 1,
+    "deviceTags": [
+      "aysnd"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": -1,
+        "gain": 0.66,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "a75__01-1.ic17",
+          "offset": 0,
+          "size": 32768,
+          "crc": "5bcda3b0",
+          "alt": [
+            {
+              "file": "a75__19.ic17",
+              "crc": "d3ad37d7"
+            },
+            {
+              "file": "a75__24.ic17",
+              "crc": "3f2b27e9"
+            },
+            {
+              "file": "a75__21.ic17",
+              "crc": "bf0455fc"
+            },
+            {
+              "file": "21.ic17",
+              "crc": "746de487"
+            },
+            {
+              "file": "e1.6d",
+              "crc": "dd4f2b72"
+            },
+            {
+              "file": "1.ic81",
+              "crc": "9ff93dc2"
+            },
+            {
+              "file": "arkgc.1",
+              "crc": "c54232e6"
+            },
+            {
+              "file": "1.81",
+              "crc": "bd6eb996"
+            },
+            {
+              "file": "ark-6.bin",
+              "crc": "0be015de"
+            },
+            {
+              "file": "block01.bin",
+              "crc": "5be667e1"
+            },
+            {
+              "file": "blockbl.001",
+              "crc": "bf7197a0"
+            },
+            {
+              "file": "1.bin",
+              "crc": "2b026cae"
+            },
+            {
+              "file": "electric__16.6e",
+              "crc": "b0f73900"
+            },
+            {
+              "file": "k101.e7",
+              "crc": "892a556e"
+            },
+            {
+              "file": "paddle2.16",
+              "crc": "a286333c"
+            },
+            {
+              "file": "ic81-v.3f",
+              "crc": "154e2c6f"
+            },
+            {
+              "file": "ic81.3f",
+              "crc": "6e0a2b6f"
+            },
+            {
+              "file": "1",
+              "crc": "3234917c"
+            }
+          ]
+        },
+        {
+          "file": "a75__11.ic16",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "eafd7191",
+          "alt": [
+            {
+              "file": "a75__18.ic16",
+              "crc": "cdc08301"
+            },
+            {
+              "file": "a75__10.ic16",
+              "crc": "a1769e15"
+            },
+            {
+              "file": "a75__25.ic16",
+              "crc": "c13b2038"
+            },
+            {
+              "file": "a75__22.ic16",
+              "crc": "3a2688d3"
+            },
+            {
+              "file": "a75__02.ic16",
+              "crc": "bbc33ceb"
+            },
+            {
+              "file": "22.ic16",
+              "crc": "bf784501"
+            },
+            {
+              "file": "ark_2__1_palline.7f",
+              "crc": "ed6b62ab"
+            },
+            {
+              "file": "arkgc.2",
+              "crc": "9f0d4754"
+            },
+            {
+              "file": "2.82",
+              "crc": "29dbe452"
+            },
+            {
+              "file": "block02.bin",
+              "crc": "4f883ef1"
+            },
+            {
+              "file": "2.bin",
+              "crc": "e3843fea"
+            },
+            {
+              "file": "electric__17.6f",
+              "crc": "9827f297"
+            },
+            {
+              "file": "k102.f7",
+              "crc": "d208d05c"
+            },
+            {
+              "file": "paddle2.17",
+              "crc": "04c2acb5"
+            },
+            {
+              "file": "ic82-w.5f",
+              "crc": "4fa8cefa"
+            },
+            {
+              "file": "ic82.5f",
+              "crc": "5a97dd56"
+            },
+            {
+              "file": "2",
+              "crc": "d57c6bff"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "mcu:mcu",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "a75__06.ic14",
+          "offset": 0,
+          "size": 2048,
+          "crc": "0be83647",
+          "alt": [
+            {
+              "file": "a75__20.ic14",
+              "crc": "3994ee92"
+            },
+            {
+              "file": "a75__26.ic14",
+              "crc": "1c4d212b"
+            },
+            {
+              "file": "a75__23.ic14",
+              "crc": "35938431"
+            },
+            {
+              "file": "a75__15.ic14",
+              "crc": "d45327a9"
+            },
+            {
+              "file": "68705p3.6i",
+              "crc": "389a8cfb"
+            },
+            {
+              "file": "a75-06__bootleg_68705.ic14",
+              "crc": "515d77b6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "a75__03.ic64",
+          "offset": 0,
+          "size": 32768,
+          "crc": "038b74ba",
+          "alt": [
+            {
+              "file": "blockbl.003",
+              "crc": "6d2c6123"
+            }
+          ]
+        },
+        {
+          "file": "a75__04.ic63",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "71fae199",
+          "alt": [
+            {
+              "file": "blockbl.004",
+              "crc": "09a1f9d9"
+            }
+          ]
+        },
+        {
+          "file": "a75__05.ic62",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "c76374e2",
+          "alt": [
+            {
+              "file": "blockbl.005",
+              "crc": "dfb9f7e2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1536,
+      "loads": [
+        {
+          "file": "a75-07.ic24",
+          "offset": 0,
+          "size": 512,
+          "crc": "0af8b289"
+        },
+        {
+          "file": "a75-08.ic23",
+          "offset": 512,
+          "size": 512,
+          "crc": "abb002fb"
+        },
+        {
+          "file": "a75-09.ic22",
+          "offset": 1024,
+          "size": 512,
+          "crc": "a7c6c277"
+        }
+      ]
+    },
+    {
+      "region": "alt_mcus",
+      "size": 6144,
+      "loads": [
+        {
+          "file": "arkanoid_mcu.ic14",
+          "offset": 0,
+          "size": 2048,
+          "crc": "4e44b50a"
+        },
+        {
+          "file": "a75-06__bootleg_68705.ic14",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "515d77b6"
+        },
+        {
+          "file": "arkanoid1_68705p3.ic14",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "1b68e2d8"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "BUTTONS",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_DIAL_LEFT",
+      "activeLow": false,
+      "relativeDelta": -15
+    },
+    {
+      "port": "P1",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_DIAL_RIGHT",
+      "activeLow": false,
+      "relativeDelta": 15
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW",
+      "mask": 1,
+      "value": 0,
+      "name": "Allow Continue"
+    },
+    {
+      "port": "DSW",
+      "mask": 2,
+      "value": 2,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW",
+      "mask": 4,
+      "value": 4,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW",
+      "mask": 8,
+      "value": 8,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW",
+      "mask": 16,
+      "value": 16,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW",
+      "mask": 32,
+      "value": 32,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW",
+      "mask": 192,
+      "value": 192,
+      "name": "Coinage"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "SYSTEM",
+      "init": 15
+    },
+    {
+      "tag": "SYSTEM2",
+      "init": 255
+    },
+    {
+      "tag": "BUTTONS",
+      "init": 255
+    },
+    {
+      "tag": "DSW",
+      "init": 254
+    },
+    {
+      "tag": "UNUSED",
+      "init": 255
+    },
+    {
+      "tag": "P1",
+      "init": 0
+    },
+    {
+      "tag": "P2",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

@@ -1,0 +1,3868 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/tecmo/tecmo.cpp",
+    "generatedAt": "2026-09-05T03:50:05.085Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/tecmo/tecmo.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/tecmo/tecmo.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tecmo_spr.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tecmo_spr.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/msm5205.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/msm5205.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopl.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopl.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:rygar",
+      "label": "Game",
+      "props": {
+        "name": "rygar",
+        "year": "1986",
+        "company": "Tecmo",
+        "fullname": "Rygar (US set 1)",
+        "monitor": "ROT0",
+        "cls": "tecmo_state",
+        "init": "init_rygar",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1831,
+        "sourceColumn": 1,
+        "sourceEndLine": 1831
+      }
+    },
+    {
+      "id": "romset:rygar",
+      "label": "RomSet",
+      "props": {
+        "name": "rygar",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1259,
+        "sourceColumn": 1,
+        "sourceEndLine": 1259
+      }
+    },
+    {
+      "id": "region:rygar/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1260,
+        "sourceColumn": 2,
+        "sourceEndLine": 1260
+      }
+    },
+    {
+      "id": "rom:rygar/maincpu/5.5p",
+      "label": "Rom",
+      "props": {
+        "file": "5.5p",
+        "offset": 0,
+        "size": 32768,
+        "crc": "062cd55d",
+        "sha1": "656e29c890f5de964920b7841b3e11469cd20051",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1261,
+        "sourceColumn": 2,
+        "sourceEndLine": 1261
+      }
+    },
+    {
+      "id": "rom:rygar/maincpu/cpu_5m.bin",
+      "label": "Rom",
+      "props": {
+        "file": "cpu_5m.bin",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "7ac5191b",
+        "sha1": "305f39d974f906f9bc24e9fe2ca58e647925ab63",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1262,
+        "sourceColumn": 2,
+        "sourceEndLine": 1262
+      }
+    },
+    {
+      "id": "rom:rygar/maincpu/cpu_5j.bin",
+      "label": "Rom",
+      "props": {
+        "file": "cpu_5j.bin",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "ed76d606",
+        "sha1": "39c8a07e9a1f218ad088d00a2c9dfc993efafb6b",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1263,
+        "sourceColumn": 2,
+        "sourceEndLine": 1263
+      }
+    },
+    {
+      "id": "region:rygar/soundcpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundcpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1265,
+        "sourceColumn": 2,
+        "sourceEndLine": 1265
+      }
+    },
+    {
+      "id": "rom:rygar/soundcpu/cpu_4h.bin",
+      "label": "Rom",
+      "props": {
+        "file": "cpu_4h.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "e4a2fa87",
+        "sha1": "ed58187dbbcf59358496a98ffd6c227a87d6c433",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1266,
+        "sourceColumn": 2,
+        "sourceEndLine": 1266
+      }
+    },
+    {
+      "id": "region:rygar/txtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "txtiles",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1268,
+        "sourceColumn": 2,
+        "sourceEndLine": 1268
+      }
+    },
+    {
+      "id": "rom:rygar/txtiles/cpu_8k.bin",
+      "label": "Rom",
+      "props": {
+        "file": "cpu_8k.bin",
+        "offset": 0,
+        "size": 32768,
+        "crc": "4d482fb6",
+        "sha1": "57ad838b6d30b49dbd2d0ec425f33cfb15a67918",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1269,
+        "sourceColumn": 2,
+        "sourceEndLine": 1269
+      }
+    },
+    {
+      "id": "region:rygar/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1271,
+        "sourceColumn": 2,
+        "sourceEndLine": 1271
+      }
+    },
+    {
+      "id": "rom:rygar/sprites/vid_6k.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6k.bin",
+        "offset": 0,
+        "size": 32768,
+        "crc": "aba6db9e",
+        "sha1": "43eb6f4f92afb5fbc11adc7e2ab04878ab56cb17",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1272,
+        "sourceColumn": 2,
+        "sourceEndLine": 1272
+      }
+    },
+    {
+      "id": "rom:rygar/sprites/vid_6j.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6j.bin",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "ae1f2ed6",
+        "sha1": "6e6a33e665ba0884b7f57e9ad69d3f51e41d9e7b",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1273,
+        "sourceColumn": 2,
+        "sourceEndLine": 1273
+      }
+    },
+    {
+      "id": "rom:rygar/sprites/vid_6h.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6h.bin",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "46d9e7df",
+        "sha1": "a24e0bea310a03636af704a0ad3f1a9cc4aafe12",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1274,
+        "sourceColumn": 2,
+        "sourceEndLine": 1274
+      }
+    },
+    {
+      "id": "rom:rygar/sprites/vid_6g.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6g.bin",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "45839c9a",
+        "sha1": "eaee5767d8b0b62b991c089ef51b922e89850b79",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1275,
+        "sourceColumn": 2,
+        "sourceEndLine": 1275
+      }
+    },
+    {
+      "id": "region:rygar/fgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fgtiles",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1277,
+        "sourceColumn": 2,
+        "sourceEndLine": 1277
+      }
+    },
+    {
+      "id": "rom:rygar/fgtiles/vid_6p.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6p.bin",
+        "offset": 0,
+        "size": 32768,
+        "crc": "9eae5f8e",
+        "sha1": "ed83b608ca57b9bf69fa866d9b8f55d16b7cff63",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1278,
+        "sourceColumn": 2,
+        "sourceEndLine": 1278
+      }
+    },
+    {
+      "id": "rom:rygar/fgtiles/vid_6o.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6o.bin",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "5a10a396",
+        "sha1": "12ebed3952ff35a2c275cb27c915f82183048cd4",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1279,
+        "sourceColumn": 2,
+        "sourceEndLine": 1279
+      }
+    },
+    {
+      "id": "rom:rygar/fgtiles/vid_6n.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6n.bin",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "7b12cf3f",
+        "sha1": "6b9d8cad6e15317df01bab0591fab09199ca6d40",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1280,
+        "sourceColumn": 2,
+        "sourceEndLine": 1280
+      }
+    },
+    {
+      "id": "rom:rygar/fgtiles/vid_6l.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6l.bin",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "3cea7eaa",
+        "sha1": "1dd194d5672dfe71c2b27d2d7b76f5a611cff76f",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1281,
+        "sourceColumn": 2,
+        "sourceEndLine": 1281
+      }
+    },
+    {
+      "id": "region:rygar/bgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bgtiles",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1283,
+        "sourceColumn": 2,
+        "sourceEndLine": 1283
+      }
+    },
+    {
+      "id": "rom:rygar/bgtiles/vid_6f.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6f.bin",
+        "offset": 0,
+        "size": 32768,
+        "crc": "9840edd8",
+        "sha1": "f19a1a1d932214037144c533ad07ed81256c34e7",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1284,
+        "sourceColumn": 2,
+        "sourceEndLine": 1284
+      }
+    },
+    {
+      "id": "rom:rygar/bgtiles/vid_6e.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6e.bin",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "ff65e074",
+        "sha1": "513c1bad336ef5d871f15d6ba8943020f98d1f4a",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1285,
+        "sourceColumn": 2,
+        "sourceEndLine": 1285
+      }
+    },
+    {
+      "id": "rom:rygar/bgtiles/vid_6c.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6c.bin",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "89868c85",
+        "sha1": "f21550f40e7a177e95c40f2726c651f85ca8edce",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1286,
+        "sourceColumn": 2,
+        "sourceEndLine": 1286
+      }
+    },
+    {
+      "id": "rom:rygar/bgtiles/vid_6b.bin",
+      "label": "Rom",
+      "props": {
+        "file": "vid_6b.bin",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "35389a7b",
+        "sha1": "a887a89f9bbb5979bb589468d80efba1f243690b",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1287,
+        "sourceColumn": 2,
+        "sourceEndLine": 1287
+      }
+    },
+    {
+      "id": "region:rygar/adpcm",
+      "label": "RomRegion",
+      "props": {
+        "tag": "adpcm",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1289,
+        "sourceColumn": 2,
+        "sourceEndLine": 1289
+      }
+    },
+    {
+      "id": "rom:rygar/adpcm/cpu_1f.bin",
+      "label": "Rom",
+      "props": {
+        "file": "cpu_1f.bin",
+        "offset": 0,
+        "size": 16384,
+        "crc": "3cc98c5a",
+        "sha1": "ea1035be939ed1a994f3273b33412c85dda0973e",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1290,
+        "sourceColumn": 2,
+        "sourceEndLine": 1290
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "tecmo_state",
+        "name": "rygar_map",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 1,
+        "sourceEndLine": 623
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 49151,
+        "raw": "map(0x0000, 0xbfff).rom()",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 598,
+        "sourceColumn": 2,
+        "sourceEndLine": 598,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 53247,
+        "raw": "map(0xc000, 0xcfff).ram()",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 599,
+        "sourceColumn": 2,
+        "sourceEndLine": 599,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 55295,
+        "raw": "map(0xd000, 0xd7ff).ram().w(FUNC(tecmo_state::txvideoram_w)).share(m_txvideoram)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 600,
+        "sourceColumn": 2,
+        "sourceEndLine": 600,
+        "ram": true,
+        "share": "txvideoram"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.txvideoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "txvideoram_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 465,
+        "sourceColumn": 1,
+        "sourceEndLine": 469,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_txvideoram[offset] = data;\n\tm_tx_tilemap->mark_tile_dirty(offset & 0x3ff);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 55296,
+        "end": 56319,
+        "raw": "map(0xd800, 0xdbff).ram().w(FUNC(tecmo_state::fgvideoram_w)).share(m_fgvideoram)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 601,
+        "sourceColumn": 2,
+        "sourceEndLine": 601,
+        "ram": true,
+        "share": "fgvideoram"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.fgvideoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "fgvideoram_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 471,
+        "sourceColumn": 1,
+        "sourceEndLine": 475,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_fgvideoram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset & 0x1ff);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 56320,
+        "end": 57343,
+        "raw": "map(0xdc00, 0xdfff).ram().w(FUNC(tecmo_state::bgvideoram_w)).share(m_bgvideoram)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 602,
+        "sourceColumn": 2,
+        "sourceEndLine": 602,
+        "ram": true,
+        "share": "bgvideoram"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.bgvideoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "bgvideoram_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 477,
+        "sourceColumn": 1,
+        "sourceEndLine": 481,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_bgvideoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset & 0x1ff);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 59391,
+        "raw": "map(0xe000, 0xe7ff).ram().share(m_spriteram)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 2,
+        "sourceEndLine": 603,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 59392,
+        "end": 61439,
+        "raw": "map(0xe800, 0xefff).ram().w(m_palette, FUNC(palette_device::write8)).share(\"palette\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 604,
+        "sourceColumn": 2,
+        "sourceEndLine": 604,
+        "ram": true,
+        "share": "palette"
+      }
+    },
+    {
+      "id": "handler:palette_device.write8",
+      "label": "Handler",
+      "props": {
+        "method": "write8",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 662,
+        "sourceColumn": 2,
+        "sourceEndLine": 662
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 63487,
+        "raw": "map(0xf000, 0xf7ff).bankr(m_mainbank)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 2,
+        "sourceEndLine": 605,
+        "bankRead": "mainbank"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 63488,
+        "end": 63488,
+        "raw": "map(0xf800, 0xf800).portr(\"JOY1\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 2,
+        "sourceEndLine": 606,
+        "portRead": "JOY1"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 63489,
+        "end": 63489,
+        "raw": "map(0xf801, 0xf801).portr(\"BUTTONS1\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 607,
+        "sourceColumn": 2,
+        "sourceEndLine": 607,
+        "portRead": "BUTTONS1"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 63490,
+        "end": 63490,
+        "raw": "map(0xf802, 0xf802).portr(\"JOY2\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 2,
+        "sourceEndLine": 608,
+        "portRead": "JOY2"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 63491,
+        "end": 63491,
+        "raw": "map(0xf803, 0xf803).portr(\"BUTTONS2\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 609,
+        "sourceColumn": 2,
+        "sourceEndLine": 609,
+        "portRead": "BUTTONS2"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 63492,
+        "end": 63492,
+        "raw": "map(0xf804, 0xf804).portr(\"SYS_0\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 610,
+        "sourceColumn": 2,
+        "sourceEndLine": 610,
+        "portRead": "SYS_0"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 63493,
+        "end": 63493,
+        "raw": "map(0xf805, 0xf805).portr(\"SYS_1\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 2,
+        "sourceEndLine": 611,
+        "portRead": "SYS_1"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 63494,
+        "end": 63494,
+        "raw": "map(0xf806, 0xf806).r(FUNC(tecmo_state::dsw_l_r<0>))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 612,
+        "sourceColumn": 2,
+        "sourceEndLine": 612
+      }
+    },
+    {
+      "id": "handler:tecmo_state.dsw_l_r_0",
+      "label": "Handler",
+      "props": {
+        "method": "dsw_l_r_0",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 1,
+        "sourceEndLine": 586,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "uint8_t port = m_dsw[Which]->read();\n\tport &= 0x0f;\n\treturn port;",
+        "inputMembers": [
+          "m_dsw=DSWA,DSWB"
+        ]
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 63495,
+        "end": 63495,
+        "raw": "map(0xf807, 0xf807).r(FUNC(tecmo_state::dsw_h_r<0>))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 2,
+        "sourceEndLine": 613
+      }
+    },
+    {
+      "id": "handler:tecmo_state.dsw_h_r_0",
+      "label": "Handler",
+      "props": {
+        "method": "dsw_h_r_0",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 1,
+        "sourceEndLine": 594,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "uint8_t port = m_dsw[Which]->read();\n\tport &= 0xf0;\n\treturn port >> 4;",
+        "inputMembers": [
+          "m_dsw=DSWA,DSWB"
+        ]
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 63496,
+        "end": 63496,
+        "raw": "map(0xf808, 0xf808).r(FUNC(tecmo_state::dsw_l_r<1>))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 614,
+        "sourceColumn": 2,
+        "sourceEndLine": 614
+      }
+    },
+    {
+      "id": "handler:tecmo_state.dsw_l_r_1",
+      "label": "Handler",
+      "props": {
+        "method": "dsw_l_r_1",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 1,
+        "sourceEndLine": 586,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "uint8_t port = m_dsw[Which]->read();\n\tport &= 0x0f;\n\treturn port;",
+        "inputMembers": [
+          "m_dsw=DSWA,DSWB"
+        ]
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 63497,
+        "end": 63497,
+        "raw": "map(0xf809, 0xf809).r(FUNC(tecmo_state::dsw_h_r<1>))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 615,
+        "sourceColumn": 2,
+        "sourceEndLine": 615
+      }
+    },
+    {
+      "id": "handler:tecmo_state.dsw_h_r_1",
+      "label": "Handler",
+      "props": {
+        "method": "dsw_h_r_1",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 1,
+        "sourceEndLine": 594,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "uint8_t port = m_dsw[Which]->read();\n\tport &= 0xf0;\n\treturn port >> 4;",
+        "inputMembers": [
+          "m_dsw=DSWA,DSWB"
+        ]
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range18",
+      "label": "AddressRange",
+      "props": {
+        "start": 63503,
+        "end": 63503,
+        "raw": "map(0xf80f, 0xf80f).portr(\"SYS_2\")",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 2,
+        "sourceEndLine": 616,
+        "portRead": "SYS_2"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range19",
+      "label": "AddressRange",
+      "props": {
+        "start": 63488,
+        "end": 63490,
+        "raw": "map(0xf800, 0xf802).w(FUNC(tecmo_state::fgscroll_w)).share(m_fgscroll)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 2,
+        "sourceEndLine": 617,
+        "share": "fgscroll"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.fgscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "fgscroll_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 483,
+        "sourceColumn": 1,
+        "sourceEndLine": 490,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_fgscroll[offset] = data;\n\n\tm_screen->update_partial(m_screen->vpos());\n\tm_fg_tilemap->set_scrollx(0, m_fgscroll[0] + 256 * m_fgscroll[1]);\n\tm_fg_tilemap->set_scrolly(0, m_fgscroll[2]);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range20",
+      "label": "AddressRange",
+      "props": {
+        "start": 63491,
+        "end": 63493,
+        "raw": "map(0xf803, 0xf805).w(FUNC(tecmo_state::bgscroll_w)).share(m_bgscroll)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618,
+        "share": "bgscroll"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.bgscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "bgscroll_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 492,
+        "sourceColumn": 1,
+        "sourceEndLine": 499,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_bgscroll[offset] = data;\n\n\tm_screen->update_partial(m_screen->vpos());\n\tm_bg_tilemap->set_scrollx(0, m_bgscroll[0] + 256 * m_bgscroll[1]);\n\tm_bg_tilemap->set_scrolly(0, m_bgscroll[2]);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range21",
+      "label": "AddressRange",
+      "props": {
+        "start": 63494,
+        "end": 63494,
+        "raw": "map(0xf806, 0xf806).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 619,
+        "sourceColumn": 2,
+        "sourceEndLine": 619
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 678,
+        "sourceColumn": 2,
+        "sourceEndLine": 678
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range22",
+      "label": "AddressRange",
+      "props": {
+        "start": 63495,
+        "end": 63495,
+        "raw": "map(0xf807, 0xf807).w(FUNC(tecmo_state::flipscreen_w))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 620,
+        "sourceColumn": 2,
+        "sourceEndLine": 620
+      }
+    },
+    {
+      "id": "handler:tecmo_state.flipscreen_w",
+      "label": "Handler",
+      "props": {
+        "method": "flipscreen_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 501,
+        "sourceColumn": 1,
+        "sourceEndLine": 504,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "flip_screen_set(BIT(data, 0));"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range23",
+      "label": "AddressRange",
+      "props": {
+        "start": 63496,
+        "end": 63496,
+        "raw": "map(0xf808, 0xf808).w(FUNC(tecmo_state::bankswitch_w))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 621,
+        "sourceColumn": 2,
+        "sourceEndLine": 621
+      }
+    },
+    {
+      "id": "handler:tecmo_state.bankswitch_w",
+      "label": "Handler",
+      "props": {
+        "method": "bankswitch_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 528,
+        "sourceColumn": 1,
+        "sourceEndLine": 531,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_mainbank->set_entry(data >> 3);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_map/range24",
+      "label": "AddressRange",
+      "props": {
+        "start": 63499,
+        "end": 63499,
+        "raw": "map(0xf80b, 0xf80b).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 622,
+        "sourceColumn": 2,
+        "sourceEndLine": 622
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 651,
+        "sourceColumn": 2,
+        "sourceEndLine": 651
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "tecmo_state",
+        "name": "rygar_sound_map",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 685,
+        "sourceColumn": 1,
+        "sourceEndLine": 694
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rom()",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 687,
+        "sourceColumn": 2,
+        "sourceEndLine": 687,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 18431,
+        "raw": "map(0x4000, 0x47ff).ram()",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 688,
+        "sourceColumn": 2,
+        "sourceEndLine": 688,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 32769,
+        "raw": "map(0x8000, 0x8001).w(\"ymsnd\", FUNC(ym3526_device::write))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 689,
+        "sourceColumn": 2,
+        "sourceEndLine": 689
+      }
+    },
+    {
+      "id": "handler:ym3526_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym3526_device",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 689,
+        "sourceColumn": 2,
+        "sourceEndLine": 689
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49152,
+        "raw": "map(0xc000, 0xc000).r(\"soundlatch\", FUNC(generic_latch_8_device::read)).w(FUNC(tecmo_state::adpcm_start_w))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 690,
+        "sourceColumn": 2,
+        "sourceEndLine": 690
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 2,
+        "sourceEndLine": 701
+      }
+    },
+    {
+      "id": "handler:tecmo_state.adpcm_start_w",
+      "label": "Handler",
+      "props": {
+        "method": "adpcm_start_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 533,
+        "sourceColumn": 1,
+        "sourceEndLine": 539,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_adpcm_pos = data << 8;\n\tm_adpcm_toggle = false;\n\tm_adpcm_enabled = true;\n\tm_msm->reset_w(0);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 53248,
+        "raw": "map(0xd000, 0xd000).w(FUNC(tecmo_state::adpcm_end_w))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 691,
+        "sourceColumn": 2,
+        "sourceEndLine": 691
+      }
+    },
+    {
+      "id": "handler:tecmo_state.adpcm_end_w",
+      "label": "Handler",
+      "props": {
+        "method": "adpcm_end_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 541,
+        "sourceColumn": 1,
+        "sourceEndLine": 544,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_adpcm_end = data;"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57344,
+        "raw": "map(0xe000, 0xe000).w(FUNC(tecmo_state::adpcm_vol_w))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 692,
+        "sourceColumn": 2,
+        "sourceEndLine": 692
+      }
+    },
+    {
+      "id": "handler:tecmo_state.adpcm_vol_w",
+      "label": "Handler",
+      "props": {
+        "method": "adpcm_vol_w",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 546,
+        "sourceColumn": 1,
+        "sourceEndLine": 550,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// 10k, 22k, 47k, 100k\n\tm_msm->set_output_gain(ALL_OUTPUTS, (data & 15) / 15.0);"
+      }
+    },
+    {
+      "id": "map:tecmo_state.rygar_sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 61440,
+        "raw": "map(0xf000, 0xf000).w(\"soundlatch\", FUNC(generic_latch_8_device::acknowledge_w))",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 693,
+        "sourceColumn": 2,
+        "sourceEndLine": 693
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.acknowledge_w",
+      "label": "Handler",
+      "props": {
+        "method": "acknowledge_w",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 702,
+        "sourceColumn": 2,
+        "sourceEndLine": 702
+      }
+    },
+    {
+      "id": "machine:tecmo_state.rygar",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "tecmo_state",
+        "name": "rygar",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_video_type\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_adpcm_end\",\"bits\":8}",
+          "{\"name\":\"m_adpcm_pos\",\"bits\":16}",
+          "{\"name\":\"m_adpcm_toggle\",\"bits\":1}",
+          "{\"name\":\"m_adpcm_enabled\",\"bits\":1}"
+        ],
+        "startHandlers": [
+          "tecmo_state.video_start"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1142,
+        "sourceColumn": 1,
+        "sourceEndLine": 1183
+      }
+    },
+    {
+      "id": "handler:tecmo_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 1,
+        "sourceEndLine": 455,
+        "sourceParameters": "",
+        "sourceBody": "if (m_video_type == 2)  // gemini\n\t{\n\t\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(tecmo_state::gemini_get_bg_tile_info)), TILEMAP_SCAN_ROWS, 16, 16, 32, 16);\n\t\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(tecmo_state::gemini_get_fg_tile_info)), TILEMAP_SCAN_ROWS, 16, 16, 32, 16);\n\t}\n\telse    // rygar, silkworm\n\t{\n\t\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(tecmo_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 16, 16, 32, 16);\n\t\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(tecmo_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 16, 16, 32, 16);\n\t}\n\n\tm_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(tecmo_state::get_tx_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\n\tm_bg_tilemap->set_transparent_pen(0);\n\tm_fg_tilemap->set_transparent_pen(0);\n\tm_tx_tilemap->set_transparent_pen(0);\n\n\tm_bg_tilemap->set_scrolldx(-48, 256 + 48);\n\tm_fg_tilemap->set_scrolldx(-48, 256 + 48);"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.gemini_get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "gemini_get_bg_tile_info",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 379,
+        "sourceColumn": 1,
+        "sourceEndLine": 386,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t const attr = m_bgvideoram[tile_index + 0x200];\n\ttileinfo.set(2,\n\t\t\tm_bgvideoram[tile_index] + ((attr & 0x70) << 4),\n\t\t\tattr & 0x0f,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.gemini_get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "gemini_get_fg_tile_info",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 388,
+        "sourceColumn": 1,
+        "sourceEndLine": 395,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t const attr = m_fgvideoram[tile_index + 0x200];\n\ttileinfo.set(1,\n\t\t\tm_fgvideoram[tile_index] + ((attr & 0x70) << 4),\n\t\t\tattr & 0x0f,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 361,
+        "sourceColumn": 1,
+        "sourceEndLine": 368,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t const attr = m_bgvideoram[tile_index + 0x200];\n\ttileinfo.set(2,\n\t\t\tm_bgvideoram[tile_index] + ((attr & 0x07) << 8),\n\t\t\tattr >> 4,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 370,
+        "sourceColumn": 1,
+        "sourceEndLine": 377,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t const attr = m_fgvideoram[tile_index + 0x200];\n\ttileinfo.set(1,\n\t\t\tm_fgvideoram[tile_index] + ((attr & 0x07) << 8),\n\t\t\tattr >> 4,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.get_tx_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_tx_tile_info",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 397,
+        "sourceColumn": 1,
+        "sourceEndLine": 404,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t const attr = m_txvideoram[tile_index + 0x400];\n\ttileinfo.set(0,\n\t\t\tm_txvideoram[tile_index] + ((attr & 0x03) << 8),\n\t\t\tattr >> 4,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "bank:tecmo_state.rygar/mainbank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "mainbank",
+        "member": "m_mainbank",
+        "startEntry": 0,
+        "entries": 32,
+        "region": "maincpu",
+        "offset": 65536,
+        "stride": 2048,
+        "raw": "m_mainbank->configure_entries(0, 32, memregion(\"maincpu\")->base() + 0x10000, 0x800)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1132,
+        "sourceColumn": 1,
+        "sourceEndLine": 1140
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 6000000,
+        "config": [
+          "Z80(config, m_maincpu, 24_MHz_XTAL / 4)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &tecmo_state::rygar_map)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(tecmo_state::irq0_line_hold))"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1145,
+        "sourceColumn": 2,
+        "sourceEndLine": 1145
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_vblank_int",
+        "operation": "set_vblank_int",
+        "raw": "m_maincpu->set_vblank_int(\"screen\", FUNC(tecmo_state::irq0_line_hold))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1147,
+        "sourceColumn": 2,
+        "sourceEndLine": 1147,
+        "targetTag": "screen",
+        "targetClass": "tecmo_state",
+        "targetMethod": "irq0_line_hold"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.irq0_line_hold",
+      "label": "Handler",
+      "props": {
+        "method": "irq0_line_hold",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1147,
+        "sourceColumn": 2,
+        "sourceEndLine": 1147
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/soundcpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "soundcpu",
+        "clock": 4000000,
+        "config": [
+          "Z80(config, m_soundcpu, 4_MHz_XTAL)",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &tecmo_state::rygar_sound_map)"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1149,
+        "sourceColumn": 2,
+        "sourceEndLine": 1149
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1154,
+        "sourceColumn": 2,
+        "sourceEndLine": 1154
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(24_MHz_XTAL / 4, 384, 0, 256, 264, 16, 240)",
+          "m_screen->set_screen_update(FUNC(tecmo_state::screen_update))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1157,
+        "sourceColumn": 2,
+        "sourceEndLine": 1157,
+        "configCalls": [
+          "set_raw(6000000,384,0,256,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          256,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "24_MHz_XTAL / 4",
+          "384",
+          "0",
+          "256",
+          "264",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(tecmo_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1159,
+        "sourceColumn": 2,
+        "sourceEndLine": 1159,
+        "targetClass": "tecmo_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 514,
+        "sourceColumn": 1,
+        "sourceEndLine": 525,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "screen.priority().fill(0, cliprect);\n\tbitmap.fill(0x100, cliprect);\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 1);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0, 2);\n\tm_tx_tilemap->draw(screen, bitmap, cliprect, 0, 4);\n\n\tm_sprgen->draw_sprites_8bit(screen, bitmap, cliprect, m_spriteram, m_spriteram.bytes(), m_video_type, flip_screen());\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:tecmo_spr_device.draw_sprites_8bit",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites_8bit",
+        "ownerClass": "tecmo_spr_device",
+        "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+        "sourceLine": 203,
+        "sourceColumn": 1,
+        "sourceEndLine": 255,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, const uint8_t *spriteram, int size, int video_type, bool flip_screen",
+        "sourceBody": "for (int offs = size - 8; offs >= 0; offs -= 8)\n\t{\n\t\tuint8_t const bank = spriteram[offs + 0];\n\t\tif (BIT(bank, 2)) // visible\n\t\t{\n\t\t\tuint8_t const flags = spriteram[offs + 3];\n\t\t\tuint32_t const priority_mask = m_pri_cb(flags >> 6);\n\n\t\t\tuint8_t const which = spriteram[offs + 1];\n\t\t\tuint32_t code;\n\t\t\tuint8_t size = spriteram[offs + 2] & 3;\n\n\t\t\tif (video_type != 0)   // gemini, silkworm\n\t\t\t\tcode = which + ((bank & 0xf8) << 5);\n\t\t\telse                        // rygar\n\t\t\t\tcode = which + ((bank & 0xf0) << 4);\n\n\t\t\tcode &= ~((1 << (size * 2)) - 1);\n\t\t\tsize = 1 << size;\n\n\t\t\tint xpos = spriteram[offs + 5] - ((flags & 0x10) << 4);\n\t\t\tint ypos = spriteram[offs + 4] - ((flags & 0x20) << 3);\n\t\t\tbool flipx = BIT(bank, 0);\n\t\t\tbool flipy = BIT(bank, 1);\n\n\t\t\tif (flip_screen)\n\t\t\t{\n\t\t\t\txpos = 256 - (8 * size) - xpos;\n\t\t\t\typos = 256 - (8 * size) - ypos;\n\t\t\t\tflipx = !flipx;\n\t\t\t\tflipy = !flipy;\n\t\t\t}\n\n\t\t\tfor (int y = 0; y < size; y++)\n\t\t\t{\n\t\t\t\tfor (int x = 0; x < size; x++)\n\t\t\t\t{\n\t\t\t\t\tint const sx = xpos + 8 * (flipx ? (size - 1 - x) : x);\n\t\t\t\t\tint const sy = ypos + 8 * (flipy ? (size - 1 - y) : y);\n\t\t\t\t\tgfx(0)->prio_transpen(bitmap,cliprect,\n\t\t\t\t\t\t\tcode + layout[y][x],\n\t\t\t\t\t\t\tflags & 0xf,\n\t\t\t\t\t\t\tflipx, flipy,\n\t\t\t\t\t\t\tsx, sy,\n\t\t\t\t\t\t\tscreen.priority(),\n\t\t\t\t\t\t\tpriority_mask, 0);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_tecmo)"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1162,
+        "sourceColumn": 2,
+        "sourceEndLine": 1162,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(palette_device::xBRG_444, 1024).set_endianness(ENDIANNESS_BIG)"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1163,
+        "sourceColumn": 2,
+        "sourceEndLine": 1163
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/spritegen",
+      "label": "Device",
+      "props": {
+        "type": "TECMO_SPRITE",
+        "tag": "spritegen",
+        "clock": null,
+        "config": [
+          "TECMO_SPRITE(config, m_sprgen, m_palette, gfx_tecmo_spr)",
+          "m_sprgen->set_pri_callback(FUNC(tecmo_state::pri_cb))"
+        ],
+        "cls": "tecmo_spr_device",
+        "clsHierarchy": [
+          "tecmo_spr_device"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1165,
+        "sourceColumn": 2,
+        "sourceEndLine": 1165,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/spritegen/callback:spritegen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_pri_callback",
+        "delegate": 1,
+        "operation": "set_pri_callback",
+        "raw": "m_sprgen->set_pri_callback(FUNC(tecmo_state::pri_cb))",
+        "ownerTag": "spritegen",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1166,
+        "sourceColumn": 2,
+        "sourceEndLine": 1166,
+        "targetClass": "tecmo_state",
+        "targetMethod": "pri_cb"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.pri_cb",
+      "label": "Handler",
+      "props": {
+        "method": "pri_cb",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 413,
+        "sourceColumn": 1,
+        "sourceEndLine": 424,
+        "sourceParameters": "uint8_t pri",
+        "sourceBody": "// bg: 1; fg:2; text: 4\n\tswitch (pri)\n\t{\n\t\tdefault:\n\t\tcase 0x0: return 0;\n\t\tcase 0x1: return 0xf0; // obscured by text layer\n\t\tcase 0x2: return 0xf0 | 0xcc; // obscured by foreground\n\t\tcase 0x3: return 0xf0 | 0xcc | 0xaa; // obscured by bg and fg\n\t}"
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1169,
+        "sourceColumn": 2,
+        "sourceEndLine": 1169
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "generic_latch_8_device &soundlatch(GENERIC_LATCH_8(config, \"soundlatch\"))",
+          "soundlatch.data_pending_callback().set_inputline(m_soundcpu, INPUT_LINE_NMI)",
+          "soundlatch.set_separate_acknowledge(true)"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1171,
+        "sourceColumn": 2,
+        "sourceEndLine": 1171
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/soundlatch/callback:soundlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set_inputline",
+        "raw": "soundlatch.data_pending_callback().set_inputline(m_soundcpu, INPUT_LINE_NMI)",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1172,
+        "sourceColumn": 2,
+        "sourceEndLine": 1172,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "soundcpu"
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/ymsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM3526",
+        "tag": "ymsnd",
+        "clock": 4000000,
+        "config": [
+          "ym3526_device &ymsnd(YM3526(config, \"ymsnd\", 4_MHz_XTAL))",
+          "ymsnd.irq_handler().set_inputline(m_soundcpu, 0)",
+          "ymsnd.add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1175,
+        "sourceColumn": 2,
+        "sourceEndLine": 1175
+      }
+    },
+    {
+      "id": "audioroute:device:tecmo_state.rygar/ymsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "ymsnd.add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1177,
+        "sourceColumn": 2,
+        "sourceEndLine": 1177
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/ymsnd/callback:ymsnd:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set_inputline",
+        "raw": "ymsnd.irq_handler().set_inputline(m_soundcpu, 0)",
+        "ownerTag": "ymsnd",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1176,
+        "sourceColumn": 2,
+        "sourceEndLine": 1176,
+        "inputLine": "0",
+        "targetTag": "soundcpu"
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/msm",
+      "label": "Device",
+      "props": {
+        "type": "MSM5205",
+        "tag": "msm",
+        "clock": 400000,
+        "config": [
+          "MSM5205(config, m_msm, 400_kHz_XTAL)",
+          "m_msm->vck_callback().set(FUNC(tecmo_state::adpcm_int))",
+          "m_msm->set_prescaler_selector(msm5205_device::S48_4B)",
+          "m_msm->add_route(ALL_OUTPUTS, \"mono\", 0.50)"
+        ],
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1179,
+        "sourceColumn": 2,
+        "sourceEndLine": 1179
+      }
+    },
+    {
+      "id": "audioroute:device:tecmo_state.rygar/msm/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.5,
+        "raw": "m_msm->add_route(ALL_OUTPUTS, \"mono\", 0.50)",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1182,
+        "sourceColumn": 2,
+        "sourceEndLine": 1182
+      }
+    },
+    {
+      "id": "device:tecmo_state.rygar/msm/callback:msm:0",
+      "label": "Callback",
+      "props": {
+        "signal": "vck_callback",
+        "operation": "set",
+        "raw": "m_msm->vck_callback().set(FUNC(tecmo_state::adpcm_int))",
+        "ownerTag": "msm",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1180,
+        "sourceColumn": 2,
+        "sourceEndLine": 1180,
+        "targetClass": "tecmo_state",
+        "targetMethod": "adpcm_int"
+      }
+    },
+    {
+      "id": "handler:tecmo_state.adpcm_int",
+      "label": "Handler",
+      "props": {
+        "method": "adpcm_int",
+        "ownerClass": "tecmo_state",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 552,
+        "sourceColumn": 1,
+        "sourceEndLine": 577,
+        "sourceParameters": "int state",
+        "sourceBody": "if (!state || !m_adpcm_enabled)\n\t\treturn;\n\n\tconst uint8_t data = m_adpcm_rom[m_adpcm_pos % m_adpcm_rom.bytes()];\n\n\tif (m_adpcm_toggle)\n\t{\n\t\tm_msm->data_w(data & 0xf);\n\n\t\tconst uint8_t hi = m_adpcm_pos >> 8;\n\t\tm_adpcm_pos++;\n\n\t\t// it checks against m_adpcm_end the same time as m_adpcm_pos low carry out\n\t\tif ((m_adpcm_pos & 0xff) == 0 && (hi == m_adpcm_end))\n\t\t{\n\t\t\tm_adpcm_enabled = false;\n\t\t\tm_msm->reset_w(1);\n\t\t}\n\t}\n\telse\n\t\tm_msm->data_w(data >> 4);\n\n\tm_adpcm_toggle = !m_adpcm_toggle;"
+      }
+    },
+    {
+      "id": "inputs:tecmo_default",
+      "label": "InputPorts",
+      "props": {
+        "name": "tecmo_default",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 725,
+        "sourceColumn": 8,
+        "sourceEndLine": 725
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY1",
+      "label": "Port",
+      "props": {
+        "tag": "JOY1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS1",
+      "label": "Port",
+      "props": {
+        "tag": "BUTTONS1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY2",
+      "label": "Port",
+      "props": {
+        "tag": "JOY2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/JOY2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS2",
+      "label": "Port",
+      "props": {
+        "tag": "BUTTONS2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/BUTTONS2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_0",
+      "label": "Port",
+      "props": {
+        "tag": "SYS_0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_1",
+      "label": "Port",
+      "props": {
+        "tag": "SYS_1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_2",
+      "label": "Port",
+      "props": {
+        "tag": "SYS_2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_3",
+      "label": "Port",
+      "props": {
+        "tag": "SYS_3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/SYS_3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA",
+      "label": "Port",
+      "props": {
+        "tag": "DSWA",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWA/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB",
+      "label": "Port",
+      "props": {
+        "tag": "DSWB",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:tecmo_default/DSWB/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:rygar",
+      "label": "InputPorts",
+      "props": {
+        "name": "rygar",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 783,
+        "sourceColumn": 8,
+        "sourceEndLine": 783
+      }
+    },
+    {
+      "id": "inputs:rygar/BUTTONS1",
+      "label": "Port",
+      "props": {
+        "tag": "BUTTONS1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:rygar/BUTTONS1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:rygar/SYS_0",
+      "label": "Port",
+      "props": {
+        "tag": "SYS_0",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:rygar/SYS_0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_START2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:rygar/SYS_0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_START1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:rygar/SYS_0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_COIN2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:rygar/SYS_0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_COIN1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWA",
+      "label": "Port",
+      "props": {
+        "tag": "DSWA",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWA/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!1,!2\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 0,
+        "location": "SW1:!1,!2",
+        "settings": [
+          "1=2C 1C",
+          "0=1C 1C",
+          "2=1C 2C",
+          "3=1C 3C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWA/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!3,!4\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 0,
+        "location": "SW1:!3,!4",
+        "settings": [
+          "4=2C 1C",
+          "0=1C 1C",
+          "8=1C 2C",
+          "12=1C 3C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWA/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!5,!6\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW1:!5,!6",
+        "settings": [
+          "48=2",
+          "0=3",
+          "16=4",
+          "32=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWA/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!7\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 64,
+        "location": "SW1:!7",
+        "settings": [
+          "64=Upright",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWB",
+      "label": "Port",
+      "props": {
+        "tag": "DSWB",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWB/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!1,!2\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW2:!1,!2",
+        "settings": [
+          "0=50k 200k 500k",
+          "1=100k 300k 600k",
+          "2=200k 500k",
+          "3=100k"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWB/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!5,!6\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 0,
+        "location": "SW2:!5,!6",
+        "settings": [
+          "0=Normal",
+          "16=Hard",
+          "32=Harder",
+          "48=Hardest"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWB/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!7\")"
+        ],
+        "name": "2P Can Start Anytime",
+        "defaultValue": 0,
+        "location": "SW2:!7",
+        "settings": [
+          "0=No",
+          "64=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rygar/DSWB/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!8\")"
+        ],
+        "name": "Allow Continue",
+        "defaultValue": 128,
+        "location": "SW2:!8",
+        "settings": [
+          "0=No",
+          "128=Yes"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_msb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          256,
+          260,
+          264,
+          268,
+          272,
+          276,
+          280,
+          284
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_tecmo",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_tecmo",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1121,
+        "sourceColumn": 8,
+        "sourceEndLine": 1121
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_tecmo/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "txtiles",
+        "offset": 0,
+        "layout": "gfx_8x8x4_packed_msb",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_tecmo/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "fgtiles",
+        "offset": 0,
+        "layout": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "colorBase": 512,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_tecmo/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "bgtiles",
+        "offset": 0,
+        "layout": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "colorBase": 768,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_tecmo_spr",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_tecmo_spr",
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1127,
+        "sourceColumn": 8,
+        "sourceEndLine": 1127
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_tecmo_spr/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "gfx_8x8x4_packed_msb",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:rygar",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1831,
+        "sourceColumn": 1,
+        "sourceEndLine": 1831
+      }
+    },
+    {
+      "from": "game:rygar",
+      "to": "machine:tecmo_state.rygar",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:rygar",
+      "to": "inputs:rygar",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:rygar",
+      "to": "romset:rygar",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:tecmo_spr.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:sound/msm5205.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:sound/ymopl.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/tecmo/tecmo.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1142,
+        "sourceColumn": 1,
+        "sourceEndLine": 1183
+      }
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "handler:tecmo_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "bank:tecmo_state.rygar/mainbank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/soundcpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "gfxdecode:gfx_tecmo",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/spritegen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "gfxdecode:gfx_tecmo_spr",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "spritegen"
+      }
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/ymsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:tecmo_state.rygar",
+      "to": "device:tecmo_state.rygar/msm",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:rygar",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 783,
+        "sourceColumn": 8,
+        "sourceEndLine": 783
+      }
+    },
+    {
+      "from": "inputs:rygar",
+      "to": "inputs:tecmo_default",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:rygar",
+      "to": "inputs:rygar/BUTTONS1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rygar",
+      "to": "inputs:rygar/SYS_0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rygar",
+      "to": "inputs:rygar/DSWA",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rygar",
+      "to": "inputs:rygar/DSWB",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:rygar",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1259,
+        "sourceColumn": 1,
+        "sourceEndLine": 1259
+      }
+    },
+    {
+      "from": "romset:rygar",
+      "to": "region:rygar/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rygar",
+      "to": "region:rygar/soundcpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rygar",
+      "to": "region:rygar/txtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rygar",
+      "to": "region:rygar/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rygar",
+      "to": "region:rygar/fgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rygar",
+      "to": "region:rygar/bgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rygar",
+      "to": "region:rygar/adpcm",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:tecmo_state.video_start",
+      "to": "handler:tecmo_state.gemini_get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tecmo_state.video_start",
+      "to": "handler:tecmo_state.gemini_get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tecmo_state.video_start",
+      "to": "handler:tecmo_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tecmo_state.video_start",
+      "to": "handler:tecmo_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:tecmo_state.video_start",
+      "to": "handler:tecmo_state.get_tx_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:tecmo_state.rygar/mainbank",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1132,
+        "sourceColumn": 1,
+        "sourceEndLine": 1140
+      }
+    },
+    {
+      "from": "device:tecmo_state.rygar/maincpu",
+      "to": "device:tecmo_state.rygar/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tecmo_state.rygar/maincpu",
+      "to": "map:tecmo_state.rygar_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:tecmo_state.rygar/soundcpu",
+      "to": "map:tecmo_state.rygar_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:tecmo_state.rygar/screen",
+      "to": "device:tecmo_state.rygar/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1121,
+        "sourceColumn": 8,
+        "sourceEndLine": 1121
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo",
+      "to": "gfxdecode:gfx_tecmo/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo",
+      "to": "gfxdecode:gfx_tecmo/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo",
+      "to": "gfxdecode:gfx_tecmo/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:tecmo_state.rygar/spritegen",
+      "to": "device:tecmo_state.rygar/spritegen/callback:spritegen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo_spr",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 1127,
+        "sourceColumn": 8,
+        "sourceEndLine": 1127
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo_spr",
+      "to": "gfxdecode:gfx_tecmo_spr/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:tecmo_state.rygar/soundlatch",
+      "to": "device:tecmo_state.rygar/soundlatch/callback:soundlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tecmo_state.rygar/ymsnd",
+      "to": "audioroute:device:tecmo_state.rygar/ymsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:tecmo_state.rygar/ymsnd",
+      "to": "device:tecmo_state.rygar/ymsnd/callback:ymsnd:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:tecmo_state.rygar/msm",
+      "to": "audioroute:device:tecmo_state.rygar/msm/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:tecmo_state.rygar/msm",
+      "to": "device:tecmo_state.rygar/msm/callback:msm:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 725,
+        "sourceColumn": 8,
+        "sourceEndLine": 725
+      }
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/JOY1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/BUTTONS1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/JOY2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/BUTTONS2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/SYS_0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/SYS_1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/SYS_2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/SYS_3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/DSWA",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:tecmo_default",
+      "to": "inputs:tecmo_default/DSWB",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rygar/BUTTONS1",
+      "to": "inputs:rygar/BUTTONS1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/SYS_0",
+      "to": "inputs:rygar/SYS_0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/SYS_0",
+      "to": "inputs:rygar/SYS_0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/SYS_0",
+      "to": "inputs:rygar/SYS_0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/SYS_0",
+      "to": "inputs:rygar/SYS_0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWA",
+      "to": "inputs:rygar/DSWA/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWA",
+      "to": "inputs:rygar/DSWA/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWA",
+      "to": "inputs:rygar/DSWA/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWA",
+      "to": "inputs:rygar/DSWA/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWB",
+      "to": "inputs:rygar/DSWB/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWB",
+      "to": "inputs:rygar/DSWB/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWB",
+      "to": "inputs:rygar/DSWB/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rygar/DSWB",
+      "to": "inputs:rygar/DSWB/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:rygar/maincpu",
+      "to": "rom:rygar/maincpu/5.5p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/maincpu",
+      "to": "rom:rygar/maincpu/cpu_5m.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/maincpu",
+      "to": "rom:rygar/maincpu/cpu_5j.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/soundcpu",
+      "to": "rom:rygar/soundcpu/cpu_4h.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/txtiles",
+      "to": "rom:rygar/txtiles/cpu_8k.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/sprites",
+      "to": "rom:rygar/sprites/vid_6k.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/sprites",
+      "to": "rom:rygar/sprites/vid_6j.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/sprites",
+      "to": "rom:rygar/sprites/vid_6h.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/sprites",
+      "to": "rom:rygar/sprites/vid_6g.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/fgtiles",
+      "to": "rom:rygar/fgtiles/vid_6p.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/fgtiles",
+      "to": "rom:rygar/fgtiles/vid_6o.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/fgtiles",
+      "to": "rom:rygar/fgtiles/vid_6n.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/fgtiles",
+      "to": "rom:rygar/fgtiles/vid_6l.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/bgtiles",
+      "to": "rom:rygar/bgtiles/vid_6f.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/bgtiles",
+      "to": "rom:rygar/bgtiles/vid_6e.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/bgtiles",
+      "to": "rom:rygar/bgtiles/vid_6c.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/bgtiles",
+      "to": "rom:rygar/bgtiles/vid_6b.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rygar/adpcm",
+      "to": "rom:rygar/adpcm/cpu_1f.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:tecmo_state.rygar/maincpu/callback:maincpu:0",
+      "to": "handler:tecmo_state.irq0_line_hold",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 1,
+        "sourceEndLine": 623
+      }
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range18",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range19",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range20",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range21",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range22",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range23",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map",
+      "to": "map:tecmo_state.rygar_map/range24",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/tecmo/tecmo.cpp",
+        "sourceLine": 685,
+        "sourceColumn": 1,
+        "sourceEndLine": 694
+      }
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "map:tecmo_state.rygar_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "map:tecmo_state.rygar_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "map:tecmo_state.rygar_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "map:tecmo_state.rygar_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "map:tecmo_state.rygar_sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "map:tecmo_state.rygar_sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map",
+      "to": "map:tecmo_state.rygar_sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:tecmo_state.rygar/screen/callback:screen:0",
+      "to": "handler:tecmo_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo/e0",
+      "to": "gfxlayout:gfx_8x8x4_packed_msb",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo/e1",
+      "to": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo/e2",
+      "to": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:tecmo_state.rygar/spritegen/callback:spritegen:0",
+      "to": "handler:tecmo_state.pri_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_tecmo_spr/e0",
+      "to": "gfxlayout:gfx_8x8x4_packed_msb",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:tecmo_state.rygar/soundlatch/callback:soundlatch:0",
+      "to": "device:tecmo_state.rygar/soundcpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:tecmo_state.rygar/ymsnd/callback:ymsnd:0",
+      "to": "device:tecmo_state.rygar/soundcpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:tecmo_state.rygar/msm/callback:msm:0",
+      "to": "handler:tecmo_state.adpcm_int",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY1",
+      "to": "inputs:tecmo_default/JOY1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY1",
+      "to": "inputs:tecmo_default/JOY1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY1",
+      "to": "inputs:tecmo_default/JOY1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY1",
+      "to": "inputs:tecmo_default/JOY1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS1",
+      "to": "inputs:tecmo_default/BUTTONS1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS1",
+      "to": "inputs:tecmo_default/BUTTONS1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS1",
+      "to": "inputs:tecmo_default/BUTTONS1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS1",
+      "to": "inputs:tecmo_default/BUTTONS1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY2",
+      "to": "inputs:tecmo_default/JOY2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY2",
+      "to": "inputs:tecmo_default/JOY2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY2",
+      "to": "inputs:tecmo_default/JOY2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/JOY2",
+      "to": "inputs:tecmo_default/JOY2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS2",
+      "to": "inputs:tecmo_default/BUTTONS2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS2",
+      "to": "inputs:tecmo_default/BUTTONS2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS2",
+      "to": "inputs:tecmo_default/BUTTONS2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/BUTTONS2",
+      "to": "inputs:tecmo_default/BUTTONS2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/SYS_0",
+      "to": "inputs:tecmo_default/SYS_0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/SYS_1",
+      "to": "inputs:tecmo_default/SYS_1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/SYS_2",
+      "to": "inputs:tecmo_default/SYS_2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/SYS_3",
+      "to": "inputs:tecmo_default/SYS_3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWA",
+      "to": "inputs:tecmo_default/DSWA/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:tecmo_default/DSWB",
+      "to": "inputs:tecmo_default/DSWB/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range2",
+      "to": "handler:tecmo_state.txvideoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range3",
+      "to": "handler:tecmo_state.fgvideoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range4",
+      "to": "handler:tecmo_state.bgvideoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range6",
+      "to": "handler:palette_device.write8",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range14",
+      "to": "handler:tecmo_state.dsw_l_r_0",
+      "rel": "READS"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range15",
+      "to": "handler:tecmo_state.dsw_h_r_0",
+      "rel": "READS"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range16",
+      "to": "handler:tecmo_state.dsw_l_r_1",
+      "rel": "READS"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range17",
+      "to": "handler:tecmo_state.dsw_h_r_1",
+      "rel": "READS"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range19",
+      "to": "handler:tecmo_state.fgscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range20",
+      "to": "handler:tecmo_state.bgscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range21",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range22",
+      "to": "handler:tecmo_state.flipscreen_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range23",
+      "to": "handler:tecmo_state.bankswitch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_map/range24",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map/range2",
+      "to": "handler:ym3526_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map/range3",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map/range3",
+      "to": "handler:tecmo_state.adpcm_start_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map/range4",
+      "to": "handler:tecmo_state.adpcm_end_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map/range5",
+      "to": "handler:tecmo_state.adpcm_vol_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:tecmo_state.rygar_sound_map/range6",
+      "to": "handler:generic_latch_8_device.acknowledge_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "handler:tecmo_state.screen_update",
+      "to": "handler:tecmo_spr_device.draw_sprites_8bit",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_msb",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "to": "file:src/mame/tecmo/tecmo.cpp",
+      "rel": "DEFINED_IN"
+    }
+  ]
+}

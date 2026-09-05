@@ -1,0 +1,791 @@
+{
+  "game": "congo",
+  "title": "Congo Bongo (Rev C, 2 board stack) (Sega, 1983)",
+  "fullname": "Congo Bongo (Rev C, 2 board stack)",
+  "year": "1983",
+  "company": "Sega",
+  "family": "zaxxon",
+  "driverFile": "src/mame/sega/zaxxon.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3041250,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 36863,
+          "kind": "ram"
+        },
+        {
+          "start": 40960,
+          "end": 41983,
+          "kind": "ram",
+          "mirror": 6144,
+          "share": "videoram",
+          "write": "zaxxon_state.zaxxon_videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 41984,
+          "end": 43007,
+          "kind": "ram",
+          "mirror": 6144,
+          "share": "colorram",
+          "write": "zaxxon_state.congo_colorram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 49152,
+          "end": 49152,
+          "kind": "handler",
+          "mirror": 8132,
+          "read": "port.SW00"
+        },
+        {
+          "start": 49153,
+          "end": 49153,
+          "kind": "handler",
+          "mirror": 8132,
+          "read": "port.SW01"
+        },
+        {
+          "start": 49154,
+          "end": 49154,
+          "kind": "handler",
+          "mirror": 8132,
+          "read": "port.DSW02"
+        },
+        {
+          "start": 49155,
+          "end": 49155,
+          "kind": "handler",
+          "mirror": 8132,
+          "read": "port.DSW03"
+        },
+        {
+          "start": 49160,
+          "end": 49160,
+          "kind": "handler",
+          "mirror": 8135,
+          "read": "port.SW100"
+        },
+        {
+          "start": 49176,
+          "end": 49183,
+          "kind": "handler",
+          "mirror": 8128,
+          "write": "mainlatch1.write_d0"
+        },
+        {
+          "start": 49184,
+          "end": 49191,
+          "kind": "handler",
+          "mirror": 8128,
+          "write": "mainlatch2.write_d0"
+        },
+        {
+          "start": 49192,
+          "end": 49193,
+          "kind": "handler",
+          "mirror": 8132,
+          "write": "zaxxon_state.bg_position_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 49200,
+          "end": 49203,
+          "kind": "handler",
+          "mirror": 8132,
+          "write": "zaxxon_state.congo_sprite_custom_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 49208,
+          "end": 49215,
+          "kind": "handler",
+          "mirror": 8128,
+          "write": "soundlatch.write"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 4000000,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 8191,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 18431,
+          "kind": "ram",
+          "mirror": 6144
+        },
+        {
+          "start": 24576,
+          "end": 24576,
+          "kind": "handler",
+          "mirror": 8191,
+          "write": "sn1.write"
+        },
+        {
+          "start": 32768,
+          "end": 32771,
+          "kind": "handler",
+          "mirror": 8188,
+          "read": "ppi8255.read",
+          "write": "ppi8255.write"
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "mirror": 8191,
+          "write": "sn2.write"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 4000000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489A",
+      "SN76489A"
+    ],
+    "clocks": [
+      4000000,
+      1000000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "speaker"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 1,
+        "target": "speaker"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 1,
+        "target": "speaker"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 1,
+        "target": "speaker"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "SAMPLES",
+        "deviceTag": "samples",
+        "member": "m_samples",
+        "clock": 0,
+        "gain": 0.25,
+        "target": "speaker",
+        "writeMethods": [
+          "start",
+          "start_raw",
+          "stop",
+          "set_volume"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.99940814393939,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "congo_rev_c_rom1.u21",
+          "offset": 0,
+          "size": 8192,
+          "crc": "09355b5b",
+          "alt": [
+            {
+              "file": "tiptop1.u35",
+              "crc": "e19dc77b"
+            }
+          ]
+        },
+        {
+          "file": "congo_rev_c_rom2a.u22",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "1c5e30ae",
+          "alt": [
+            {
+              "file": "tiptop2.u34",
+              "crc": "3fcd3b6e"
+            }
+          ]
+        },
+        {
+          "file": "congo_rev_c_rom3.u23",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "5ee1132c",
+          "alt": [
+            {
+              "file": "tiptop3.u33",
+              "crc": "1c94250b"
+            }
+          ]
+        },
+        {
+          "file": "congo_rev_c_rom4.u24",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "5332b9bf",
+          "alt": [
+            {
+              "file": "tiptop4.u32",
+              "crc": "577b501b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "tip_top_rom_17.u19",
+          "offset": 0,
+          "size": 8192,
+          "crc": "5024e673"
+        }
+      ]
+    },
+    {
+      "region": "gfx_tx",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "tip_top_rom_5.u76",
+          "offset": 0,
+          "size": 4096,
+          "crc": "7bf6ba2b"
+        }
+      ]
+    },
+    {
+      "region": "gfx_bg",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "tip_top_rom_8.u93",
+          "offset": 0,
+          "size": 8192,
+          "crc": "db99a619"
+        },
+        {
+          "file": "tip_top_rom_9.u94",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "93e2309e"
+        },
+        {
+          "file": "tip_top_rom_10.u95",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "f27a9407"
+        }
+      ]
+    },
+    {
+      "region": "gfx_spr",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "tip_top_rom_12.u78",
+          "offset": 0,
+          "size": 8192,
+          "crc": "15e3377a"
+        },
+        {
+          "file": "tip_top_rom_13.u79",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "1d1321c8"
+        },
+        {
+          "file": "tip_top_rom_11.u77",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "73e2709f"
+        },
+        {
+          "file": "tip_top_rom_14.u104",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "bf9169fe"
+        },
+        {
+          "file": "tip_top_rom_16.u106",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "cb6d5775"
+        },
+        {
+          "file": "tip_top_rom_15.u105",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "7b15a7a4"
+        }
+      ]
+    },
+    {
+      "region": "tilemap_dat",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "tip_top_rom_6.u57",
+          "offset": 0,
+          "size": 8192,
+          "crc": "d637f02b"
+        },
+        {
+          "file": "tip_top_rom_7.u58",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "80927943"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mr019.u87",
+          "offset": 0,
+          "size": 256,
+          "crc": "b788d8ae",
+          "reloadOffsets": [
+            256
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SW00",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "SW00",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "SW100",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "SW100",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SW00",
+      "mask": 32,
+      "value": 0,
+      "name": "Test Back and Target"
+    },
+    {
+      "port": "SW01",
+      "mask": 32,
+      "value": 0,
+      "name": "Test I/O and Dip SW"
+    },
+    {
+      "port": "SERVICESW",
+      "mask": 1,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW02",
+      "mask": 3,
+      "value": 3,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW02",
+      "mask": 48,
+      "value": 48,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW02",
+      "mask": 64,
+      "value": 64,
+      "name": "Sound"
+    },
+    {
+      "port": "DSW02",
+      "mask": 128,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW02",
+      "mask": 12,
+      "value": 4,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW03",
+      "mask": 15,
+      "value": 3,
+      "name": "DEF_STR ( Coin_B )"
+    },
+    {
+      "port": "DSW03",
+      "mask": 240,
+      "value": 48,
+      "name": "DEF_STR ( Coin_A )"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 197,
+    "contributors": 31,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Olivier Galibert",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 66,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-08-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-04-16"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 9,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2013-10-24",
+        "lastCommit": "2025-02-10"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2017-06-14",
+        "lastCommit": "2019-09-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-03-03"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 4,
+        "firstCommit": "2011-07-03",
+        "lastCommit": "2012-04-30"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 4,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2021-03-13"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2014-04-17"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2009-08-05",
+        "lastCommit": "2015-07-11"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2016-01-24",
+        "lastCommit": "2023-06-16"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-05-31",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-10-21",
+        "lastCommit": "2009-12-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-09-24"
+      },
+      {
+        "name": "briantro",
+        "commits": 2,
+        "firstCommit": "2016-10-29",
+        "lastCommit": "2016-10-29"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 2,
+        "firstCommit": "2015-05-09",
+        "lastCommit": "2015-05-12"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2011-03-16",
+        "lastCommit": "2012-05-17"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 2,
+        "firstCommit": "2008-05-29",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-03-30",
+        "lastCommit": "2008-03-30"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-07-06",
+        "lastCommit": "2011-07-06"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-11-15",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-05-29",
+        "lastCommit": "2008-05-29"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2008-04-19",
+        "lastCommit": "2008-04-19"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-10-04",
+        "lastCommit": "2009-10-04"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nCongo Bongo (c) 1983 SEGA Enterprises, Ltd.\n\n2 boards version of \"Congo Bongo [Model 834-5156]\". Game developed in Japan. See the original for more information; \"Tip Top [Model 605-5167]\".\n\n- TECHNICAL -\n\nSEGA ID: 834-5180\n2 PCBs ID: 834-5181, 834-5167\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/33536/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

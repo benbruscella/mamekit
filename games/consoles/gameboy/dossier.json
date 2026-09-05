@@ -1,0 +1,413 @@
+{
+  "game": "gameboy",
+  "title": "Game Boy (Nintendo, 1990)",
+  "fullname": "Game Boy",
+  "year": "1990",
+  "company": "Nintendo",
+  "family": "gameboy",
+  "driverFile": "src/mame/nintendo/gb.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Anthony Kruize,Wilbert Pol",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "lr35902",
+      "clock": 4194304,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 32768,
+          "end": 40959,
+          "kind": "handler",
+          "read": "ppu.vram_r",
+          "write": "ppu.vram_w"
+        },
+        {
+          "start": 49152,
+          "end": 57343,
+          "kind": "ram",
+          "mirror": 8192
+        },
+        {
+          "start": 65024,
+          "end": 65279,
+          "kind": "handler",
+          "read": "ppu.oam_r",
+          "write": "ppu.oam_w"
+        },
+        {
+          "start": 65280,
+          "end": 65295,
+          "kind": "handler",
+          "read": "gb_state.gb_io_r",
+          "write": "gb_state.gb_io_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 65296,
+          "end": 65318,
+          "kind": "handler",
+          "read": "apu.sound_r",
+          "write": "apu.sound_w"
+        },
+        {
+          "start": 65319,
+          "end": 65327,
+          "kind": "nop"
+        },
+        {
+          "start": 65328,
+          "end": 65343,
+          "kind": "handler",
+          "read": "apu.wave_r",
+          "write": "apu.wave_w"
+        },
+        {
+          "start": 65344,
+          "end": 65407,
+          "kind": "handler",
+          "read": "ppu.video_r",
+          "write": "gb_state.gb_io2_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 65408,
+          "end": 65534,
+          "kind": "ram"
+        },
+        {
+          "start": 65535,
+          "end": 65535,
+          "kind": "handler",
+          "read": "gb_state.gb_ie_r",
+          "write": "gb_state.gb_ie_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 0,
+          "end": 255,
+          "kind": "handler",
+          "viewTag": "m_boot_view",
+          "viewEntry": 0,
+          "read": "gb_state.boot_r"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "gameboy",
+    "clock": 48000,
+    "deviceTag": "apu",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 160,
+    "height": 144,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 59.72750056960583,
+    "htotal": 456,
+    "vtotal": 154,
+    "vbstart": 144,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 256,
+      "loads": [
+        {
+          "file": "dmg_boot.bin",
+          "offset": 0,
+          "size": 256,
+          "crc": "59c8598e",
+          "alt": [
+            {
+              "file": "sgb_boot.bin",
+              "crc": "ec8a83b9"
+            },
+            {
+              "file": "sgb2_boot.bin",
+              "crc": "53d0dd63"
+            },
+            {
+              "file": "mgb_boot.bin",
+              "crc": "e6920754"
+            },
+            {
+              "file": "gamefgtr.bin",
+              "crc": "908ba8de"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "INPUTS",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "Left",
+      "activeLow": true
+    },
+    {
+      "port": "INPUTS",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "Right",
+      "activeLow": true
+    },
+    {
+      "port": "INPUTS",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "Up",
+      "activeLow": true
+    },
+    {
+      "port": "INPUTS",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "Down",
+      "activeLow": true
+    },
+    {
+      "port": "INPUTS",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "Button A",
+      "activeLow": true
+    },
+    {
+      "port": "INPUTS",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "Button B",
+      "activeLow": true
+    },
+    {
+      "port": "INPUTS",
+      "mask": 128,
+      "keys": [
+        "Enter"
+      ],
+      "label": "Start",
+      "activeLow": true
+    },
+    {
+      "port": "INPUTS",
+      "mask": 64,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "Select",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SKIP_CHECK",
+      "mask": 1,
+      "value": 0,
+      "name": "[HACK] Skip BIOS Logo check"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-04-14",
+    "commits": 110,
+    "contributors": 24,
+    "topAuthors": [
+      "Vas Crabb",
+      "Miodrag Milanovic",
+      "Fabio Priuli",
+      "Michaël Banaan Ananas",
+      "Wilbert Pol"
+    ],
+    "authorStats": [
+      {
+        "name": "Vas Crabb",
+        "commits": 24,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-09-13"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 21,
+        "firstCommit": "2012-08-21",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 14,
+        "firstCommit": "2013-02-07",
+        "lastCommit": "2014-10-05"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 9,
+        "firstCommit": "2014-06-10",
+        "lastCommit": "2014-06-16"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 9,
+        "firstCommit": "2013-01-31",
+        "lastCommit": "2016-09-30"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2025-04-14"
+      },
+      {
+        "name": "etabeta78",
+        "commits": 3,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2015-04-13"
+      },
+      {
+        "name": "Tauwasser",
+        "commits": 3,
+        "firstCommit": "2016-05-24",
+        "lastCommit": "2017-06-21"
+      },
+      {
+        "name": "AJR",
+        "commits": 2,
+        "firstCommit": "2019-03-09",
+        "lastCommit": "2022-01-03"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2020-02-06"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-08-16",
+        "lastCommit": "2018-12-17"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2013-04-25",
+        "lastCommit": "2016-11-04"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2020-02-07",
+        "lastCommit": "2020-02-07"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2018-01-16",
+        "lastCommit": "2018-01-16"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "incog",
+        "commits": 1,
+        "firstCommit": "2018-01-13",
+        "lastCommit": "2018-01-13"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 1,
+        "firstCommit": "2020-06-10",
+        "lastCommit": "2020-06-10"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Risugami",
+        "commits": 1,
+        "firstCommit": "2018-04-16",
+        "lastCommit": "2018-04-16"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-05-29",
+        "lastCommit": "2013-05-29"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 1,
+        "firstCommit": "2021-12-25",
+        "lastCommit": "2021-12-25"
+      }
+    ]
+  },
+  "historyText": "Console (handheld) published 36 years ago:\n\nGame Boy (c) 1990 Nintendo Co., Ltd.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/228455/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)",
+  "cart": {
+    "list": "gameboy",
+    "entries": 1743,
+    "slots": [
+      "rom",
+      "rom_mbc1",
+      "rom_mbc2",
+      "rom_mbc3",
+      "rom_mbc5",
+      "rom_huc1",
+      "rom_mmm01"
+    ]
+  }
+}

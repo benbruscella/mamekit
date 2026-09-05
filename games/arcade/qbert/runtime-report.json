@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "qbert",
+  "family": "gottlieb",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "runtime-certified",
+  "generationGaps": [
+    "r1sound:GOTTLIEB_SOUND_SPEECH_REV1A",
+    "votrax:VOTRAX_SC01"
+  ],
+  "silentGaps": [
+    "r1sound:GOTTLIEB_SOUND_SPEECH_REV1A"
+  ],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 94,
+    "total": 160,
+    "percent": 58.8
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:I8088",
+        "status": "executable",
+        "source": "src/devices/cpu/i86/i86.cpp:121"
+      },
+      {
+        "name": "r1sound:audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "knocker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "knocker_sam:SAMPLES",
+        "status": "executable",
+        "source": "src/devices/sound/samples.cpp:38"
+      },
+      {
+        "name": "nvram:NVRAM",
+        "status": "declarative-host",
+        "source": "src/devices/machine/nvram.cpp:19"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "r1sound:GOTTLIEB_SOUND_SPEECH_REV1A",
+        "status": "blocked",
+        "source": "src/mame/shared/gottlieb_a.cpp:40",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      },
+      {
+        "name": "nmi:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "riot:MOS6532",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "dac:MC1408",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:210"
+      },
+      {
+        "name": "votrax:VOTRAX_SC01",
+        "status": "blocked",
+        "source": "src/devices/sound/votrax.cpp:40",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "gottlieb_state.analog_reset_w",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:689"
+      },
+      {
+        "name": "gottlieb_state.charram_w",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:586"
+      },
+      {
+        "name": "gottlieb_state.general_output_w",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:711"
+      },
+      {
+        "name": "gottlieb_state.palette_w",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:512"
+      },
+      {
+        "name": "gottlieb_state.qbert_output_w",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:747"
+      },
+      {
+        "name": "gottlieb_state.sound_w",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:1118"
+      },
+      {
+        "name": "gottlieb_state.videoram_w",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:579"
+      },
+      {
+        "name": "port.DSW",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN2",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN3",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN4",
+        "status": "generated"
+      },
+      {
+        "name": "r1sound:dac.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:210"
+      },
+      {
+        "name": "r1sound:riot.edge_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.irq_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pa_data_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pa_data_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pa_ddr_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pa_ddr_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pb_data_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pb_data_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pb_ddr_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.pb_ddr_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.ram_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.ram_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.timer_off_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.timer_off_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.timer_on_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "r1sound:riot.timer_on_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> gottlieb_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:2168"
+      },
+      {
+        "name": "screen.screen_vblank -> maincpu",
+        "status": "generated",
+        "source": "src/mame/gottlieb/gottlieb.cpp:2169"
+      },
+      {
+        "name": "nmi.output_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/shared/gottlieb_a.cpp:351"
+      },
+      {
+        "name": "riot.pb_rd_callback -> SB1",
+        "status": "generated",
+        "source": "src/mame/shared/gottlieb_a.cpp:355"
+      },
+      {
+        "name": "riot.pb_wr_callback -> nmi.in_w_0",
+        "status": "generated",
+        "source": "src/mame/shared/gottlieb_a.cpp:356"
+      },
+      {
+        "name": "riot.irq_wr_callback -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/shared/gottlieb_a.cpp:357"
+      },
+      {
+        "name": "votrax.ar_callback -> nmi.in_w_1",
+        "status": "generated",
+        "source": "src/mame/shared/gottlieb_a.cpp:472"
+      },
+      {
+        "name": "votrax.ar_callback -> nmi.in_w_1",
+        "status": "generated",
+        "source": "src/mame/shared/gottlieb_a.cpp:516"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/qbert/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 18,
+    "compiledMethods": 18,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 7,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "gottlieb_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 24,
+    "generated": 22,
+    "declarative-host": 7,
+    "blocked": 2,
+    "missing": 0
+  }
+}

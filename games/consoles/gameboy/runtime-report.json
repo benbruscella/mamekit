@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "gameboy",
+  "family": "gameboy",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 54,
+    "total": 68,
+    "percent": 79.4
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:LR35902",
+        "status": "executable",
+        "source": "src/devices/cpu/lr35902/lr35902.cpp:63"
+      }
+    ],
+    "devices": [
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ppu:DMG_PPU",
+        "status": "executable",
+        "source": "src/devices/video/gb_lcd.cpp:314"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "apu:DMG_APU",
+        "status": "executable",
+        "source": "src/devices/sound/gb.cpp:52"
+      },
+      {
+        "name": "cartslot:GB_CART_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/gameboy/gbslot.cpp:1360"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "apu.sound_r",
+        "status": "executable",
+        "source": "src/devices/sound/gb.cpp:52"
+      },
+      {
+        "name": "apu.sound_w",
+        "status": "executable",
+        "source": "src/devices/sound/gb.cpp:52"
+      },
+      {
+        "name": "apu.wave_r",
+        "status": "executable",
+        "source": "src/devices/sound/gb.cpp:52"
+      },
+      {
+        "name": "apu.wave_w",
+        "status": "executable",
+        "source": "src/devices/sound/gb.cpp:52"
+      },
+      {
+        "name": "gb_state.boot_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:439"
+      },
+      {
+        "name": "gb_state.gb_ie_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:606"
+      },
+      {
+        "name": "gb_state.gb_ie_w",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:611"
+      },
+      {
+        "name": "gb_state.gb_io2_w",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:431"
+      },
+      {
+        "name": "gb_state.gb_io_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:617"
+      },
+      {
+        "name": "gb_state.gb_io_w",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:349"
+      },
+      {
+        "name": "ppu.oam_r",
+        "status": "executable",
+        "source": "src/devices/video/gb_lcd.cpp:314"
+      },
+      {
+        "name": "ppu.oam_w",
+        "status": "executable",
+        "source": "src/devices/video/gb_lcd.cpp:314"
+      },
+      {
+        "name": "ppu.video_r",
+        "status": "executable",
+        "source": "src/devices/video/gb_lcd.cpp:314"
+      },
+      {
+        "name": "ppu.vram_r",
+        "status": "executable",
+        "source": "src/devices/video/gb_lcd.cpp:314"
+      },
+      {
+        "name": "ppu.vram_w",
+        "status": "executable",
+        "source": "src/devices/video/gb_lcd.cpp:314"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.timer_cb -> gb_state.gb_timer_callback",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:1047"
+      },
+      {
+        "name": "screen.set_screen_update -> ppu.screen_update",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:1053"
+      },
+      {
+        "name": "palette.palette_init -> gb_state.gb_palette",
+        "status": "generated",
+        "source": "src/mame/nintendo/gb.cpp:1057"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/consoles/gameboy/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 14,
+    "compiledMethods": 14,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 6,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 0,
+    "screenUpdate": "dmg_ppu_device.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 13,
+    "generated": 10,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

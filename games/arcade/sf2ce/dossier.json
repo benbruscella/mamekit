@@ -1,0 +1,1472 @@
+{
+  "game": "sf2ce",
+  "title": "Street Fighter II': Champion Edition (World 920513) (Capcom, 1992)",
+  "fullname": "Street Fighter II': Champion Edition (World 920513)",
+  "year": "1992",
+  "company": "Capcom",
+  "family": "cps1",
+  "driverFile": "src/mame/capcom/cps1.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Paul Leaman",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "m68000",
+      "clock": 12000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4194303,
+          "kind": "rom"
+        },
+        {
+          "start": 8388608,
+          "end": 8388615,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 8388632,
+          "end": 8388639,
+          "kind": "handler",
+          "read": "cps_state.cps1_dsw_r"
+        },
+        {
+          "start": 8388640,
+          "end": 8388641,
+          "kind": "nop",
+          "writeOnly": true
+        },
+        {
+          "start": 8388656,
+          "end": 8388663,
+          "kind": "handler",
+          "write": "cps_state.cps1_coinctrl_w"
+        },
+        {
+          "start": 8388864,
+          "end": 8388927,
+          "kind": "handler",
+          "share": "cps_a_regs",
+          "write": "cps_state.cps1_cps_a_w"
+        },
+        {
+          "start": 8388928,
+          "end": 8388991,
+          "kind": "handler",
+          "share": "cps_b_regs",
+          "read": "cps_state.cps1_cps_b_r",
+          "write": "cps_state.cps1_cps_b_w"
+        },
+        {
+          "start": 8388992,
+          "end": 8388999,
+          "kind": "handler",
+          "write": "cps_state.cps1_soundlatch_w"
+        },
+        {
+          "start": 8389000,
+          "end": 8389007,
+          "kind": "handler",
+          "write": "cps_state.cps1_soundlatch2_w"
+        },
+        {
+          "start": 9437184,
+          "end": 9633791,
+          "kind": "ram",
+          "share": "gfxram",
+          "write": "cps_state.cps1_gfxram_w"
+        },
+        {
+          "start": 16711680,
+          "end": 16777215,
+          "kind": "ram",
+          "share": "mainram"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 3579545,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.audiobank",
+          "bank": "audiobank"
+        },
+        {
+          "start": 53248,
+          "end": 55295,
+          "kind": "ram"
+        },
+        {
+          "start": 61440,
+          "end": 61441,
+          "kind": "handler",
+          "read": "2151.read",
+          "write": "2151.write"
+        },
+        {
+          "start": 61442,
+          "end": 61442,
+          "kind": "handler",
+          "read": "oki.read",
+          "write": "oki.write"
+        },
+        {
+          "start": 61444,
+          "end": 61444,
+          "kind": "handler",
+          "write": "cps_state.cps1_snd_bankswitch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61446,
+          "end": 61446,
+          "kind": "handler",
+          "write": "cps_state.cps1_oki_pin7_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61448,
+          "end": 61448,
+          "kind": "handler",
+          "read": "soundlatch1.read"
+        },
+        {
+          "start": 61450,
+          "end": 61450,
+          "kind": "handler",
+          "read": "soundlatch2.read"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.35,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.35,
+        "target": "mono"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "OKIM6295",
+        "deviceTag": "oki",
+        "member": "m_oki",
+        "clock": 1000000,
+        "sampleRegion": "oki",
+        "initialMode": "PIN7_HIGH",
+        "gain": 0.3,
+        "target": "mono",
+        "writeMethods": [
+          "write",
+          "set_pin7"
+        ]
+      }
+    ],
+    "sampleRegion": "oki",
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 384,
+    "height": 224,
+    "xOffset": 64,
+    "yOffset": 16,
+    "refresh": 59.63740458015267,
+    "htotal": 512,
+    "vtotal": 262,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 4194304,
+      "loads": [
+        {
+          "file": "s92e_23b.8f",
+          "offset": 0,
+          "size": 524288,
+          "crc": "0aaa1a3a",
+          "alt": [
+            {
+              "file": "s92e_23a.8f",
+              "crc": "3f846b74"
+            },
+            {
+              "file": "s92e_23c.8f",
+              "crc": "994b408d"
+            },
+            {
+              "file": "s92u_23a.8f",
+              "crc": "ac44415b"
+            },
+            {
+              "file": "s92u_23b.8f",
+              "crc": "996a3015"
+            },
+            {
+              "file": "s92u_23c.8f",
+              "crc": "0a8b6aa2"
+            },
+            {
+              "file": "s92t_23a.8f",
+              "crc": "d7c28ade"
+            },
+            {
+              "file": "s92j_23a.8f",
+              "crc": "4f42bb5a"
+            },
+            {
+              "file": "s92j_23b.8f",
+              "crc": "140876c5"
+            },
+            {
+              "file": "s92j_23c.8f",
+              "crc": "f0120635"
+            },
+            {
+              "file": "sf2d__23.rom",
+              "crc": "450532b0"
+            },
+            {
+              "file": "sf2_ce_rb.23",
+              "crc": "202f9e50"
+            },
+            {
+              "file": "sf2red.23",
+              "crc": "40276abb"
+            },
+            {
+              "file": "sf2red.23",
+              "crc": "2d3c4f72"
+            },
+            {
+              "file": "sf2v004.23",
+              "crc": "52d19f2c"
+            },
+            {
+              "file": "sf2ca_23-c.bin",
+              "crc": "e7c8c5a6"
+            },
+            {
+              "file": "23-c.8f",
+              "crc": "35f9517b"
+            },
+            {
+              "file": "sf2ca-23.bin",
+              "crc": "36c3ba2f"
+            },
+            {
+              "file": "5.amf",
+              "crc": "03991fba"
+            },
+            {
+              "file": "u222.bin",
+              "crc": "0d305e8b"
+            },
+            {
+              "file": "turboii.23",
+              "crc": "9bbfe420"
+            },
+            {
+              "file": "ch222esp",
+              "crc": "9e6d058a"
+            },
+            {
+              "file": "u222chp",
+              "crc": "db567b66"
+            },
+            {
+              "file": "u222ne",
+              "crc": "7133489e"
+            },
+            {
+              "file": "27c040.u222",
+              "crc": "0a3692be"
+            },
+            {
+              "file": "sf2h14.7",
+              "crc": "74803532"
+            },
+            {
+              "file": "b12.rom",
+              "crc": "8f742fd5"
+            },
+            {
+              "file": "u222.rom",
+              "crc": "9236a79a"
+            },
+            {
+              "file": "1.8f",
+              "crc": "19fffa37"
+            },
+            {
+              "file": "s2.u222",
+              "crc": "0804f973"
+            },
+            {
+              "file": "u222.bin",
+              "crc": "b01a94b6"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true
+        },
+        {
+          "file": "s92_22b.7f",
+          "offset": 524288,
+          "size": 524288,
+          "crc": "2bbe15ed",
+          "alt": [
+            {
+              "file": "s92_22a.7f",
+              "crc": "99f1cca4"
+            },
+            {
+              "file": "s92_22c.7f",
+              "crc": "5fd8630b"
+            },
+            {
+              "file": "s92j_22a.7f",
+              "crc": "c4f64bcd"
+            },
+            {
+              "file": "s92j_22b.7f",
+              "crc": "2fbb3bfe"
+            },
+            {
+              "file": "s92j_22c.7f",
+              "crc": "8c0b2ed6"
+            },
+            {
+              "file": "sf2d__22.rom",
+              "crc": "fe9d9cf5"
+            },
+            {
+              "file": "sf2_ce_rb.22",
+              "crc": "145e5219"
+            },
+            {
+              "file": "sf2red.22",
+              "crc": "18daf387"
+            },
+            {
+              "file": "sf2v004.22",
+              "crc": "4b26fde7"
+            },
+            {
+              "file": "sf2ca-22.bin",
+              "crc": "0550453d"
+            },
+            {
+              "file": "turboii.22",
+              "crc": "3e57ba19"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true
+        },
+        {
+          "file": "s92_21a.6f",
+          "offset": 1048576,
+          "size": 524288,
+          "crc": "925a7877",
+          "alt": [
+            {
+              "file": "sf2red.21",
+              "crc": "52c486bb"
+            },
+            {
+              "file": "sf2red.21",
+              "crc": "aaf693b5"
+            },
+            {
+              "file": "21-c.6f",
+              "crc": "2ab2034f"
+            },
+            {
+              "file": "turboii.21",
+              "crc": "ed4186bd"
+            },
+            {
+              "file": "1.6f",
+              "crc": "65c2c719"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true
+        }
+      ]
+    },
+    {
+      "region": "gfx",
+      "size": 6291456,
+      "loads": [
+        {
+          "file": "s92-1m.3a",
+          "offset": 0,
+          "size": 524288,
+          "crc": "03b0d852",
+          "alt": [
+            {
+              "file": "y.c.e.c m.k.r-001",
+              "crc": "a258de13"
+            },
+            {
+              "file": "ms6.u70",
+              "crc": "baa0f81f"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-3m.5a",
+          "offset": 2,
+          "size": 524288,
+          "crc": "840289ec",
+          "alt": [
+            {
+              "file": "y.c.e.c m.k.r-003",
+              "crc": "c781bf87"
+            },
+            {
+              "file": "ms6.u68",
+              "crc": "8edff95a"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-2m.4a",
+          "offset": 4,
+          "size": 524288,
+          "crc": "cdb5f027",
+          "alt": [
+            {
+              "file": "fun-u70.bin",
+              "crc": "a94a8b19"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-4m.6a",
+          "offset": 6,
+          "size": 524288,
+          "crc": "e2799472",
+          "alt": [
+            {
+              "file": "fun-u68.bin",
+              "crc": "0405f21f"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-5m.7a",
+          "offset": 2097152,
+          "size": 524288,
+          "crc": "ba8a2761",
+          "alt": [
+            {
+              "file": "y.c.e.c m.k.r-002",
+              "crc": "5726cab8"
+            },
+            {
+              "file": "ms6.u69",
+              "crc": "468962b1"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-7m.9a",
+          "offset": 2097154,
+          "size": 524288,
+          "crc": "e584bfb5",
+          "alt": [
+            {
+              "file": "y.c.e.c d.w.c-011",
+              "crc": "bc90c12f"
+            },
+            {
+              "file": "ms6.u64",
+              "crc": "8165f536"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-6m.8a",
+          "offset": 2097156,
+          "size": 524288,
+          "crc": "21e3f87d",
+          "alt": [
+            {
+              "file": "fun-u69.bin",
+              "crc": "05dc2043"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-8m.10a",
+          "offset": 2097158,
+          "size": 524288,
+          "crc": "befc47df",
+          "alt": [
+            {
+              "file": "fun-u67.bin",
+              "crc": "055b64f1"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-10m.3c",
+          "offset": 4194304,
+          "size": 524288,
+          "crc": "960687d5",
+          "alt": [
+            {
+              "file": "y.c.e.c d.w.c-012",
+              "crc": "187667cc"
+            },
+            {
+              "file": "ms6.u19",
+              "crc": "39d763d3"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-12m.5c",
+          "offset": 4194306,
+          "size": 524288,
+          "crc": "978ecd18",
+          "alt": [
+            {
+              "file": "y.c.e.c d.w.c-013",
+              "crc": "5b585071"
+            },
+            {
+              "file": "ms6.u18",
+              "crc": "2ddfe46e"
+            },
+            {
+              "file": "sfiire073.u18",
+              "crc": "93ec42ae"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-11m.4c",
+          "offset": 4194308,
+          "size": 524288,
+          "crc": "d6ec9a0a",
+          "alt": [
+            {
+              "file": "fun-u19.bin",
+              "crc": "1a518609"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-13m.6c",
+          "offset": 4194310,
+          "size": 524288,
+          "crc": "ed2c67f6",
+          "alt": [
+            {
+              "file": "fun-u18.bin",
+              "crc": "84f9354f"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "s92_09.11a",
+          "offset": 0,
+          "size": 32768,
+          "crc": "08f6b60e",
+          "alt": [
+            {
+              "file": "3.amf",
+              "crc": "a4823a1b"
+            },
+            {
+              "file": "km6264b-10.u191",
+              "crc": "6f07d2cb"
+            }
+          ],
+          "continueSegments": [
+            {
+              "offset": 65536,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "oki",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "s92_18.11c",
+          "offset": 0,
+          "size": 131072,
+          "crc": "7f162009"
+        },
+        {
+          "file": "s92_19.12c",
+          "offset": 131072,
+          "size": 131072,
+          "crc": "beade53f"
+        }
+      ]
+    },
+    {
+      "region": "aboardplds",
+      "size": 512,
+      "loads": [
+        {
+          "file": "buf1",
+          "offset": 0,
+          "size": 279,
+          "crc": "eb122de7",
+          "alt": [
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "ioa1",
+          "offset": 0,
+          "size": 279,
+          "crc": "59c7ee3b",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "prg1",
+          "offset": 0,
+          "size": 279,
+          "crc": "f1129744",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "rom1",
+          "offset": 0,
+          "size": 279,
+          "crc": "41dc73b9",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "sou1",
+          "offset": 0,
+          "size": 279,
+          "crc": "84f4b2fe",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bboardplds",
+      "size": 512,
+      "loads": [
+        {
+          "file": "s9263b.1a",
+          "offset": 0,
+          "size": 279,
+          "crc": "0a7ecfe0",
+          "alt": [
+            {
+              "file": "iob1.12d",
+              "crc": "3abc0700"
+            },
+            {
+              "file": "bprg1.11d",
+              "crc": "31793da7"
+            },
+            {
+              "file": "pw.11d",
+              "crc": ""
+            }
+          ]
+        },
+        {
+          "file": "iob1.12d",
+          "offset": 0,
+          "size": 279,
+          "crc": "3abc0700",
+          "alt": [
+            {
+              "file": "s9263b.1a",
+              "crc": "0a7ecfe0"
+            },
+            {
+              "file": "bprg1.11d",
+              "crc": "31793da7"
+            },
+            {
+              "file": "pw.11d",
+              "crc": ""
+            }
+          ]
+        },
+        {
+          "file": "bprg1.11d",
+          "offset": 0,
+          "size": 279,
+          "crc": "31793da7",
+          "alt": [
+            {
+              "file": "s9263b.1a",
+              "crc": "0a7ecfe0"
+            },
+            {
+              "file": "iob1.12d",
+              "crc": "3abc0700"
+            },
+            {
+              "file": "pw.11d",
+              "crc": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "cboardplds",
+      "size": 512,
+      "loads": [
+        {
+          "file": "ioc1.ic7",
+          "offset": 0,
+          "size": 260,
+          "crc": "a399772d"
+        },
+        {
+          "file": "c632.ic1",
+          "offset": 0,
+          "size": 279,
+          "crc": "0fbd9270"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "KeyA",
+        "Space"
+      ],
+      "label": "P1 Jab Punch",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "P1 Strong Punch",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "P1 Fierce Punch",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "P1 Short Kick",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 2,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "P1 Forward Kick",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "P1 Roundhouse Kick",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 64,
+      "value": 64,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 7,
+      "value": 7,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 56,
+      "value": 56,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWA",
+      "mask": 64,
+      "value": 64,
+      "name": "2 Coins to Start, 1 to Continue"
+    },
+    {
+      "port": "DSWA",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 7,
+      "value": 4,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSWB",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 16,
+      "value": 16,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 32,
+      "value": 32,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 64,
+      "value": 64,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWC",
+      "mask": 1,
+      "value": 1,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWC",
+      "mask": 2,
+      "value": 2,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWC",
+      "mask": 4,
+      "value": 4,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSWC",
+      "mask": 8,
+      "value": 8,
+      "name": "Freeze"
+    },
+    {
+      "port": "DSWC",
+      "mask": 16,
+      "value": 16,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSWC",
+      "mask": 32,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSWC",
+      "mask": 64,
+      "value": 0,
+      "name": "Allow Continue"
+    },
+    {
+      "port": "DSWC",
+      "mask": 128,
+      "value": 128,
+      "name": "Game Mode"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 594,
+    "contributors": 51,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Brian Troha"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 115,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 60,
+        "firstCommit": "2013-11-05",
+        "lastCommit": "2025-12-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 47,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 37,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 31,
+        "firstCommit": "2009-05-25",
+        "lastCommit": "2020-10-30"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 28,
+        "firstCommit": "2011-05-16",
+        "lastCommit": "2014-10-27"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 26,
+        "firstCommit": "2012-11-16",
+        "lastCommit": "2022-07-22"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 19,
+        "firstCommit": "2008-04-02",
+        "lastCommit": "2008-11-18"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 18,
+        "firstCommit": "2010-05-24",
+        "lastCommit": "2014-08-10"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 17,
+        "firstCommit": "2013-01-19",
+        "lastCommit": "2020-04-25"
+      },
+      {
+        "name": "hap",
+        "commits": 17,
+        "firstCommit": "2017-02-26",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 13,
+        "firstCommit": "2010-03-06",
+        "lastCommit": "2024-06-01"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 13,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "braintro",
+        "commits": 12,
+        "firstCommit": "2018-05-07",
+        "lastCommit": "2020-04-12"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 12,
+        "firstCommit": "2009-04-27",
+        "lastCommit": "2013-05-28"
+      },
+      {
+        "name": "briantro",
+        "commits": 11,
+        "firstCommit": "2015-01-26",
+        "lastCommit": "2017-08-06"
+      },
+      {
+        "name": "davidhay",
+        "commits": 11,
+        "firstCommit": "2008-05-26",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "smf-",
+        "commits": 10,
+        "firstCommit": "2008-03-30",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "AJR",
+        "commits": 8,
+        "firstCommit": "2016-09-13",
+        "lastCommit": "2021-11-06"
+      },
+      {
+        "name": "mariuszw1",
+        "commits": 8,
+        "firstCommit": "2010-11-20",
+        "lastCommit": "2011-12-28"
+      },
+      {
+        "name": "Tom",
+        "commits": 8,
+        "firstCommit": "2018-07-13",
+        "lastCommit": "2022-12-11"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 6,
+        "firstCommit": "2011-11-26",
+        "lastCommit": "2014-03-22"
+      },
+      {
+        "name": "angelosa",
+        "commits": 5,
+        "firstCommit": "2020-04-03",
+        "lastCommit": "2025-05-22"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 5,
+        "firstCommit": "2009-01-12",
+        "lastCommit": "2010-04-29"
+      },
+      {
+        "name": "Roberto Zandona",
+        "commits": 5,
+        "firstCommit": "2008-08-20",
+        "lastCommit": "2008-08-21"
+      },
+      {
+        "name": "cam900",
+        "commits": 4,
+        "firstCommit": "2019-02-20",
+        "lastCommit": "2026-04-03"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 4,
+        "firstCommit": "2015-01-27",
+        "lastCommit": "2015-04-03"
+      },
+      {
+        "name": "TwistedTom",
+        "commits": 4,
+        "firstCommit": "2019-10-27",
+        "lastCommit": "2020-06-18"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-09",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "MetalliC",
+        "commits": 3,
+        "firstCommit": "2017-06-25",
+        "lastCommit": "2020-04-10"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-06-07",
+        "lastCommit": "2018-11-03"
+      },
+      {
+        "name": "Osso",
+        "commits": 3,
+        "firstCommit": "2014-12-24",
+        "lastCommit": "2014-12-27"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 3,
+        "firstCommit": "2009-07-02",
+        "lastCommit": "2010-08-08"
+      },
+      {
+        "name": "Abadede",
+        "commits": 2,
+        "firstCommit": "2023-07-03",
+        "lastCommit": "2023-07-05"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 2,
+        "firstCommit": "2012-11-17",
+        "lastCommit": "2018-05-28"
+      },
+      {
+        "name": "0kmg",
+        "commits": 1,
+        "firstCommit": "2022-05-21",
+        "lastCommit": "2022-05-21"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2012-12-30",
+        "lastCommit": "2012-12-30"
+      },
+      {
+        "name": "barbudreadmon",
+        "commits": 1,
+        "firstCommit": "2025-02-07",
+        "lastCommit": "2025-02-07"
+      },
+      {
+        "name": "Barry Harris",
+        "commits": 1,
+        "firstCommit": "2018-10-23",
+        "lastCommit": "2018-10-23"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2012-10-07",
+        "lastCommit": "2012-10-07"
+      },
+      {
+        "name": "David 'Foxhack' Silva",
+        "commits": 1,
+        "firstCommit": "2022-06-25",
+        "lastCommit": "2022-06-25"
+      },
+      {
+        "name": "janniz",
+        "commits": 1,
+        "firstCommit": "2022-03-26",
+        "lastCommit": "2022-03-26"
+      },
+      {
+        "name": "Jordi Mallach",
+        "commits": 1,
+        "firstCommit": "2016-09-29",
+        "lastCommit": "2016-09-29"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2014-10-05",
+        "lastCommit": "2014-10-05"
+      },
+      {
+        "name": "Sergio G",
+        "commits": 1,
+        "firstCommit": "2021-11-09",
+        "lastCommit": "2021-11-09"
+      },
+      {
+        "name": "Zoë Blade",
+        "commits": 1,
+        "firstCommit": "2014-12-02",
+        "lastCommit": "2014-12-02"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 34 years ago:\n\nStreet Fighter II' - Champion Edition (c) 1992 Capcom Company, Limited.\n\nExport release. Game developed in Japan. For more information about the game itself, please see the original Japanese release entry; \"Street Fighter II' - Champion Edition [B-Board 91634B-2]\".\n\n- TECHNICAL -\n\nCapcom Play System hardware (CP-S) \nB-Board #: 91635B-2\n\n- PORTS -\n\nHere is a list of ports released outside Japan. To see Japanese ports, please see the original Japanese version entry; \"Street Fighter II' - Champion Edition [B-Board 91634B-2]\".\n\n* CONSOLES: \n[AU] Nintendo SNES (1993) \"Street Fighter II Turbo - Hyper Fighting\" \n[AU] Sega Mega Drive (1993) \"Street Fighter II' - Special Champion Edition [Sega Gold Collection]\" \n[BR] Sega Mega Drive (1993) \"Street Fighter II' - Special Champion Edition [Model 047020]\" by Tec Toy \n[EU] Nintendo SNES (aug.1993) \"Street Fighter II Turbo - Hyper Fighting [Model SNSP-TI-EUR]\" \n[US] Nintendo SNES (aug.1993) \"Street Fighter II Turbo - Hyper Fighting [Model SNS-TI-USA]\" \n[US] Sega Genesis (sept.27, 1993) \"Street Fighter II' - Special Champion Edition [Model T-12016]\" \n[EU] Sega Mega Drive (oct.1993) \"Street Fighter II' - Special Champion Edition [Model 670-4179]\" \n[BR] Sega Master System (1997) \"Street Fighter II [Model 030.010]\" by Tec Toy \n[EU] Sony PlayStation (1998) \"Street Fighter Collection 2 [Model SLES-01721]\" \n[US] Sony PlayStation (oct.31, 1998) \"Street Fighter Collection 2 [Model SLUS-00746]\" \n[US] Microsoft XBOX (sept.27, 2005) \"Capcom Classics Collection\" \n[US] Sony PS2 (sept.27, 2005) \"Capcom Classics Collection [Model SLUS-21316]\" \n[EU] Microsoft XBOX (nov.18, 2005) \"Capcom Classics Collection\" \n[EU] Sony PS2 (nov.18, 2005) \"Capcom Classics Collection [Model SLES-53661]\" \n\n* HANDHELDS: \n[US] Sony PSP (oct.24, 2006) \"Capcom Classics Collection Reloaded [Model ULUS-10134]\" \n[EU] Sony PSP (nov.10, 2006) \"Capcom Classics Collection Reloaded [Model ULES-00377]\" \n[AU] Sony PSP (nov.16, 2006) \"Capcom Classics Collection Reloaded\" \n\n* COMPUTERS: \n[US] PC [MS Windows, CD-ROM] (2003) \"Capcom Arcade Hits Volume 1\" \n\n* OTHERS: \n[US] Mobile Phones (2008) \n[US] Apple iPhone/iPad (nov.4, 2010) \"Capcom Arcade [Model 397347348]\" \n[US] Apple iPhone/iPod (sept.15, 2011) \"Street Fighter II Collection [Model 459660048]\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/69767/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

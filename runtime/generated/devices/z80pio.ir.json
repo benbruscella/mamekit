@@ -1,0 +1,4458 @@
+{
+  "type": "Z80PIO",
+  "uses": [
+    {
+      "game": "wboy",
+      "tags": [
+        "pio"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "Z80PIO",
+    "className": "z80pio_device",
+    "shortName": "z80pio",
+    "description": "Z80 PIO",
+    "sourceFile": "src/devices/machine/z80pio.cpp",
+    "sourceLine": 34,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(Z80PIO, z80pio_device, \"z80pio\", \"Z80 PIO\")"
+  },
+  "methods": [
+    {
+      "name": "interface_post_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "device"
+                  },
+                  "args": []
+                },
+                "property": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interface_post_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_decode",
+      "parameters": "uint8_t opcode",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 237
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "opcode"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 77
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "z80daisy_irq_reti"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 203
+                  },
+                  {
+                    "kind": "number",
+                    "value": 221
+                  },
+                  {
+                    "kind": "number",
+                    "value": 253
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "opcode"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "PORT_A"
+                  }
+                },
+                "property": "start"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "PORT_B"
+                  }
+                },
+                "property": "start"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "index",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "PORT_COUNT"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_port"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "index"
+                      }
+                    },
+                    "property": "reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "index",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "PORT_COUNT"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "port",
+                "valueType": "pio_port&",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "index"
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "port"
+                  },
+                  "property": "m_ius"
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "Z80_DAISY_IEO"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "port"
+                        },
+                        "property": "m_ie"
+                      },
+                      "right": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "port"
+                        },
+                        "property": "m_ip"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "state"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "Z80_DAISY_INT"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_ack",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 116,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "index",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "PORT_COUNT"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "port",
+                "valueType": "pio_port&",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "index"
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "port"
+                  },
+                  "property": "m_ip"
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "LOG"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "port"
+                      },
+                      "property": "m_ip"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "port"
+                      },
+                      "property": "m_ius"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "check_interrupts"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "port"
+                      },
+                      "property": "m_vector"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_reti",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 149,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "index",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "PORT_COUNT"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "port",
+                "valueType": "pio_port&",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "index"
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "port"
+                  },
+                  "property": "m_ius"
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "LOG"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "port"
+                      },
+                      "property": "m_ius"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "check_interrupts"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "return"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 180,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "index",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "control_read"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "data_read"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "index"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 190,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "index",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "control_write"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "data_write"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_alt",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 200,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "index",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "control_read"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "data_read"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "index"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_alt",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 210,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "index",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "control_write"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "data_write"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 226,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_port"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "PORT_A"
+                    }
+                  },
+                  "property": "m_icw"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 192
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_port"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "PORT_B"
+                    }
+                  },
+                  "property": "m_icw"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "check_interrupts",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 189,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_device"
+                },
+                "property": "check_interrupts"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 59,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_int_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 62,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_pa_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_pa_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_ardy_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_ardy_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_pb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_pb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_brdy_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_brdy_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rdy",
+      "parameters": "int which",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "which"
+                  }
+                },
+                "property": "rdy"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "strobe",
+      "parameters": "int which, bool state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "which"
+                  }
+                },
+                "property": "strobe"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rdy_a",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rdy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rdy_b",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 73,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rdy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "strobe_a",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 74,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "strobe"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "strobe_b",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "strobe"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_write",
+      "parameters": "int offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "control_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_a_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 80,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "control_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_b_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "control_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_read",
+      "parameters": "int offset",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 82,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "data_read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_write",
+      "parameters": "int offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "data_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_a_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_b_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_a_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_b_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_read",
+      "parameters": "int offset",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 90,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_write",
+      "parameters": "int offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_write",
+      "parameters": "int offset, int bit, int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_port"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      "property": "m_input"
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bit"
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_a_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_b_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_a_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_b_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 102,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 107,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 108,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 111,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 113,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 114,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 59,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_int_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::in_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_pa_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::out_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_pa_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::out_ardy_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_ardy_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::in_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_pb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::out_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_pb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::out_brdy_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_brdy_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::rdy",
+      "parameters": "int which",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "which"
+                  }
+                },
+                "property": "rdy"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::strobe",
+      "parameters": "int which, bool state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "which"
+                  }
+                },
+                "property": "strobe"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::rdy_a",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 73,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rdy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::rdy_b",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 74,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rdy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::strobe_a",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "strobe"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::strobe_b",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "strobe"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::control_write",
+      "parameters": "int offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "control_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::control_a_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "control_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::control_b_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 82,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "control_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::data_read",
+      "parameters": "int offset",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 83,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "data_read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::data_write",
+      "parameters": "int offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "data_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::data_a_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::data_b_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::data_a_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::data_b_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 90,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "data_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::port_read",
+      "parameters": "int offset",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::port_write",
+      "parameters": "int offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::port_a_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::port_b_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::port_a_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::port_b_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 102,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pa7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 107,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 108,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 111,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 113,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 114,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::pb7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 115,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "PORT_B"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rdy",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.h",
+      "sourceLine": 176,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_rdy"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80pio_device::check_interrupts",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80pio.cpp",
+      "sourceLine": 237,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "CLEAR_LINE"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ius",
+            "valueType": "bool",
+            "value": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "PORT_A"
+                  }
+                },
+                "property": "m_ius"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_port"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "PORT_B"
+                  }
+                },
+                "property": "m_ius"
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "index",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "PORT_A"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "PORT_COUNT"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "LOG"
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "ius"
+                      }
+                    },
+                    "right": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_port"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "index"
+                        }
+                      },
+                      "property": "m_ie"
+                    }
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_port"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "index"
+                      }
+                    },
+                    "property": "m_ip"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "LOG"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_out_int_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/z80pio.cpp",
+    "src/devices/machine/z80pio.h",
+    "src/devices/machine/z80daisy.h",
+    "src/devices/machine/z80daisy.cpp"
+  ]
+}

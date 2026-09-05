@@ -1,0 +1,3606 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/trackfld.cpp",
+    "generatedAt": "2026-09-05T03:50:19.004Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Chris Hardy"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/trackfld.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/trackfld.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:hyprolyb.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "hyprolyb.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konami1.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konami1.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:trackfld_a.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "trackfld_a.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6800/m6800.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6800/m6800.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/timer.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/timer.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/dac.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/dac.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/sn76496.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/sn76496.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/vlm5030.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/vlm5030.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/resnet.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/resnet.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:trackfld",
+      "label": "Game",
+      "props": {
+        "name": "trackfld",
+        "year": "1983",
+        "company": "Konami",
+        "fullname": "Track & Field",
+        "monitor": "ROT0",
+        "cls": "trackfld_state",
+        "init": "init_trackfld",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 2051,
+        "sourceColumn": 1,
+        "sourceEndLine": 2051
+      }
+    },
+    {
+      "id": "romset:trackfld",
+      "label": "RomSet",
+      "props": {
+        "name": "trackfld",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1439,
+        "sourceColumn": 1,
+        "sourceEndLine": 1439
+      }
+    },
+    {
+      "id": "region:trackfld/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1440,
+        "sourceColumn": 2,
+        "sourceEndLine": 1440
+      }
+    },
+    {
+      "id": "rom:trackfld/maincpu/a01_e01.bin",
+      "label": "Rom",
+      "props": {
+        "file": "a01_e01.bin",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "2882f6d4",
+        "sha1": "f7ddae2c5412a2849efd7f9629e92a5b0328e7cb",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1441,
+        "sourceColumn": 2,
+        "sourceEndLine": 1441
+      }
+    },
+    {
+      "id": "rom:trackfld/maincpu/a02_e02.bin",
+      "label": "Rom",
+      "props": {
+        "file": "a02_e02.bin",
+        "offset": 32768,
+        "size": 8192,
+        "crc": "1743b5ee",
+        "sha1": "31301031a525f893c31461f634350f01a9492ef4",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1442,
+        "sourceColumn": 2,
+        "sourceEndLine": 1442
+      }
+    },
+    {
+      "id": "rom:trackfld/maincpu/a03_k03.bin",
+      "label": "Rom",
+      "props": {
+        "file": "a03_k03.bin",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "6c0d1ee9",
+        "sha1": "380ab2162153a61910a6fe5b6d091ca9451ad4fd",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1443,
+        "sourceColumn": 2,
+        "sourceEndLine": 1443
+      }
+    },
+    {
+      "id": "rom:trackfld/maincpu/a04_e04.bin",
+      "label": "Rom",
+      "props": {
+        "file": "a04_e04.bin",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "21d6c448",
+        "sha1": "6c42cc76302485954a31520bdd08469fa948c72f",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1444,
+        "sourceColumn": 2,
+        "sourceEndLine": 1444
+      }
+    },
+    {
+      "id": "rom:trackfld/maincpu/a05_e05.bin",
+      "label": "Rom",
+      "props": {
+        "file": "a05_e05.bin",
+        "offset": 57344,
+        "size": 8192,
+        "crc": "f08c7b7e",
+        "sha1": "50e65d9b0ea37d2afb2dfdf1f3e1378e3290bc81",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1445,
+        "sourceColumn": 2,
+        "sourceEndLine": 1445
+      }
+    },
+    {
+      "id": "region:trackfld/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1447,
+        "sourceColumn": 2,
+        "sourceEndLine": 1447
+      }
+    },
+    {
+      "id": "rom:trackfld/audiocpu/c2_d13.bin",
+      "label": "Rom",
+      "props": {
+        "file": "c2_d13.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "95bf79b6",
+        "sha1": "ea9135acd7ad162c19c5cdde356e69792d61b675",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1448,
+        "sourceColumn": 2,
+        "sourceEndLine": 1448
+      }
+    },
+    {
+      "id": "region:trackfld/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1450,
+        "sourceColumn": 2,
+        "sourceEndLine": 1450
+      }
+    },
+    {
+      "id": "rom:trackfld/gfx1/c11_d06.bin",
+      "label": "Rom",
+      "props": {
+        "file": "c11_d06.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "82e2185a",
+        "sha1": "1da9ea20e7af0b49c62fb39834a7ec686491af04",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1451,
+        "sourceColumn": 2,
+        "sourceEndLine": 1451
+      }
+    },
+    {
+      "id": "rom:trackfld/gfx1/c12_d07.bin",
+      "label": "Rom",
+      "props": {
+        "file": "c12_d07.bin",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "800ff1f1",
+        "sha1": "33d73b18903e3e6bfb30f1a06db4b8105d4040d8",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1452,
+        "sourceColumn": 2,
+        "sourceEndLine": 1452
+      }
+    },
+    {
+      "id": "rom:trackfld/gfx1/c13_d08.bin",
+      "label": "Rom",
+      "props": {
+        "file": "c13_d08.bin",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "d9faf183",
+        "sha1": "4448b6242790783d37acf50704d597af5878c2ab",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1453,
+        "sourceColumn": 2,
+        "sourceEndLine": 1453
+      }
+    },
+    {
+      "id": "rom:trackfld/gfx1/c14_d09.bin",
+      "label": "Rom",
+      "props": {
+        "file": "c14_d09.bin",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "5886c802",
+        "sha1": "884a12a8f63600da4f23b29be6dbaacef37add20",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1454,
+        "sourceColumn": 2,
+        "sourceEndLine": 1454
+      }
+    },
+    {
+      "id": "region:trackfld/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1456,
+        "sourceColumn": 2,
+        "sourceEndLine": 1456
+      }
+    },
+    {
+      "id": "rom:trackfld/gfx2/h16_e12.bin",
+      "label": "Rom",
+      "props": {
+        "file": "h16_e12.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "50075768",
+        "sha1": "dfff92c0f59dd3d8d3d6256944bfd48792cef6a9",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1457,
+        "sourceColumn": 2,
+        "sourceEndLine": 1457
+      }
+    },
+    {
+      "id": "rom:trackfld/gfx2/h15_e11.bin",
+      "label": "Rom",
+      "props": {
+        "file": "h15_e11.bin",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "dda9e29f",
+        "sha1": "0f41cde82bb60c3f1591ee14dc3cff4642bbddc1",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1458,
+        "sourceColumn": 2,
+        "sourceEndLine": 1458
+      }
+    },
+    {
+      "id": "rom:trackfld/gfx2/h14_e10.bin",
+      "label": "Rom",
+      "props": {
+        "file": "h14_e10.bin",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "c2166a5c",
+        "sha1": "5ba25900e653ce4edcf35f1fbce758a327a715ce",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1459,
+        "sourceColumn": 2,
+        "sourceEndLine": 1459
+      }
+    },
+    {
+      "id": "region:trackfld/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1461,
+        "sourceColumn": 2,
+        "sourceEndLine": 1461
+      }
+    },
+    {
+      "id": "rom:trackfld/proms/361b16.f1",
+      "label": "Rom",
+      "props": {
+        "file": "361b16.f1",
+        "offset": 0,
+        "size": 32,
+        "crc": "d55f30b5",
+        "sha1": "4d6a851f4886778307f75771645078b97ad55f5f",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1462,
+        "sourceColumn": 2,
+        "sourceEndLine": 1462
+      }
+    },
+    {
+      "id": "rom:trackfld/proms/361b17.b16",
+      "label": "Rom",
+      "props": {
+        "file": "361b17.b16",
+        "offset": 32,
+        "size": 256,
+        "crc": "d2ba4d32",
+        "sha1": "894b5cedf01ba9225a0d6215291857e455b84903",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1463,
+        "sourceColumn": 2,
+        "sourceEndLine": 1463
+      }
+    },
+    {
+      "id": "rom:trackfld/proms/361b18.e15",
+      "label": "Rom",
+      "props": {
+        "file": "361b18.e15",
+        "offset": 288,
+        "size": 256,
+        "crc": "053e5861",
+        "sha1": "6740a62cf7b6938a4f936a2fed429704612060a5",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1464,
+        "sourceColumn": 2,
+        "sourceEndLine": 1464
+      }
+    },
+    {
+      "id": "region:trackfld/vlm",
+      "label": "RomRegion",
+      "props": {
+        "tag": "vlm",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1466,
+        "sourceColumn": 2,
+        "sourceEndLine": 1466
+      }
+    },
+    {
+      "id": "rom:trackfld/vlm/c9_d15.bin",
+      "label": "Rom",
+      "props": {
+        "file": "c9_d15.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "f546a56b",
+        "sha1": "caee3d8546eb7a75ce2a578c6a1a630246aec6b8",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1467,
+        "sourceColumn": 2,
+        "sourceEndLine": 1467
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "trackfld_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 1,
+        "sourceEndLine": 598
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 4096,
+        "raw": "map(0x1000, 0x1000).mirror(0x007f).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 2,
+        "sourceEndLine": 579,
+        "mirror": 127
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 708,
+        "sourceColumn": 2,
+        "sourceEndLine": 708
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4224,
+        "end": 4231,
+        "raw": "map(0x1080, 0x1087).mirror(0x0078).w(m_mainlatch, FUNC(ls259_device::write_d0))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 580,
+        "sourceColumn": 2,
+        "sourceEndLine": 580,
+        "mirror": 120
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 709,
+        "sourceColumn": 2,
+        "sourceEndLine": 709
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 4352,
+        "end": 4352,
+        "raw": "map(0x1100, 0x1100).mirror(0x007f).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581,
+        "mirror": 127
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 710,
+        "sourceColumn": 2,
+        "sourceEndLine": 710
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 4608,
+        "end": 4608,
+        "raw": "map(0x1200, 0x1200).mirror(0x007f).portr(\"DSW2\")",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 2,
+        "sourceEndLine": 582,
+        "mirror": 127,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 4736,
+        "end": 4736,
+        "raw": "map(0x1280, 0x1280).mirror(0x007c).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 583,
+        "sourceColumn": 2,
+        "sourceEndLine": 583,
+        "mirror": 124,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 4737,
+        "end": 4737,
+        "raw": "map(0x1281, 0x1281).mirror(0x007c).portr(\"IN0\")",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584,
+        "mirror": 124,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 4738,
+        "end": 4738,
+        "raw": "map(0x1282, 0x1282).mirror(0x007c).portr(\"IN1\")",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 585,
+        "sourceColumn": 2,
+        "sourceEndLine": 585,
+        "mirror": 124,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 4739,
+        "end": 4739,
+        "raw": "map(0x1283, 0x1283).mirror(0x007c).portr(\"DSW1\")",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586,
+        "mirror": 124,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 6144,
+        "end": 6207,
+        "raw": "map(0x1800, 0x183f).ram().share(m_spriteram2)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 588,
+        "sourceColumn": 2,
+        "sourceEndLine": 588,
+        "ram": true,
+        "share": "spriteram2"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 6208,
+        "end": 6239,
+        "raw": "map(0x1840, 0x185f).ram().share(m_scroll)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 2,
+        "sourceEndLine": 589,
+        "ram": true,
+        "share": "scroll"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 6240,
+        "end": 7167,
+        "raw": "map(0x1860, 0x1bff).ram()",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 590,
+        "sourceColumn": 2,
+        "sourceEndLine": 590,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 7168,
+        "end": 7231,
+        "raw": "map(0x1c00, 0x1c3f).ram().share(m_spriteram)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 7232,
+        "end": 7263,
+        "raw": "map(0x1c40, 0x1c5f).ram().share(m_scroll2)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592,
+        "ram": true,
+        "share": "scroll2"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 7264,
+        "end": 8191,
+        "raw": "map(0x1c60, 0x1fff).ram()",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 10240,
+        "end": 12287,
+        "raw": "map(0x2800, 0x2fff).ram().share(\"nvram\")",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 2,
+        "sourceEndLine": 594,
+        "ram": true,
+        "share": "nvram"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 14335,
+        "raw": "map(0x3000, 0x37ff).ram().w(FUNC(trackfld_state::trackfld_videoram_w)).share(m_videoram)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 595,
+        "sourceColumn": 2,
+        "sourceEndLine": 595,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.trackfld_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "trackfld_videoram_w",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 401,
+        "sourceColumn": 1,
+        "sourceEndLine": 405,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 14336,
+        "end": 16383,
+        "raw": "map(0x3800, 0x3fff).ram().w(FUNC(trackfld_state::trackfld_colorram_w)).share(m_colorram)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596,
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.trackfld_colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "trackfld_colorram_w",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 407,
+        "sourceColumn": 1,
+        "sourceEndLine": 411,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:trackfld_state.main_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 65535,
+        "raw": "map(0x6000, 0xffff).rom()",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 597,
+        "sourceColumn": 2,
+        "sourceEndLine": 597,
+        "rom": true
+      }
+    },
+    {
+      "id": "handler:trackfld_state.konami_SN76489a_latch_w",
+      "label": "Handler",
+      "props": {
+        "method": "konami_SN76489a_latch_w",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 263,
+        "sourceColumn": 47,
+        "sourceEndLine": 264,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_SN76489a_latch = data;"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.konami_SN76489a_w",
+      "label": "Handler",
+      "props": {
+        "method": "konami_SN76489a_w",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 265,
+        "sourceColumn": 1,
+        "sourceEndLine": 265,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_sn->write(m_SN76489a_latch);"
+      }
+    },
+    {
+      "id": "handler:hyprolyb_adpcm_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "hyprolyb_adpcm_device",
+        "sourceFile": "src/mame/konami/hyprolyb.cpp",
+        "sourceLine": 43,
+        "sourceColumn": 1,
+        "sourceEndLine": 47,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_soundlatch2->write(data);\n\tm_adpcm_ready = 0x80;"
+      }
+    },
+    {
+      "id": "handler:vlm5030_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "vlm5030_device",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 750,
+        "sourceColumn": 2,
+        "sourceEndLine": 750
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "trackfld_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 738,
+        "sourceColumn": 1,
+        "sourceEndLine": 751
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rom()",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 740,
+        "sourceColumn": 2,
+        "sourceEndLine": 740,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 17407,
+        "raw": "map(0x4000, 0x43ff).mirror(0x1c00).ram()",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 741,
+        "sourceColumn": 2,
+        "sourceEndLine": 741,
+        "mirror": 7168,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).mirror(0x1fff).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742,
+        "mirror": 8191
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 757,
+        "sourceColumn": 2,
+        "sourceEndLine": 757
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 32768,
+        "raw": "map(0x8000, 0x8000).mirror(0x1fff).r(m_soundbrd, FUNC(trackfld_audio_device::trackfld_sh_timer_r))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 743,
+        "sourceColumn": 2,
+        "sourceEndLine": 743,
+        "mirror": 8191
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.trackfld_sh_timer_r",
+      "label": "Handler",
+      "props": {
+        "method": "trackfld_sh_timer_r",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 47,
+        "sourceColumn": 1,
+        "sourceEndLine": 52,
+        "sourceConstants": [
+          "TIMER_RATE=1024"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "uint32_t clock = m_audiocpu->total_cycles() / TIMER_RATE;\n\n\treturn clock & 0xf;"
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 40960,
+        "raw": "map(0xa000, 0xa000).mirror(0x1fff).w(FUNC(trackfld_state::konami_SN76489a_latch_w))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 2,
+        "sourceEndLine": 744,
+        "mirror": 8191
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49152,
+        "raw": "map(0xc000, 0xc000).mirror(0x1fff).r(FUNC(trackfld_state::trackfld_SN76489a_r)).w(FUNC(trackfld_state::konami_SN76489a_w))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 745,
+        "sourceColumn": 2,
+        "sourceEndLine": 745,
+        "mirror": 8191
+      }
+    },
+    {
+      "id": "handler:trackfld_state.trackfld_SN76489a_r",
+      "label": "Handler",
+      "props": {
+        "method": "trackfld_SN76489a_r",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 732,
+        "sourceColumn": 1,
+        "sourceEndLine": 736,
+        "sourceParameters": "",
+        "sourceBody": "konami_SN76489a_w(0);\n\treturn 0xff; // ?"
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57344,
+        "raw": "map(0xe000, 0xe000).mirror(0x1ff8).w(m_dac, FUNC(dac_byte_interface::data_w))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 746,
+        "sourceColumn": 2,
+        "sourceEndLine": 746,
+        "mirror": 8184
+      }
+    },
+    {
+      "id": "handler:dac_byte_interface.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "dac_byte_interface",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 761,
+        "sourceColumn": 2,
+        "sourceEndLine": 761
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 57345,
+        "end": 57345,
+        "raw": "map(0xe001, 0xe001).mirror(0x1ff8).noprw()",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 747,
+        "sourceColumn": 2,
+        "sourceEndLine": 747,
+        "mirror": 8184
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 57346,
+        "end": 57346,
+        "raw": "map(0xe002, 0xe002).mirror(0x1ff8).r(m_soundbrd, FUNC(trackfld_audio_device::trackfld_speech_r))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 2,
+        "sourceEndLine": 748,
+        "mirror": 8184
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.trackfld_speech_r",
+      "label": "Handler",
+      "props": {
+        "method": "trackfld_speech_r",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 54,
+        "sourceColumn": 1,
+        "sourceEndLine": 57,
+        "sourceParameters": "",
+        "sourceBody": "return m_vlm->bsy_r() ? 0x10 : 0;"
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 57347,
+        "end": 57347,
+        "raw": "map(0xe003, 0xe003).mirror(0x1c78).select(0x0380).w(m_soundbrd, FUNC(trackfld_audio_device::trackfld_sound_w))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 749,
+        "sourceColumn": 2,
+        "sourceEndLine": 749,
+        "mirror": 7288
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.trackfld_sound_w",
+      "label": "Handler",
+      "props": {
+        "method": "trackfld_sound_w",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 59,
+        "sourceColumn": 1,
+        "sourceEndLine": 70,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "// A7 = data enable for VLM5030 (don't care)\n\t// A8 = STA pin (1->0 data data, 0->1 start speech)\n\t// A9 = RST pin 1=reset\n\n\t// A8 VLM5030 ST pin\n\tm_vlm->st_w(BIT(offset, 8));\n\n\t// A9 VLM5030 RST pin\n\tm_vlm->rst_w(BIT(offset, 9));"
+      }
+    },
+    {
+      "id": "map:trackfld_state.sound_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 57348,
+        "end": 57348,
+        "raw": "map(0xe004, 0xe004).mirror(0x1ff8).w(m_vlm, FUNC(vlm5030_device::data_w))",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 750,
+        "sourceColumn": 2,
+        "sourceEndLine": 750,
+        "mirror": 8184
+      }
+    },
+    {
+      "id": "map:trackfld_state.vlm_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "trackfld_state",
+        "name": "vlm_map",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 768,
+        "sourceColumn": 1,
+        "sourceEndLine": 772,
+        "globalMask": 8191
+      }
+    },
+    {
+      "id": "map:trackfld_state.vlm_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 8191,
+        "raw": "map(0x0000, 0x1fff).rom()",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 771,
+        "sourceColumn": 2,
+        "sourceEndLine": 771,
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:trackfld_state.trackfld",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "trackfld_state",
+        "name": "trackfld",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_bg_bank\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_sprite_bank1\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_sprite_bank2\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_old_gfx_bank\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_sprites_gfx_banked\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_irq_mask\",\"bits\":1}",
+          "{\"name\":\"m_nmi_mask\",\"bits\":1}",
+          "{\"name\":\"m_SN76489a_latch\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "trackfld_state.machine_reset"
+        ],
+        "startHandlers": [
+          "trackfld_state.video_start"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1229,
+        "sourceColumn": 1,
+        "sourceEndLine": 1278
+      }
+    },
+    {
+      "id": "handler:trackfld_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1209,
+        "sourceColumn": 1,
+        "sourceEndLine": 1215,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_bank = 0;\n\tm_sprite_bank1 = 0;\n\tm_sprite_bank2 = 0;\n\tm_old_gfx_bank = 0;"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 473,
+        "sourceColumn": 1,
+        "sourceEndLine": 477,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(trackfld_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);\n\tm_bg_tilemap->set_scroll_rows(32);"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 460,
+        "sourceColumn": 1,
+        "sourceEndLine": 471,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int attr = m_colorram[tile_index];\n\tint code = m_videoram[tile_index] + 4 * (attr & 0xc0);\n\tint color = attr & 0x0f;\n\tint flags = ((attr & 0x10) ? TILE_FLIPX : 0) | ((attr & 0x20) ? TILE_FLIPY : 0);\n\n\tif (m_bg_bank)\n\t\tcode |= 0x400;\n\n\ttileinfo.set(1, code, color, flags);"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "KONAMI1",
+        "tag": "maincpu",
+        "clock": 1536000,
+        "config": [
+          "KONAMI1(config, m_maincpu, MASTER_CLOCK/6/2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &trackfld_state::main_map)"
+        ],
+        "cls": "konami1_device",
+        "clsHierarchy": [
+          "konami1_device"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1232,
+        "sourceColumn": 2,
+        "sourceEndLine": 1232
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3579545.25,
+        "config": [
+          "Z80(config, m_audiocpu, SOUND_CLOCK/4)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &trackfld_state::sound_map)"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1235,
+        "sourceColumn": 2,
+        "sourceEndLine": 1235
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "LS259(config, m_mainlatch)",
+          "m_mainlatch->q_out_cb<0>().set(FUNC(trackfld_state::flip_screen_set))",
+          "m_mainlatch->q_out_cb<1>().set(\"trackfld_audio\", FUNC(trackfld_audio_device::sh_irqtrigger_w))",
+          "m_mainlatch->q_out_cb<2>().set_nop()",
+          "m_mainlatch->q_out_cb<3>().set(FUNC(trackfld_state::coin_counter_1_w))",
+          "m_mainlatch->q_out_cb<4>().set(FUNC(trackfld_state::coin_counter_2_w))",
+          "m_mainlatch->q_out_cb<5>().set_nop()",
+          "m_mainlatch->q_out_cb<6>().set_nop()",
+          "m_mainlatch->q_out_cb<7>().set(FUNC(trackfld_state::irq_mask_w))"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1238,
+        "sourceColumn": 2,
+        "sourceEndLine": 1238
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<0>().set(FUNC(trackfld_state::flip_screen_set))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1239,
+        "sourceColumn": 2,
+        "sourceEndLine": 1239,
+        "slot": "0",
+        "targetClass": "trackfld_state",
+        "targetMethod": "flip_screen_set"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.flip_screen_set",
+      "label": "Handler",
+      "props": {
+        "method": "flip_screen_set",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1304,
+        "sourceColumn": 2,
+        "sourceEndLine": 1304
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<1>().set(\"trackfld_audio\", FUNC(trackfld_audio_device::sh_irqtrigger_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1240,
+        "sourceColumn": 2,
+        "sourceEndLine": 1240,
+        "slot": "1",
+        "targetTag": "trackfld_audio",
+        "targetClass": "trackfld_audio_device",
+        "targetMethod": "sh_irqtrigger_w"
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.sh_irqtrigger_w",
+      "label": "Handler",
+      "props": {
+        "method": "sh_irqtrigger_w",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 100,
+        "sourceColumn": 1,
+        "sourceEndLine": 107,
+        "sourceParameters": "int state",
+        "sourceBody": "// setting bit 0 low then high triggers IRQ on the sound CPU\n\tif (!m_last_irq && state)\n\t\tm_audiocpu->set_input_line(0, HOLD_LINE); // Z80 IM1\n\n\tm_last_irq = state;"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_nop",
+        "raw": "m_mainlatch->q_out_cb<2>().set_nop()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1241,
+        "sourceColumn": 2,
+        "sourceEndLine": 1241,
+        "slot": "2"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<3>().set(FUNC(trackfld_state::coin_counter_1_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1242,
+        "sourceColumn": 2,
+        "sourceEndLine": 1242,
+        "slot": "3",
+        "targetClass": "trackfld_state",
+        "targetMethod": "coin_counter_1_w"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.coin_counter_1_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_1_w",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 548,
+        "sourceColumn": 1,
+        "sourceEndLine": 551,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, state);"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<4>().set(FUNC(trackfld_state::coin_counter_2_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1243,
+        "sourceColumn": 2,
+        "sourceEndLine": 1243,
+        "slot": "4",
+        "targetClass": "trackfld_state",
+        "targetMethod": "coin_counter_2_w"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.coin_counter_2_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_2_w",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 553,
+        "sourceColumn": 1,
+        "sourceEndLine": 556,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, state);"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_nop",
+        "raw": "m_mainlatch->q_out_cb<5>().set_nop()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1244,
+        "sourceColumn": 2,
+        "sourceEndLine": 1244,
+        "slot": "5"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:6",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_nop",
+        "raw": "m_mainlatch->q_out_cb<6>().set_nop()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1245,
+        "sourceColumn": 2,
+        "sourceEndLine": 1245,
+        "slot": "6"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:7",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<7>().set(FUNC(trackfld_state::irq_mask_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1246,
+        "sourceColumn": 2,
+        "sourceEndLine": 1246,
+        "slot": "7",
+        "targetClass": "trackfld_state",
+        "targetMethod": "irq_mask_w"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.irq_mask_w",
+      "label": "Handler",
+      "props": {
+        "method": "irq_mask_w",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 570,
+        "sourceColumn": 1,
+        "sourceEndLine": 575,
+        "sourceParameters": "int state",
+        "sourceBody": "m_irq_mask = state;\n\tif (!m_irq_mask)\n\t\tm_maincpu->set_input_line(0, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/nvram",
+      "label": "Device",
+      "props": {
+        "type": "NVRAM",
+        "tag": "nvram",
+        "clock": null,
+        "config": [
+          "NVRAM(config, \"nvram\", nvram_device::DEFAULT_ALL_0)"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1248,
+        "sourceColumn": 2,
+        "sourceEndLine": 1248,
+        "clockExpr": "nvram_device::DEFAULT_ALL_0"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1250,
+        "sourceColumn": 2,
+        "sourceEndLine": 1250
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(MASTER_CLOCK/3, 384, 0, 256, 264, 16, 240)",
+          "m_screen->set_screen_update(FUNC(trackfld_state::screen_update_trackfld))",
+          "m_screen->set_palette(m_palette)",
+          "m_screen->screen_vblank().set(FUNC(trackfld_state::vblank_irq))"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1253,
+        "sourceColumn": 2,
+        "sourceEndLine": 1253,
+        "configCalls": [
+          "set_raw(6144000,384,0,256,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6144000,
+          384,
+          0,
+          256,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "MASTER_CLOCK/3",
+          "384",
+          "0",
+          "256",
+          "264",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(trackfld_state::screen_update_trackfld))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1255,
+        "sourceColumn": 2,
+        "sourceEndLine": 1255,
+        "targetClass": "trackfld_state",
+        "targetMethod": "screen_update_trackfld"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.screen_update_trackfld",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_trackfld",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 1,
+        "sourceEndLine": 545,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "int row, scrollx;\n\n\tfor (row = 0; row < 32; row++)\n\t{\n\t\tscrollx = m_scroll[row] + 256 * (m_scroll2[row] & 0x01);\n\t\tif (flip_screen()) scrollx = -scrollx;\n\t\tm_bg_tilemap->set_scrollx(row, scrollx);\n\t}\n\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 481,
+        "sourceColumn": 1,
+        "sourceEndLine": 528,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "uint8_t *spriteram = m_spriteram;\n\tuint8_t *spriteram_2 = m_spriteram2;\n\n\tfor (int offs = m_spriteram.bytes() - 2; offs >= 0; offs -= 2)\n\t{\n\t\tint attr = spriteram_2[offs];\n\t\tint code = spriteram[offs + 1];\n\t\tint color = attr & 0x0f;\n\t\tif (!m_sprites_gfx_banked)\n\t\t\tif (attr&1) code|=0x100; // extra tile# bit for the yiear conversion, trackfld doesn't have this many sprites so it will just get masked\n\t\tint flipx = ~attr & 0x40;\n\t\tint flipy = attr & 0x80;\n\t\tint sx = spriteram[offs] - 1;\n\t\tint sy = 240 - spriteram_2[offs + 1];\n\n\t\tif (flip_screen())\n\t\t{\n\t\t\tsy = 240 - sy;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\t/* Note that this adjustement must be done AFTER handling flip screen, thus */\n\t\t/* proving that this is a hardware related \"feature\" */\n\t\tsy += 1;\n\n\t\t// to fix the title screen in yieartf it would have to be like this, the same as yiear.c, this should be verified on the hw\n\t\t//\n\t\t//if (offs < 0x26)\n\t\t//{\n\t\t//  sy++;   /* fix title screen & garbage at the bottom of the screen */\n\t\t//}\n\n\t\tm_gfxdecode->gfx(0)->transmask(bitmap,cliprect,\n\t\t\tcode + m_sprite_bank1 + m_sprite_bank2, color,\n\t\t\tflipx, flipy,\n\t\t\tsx, sy,\n\t\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(0), color, 0));\n\n\t\t/* redraw with wraparound */\n\t\tm_gfxdecode->gfx(0)->transmask(bitmap,cliprect,\n\t\t\tcode + m_sprite_bank1 + m_sprite_bank2, color,\n\t\t\tflipx, flipy,\n\t\t\tsx - 256, sy,\n\t\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(0), color, 0));\n\t}"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "m_screen->screen_vblank().set(FUNC(trackfld_state::vblank_irq))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1257,
+        "sourceColumn": 2,
+        "sourceEndLine": 1257,
+        "targetClass": "trackfld_state",
+        "targetMethod": "vblank_irq"
+      }
+    },
+    {
+      "id": "handler:trackfld_state.vblank_irq",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_irq",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1217,
+        "sourceColumn": 1,
+        "sourceEndLine": 1221,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_irq_mask)\n\t\tm_maincpu->set_input_line(0, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_trackfld)"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1259,
+        "sourceColumn": 2,
+        "sourceEndLine": 1259,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(trackfld_state::trackfld_palette), 16*16+16*16, 32)"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1260,
+        "sourceColumn": 2,
+        "sourceEndLine": 1260,
+        "clockExpr": "FUNC(trackfld_state::trackfld_palette)"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1264,
+        "sourceColumn": 2,
+        "sourceEndLine": 1264
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch\")"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1266,
+        "sourceColumn": 2,
+        "sourceEndLine": 1266
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/trackfld_audio",
+      "label": "Device",
+      "props": {
+        "type": "TRACKFLD_AUDIO",
+        "tag": "trackfld_audio",
+        "clock": null,
+        "config": [
+          "TRACKFLD_AUDIO(config, m_soundbrd, m_audiocpu, m_vlm)"
+        ],
+        "cls": "trackfld_audio_device",
+        "clsHierarchy": [
+          "trackfld_audio_device"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1268,
+        "sourceColumn": 2,
+        "sourceEndLine": 1268,
+        "clockExpr": "m_audiocpu"
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/dac",
+      "label": "Device",
+      "props": {
+        "type": "DAC_8BIT_R2R",
+        "tag": "dac",
+        "clock": 0,
+        "config": [
+          "DAC_8BIT_R2R(config, m_dac, 0).add_route(ALL_OUTPUTS, \"speaker\", 0.4)"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1270,
+        "sourceColumn": 2,
+        "sourceEndLine": 1270
+      }
+    },
+    {
+      "id": "audioroute:device:trackfld_state.trackfld/dac/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.4,
+        "raw": "DAC_8BIT_R2R(config, m_dac, 0).add_route(ALL_OUTPUTS, \"speaker\", 0.4)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1270,
+        "sourceColumn": 2,
+        "sourceEndLine": 1270
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/snsnd",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "snsnd",
+        "clock": 1789772.625,
+        "config": [
+          "SN76489A(config, m_sn, SOUND_CLOCK/8)",
+          "m_sn->add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1272,
+        "sourceColumn": 2,
+        "sourceEndLine": 1272
+      }
+    },
+    {
+      "id": "audioroute:device:trackfld_state.trackfld/snsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 1,
+        "raw": "m_sn->add_route(ALL_OUTPUTS, \"speaker\", 1.0)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1273,
+        "sourceColumn": 2,
+        "sourceEndLine": 1273
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/vlm",
+      "label": "Device",
+      "props": {
+        "type": "VLM5030",
+        "tag": "vlm",
+        "clock": 3579545,
+        "config": [
+          "VLM5030(config, m_vlm, VLM_CLOCK)",
+          "m_vlm->set_addrmap(0, &trackfld_state::vlm_map)",
+          "m_vlm->add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ],
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1275,
+        "sourceColumn": 2,
+        "sourceEndLine": 1275
+      }
+    },
+    {
+      "id": "audioroute:device:trackfld_state.trackfld/vlm/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 1,
+        "raw": "m_vlm->add_route(ALL_OUTPUTS, \"speaker\", 1.0)",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1277,
+        "sourceColumn": 2,
+        "sourceEndLine": 1277
+      }
+    },
+    {
+      "id": "inputs:trackfld",
+      "label": "InputPorts",
+      "props": {
+        "name": "trackfld",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 774,
+        "sourceColumn": 8,
+        "sourceEndLine": 774
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:trackfld/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START3",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START4",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:trackfld/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":1,2,3,4\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 15,
+        "location": "#SW1\":1,2,3,4\"",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":5,6,7,8\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "32=4C 1C",
+          "80=3C 1C",
+          "128=2C 1C",
+          "64=3C 2C",
+          "16=4C 3C",
+          "240=1C 1C",
+          "48=3C 4C",
+          "112=2C 3C",
+          "224=1C 2C",
+          "96=2C 5C",
+          "208=1C 3C",
+          "192=1C 4C",
+          "176=1C 5C",
+          "160=1C 6C",
+          "144=1C 7C",
+          "0=No Coin B"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:1\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 1,
+        "location": "SW2:1",
+        "settings": [
+          "1=1",
+          "0=2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:2\")"
+        ],
+        "name": "After Last Event",
+        "defaultValue": 0,
+        "location": "SW2:2",
+        "settings": [
+          "2=Game Over",
+          "0=Game Continues"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:3\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:3",
+        "settings": [
+          "0=Upright",
+          "4=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:4\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 8,
+        "location": "SW2:4",
+        "settings": [
+          "8=None",
+          "0=100000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:5\")"
+        ],
+        "name": "World Records",
+        "defaultValue": 16,
+        "location": "SW2:5",
+        "settings": [
+          "16=Don't Erase",
+          "0=Erase on Reset"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 96,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:6,7\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 64,
+        "location": "SW2:6,7",
+        "settings": [
+          "96=Easy",
+          "64=Normal",
+          "32=Hard",
+          "0=Difficult"
+        ]
+      }
+    },
+    {
+      "id": "inputs:trackfld/DSW2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:8\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)+4",
+          "RGN_FRAC(1,2)+0",
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67,
+          128,
+          129,
+          130,
+          131,
+          192,
+          193,
+          194,
+          195
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_msb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_trackfld",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_trackfld",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1190,
+        "sourceColumn": 8,
+        "sourceEndLine": 1190
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_trackfld/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx1",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_trackfld/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx2",
+        "offset": 0,
+        "layout": "gfx_8x8x4_packed_msb",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:trackfld_state.trackfld/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(trackfld_state::trackfld_palette), 16*16+16*16, 32)",
+        "ownerTag": "palette",
+        "targetClass": "trackfld_state",
+        "targetMethod": "trackfld_palette",
+        "entries": 32,
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1260
+      }
+    },
+    {
+      "id": "handler:trackfld_state.trackfld_palette",
+      "label": "Handler",
+      "props": {
+        "method": "trackfld_palette",
+        "ownerClass": "trackfld_state",
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 345,
+        "sourceColumn": 1,
+        "sourceEndLine": 399,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "const uint8_t *color_prom = memregion(\"proms\")->base();\n\t\n\t\n\n\t// compute the color output resistor weights\n\tdouble rweights[3], gweights[3], bweights[2];\n\tcompute_resistor_weights(0, 255, -1.0,\n\t\t\t3, &TABLE(0, 1000, 470, 220), rweights, 1000, 0,\n\t\t\t3, &TABLE(0, 1000, 470, 220), gweights, 1000, 0,\n\t\t\t2, &TABLE(0, 470, 220),  bweights, 1000, 0);\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\tint bit0, bit1, bit2;\n\n\t\t// red component\n\t\tbit0 = BIT(color_prom[i], 0);\n\t\tbit1 = BIT(color_prom[i], 1);\n\t\tbit2 = BIT(color_prom[i], 2);\n\t\tint const r = combine_weights(rweights, bit0, bit1, bit2);\n\n\t\t// green component\n\t\tbit0 = BIT(color_prom[i], 3);\n\t\tbit1 = BIT(color_prom[i], 4);\n\t\tbit2 = BIT(color_prom[i], 5);\n\t\tint const g = combine_weights(gweights, bit0, bit1, bit2);\n\n\t\t// blue component\n\t\tbit0 = BIT(color_prom[i], 6);\n\t\tbit1 = BIT(color_prom[i], 7);\n\t\tint const b = combine_weights(bweights, bit0, bit1);\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x20;\n\n\t// sprites\n\tfor (int i = 0; i < 0x100; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] & 0x0f;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\t// characters\n\tfor (int i = 0x100; i < 0x200; i++)\n\t{\n\t\tuint8_t const ctabentry = (color_prom[i] & 0x0f) | 0x10;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:trackfld",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 2051,
+        "sourceColumn": 1,
+        "sourceEndLine": 2051
+      }
+    },
+    {
+      "from": "game:trackfld",
+      "to": "machine:trackfld_state.trackfld",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:trackfld",
+      "to": "inputs:trackfld",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:trackfld",
+      "to": "romset:trackfld",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:hyprolyb.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:konami1.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:trackfld_a.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:cpu/m6800/m6800.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:machine/timer.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:sound/dac.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:sound/sn76496.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:sound/vlm5030.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/trackfld.cpp",
+      "to": "file:video/resnet.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1229,
+        "sourceColumn": 1,
+        "sourceEndLine": 1278
+      }
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "handler:trackfld_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "handler:trackfld_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/nvram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "gfxdecode:gfx_trackfld",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/trackfld_audio",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/snsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:trackfld_state.trackfld",
+      "to": "device:trackfld_state.trackfld/vlm",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:trackfld",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 774,
+        "sourceColumn": 8,
+        "sourceEndLine": 774
+      }
+    },
+    {
+      "from": "inputs:trackfld",
+      "to": "inputs:trackfld/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:trackfld",
+      "to": "inputs:trackfld/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:trackfld",
+      "to": "inputs:trackfld/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:trackfld",
+      "to": "inputs:trackfld/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:trackfld",
+      "to": "inputs:trackfld/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:trackfld",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1439,
+        "sourceColumn": 1,
+        "sourceEndLine": 1439
+      }
+    },
+    {
+      "from": "romset:trackfld",
+      "to": "region:trackfld/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:trackfld",
+      "to": "region:trackfld/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:trackfld",
+      "to": "region:trackfld/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:trackfld",
+      "to": "region:trackfld/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:trackfld",
+      "to": "region:trackfld/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:trackfld",
+      "to": "region:trackfld/vlm",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:trackfld_state.video_start",
+      "to": "handler:trackfld_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/maincpu",
+      "to": "map:trackfld_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:trackfld_state.trackfld/audiocpu",
+      "to": "map:trackfld_state.sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:6",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch",
+      "to": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:7",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/screen",
+      "to": "device:trackfld_state.trackfld/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/screen",
+      "to": "device:trackfld_state.trackfld/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_trackfld",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 1190,
+        "sourceColumn": 8,
+        "sourceEndLine": 1190
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_trackfld",
+      "to": "gfxdecode:gfx_trackfld/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_trackfld",
+      "to": "gfxdecode:gfx_trackfld/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/palette",
+      "to": "device:trackfld_state.trackfld/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/dac",
+      "to": "audioroute:device:trackfld_state.trackfld/dac/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/snsnd",
+      "to": "audioroute:device:trackfld_state.trackfld/snsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/vlm",
+      "to": "audioroute:device:trackfld_state.trackfld/vlm/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/vlm",
+      "to": "map:trackfld_state.vlm_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "0"
+      }
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/SYSTEM",
+      "to": "inputs:trackfld/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN0",
+      "to": "inputs:trackfld/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/IN1",
+      "to": "inputs:trackfld/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW1",
+      "to": "inputs:trackfld/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW1",
+      "to": "inputs:trackfld/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW2",
+      "to": "inputs:trackfld/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW2",
+      "to": "inputs:trackfld/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW2",
+      "to": "inputs:trackfld/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW2",
+      "to": "inputs:trackfld/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW2",
+      "to": "inputs:trackfld/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW2",
+      "to": "inputs:trackfld/DSW2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:trackfld/DSW2",
+      "to": "inputs:trackfld/DSW2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:trackfld/maincpu",
+      "to": "rom:trackfld/maincpu/a01_e01.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/maincpu",
+      "to": "rom:trackfld/maincpu/a02_e02.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/maincpu",
+      "to": "rom:trackfld/maincpu/a03_k03.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/maincpu",
+      "to": "rom:trackfld/maincpu/a04_e04.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/maincpu",
+      "to": "rom:trackfld/maincpu/a05_e05.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/audiocpu",
+      "to": "rom:trackfld/audiocpu/c2_d13.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/gfx1",
+      "to": "rom:trackfld/gfx1/c11_d06.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/gfx1",
+      "to": "rom:trackfld/gfx1/c12_d07.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/gfx1",
+      "to": "rom:trackfld/gfx1/c13_d08.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/gfx1",
+      "to": "rom:trackfld/gfx1/c14_d09.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/gfx2",
+      "to": "rom:trackfld/gfx2/h16_e12.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/gfx2",
+      "to": "rom:trackfld/gfx2/h15_e11.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/gfx2",
+      "to": "rom:trackfld/gfx2/h14_e10.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/proms",
+      "to": "rom:trackfld/proms/361b16.f1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/proms",
+      "to": "rom:trackfld/proms/361b17.b16",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/proms",
+      "to": "rom:trackfld/proms/361b18.e15",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:trackfld/vlm",
+      "to": "rom:trackfld/vlm/c9_d15.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 1,
+        "sourceEndLine": 598
+      }
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map",
+      "to": "map:trackfld_state.main_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 738,
+        "sourceColumn": 1,
+        "sourceEndLine": 751
+      }
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.sound_map",
+      "to": "map:trackfld_state.sound_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:0",
+      "to": "handler:trackfld_state.flip_screen_set",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:1",
+      "to": "handler:trackfld_audio_device.sh_irqtrigger_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:3",
+      "to": "handler:trackfld_state.coin_counter_1_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:4",
+      "to": "handler:trackfld_state.coin_counter_2_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/mainlatch/callback:mainlatch:7",
+      "to": "handler:trackfld_state.irq_mask_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/screen/callback:screen:0",
+      "to": "handler:trackfld_state.screen_update_trackfld",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/screen/callback:screen:1",
+      "to": "handler:trackfld_state.vblank_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_trackfld/e0",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_trackfld/e1",
+      "to": "gfxlayout:gfx_8x8x4_packed_msb",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:trackfld_state.trackfld/palette/callback:palette_init",
+      "to": "handler:trackfld_state.trackfld_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:trackfld_state.vlm_map",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/trackfld.cpp",
+        "sourceLine": 768,
+        "sourceColumn": 1,
+        "sourceEndLine": 772
+      }
+    },
+    {
+      "from": "map:trackfld_state.vlm_map",
+      "to": "map:trackfld_state.vlm_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:trackfld_state.main_map/range0",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:trackfld_state.main_map/range1",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:trackfld_state.main_map/range2",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:trackfld_state.main_map/range15",
+      "to": "handler:trackfld_state.trackfld_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:trackfld_state.main_map/range16",
+      "to": "handler:trackfld_state.trackfld_colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range2",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range3",
+      "to": "handler:trackfld_audio_device.trackfld_sh_timer_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "trackfld_audio"
+      }
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range4",
+      "to": "handler:trackfld_state.konami_SN76489a_latch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range5",
+      "to": "handler:trackfld_state.trackfld_SN76489a_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range5",
+      "to": "handler:trackfld_state.konami_SN76489a_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range6",
+      "to": "handler:dac_byte_interface.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "dac"
+      }
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range8",
+      "to": "handler:trackfld_audio_device.trackfld_speech_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "trackfld_audio"
+      }
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range9",
+      "to": "handler:trackfld_audio_device.trackfld_sound_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "trackfld_audio"
+      }
+    },
+    {
+      "from": "map:trackfld_state.sound_map/range10",
+      "to": "handler:vlm5030_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "vlm"
+      }
+    },
+    {
+      "from": "handler:trackfld_state.screen_update_trackfld",
+      "to": "handler:trackfld_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_msb",
+      "to": "file:src/mame/konami/trackfld.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:trackfld_state.trackfld_SN76489a_r",
+      "to": "handler:trackfld_state.konami_SN76489a_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:trackfld_state.konami_SN76489a_w",
+      "to": "handler:hyprolyb_adpcm_device.write",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

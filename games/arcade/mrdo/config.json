@@ -1,0 +1,726 @@
+{
+  "game": "mrdo",
+  "title": "Mr. Do! (Universal, 1982)",
+  "family": "mrdo",
+  "dataPath": "games/arcade/mrdo",
+  "board": {
+    "family": "mrdo",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 4100000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "share": "bgvideoram",
+            "write": "mrdo_state.bgvideoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 34816,
+            "end": 36863,
+            "kind": "ram",
+            "share": "fgvideoram",
+            "write": "mrdo_state.fgvideoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 36864,
+            "end": 37119,
+            "kind": "ram",
+            "share": "spriteram",
+            "writeOnly": true
+          },
+          {
+            "start": 38912,
+            "end": 38912,
+            "kind": "handler",
+            "write": "mrdo_state.flipscreen_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 38913,
+            "end": 38913,
+            "kind": "handler",
+            "write": "sn1.write"
+          },
+          {
+            "start": 38914,
+            "end": 38914,
+            "kind": "handler",
+            "write": "sn2.write"
+          },
+          {
+            "start": 38915,
+            "end": 38915,
+            "kind": "handler",
+            "read": "mrdo_state.protection_r"
+          },
+          {
+            "start": 40960,
+            "end": 40960,
+            "kind": "handler",
+            "read": "port.P1"
+          },
+          {
+            "start": 40961,
+            "end": 40961,
+            "kind": "handler",
+            "read": "port.P2"
+          },
+          {
+            "start": 40962,
+            "end": 40962,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 40963,
+            "end": 40963,
+            "kind": "handler",
+            "read": "port.DSW2"
+          },
+          {
+            "start": 57344,
+            "end": 61439,
+            "kind": "ram"
+          },
+          {
+            "start": 61440,
+            "end": 63487,
+            "kind": "handler",
+            "write": "mrdo_state.scrollx_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 63488,
+            "end": 65535,
+            "kind": "handler",
+            "write": "mrdo_state.scrolly_w",
+            "handlerWidth": 8
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 32767,
+        "kind": "rom"
+      },
+      {
+        "start": 32768,
+        "end": 34815,
+        "kind": "ram",
+        "share": "bgvideoram",
+        "write": "mrdo_state.bgvideoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 34816,
+        "end": 36863,
+        "kind": "ram",
+        "share": "fgvideoram",
+        "write": "mrdo_state.fgvideoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 36864,
+        "end": 37119,
+        "kind": "ram",
+        "share": "spriteram",
+        "writeOnly": true
+      },
+      {
+        "start": 38912,
+        "end": 38912,
+        "kind": "handler",
+        "write": "mrdo_state.flipscreen_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 38913,
+        "end": 38913,
+        "kind": "handler",
+        "write": "sn1.write"
+      },
+      {
+        "start": 38914,
+        "end": 38914,
+        "kind": "handler",
+        "write": "sn2.write"
+      },
+      {
+        "start": 38915,
+        "end": 38915,
+        "kind": "handler",
+        "read": "mrdo_state.protection_r"
+      },
+      {
+        "start": 40960,
+        "end": 40960,
+        "kind": "handler",
+        "read": "port.P1"
+      },
+      {
+        "start": 40961,
+        "end": 40961,
+        "kind": "handler",
+        "read": "port.P2"
+      },
+      {
+        "start": 40962,
+        "end": 40962,
+        "kind": "handler",
+        "read": "port.DSW1"
+      },
+      {
+        "start": 40963,
+        "end": 40963,
+        "kind": "handler",
+        "read": "port.DSW2"
+      },
+      {
+        "start": 57344,
+        "end": 61439,
+        "kind": "ram"
+      },
+      {
+        "start": 61440,
+        "end": 63487,
+        "kind": "handler",
+        "write": "mrdo_state.scrollx_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 63488,
+        "end": 65535,
+        "kind": "handler",
+        "write": "mrdo_state.scrolly_w",
+        "handlerWidth": 8
+      }
+    ],
+    "screen": {
+      "width": 240,
+      "height": 192,
+      "xOffset": 8,
+      "yOffset": 32,
+      "refresh": 59.94323742415345,
+      "htotal": 312,
+      "vtotal": 262,
+      "vbstart": 224,
+      "vbend": 32,
+      "updateMode": "frame",
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "sn76489",
+    "clock": 4100000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489",
+      "SN76489"
+    ],
+    "clocks": [
+      4100000,
+      4100000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "a4-01.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "03dcfba2",
+          "alt": [
+            {
+              "file": "dosnow.1",
+              "crc": "d3454e2c"
+            },
+            {
+              "file": "d1",
+              "crc": "3dcd9359"
+            },
+            {
+              "file": "md_fabre.a4",
+              "crc": "62593aed"
+            },
+            {
+              "file": "mrlo01.bin",
+              "crc": "6f455e7d"
+            }
+          ]
+        },
+        {
+          "file": "c4-02.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "0ecdd39c",
+          "alt": [
+            {
+              "file": "dosnow.2",
+              "crc": "5120a6b2"
+            },
+            {
+              "file": "yd_d2.c4",
+              "crc": "7c9d7ce0"
+            },
+            {
+              "file": "d2",
+              "crc": "710058d8"
+            }
+          ]
+        },
+        {
+          "file": "e4-03.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "358f5dc2",
+          "alt": [
+            {
+              "file": "dosnow.3",
+              "crc": "96416dbe"
+            },
+            {
+              "file": "d3.e4",
+              "crc": "afc518e3"
+            },
+            {
+              "file": "d3",
+              "crc": "467d12d8"
+            },
+            {
+              "file": "dofix.d3",
+              "crc": "3a7d039b"
+            }
+          ]
+        },
+        {
+          "file": "f4-04.bin",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "f4190cfc",
+          "alt": [
+            {
+              "file": "dosnow.4",
+              "crc": "c05051b6"
+            },
+            {
+              "file": "d4",
+              "crc": "fce9afeb"
+            },
+            {
+              "file": "dofix.d4",
+              "crc": "32db845f"
+            },
+            {
+              "file": "du4.bin",
+              "crc": "893bc218"
+            },
+            {
+              "file": "mrlo04.bin",
+              "crc": "49c10274"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "s8-09.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "aa80c5b6",
+          "alt": [
+            {
+              "file": "dosnow.9",
+              "crc": "85d16217"
+            },
+            {
+              "file": "d9",
+              "crc": "de4cfe66"
+            },
+            {
+              "file": "du9.bin",
+              "crc": "4090dcdc"
+            },
+            {
+              "file": "md_fabre.t8",
+              "crc": "f2dff901"
+            },
+            {
+              "file": "mrlo09.bin",
+              "crc": "fdb60d0d"
+            }
+          ]
+        },
+        {
+          "file": "u8-10.bin",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "d20ec85b",
+          "alt": [
+            {
+              "file": "dosnow.10",
+              "crc": "61a7f54b"
+            },
+            {
+              "file": "d10",
+              "crc": "a6c2f38b"
+            },
+            {
+              "file": "du10.bin",
+              "crc": "1e63ab69"
+            },
+            {
+              "file": "md_fabre.u8",
+              "crc": "f3e443bd"
+            },
+            {
+              "file": "mrlo10.bin",
+              "crc": "0492c10e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "r8-08.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "dbdc9ffa",
+          "alt": [
+            {
+              "file": "dosnow.8",
+              "crc": "2bd1239a"
+            }
+          ]
+        },
+        {
+          "file": "n8-07.bin",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "4b9973db",
+          "alt": [
+            {
+              "file": "dosnow.7",
+              "crc": "ac8ffddf"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx3",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "h5-05.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "e1218cc5",
+          "alt": [
+            {
+              "file": "dosnow.5",
+              "crc": "7662d828"
+            },
+            {
+              "file": "yd_d5.h5",
+              "crc": "f530b79b"
+            }
+          ]
+        },
+        {
+          "file": "k5-06.bin",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "b1f68b04",
+          "alt": [
+            {
+              "file": "dosnow.6",
+              "crc": "413f88d1"
+            },
+            {
+              "file": "yd_d6.k5",
+              "crc": "790579aa"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 128,
+      "loads": [
+        {
+          "file": "u02--2.bin",
+          "offset": 0,
+          "size": 32,
+          "crc": "238a65d7"
+        },
+        {
+          "file": "t02--3.bin",
+          "offset": 32,
+          "size": 32,
+          "crc": "ae263dc0"
+        },
+        {
+          "file": "f10--1.bin",
+          "offset": 64,
+          "size": 32,
+          "crc": "16ee4ca2"
+        },
+        {
+          "file": "j10--4.bin",
+          "offset": 96,
+          "size": 32,
+          "crc": "ff7fe284"
+        }
+      ]
+    },
+    {
+      "region": "pal16r6",
+      "size": 512,
+      "loads": [
+        {
+          "file": "u001_pal16r6cn.j2",
+          "offset": 0,
+          "size": 260,
+          "crc": "84dbe498"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 64,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 128,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 8,
+      "name": "Special"
+    },
+    {
+      "port": "DSW1",
+      "mask": 16,
+      "value": 16,
+      "name": "Extra"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 192,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin A"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 223
+    },
+    {
+      "tag": "DSW2",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

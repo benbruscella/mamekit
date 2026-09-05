@@ -1,0 +1,763 @@
+{
+  "game": "junofrst",
+  "title": "Juno First (Konami, 1983)",
+  "fullname": "Juno First",
+  "year": "1983",
+  "company": "Konami",
+  "family": "junofrst",
+  "driverFile": "src/mame/konami/junofrst.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Chris Hardy",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "konami1",
+      "clock": 1536000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 32768,
+          "end": 32783,
+          "kind": "ram",
+          "share": "palette",
+          "write": "palette.write8"
+        },
+        {
+          "start": 32784,
+          "end": 32784,
+          "kind": "handler",
+          "read": "port.DSW2"
+        },
+        {
+          "start": 32796,
+          "end": 32796,
+          "kind": "handler",
+          "read": "watchdog.reset_r"
+        },
+        {
+          "start": 32800,
+          "end": 32800,
+          "kind": "handler",
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 32804,
+          "end": 32804,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 32808,
+          "end": 32808,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 32812,
+          "end": 32812,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 32816,
+          "end": 32823,
+          "kind": "handler",
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 32832,
+          "end": 32832,
+          "kind": "handler",
+          "write": "junofrst_state.sh_irqtrigger_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32848,
+          "end": 32848,
+          "kind": "handler",
+          "write": "soundlatch.write"
+        },
+        {
+          "start": 32864,
+          "end": 32864,
+          "kind": "handler",
+          "write": "junofrst_state.bankselect_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32880,
+          "end": 32883,
+          "kind": "handler",
+          "write": "junofrst_state.blitter_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 33024,
+          "end": 36863,
+          "kind": "ram"
+        },
+        {
+          "start": 36864,
+          "end": 40959,
+          "kind": "handler",
+          "read": "bank.mainbank",
+          "bank": "mainbank"
+        },
+        {
+          "start": 40960,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 1789772.625,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "rom"
+        },
+        {
+          "start": 8192,
+          "end": 9215,
+          "kind": "ram"
+        },
+        {
+          "start": 12288,
+          "end": 12288,
+          "kind": "handler",
+          "read": "soundlatch.read"
+        },
+        {
+          "start": 16384,
+          "end": 16384,
+          "kind": "handler",
+          "write": "aysnd.address_w"
+        },
+        {
+          "start": 16385,
+          "end": 16385,
+          "kind": "handler",
+          "read": "aysnd.data_r"
+        },
+        {
+          "start": 16386,
+          "end": 16386,
+          "kind": "handler",
+          "write": "aysnd.data_w"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "handler",
+          "write": "soundlatch2.write"
+        },
+        {
+          "start": 24576,
+          "end": 24576,
+          "kind": "handler",
+          "write": "junofrst_state.i8039_irq_w",
+          "handlerWidth": 8
+        }
+      ]
+    },
+    {
+      "tag": "mcu",
+      "type": "i8039",
+      "clock": 8000000,
+      "region": "mcu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "rom"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 255,
+            "kind": "handler",
+            "read": "soundlatch2.read"
+          }
+        ]
+      }
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 1,
+    "deviceTags": [
+      "aysnd"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.3,
+        "target": "filter.0.0",
+        "filter": {
+          "index": 0,
+          "bank": 0,
+          "channel": 0
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.3,
+        "target": "filter.0.1",
+        "filter": {
+          "index": 1,
+          "bank": 0,
+          "channel": 1
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.3,
+        "target": "filter.0.2",
+        "filter": {
+          "index": 2,
+          "bank": 0,
+          "channel": 2
+        }
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "DAC_8BIT_R2R",
+        "deviceTag": "dac",
+        "clock": 0,
+        "gain": 0.25,
+        "target": "speaker",
+        "writeMethods": [
+          "data_w",
+          "write"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "jfa_b9.bin",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "f5a7ab9d",
+          "alt": [
+            {
+              "file": "jfg_a.9b",
+              "crc": "8f77d1c5"
+            }
+          ]
+        },
+        {
+          "file": "jfb_b10.bin",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "f20626e0",
+          "alt": [
+            {
+              "file": "jfg_b.10b",
+              "crc": "cd645673"
+            }
+          ]
+        },
+        {
+          "file": "jfc_a10.bin",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "1e7744a7",
+          "alt": [
+            {
+              "file": "jfg_c.10a",
+              "crc": "47852761"
+            }
+          ]
+        },
+        {
+          "file": "jfc1_a4.bin",
+          "offset": 65536,
+          "size": 8192,
+          "crc": "03ccbf1d",
+          "alt": [
+            {
+              "file": "jfgc1.4a",
+              "crc": "90a05ae6"
+            }
+          ]
+        },
+        {
+          "file": "jfc2_a5.bin",
+          "offset": 73728,
+          "size": 8192,
+          "crc": "cb372372"
+        },
+        {
+          "file": "jfc3_a6.bin",
+          "offset": 81920,
+          "size": 8192,
+          "crc": "879d194b"
+        },
+        {
+          "file": "jfc4_a7.bin",
+          "offset": 90112,
+          "size": 8192,
+          "crc": "f28af80b",
+          "alt": [
+            {
+              "file": "jfgc4.7a",
+              "crc": "e8864a43"
+            }
+          ]
+        },
+        {
+          "file": "jfc5_a8.bin",
+          "offset": 98304,
+          "size": 8192,
+          "crc": "0539f328"
+        },
+        {
+          "file": "jfc6_a9.bin",
+          "offset": 106496,
+          "size": 8192,
+          "crc": "1da2ad6e"
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "jfs1_j3.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "235a2893"
+        }
+      ]
+    },
+    {
+      "region": "mcu",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "jfs2_p4.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "d0fa5d5f"
+        }
+      ]
+    },
+    {
+      "region": "blitrom",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "jfs3_c7.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "aeacf6db"
+        },
+        {
+          "file": "jfs4_d7.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "206d954c"
+        },
+        {
+          "file": "jfs5_e7.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "1eb87a6e"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW2",
+      "mask": 112,
+      "value": 112,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-27",
+    "commits": 165,
+    "contributors": 29,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 64,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 30,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 11,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 10,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2021-02-11"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2019-04-04"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2018-03-28"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2019-02-19",
+        "lastCommit": "2025-08-13"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2016-10-17"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "couriersud",
+        "commits": 2,
+        "firstCommit": "2019-05-07",
+        "lastCommit": "2019-05-09"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2018-06-27"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-12-08"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-01-31",
+        "lastCommit": "2013-01-31"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-10-13",
+        "lastCommit": "2011-10-13"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2026-06-27",
+        "lastCommit": "2026-06-27"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2025-02-07",
+        "lastCommit": "2025-02-07"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2015-08-01",
+        "lastCommit": "2015-08-01"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 1,
+        "firstCommit": "2021-07-05",
+        "lastCommit": "2021-07-05"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 1,
+        "firstCommit": "2012-01-27",
+        "lastCommit": "2012-01-27"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2022-03-26",
+        "lastCommit": "2022-03-26"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2011-08-23"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nJuno First (c) 1983 Konami.\n\nJuno First a vertically-scrolling shoot-em-up viewed from a third-person perspective in which players must destroy waves of attacking aliens. Unlike other shooters of the time, the game's enemies don't line up in a gallery formation but instead move freely around the screen. Because of this, the player's ship can move both forwards and backwards (in addition to left and right).\n\nAs well as the attacking aliens a spherical 'space capsule' occasionally appears on-screen and if shot, it releases an enemy astronaut that can then be captured. This must be done within a set time, however, with the screen having  a red tint for the period in which rescue is possible. During the capture phase, every enemy the player shoots is worth an additional 200 points. \n\nAs a last resort players also have the option to 'warp' to another random part of the play area. This is highly risky as it may place the player's ship in a position more dangerous than the one it left. Players are allowed three warps per level.\n\nStarting formations vary from stage to stage and the aliens mutate into more dangerous forms the longer they survive. To complete a level all aliens must be destroyed.\n\n- TECHNICAL -\n\nGame ID : GX310\n\nMain CPU : Motorola M6809 (@ 1.5 Mhz)\nSound CPU : Zilog Z80 (@ 1.78975 Mhz), I8039 (@ 533.333 Khz)\nSound Chips : General Instrument AY8910 (@ 1.78975 Mhz), DAC, (3x) RC (@ 1.789772 Mhz)\n\nPlayers : 2\nControl : 8-way joystick\nButtons : 3\n\n- TRIVIA -\n\nJuno First was released in July 1983 in Japan.\n\nTom Gibson holds the official record for this game with 78888980 points.\n\nReleased in North America as \"Juno First [GV-122]\"\n\n- TIPS AND TRICKS -\n\n* Shooting the space capsule will cause a astronaut to appear. Touching this astronaut will engage a bonus mode. In this mode, the enemy ships will stop firing for 10 seconds and each enemy destroyed will earn the player bonus points.\n\n* To take full advantage of the bonus mode, avoid shooting enemy ships for about the first 20 seconds of the wave until the asteroid appears and you activate bonus mode. This will allow you to kill more enemies while in bonus mode.\n\n* Don't forget to use your warp button - it can get you out of some sticky situations. You have 3 warps per level, and warps do not carry over to the next level.\n\n* An extra ship is awarded at every 100,000 points, but be aware that the score rolls over after 1,000,000 points.\n\n- PORTS -\n\n* COMPUTERS:\n[EU] MSX (1983)\n[JP] MSX (1984)\n[EU] Commodore C64 (1984)\n[US] PC MS-DOS (1984)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1245/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

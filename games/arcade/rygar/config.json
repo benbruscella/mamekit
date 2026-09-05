@@ -1,0 +1,875 @@
+{
+  "game": "rygar",
+  "title": "Rygar (US set 1) (Tecmo, 1986)",
+  "family": "tecmo",
+  "dataPath": "games/arcade/rygar",
+  "board": {
+    "family": "tecmo",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 6000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 49151,
+            "kind": "rom"
+          },
+          {
+            "start": 49152,
+            "end": 53247,
+            "kind": "ram"
+          },
+          {
+            "start": 53248,
+            "end": 55295,
+            "kind": "ram",
+            "share": "txvideoram",
+            "write": "tecmo_state.txvideoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 55296,
+            "end": 56319,
+            "kind": "ram",
+            "share": "fgvideoram",
+            "write": "tecmo_state.fgvideoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 56320,
+            "end": 57343,
+            "kind": "ram",
+            "share": "bgvideoram",
+            "write": "tecmo_state.bgvideoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 57344,
+            "end": 59391,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 59392,
+            "end": 61439,
+            "kind": "ram",
+            "share": "palette",
+            "write": "palette.write8"
+          },
+          {
+            "start": 61440,
+            "end": 63487,
+            "kind": "handler",
+            "read": "bank.mainbank",
+            "bank": "mainbank"
+          },
+          {
+            "start": 63488,
+            "end": 63488,
+            "kind": "handler",
+            "read": "port.JOY1"
+          },
+          {
+            "start": 63489,
+            "end": 63489,
+            "kind": "handler",
+            "read": "port.BUTTONS1"
+          },
+          {
+            "start": 63490,
+            "end": 63490,
+            "kind": "handler",
+            "read": "port.JOY2"
+          },
+          {
+            "start": 63491,
+            "end": 63491,
+            "kind": "handler",
+            "read": "port.BUTTONS2"
+          },
+          {
+            "start": 63492,
+            "end": 63492,
+            "kind": "handler",
+            "read": "port.SYS_0"
+          },
+          {
+            "start": 63493,
+            "end": 63493,
+            "kind": "handler",
+            "read": "port.SYS_1"
+          },
+          {
+            "start": 63494,
+            "end": 63494,
+            "kind": "handler",
+            "read": "tecmo_state.dsw_l_r_0"
+          },
+          {
+            "start": 63495,
+            "end": 63495,
+            "kind": "handler",
+            "read": "tecmo_state.dsw_h_r_0"
+          },
+          {
+            "start": 63496,
+            "end": 63496,
+            "kind": "handler",
+            "read": "tecmo_state.dsw_l_r_1"
+          },
+          {
+            "start": 63497,
+            "end": 63497,
+            "kind": "handler",
+            "read": "tecmo_state.dsw_h_r_1"
+          },
+          {
+            "start": 63503,
+            "end": 63503,
+            "kind": "handler",
+            "read": "port.SYS_2"
+          },
+          {
+            "start": 63488,
+            "end": 63490,
+            "kind": "handler",
+            "share": "fgscroll",
+            "write": "tecmo_state.fgscroll_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 63491,
+            "end": 63493,
+            "kind": "handler",
+            "share": "bgscroll",
+            "write": "tecmo_state.bgscroll_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 63494,
+            "end": 63494,
+            "kind": "handler",
+            "write": "soundlatch.write"
+          },
+          {
+            "start": 63495,
+            "end": 63495,
+            "kind": "handler",
+            "write": "tecmo_state.flipscreen_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 63496,
+            "end": 63496,
+            "kind": "handler",
+            "write": "tecmo_state.bankswitch_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 63499,
+            "end": 63499,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          }
+        ]
+      },
+      {
+        "tag": "soundcpu",
+        "type": "z80",
+        "clock": 4000000,
+        "region": "soundcpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 16384,
+            "end": 18431,
+            "kind": "ram"
+          },
+          {
+            "start": 32768,
+            "end": 32769,
+            "kind": "handler",
+            "write": "ymsnd.write"
+          },
+          {
+            "start": 49152,
+            "end": 49152,
+            "kind": "handler",
+            "read": "soundlatch.read",
+            "write": "tecmo_state.adpcm_start_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 53248,
+            "kind": "handler",
+            "write": "tecmo_state.adpcm_end_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 57344,
+            "end": 57344,
+            "kind": "handler",
+            "write": "tecmo_state.adpcm_vol_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 61440,
+            "end": 61440,
+            "kind": "handler",
+            "write": "soundlatch.acknowledge_w"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 49151,
+        "kind": "rom"
+      },
+      {
+        "start": 49152,
+        "end": 53247,
+        "kind": "ram"
+      },
+      {
+        "start": 53248,
+        "end": 55295,
+        "kind": "ram",
+        "share": "txvideoram",
+        "write": "tecmo_state.txvideoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 55296,
+        "end": 56319,
+        "kind": "ram",
+        "share": "fgvideoram",
+        "write": "tecmo_state.fgvideoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 56320,
+        "end": 57343,
+        "kind": "ram",
+        "share": "bgvideoram",
+        "write": "tecmo_state.bgvideoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 57344,
+        "end": 59391,
+        "kind": "ram",
+        "share": "spriteram"
+      },
+      {
+        "start": 59392,
+        "end": 61439,
+        "kind": "ram",
+        "share": "palette",
+        "write": "palette.write8"
+      },
+      {
+        "start": 61440,
+        "end": 63487,
+        "kind": "handler",
+        "read": "bank.mainbank",
+        "bank": "mainbank"
+      },
+      {
+        "start": 63488,
+        "end": 63488,
+        "kind": "handler",
+        "read": "port.JOY1"
+      },
+      {
+        "start": 63489,
+        "end": 63489,
+        "kind": "handler",
+        "read": "port.BUTTONS1"
+      },
+      {
+        "start": 63490,
+        "end": 63490,
+        "kind": "handler",
+        "read": "port.JOY2"
+      },
+      {
+        "start": 63491,
+        "end": 63491,
+        "kind": "handler",
+        "read": "port.BUTTONS2"
+      },
+      {
+        "start": 63492,
+        "end": 63492,
+        "kind": "handler",
+        "read": "port.SYS_0"
+      },
+      {
+        "start": 63493,
+        "end": 63493,
+        "kind": "handler",
+        "read": "port.SYS_1"
+      },
+      {
+        "start": 63494,
+        "end": 63494,
+        "kind": "handler",
+        "read": "tecmo_state.dsw_l_r_0"
+      },
+      {
+        "start": 63495,
+        "end": 63495,
+        "kind": "handler",
+        "read": "tecmo_state.dsw_h_r_0"
+      },
+      {
+        "start": 63496,
+        "end": 63496,
+        "kind": "handler",
+        "read": "tecmo_state.dsw_l_r_1"
+      },
+      {
+        "start": 63497,
+        "end": 63497,
+        "kind": "handler",
+        "read": "tecmo_state.dsw_h_r_1"
+      },
+      {
+        "start": 63503,
+        "end": 63503,
+        "kind": "handler",
+        "read": "port.SYS_2"
+      },
+      {
+        "start": 63488,
+        "end": 63490,
+        "kind": "handler",
+        "share": "fgscroll",
+        "write": "tecmo_state.fgscroll_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 63491,
+        "end": 63493,
+        "kind": "handler",
+        "share": "bgscroll",
+        "write": "tecmo_state.bgscroll_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 63494,
+        "end": 63494,
+        "kind": "handler",
+        "write": "soundlatch.write"
+      },
+      {
+        "start": 63495,
+        "end": 63495,
+        "kind": "handler",
+        "write": "tecmo_state.flipscreen_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 63496,
+        "end": 63496,
+        "kind": "handler",
+        "write": "tecmo_state.bankswitch_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 63499,
+        "end": 63499,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 59.18560606060606,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "partial",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ym2203",
+    "clock": 4000000,
+    "chips": 0,
+    "auxiliaryDevices": [
+      {
+        "type": "YM3526",
+        "deviceTag": "ymsnd",
+        "clock": 4000000,
+        "gain": 1,
+        "target": "mono",
+        "writeMethods": [
+          "write"
+        ]
+      },
+      {
+        "type": "MSM5205",
+        "deviceTag": "msm",
+        "member": "m_msm",
+        "clock": 400000,
+        "initialMode": "S48_4B",
+        "gain": 0.5,
+        "target": "mono",
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "5.5p",
+          "offset": 0,
+          "size": 32768,
+          "crc": "062cd55d",
+          "alt": [
+            {
+              "file": "5p.bin",
+              "crc": "151ffc0b"
+            },
+            {
+              "file": "cpu_5p.bin",
+              "crc": "e79c054a"
+            },
+            {
+              "file": "cpuj_5p.bin",
+              "crc": "b39698ba"
+            },
+            {
+              "file": "5.5p",
+              "crc": "c5d9af81"
+            }
+          ]
+        },
+        {
+          "file": "cpu_5m.bin",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "7ac5191b",
+          "alt": [
+            {
+              "file": "cpuj_5m.bin",
+              "crc": "3f180979"
+            },
+            {
+              "file": "4.5m",
+              "crc": "af5d4a2a"
+            }
+          ]
+        },
+        {
+          "file": "cpu_5j.bin",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "ed76d606",
+          "alt": [
+            {
+              "file": "cpuj_5j.bin",
+              "crc": "69e44e8f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "cpu_4h.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "e4a2fa87"
+        }
+      ]
+    },
+    {
+      "region": "txtiles",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "cpu_8k.bin",
+          "offset": 0,
+          "size": 32768,
+          "crc": "4d482fb6",
+          "alt": [
+            {
+              "file": "cpuj_8k.bin",
+              "crc": "45047707"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "vid_6k.bin",
+          "offset": 0,
+          "size": 32768,
+          "crc": "aba6db9e"
+        },
+        {
+          "file": "vid_6j.bin",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "ae1f2ed6"
+        },
+        {
+          "file": "vid_6h.bin",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "46d9e7df"
+        },
+        {
+          "file": "vid_6g.bin",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "45839c9a"
+        }
+      ]
+    },
+    {
+      "region": "fgtiles",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "vid_6p.bin",
+          "offset": 0,
+          "size": 32768,
+          "crc": "9eae5f8e"
+        },
+        {
+          "file": "vid_6o.bin",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "5a10a396"
+        },
+        {
+          "file": "vid_6n.bin",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "7b12cf3f"
+        },
+        {
+          "file": "vid_6l.bin",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "3cea7eaa"
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "vid_6f.bin",
+          "offset": 0,
+          "size": 32768,
+          "crc": "9840edd8"
+        },
+        {
+          "file": "vid_6e.bin",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "ff65e074"
+        },
+        {
+          "file": "vid_6c.bin",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "89868c85"
+        },
+        {
+          "file": "vid_6b.bin",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "35389a7b"
+        }
+      ]
+    },
+    {
+      "region": "adpcm",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "cpu_1f.bin",
+          "offset": 0,
+          "size": 16384,
+          "crc": "3cc98c5a"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "JOY1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "JOY1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "JOY1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "JOY1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "BUTTONS1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "BUTTONS1",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "BUTTONS1",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    },
+    {
+      "port": "SYS_0",
+      "mask": 1,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "SYS_0",
+      "mask": 2,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "SYS_0",
+      "mask": 4,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "SYS_0",
+      "mask": 8,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSWA",
+      "mask": 128,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWA",
+      "mask": 3,
+      "value": 0,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 12,
+      "value": 0,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWA",
+      "mask": 48,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSWA",
+      "mask": 64,
+      "value": 64,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSWB",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 8,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 3,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSWB",
+      "mask": 48,
+      "value": 0,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSWB",
+      "mask": 64,
+      "value": 0,
+      "name": "2P Can Start Anytime"
+    },
+    {
+      "port": "DSWB",
+      "mask": 128,
+      "value": 128,
+      "name": "Allow Continue"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "JOY1",
+      "init": 0
+    },
+    {
+      "tag": "BUTTONS1",
+      "init": 0
+    },
+    {
+      "tag": "JOY2",
+      "init": 0
+    },
+    {
+      "tag": "BUTTONS2",
+      "init": 0
+    },
+    {
+      "tag": "SYS_0",
+      "init": 0
+    },
+    {
+      "tag": "SYS_1",
+      "init": 0
+    },
+    {
+      "tag": "SYS_2",
+      "init": 0
+    },
+    {
+      "tag": "SYS_3",
+      "init": 0
+    },
+    {
+      "tag": "DSWA",
+      "init": 64
+    },
+    {
+      "tag": "DSWB",
+      "init": 128
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

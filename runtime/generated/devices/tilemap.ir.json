@@ -1,0 +1,16 @@
+{
+  "type": "TILEMAP",
+  "uses": [
+    {
+      "game": "gauntlet",
+      "tags": [
+        "alpha",
+        "playfield"
+      ]
+    }
+  ],
+  "status": "unresolved",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

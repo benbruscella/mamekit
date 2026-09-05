@@ -1,0 +1,178 @@
+{
+  "game": "gberet",
+  "title": "Green Beret (Konami, 1985)",
+  "fullname": "Green Beret",
+  "year": "1985",
+  "manufacturer": "Konami",
+  "family": "gberet",
+  "driverFile": "src/mame/konami/gberet.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 136,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Michaël Banaan Ananas"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 45,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 27,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 12,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 9,
+        "firstCommit": "2018-09-07",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 5,
+        "firstCommit": "2012-01-19",
+        "lastCommit": "2012-01-20"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 3,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-01"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2025-07-21",
+        "lastCommit": "2026-03-16"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2011-04-25",
+        "lastCommit": "2012-01-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 2,
+        "firstCommit": "2009-07-27",
+        "lastCommit": "2009-07-28"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2010-01-23",
+        "lastCommit": "2012-09-02"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2014-02-11"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 2,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-08-05"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2016-04-30"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "MASH",
+        "commits": 1,
+        "firstCommit": "2016-08-25",
+        "lastCommit": "2016-08-25"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-31",
+        "lastCommit": "2009-12-31"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

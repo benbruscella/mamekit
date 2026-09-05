@@ -1,0 +1,30 @@
+{
+  "type": "NSC8105",
+  "uses": [
+    {
+      "game": "friskyt",
+      "tags": [
+        "mcu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NSC8105",
+    "className": "nsc8105_cpu_device",
+    "shortName": "nsc8105",
+    "description": "NSC8105",
+    "sourceFile": "src/devices/cpu/m6800/m6800.cpp",
+    "sourceLine": 372,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NSC8105, nsc8105_cpu_device, \"nsc8105\", \"NSC8105\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6800/6800dasm.h",
+    "src/devices/cpu/m6800/6800ops.hxx",
+    "src/devices/cpu/m6800/m6800.cpp",
+    "src/devices/cpu/m6800/m6800.h"
+  ]
+}

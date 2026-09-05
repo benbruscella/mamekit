@@ -1,0 +1,793 @@
+{
+  "game": "qbert",
+  "title": "Q*bert (US set 1) (Gottlieb, 1982)",
+  "family": "gottlieb",
+  "dataPath": "games/arcade/qbert",
+  "board": {
+    "family": "gottlieb",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "i8088",
+        "clock": 5000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "ram",
+            "share": "nvram"
+          },
+          {
+            "start": 12288,
+            "end": 12543,
+            "kind": "ram",
+            "mirror": 1792,
+            "share": "spriteram",
+            "writeOnly": true
+          },
+          {
+            "start": 14336,
+            "end": 15359,
+            "kind": "ram",
+            "mirror": 1024,
+            "share": "videoram",
+            "write": "gottlieb_state.videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 16384,
+            "end": 20479,
+            "kind": "ram",
+            "share": "charram",
+            "write": "gottlieb_state.charram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 20480,
+            "end": 20511,
+            "kind": "handler",
+            "mirror": 2016,
+            "share": "paletteram",
+            "write": "gottlieb_state.palette_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 22528,
+            "end": 22528,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 22529,
+            "end": 22529,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "gottlieb_state.analog_reset_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 22530,
+            "end": 22530,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "gottlieb_state.sound_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 22531,
+            "end": 22531,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "gottlieb_state.general_output_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 22528,
+            "end": 22528,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.DSW"
+          },
+          {
+            "start": 22529,
+            "end": 22529,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.IN1"
+          },
+          {
+            "start": 22530,
+            "end": 22530,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.IN2"
+          },
+          {
+            "start": 22531,
+            "end": 22531,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.IN3"
+          },
+          {
+            "start": 22532,
+            "end": 22532,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.IN4"
+          },
+          {
+            "start": 24576,
+            "end": 65535,
+            "kind": "rom"
+          },
+          {
+            "start": 4096,
+            "end": 12287,
+            "kind": "ram"
+          },
+          {
+            "start": 22531,
+            "end": 22531,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "gottlieb_state.qbert_output_w"
+          }
+        ],
+        "mask": 65535
+      },
+      {
+        "tag": "r1sound:audiocpu",
+        "type": "m6502",
+        "clock": 894886.25,
+        "region": "r1sound:audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "handler",
+            "mirror": 3456,
+            "read": "r1sound:riot.ram_r",
+            "write": "r1sound:riot.ram_w"
+          },
+          {
+            "start": 512,
+            "end": 512,
+            "kind": "handler",
+            "mirror": 3576,
+            "read": "r1sound:riot.pa_data_r",
+            "write": "r1sound:riot.pa_data_w"
+          },
+          {
+            "start": 513,
+            "end": 513,
+            "kind": "handler",
+            "mirror": 3576,
+            "read": "r1sound:riot.pa_ddr_r",
+            "write": "r1sound:riot.pa_ddr_w"
+          },
+          {
+            "start": 514,
+            "end": 514,
+            "kind": "handler",
+            "mirror": 3576,
+            "read": "r1sound:riot.pb_data_r",
+            "write": "r1sound:riot.pb_data_w"
+          },
+          {
+            "start": 515,
+            "end": 515,
+            "kind": "handler",
+            "mirror": 3576,
+            "read": "r1sound:riot.pb_ddr_r",
+            "write": "r1sound:riot.pb_ddr_w"
+          },
+          {
+            "start": 532,
+            "end": 535,
+            "kind": "handler",
+            "mirror": 3552,
+            "write": "r1sound:riot.timer_off_w"
+          },
+          {
+            "start": 540,
+            "end": 543,
+            "kind": "handler",
+            "mirror": 3552,
+            "write": "r1sound:riot.timer_on_w"
+          },
+          {
+            "start": 516,
+            "end": 516,
+            "kind": "handler",
+            "mirror": 3570,
+            "read": "r1sound:riot.timer_off_r"
+          },
+          {
+            "start": 524,
+            "end": 524,
+            "kind": "handler",
+            "mirror": 3570,
+            "read": "r1sound:riot.timer_on_r"
+          },
+          {
+            "start": 517,
+            "end": 517,
+            "kind": "handler",
+            "mirror": 3578,
+            "read": "r1sound:riot.irq_r"
+          },
+          {
+            "start": 516,
+            "end": 519,
+            "kind": "handler",
+            "mirror": 3560,
+            "write": "r1sound:riot.edge_w"
+          },
+          {
+            "start": 4096,
+            "end": 4096,
+            "kind": "handler",
+            "mirror": 4095,
+            "write": "r1sound:dac.data_w"
+          },
+          {
+            "start": 24576,
+            "end": 32767,
+            "kind": "rom"
+          }
+        ],
+        "mask": 32767
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 4095,
+        "kind": "ram",
+        "share": "nvram"
+      },
+      {
+        "start": 12288,
+        "end": 12543,
+        "kind": "ram",
+        "mirror": 1792,
+        "share": "spriteram",
+        "writeOnly": true
+      },
+      {
+        "start": 14336,
+        "end": 15359,
+        "kind": "ram",
+        "mirror": 1024,
+        "share": "videoram",
+        "write": "gottlieb_state.videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 16384,
+        "end": 20479,
+        "kind": "ram",
+        "share": "charram",
+        "write": "gottlieb_state.charram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 20480,
+        "end": 20511,
+        "kind": "handler",
+        "mirror": 2016,
+        "share": "paletteram",
+        "write": "gottlieb_state.palette_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 22528,
+        "end": 22528,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 22529,
+        "end": 22529,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "gottlieb_state.analog_reset_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 22530,
+        "end": 22530,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "gottlieb_state.sound_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 22531,
+        "end": 22531,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "gottlieb_state.general_output_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 22528,
+        "end": 22528,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.DSW"
+      },
+      {
+        "start": 22529,
+        "end": 22529,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.IN1"
+      },
+      {
+        "start": 22530,
+        "end": 22530,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.IN2"
+      },
+      {
+        "start": 22531,
+        "end": 22531,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.IN3"
+      },
+      {
+        "start": 22532,
+        "end": 22532,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.IN4"
+      },
+      {
+        "start": 24576,
+        "end": 65535,
+        "kind": "rom"
+      },
+      {
+        "start": 4096,
+        "end": 12287,
+        "kind": "ram"
+      },
+      {
+        "start": 22531,
+        "end": 22531,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "gottlieb_state.qbert_output_w"
+      }
+    ],
+    "initialShares": [
+      {
+        "share": "nvram",
+        "fill": 255
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 240,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 61.4190251572327,
+      "htotal": 318,
+      "vtotal": 256,
+      "vbstart": 240,
+      "vbend": 0,
+      "updateMode": "partial",
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "dac",
+    "clock": 894886.25,
+    "chips": 1,
+    "deviceTypes": [
+      "MC1408"
+    ],
+    "dacs": [
+      {
+        "deviceTag": "r1sound:dac",
+        "bits": 8,
+        "mapper": "unsigned",
+        "gain": 1
+      }
+    ],
+    "routes": [],
+    "auxiliaryDevices": [
+      {
+        "type": "SAMPLES",
+        "deviceTag": "knocker_sam",
+        "member": "m_knocker_sample",
+        "clock": 0,
+        "gain": 1,
+        "target": "knocker",
+        "writeMethods": [
+          "start",
+          "start_raw",
+          "stop",
+          "set_volume"
+        ]
+      }
+    ],
+    "masterGain": 0.65,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qb-rom2.bin",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "fe434526",
+          "alt": [
+            {
+              "file": "qrom_2.bin",
+              "crc": "b54a8ffc"
+            },
+            {
+              "file": "qbj-rom2.bin",
+              "crc": "67bb1cb2"
+            },
+            {
+              "file": "mqb-rom2.bin",
+              "crc": "6860f957"
+            },
+            {
+              "file": "qbtst2.bin",
+              "crc": "55307b02"
+            }
+          ]
+        },
+        {
+          "file": "qb-rom1.bin",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "55635447",
+          "alt": [
+            {
+              "file": "qrom_1.bin",
+              "crc": "19d924e3"
+            },
+            {
+              "file": "qbj-rom1.bin",
+              "crc": "c61216e7"
+            },
+            {
+              "file": "mqb-rom1.bin",
+              "crc": "11f0a4e4"
+            },
+            {
+              "file": "qbtst1.bin",
+              "crc": "e97fdd78"
+            }
+          ]
+        },
+        {
+          "file": "qb-rom0.bin",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "8e318641",
+          "alt": [
+            {
+              "file": "qrom_0.bin",
+              "crc": "2e7fad1b"
+            },
+            {
+              "file": "qbj-rom0.bin",
+              "crc": "69679d5c"
+            },
+            {
+              "file": "mqb-rom0.bin",
+              "crc": "12a90cb2"
+            },
+            {
+              "file": "qbtst0.bin",
+              "crc": "94c9f588"
+            },
+            {
+              "file": "gv103_t-ball-test_rom0_2764.c11c12",
+              "crc": "5d390cd2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "r1sound:audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qb-snd1.bin",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "15787c07",
+          "alt": [
+            {
+              "file": "mqb-snd1.bin",
+              "crc": "495ffcd2"
+            }
+          ]
+        },
+        {
+          "file": "qb-snd2.bin",
+          "offset": 30720,
+          "size": 2048,
+          "crc": "58437508",
+          "alt": [
+            {
+              "file": "mqb-snd2.bin",
+              "crc": "9bbaa945"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "qb-bg0.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "7a9ba824"
+        },
+        {
+          "file": "qb-bg1.bin",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "22e5b891"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "qb-fg3.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dd436d3a",
+          "alt": [
+            {
+              "file": "mqb-fg3.bin",
+              "crc": "8b5d0852"
+            }
+          ]
+        },
+        {
+          "file": "qb-fg2.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "f69b9483",
+          "alt": [
+            {
+              "file": "mqb-fg2.bin",
+              "crc": "823f1e57"
+            }
+          ]
+        },
+        {
+          "file": "qb-fg1.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "224e8356",
+          "alt": [
+            {
+              "file": "mqb-fg1.bin",
+              "crc": "05343ae6"
+            }
+          ]
+        },
+        {
+          "file": "qb-fg0.bin",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "2f695b85",
+          "alt": [
+            {
+              "file": "mqb-fg0.bin",
+              "crc": "abc71bdd"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Select in Service Mode",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "P1 Right (Down-Right)",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "P1 Left (Up-Left)",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "P1 Up (Up-Right)",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "P1 Down (Down-Left)",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW",
+      "mask": 1,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW",
+      "mask": 2,
+      "value": 2,
+      "name": "Kicker"
+    },
+    {
+      "port": "DSW",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW",
+      "mask": 8,
+      "value": 0,
+      "name": "Demo Mode (Unlim Lives, Start=Adv (Cheat)"
+    },
+    {
+      "port": "DSW",
+      "mask": 16,
+      "value": 0,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSW",
+      "mask": 32,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 64,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 128,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "value": 64,
+      "name": "Service Mode"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "DSW",
+      "init": 2
+    },
+    {
+      "tag": "IN1",
+      "init": 64
+    },
+    {
+      "tag": "IN2",
+      "init": 255
+    },
+    {
+      "tag": "IN3",
+      "init": 255
+    },
+    {
+      "tag": "IN4",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

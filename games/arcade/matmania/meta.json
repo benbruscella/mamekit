@@ -1,0 +1,172 @@
+{
+  "game": "matmania",
+  "title": "Mat Mania (Technos Japan (Taito America license), 1985)",
+  "fullname": "Mat Mania",
+  "year": "1985",
+  "manufacturer": "Technos Japan (Taito America license)",
+  "family": "matmania",
+  "driverFile": "src/mame/technos/matmania.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Brad Oliver",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-04-01",
+    "commits": 137,
+    "contributors": 24,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 51,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 25,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2015-11-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2017-01-12",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2016-06-12",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2019-02-19",
+        "lastCommit": "2026-04-01"
+      },
+      {
+        "name": "smf-",
+        "commits": 4,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2016-10-17"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-14",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 3,
+        "firstCommit": "2016-07-08",
+        "lastCommit": "2018-07-12"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-02",
+        "lastCommit": "2010-02-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 3,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2011-04-26"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 2,
+        "firstCommit": "2008-08-09",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-03-30",
+        "lastCommit": "2019-03-30"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2012-03-07",
+        "lastCommit": "2012-03-07"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 1,
+        "firstCommit": "2014-09-27",
+        "lastCommit": "2014-09-27"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-12-29",
+        "lastCommit": "2018-12-29"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

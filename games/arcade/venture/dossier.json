@@ -1,0 +1,812 @@
+{
+  "game": "venture",
+  "title": "Venture (version 5 set 1) (Exidy, 1981)",
+  "fullname": "Venture (version 5 set 1)",
+  "year": "1981",
+  "company": "Exidy",
+  "family": "exidy",
+  "driverFile": "src/mame/exidy/exidy.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "m6502",
+      "clock": 705562.5,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 1023,
+          "kind": "ram"
+        },
+        {
+          "start": 16384,
+          "end": 17407,
+          "kind": "ram",
+          "mirror": 1024,
+          "share": "videoram"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "ram",
+          "mirror": 63,
+          "share": "sprite1_xpos",
+          "writeOnly": true
+        },
+        {
+          "start": 20544,
+          "end": 20544,
+          "kind": "ram",
+          "mirror": 63,
+          "share": "sprite1_ypos",
+          "writeOnly": true
+        },
+        {
+          "start": 20608,
+          "end": 20608,
+          "kind": "ram",
+          "mirror": 63,
+          "share": "sprite2_xpos",
+          "writeOnly": true
+        },
+        {
+          "start": 20672,
+          "end": 20672,
+          "kind": "ram",
+          "mirror": 63,
+          "share": "sprite2_ypos",
+          "writeOnly": true
+        },
+        {
+          "start": 20736,
+          "end": 20736,
+          "kind": "handler",
+          "mirror": 252,
+          "read": "port.DSW"
+        },
+        {
+          "start": 20736,
+          "end": 20736,
+          "kind": "ram",
+          "mirror": 252,
+          "share": "spriteno",
+          "writeOnly": true
+        },
+        {
+          "start": 20737,
+          "end": 20737,
+          "kind": "handler",
+          "mirror": 252,
+          "read": "port.IN0"
+        },
+        {
+          "start": 20737,
+          "end": 20737,
+          "kind": "ram",
+          "mirror": 252,
+          "share": "sprite_enable",
+          "writeOnly": true
+        },
+        {
+          "start": 20739,
+          "end": 20739,
+          "kind": "handler",
+          "mirror": 252,
+          "read": "exidy_state.exidy_interrupt_r"
+        },
+        {
+          "start": 21008,
+          "end": 21010,
+          "kind": "ram",
+          "share": "color_latch",
+          "writeOnly": true
+        },
+        {
+          "start": 21011,
+          "end": 21011,
+          "kind": "handler",
+          "read": "port.IN2"
+        },
+        {
+          "start": 18432,
+          "end": 20479,
+          "kind": "ram",
+          "share": "characterram"
+        },
+        {
+          "start": 20992,
+          "end": 21007,
+          "kind": "handler",
+          "read": "pia.read",
+          "write": "pia.write"
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "soundbd:audiocpu",
+      "type": "m6502",
+      "clock": 894886.25,
+      "region": "soundbd:audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 127,
+          "kind": "handler",
+          "mirror": 1920,
+          "read": "soundbd:riot.ram_r",
+          "write": "soundbd:riot.ram_w"
+        },
+        {
+          "start": 2048,
+          "end": 2048,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "soundbd:riot.pa_data_r",
+          "write": "soundbd:riot.pa_data_w"
+        },
+        {
+          "start": 2049,
+          "end": 2049,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "soundbd:riot.pa_ddr_r",
+          "write": "soundbd:riot.pa_ddr_w"
+        },
+        {
+          "start": 2050,
+          "end": 2050,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "soundbd:riot.pb_data_r",
+          "write": "soundbd:riot.pb_data_w"
+        },
+        {
+          "start": 2051,
+          "end": 2051,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "soundbd:riot.pb_ddr_r",
+          "write": "soundbd:riot.pb_ddr_w"
+        },
+        {
+          "start": 2068,
+          "end": 2071,
+          "kind": "handler",
+          "mirror": 2016,
+          "write": "soundbd:riot.timer_off_w"
+        },
+        {
+          "start": 2076,
+          "end": 2079,
+          "kind": "handler",
+          "mirror": 2016,
+          "write": "soundbd:riot.timer_on_w"
+        },
+        {
+          "start": 2052,
+          "end": 2052,
+          "kind": "handler",
+          "mirror": 2034,
+          "read": "soundbd:riot.timer_off_r"
+        },
+        {
+          "start": 2060,
+          "end": 2060,
+          "kind": "handler",
+          "mirror": 2034,
+          "read": "soundbd:riot.timer_on_r"
+        },
+        {
+          "start": 2053,
+          "end": 2053,
+          "kind": "handler",
+          "mirror": 2042,
+          "read": "soundbd:riot.irq_r"
+        },
+        {
+          "start": 2052,
+          "end": 2055,
+          "kind": "handler",
+          "mirror": 2024,
+          "write": "soundbd:riot.edge_w"
+        },
+        {
+          "start": 4096,
+          "end": 4099,
+          "kind": "handler",
+          "mirror": 2044,
+          "read": "soundbd:pia.read",
+          "write": "soundbd:pia.write"
+        },
+        {
+          "start": 6144,
+          "end": 6147,
+          "kind": "handler",
+          "mirror": 2044,
+          "writeOnly": true,
+          "write": "venture_sound_device.sh8253_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8192,
+          "end": 8192,
+          "kind": "handler",
+          "mirror": 2047,
+          "write": "venture_sound_device.filter_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 10240,
+          "end": 10247,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "venture_sound_device.sh6840_r",
+          "write": "venture_sound_device.sh6840_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 12288,
+          "end": 12291,
+          "kind": "handler",
+          "mirror": 2044,
+          "write": "venture_sound_device.sfxctrl_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 22528,
+          "end": 32767,
+          "kind": "rom"
+        }
+      ],
+      "mask": 32767
+    }
+  ],
+  "sound": {
+    "kind": "exidy",
+    "deviceType": "EXIDY_VENTURE",
+    "clock": 894886.25,
+    "worklet": "berzerk-sound",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 256,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 59.9968112244898,
+    "htotal": 336,
+    "vtotal": 280,
+    "vbstart": 256,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "13a-cpu",
+          "offset": 32768,
+          "size": 4096,
+          "crc": "f4e4d991",
+          "alt": [
+            {
+              "file": "vel_13a-57e.a13",
+              "crc": "4c833f99"
+            },
+            {
+              "file": "vel_13a-4.13a",
+              "crc": "1c5448f9"
+            },
+            {
+              "file": "d2732.2s",
+              "crc": "87d69fe9"
+            }
+          ]
+        },
+        {
+          "file": "12a-cpu",
+          "offset": 36864,
+          "size": 4096,
+          "crc": "c6d8cb04",
+          "alt": [
+            {
+              "file": "vel_12a-5.a12",
+              "crc": "8163cefc"
+            },
+            {
+              "file": "vel_12a-4.12a",
+              "crc": "e62491cc"
+            }
+          ]
+        },
+        {
+          "file": "11a-cpu",
+          "offset": 40960,
+          "size": 4096,
+          "crc": "3bdb01f4",
+          "alt": [
+            {
+              "file": "vel_11a-5.a11",
+              "crc": "324a5054"
+            },
+            {
+              "file": "vel_11a-4.11a",
+              "crc": "e91faeaf"
+            }
+          ]
+        },
+        {
+          "file": "10a-cpu",
+          "offset": 45056,
+          "size": 4096,
+          "crc": "0da769e9",
+          "alt": [
+            {
+              "file": "vel_10a-5.a10",
+              "crc": "24358203"
+            },
+            {
+              "file": "vel_10a-4.10a",
+              "crc": "da3a2991"
+            }
+          ]
+        },
+        {
+          "file": "9a-cpu",
+          "offset": 49152,
+          "size": 4096,
+          "crc": "0ae05855",
+          "alt": [
+            {
+              "file": "vel_9a-5.a9",
+              "crc": "04428165"
+            },
+            {
+              "file": "vel_9a-4.a9",
+              "crc": "d1887b11"
+            }
+          ]
+        },
+        {
+          "file": "8a-cpu",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "4ae59676",
+          "alt": [
+            {
+              "file": "vel_8a-5.a8",
+              "crc": "4c1a702a"
+            },
+            {
+              "file": "vel_8a-4.a8",
+              "crc": "8e8153fc"
+            }
+          ]
+        },
+        {
+          "file": "7a-cpu",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "48d66220",
+          "alt": [
+            {
+              "file": "vel_7a-5.a7",
+              "crc": "1aab27c2"
+            },
+            {
+              "file": "vel_7a-4.a7",
+              "crc": "0a091701"
+            }
+          ]
+        },
+        {
+          "file": "6a-cpu",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "7b78cf49",
+          "alt": [
+            {
+              "file": "vel_6a-5.a6",
+              "crc": "767bdd71"
+            },
+            {
+              "file": "vel_6a-4.a6",
+              "crc": "7b165f67"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundbd:audiocpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "vea_3a-3.3a",
+          "offset": 22528,
+          "size": 2048,
+          "crc": "4ea1c3d9",
+          "alt": [
+            {
+              "file": "vea_3a-2.3a",
+              "crc": "83b8836f"
+            }
+          ]
+        },
+        {
+          "file": "vea_4a-3.4a",
+          "offset": 24576,
+          "size": 2048,
+          "crc": "5154c39e"
+        },
+        {
+          "file": "vea_5a-3.5a",
+          "offset": 26624,
+          "size": 2048,
+          "crc": "1e1e3916"
+        },
+        {
+          "file": "vea_6a-3.6a",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "80f3357a"
+        },
+        {
+          "file": "vea_7a-3.7a",
+          "offset": 30720,
+          "size": 2048,
+          "crc": "466addc7"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "vel_11d-2.11d",
+          "offset": 0,
+          "size": 2048,
+          "crc": "ea6fd981"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 320,
+      "loads": [
+        {
+          "file": "hrl14h-1.h14",
+          "offset": 0,
+          "size": 32,
+          "crc": "f76b4fcf"
+        },
+        {
+          "file": "vel5c-1.c5",
+          "offset": 32,
+          "size": 256,
+          "crc": "43b35bb7"
+        },
+        {
+          "file": "hrl6d-1.d6",
+          "offset": 288,
+          "size": 32,
+          "crc": "e26f9053"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "DSW",
+      "mask": 1,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW",
+      "mask": 6,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW",
+      "mask": 152,
+      "value": 144,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW",
+      "mask": 96,
+      "value": 32,
+      "name": "Lives"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 197,
+    "contributors": 29,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "Vas Crabb",
+      "Scott Stone"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 62,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2013-10-16"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 27,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 19,
+        "firstCommit": "2013-08-05",
+        "lastCommit": "2023-11-14"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 19,
+        "firstCommit": "2017-05-07",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 9,
+        "firstCommit": "2009-08-05",
+        "lastCommit": "2017-05-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 7,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2017-03-11",
+        "lastCommit": "2025-06-08"
+      },
+      {
+        "name": "AJR",
+        "commits": 4,
+        "firstCommit": "2018-06-03",
+        "lastCommit": "2022-01-26"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 4,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2014-03-23"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2020-08-06",
+        "lastCommit": "2021-02-01"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2013-08-05",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2022-06-04"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 3,
+        "firstCommit": "2015-01-21",
+        "lastCommit": "2022-03-25"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2015-04-12"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2011-05-02",
+        "lastCommit": "2011-11-27"
+      },
+      {
+        "name": "Osso13",
+        "commits": 2,
+        "firstCommit": "2015-01-20",
+        "lastCommit": "2015-01-20"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-11-14",
+        "lastCommit": "2008-11-14"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2017-01-22",
+        "lastCommit": "2017-01-22"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2018-08-10"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2009-01-04",
+        "lastCommit": "2009-01-04"
+      },
+      {
+        "name": "TimothyShiels",
+        "commits": 1,
+        "firstCommit": "2023-06-22",
+        "lastCommit": "2023-06-22"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 45 years ago:\n\nVenture (c) 1981 Exidy.\n\nVenture is a 1- or 2-player \"Gauntlet\" style game (although Venture pre-dates the Atari legend by 4 years) set in a multi-level dungeon. The player, armed with a bow and arrow fights through enemy infested levels in the quest to collect treasure.\n\nEach dungeon is represented as a floor plan, populated with a number of \"Space Invader\" like monsters. Numerous rooms and their corresponding doors are clearly marked; these rooms are the treasure rooms and each one must be cleared. When the player enters a room, the viewpoint zooms in on the action and the room takes up the whole screen. Each room has a treasure or weapon guarded by one or more creatures. Players must try to retrieve the treasure while avoiding (or killing) creatures and obstacles. Only in the rooms themselves can players use their bow and arrow.\n\nWhen the treasure is successfully taken out of the chamber, bonus points are awarded. The screen image then returns to the original, zoomed-out floor plan and the player moves on to the next room of their choice. Once a room has been cleared of its item, the player no longer has access to that room. The player must collect all of the treasures on the current level before descending to another dungeon.\n\n- TECHNICAL -\n\nMain CPU : MOS Technology M6502 (@ 705.562 Khz)\nSound CPU : MOS Technology M6502 (@ 894.886 Khz)\nSound Chips : Custom (@ 894.886 Khz)\n\nPlayer : 2\nControl : 8-way joystick\nButtons : 1 (Fire)\n\n- TRIVIA -\n\nVenture was released in June 1981.\n\nVenture came in a white dedicated cabinet and featured sideart of Winky battling green monsters (looks like snakes).\n\n- TIPS AND TRICKS -\n\nA) If you wont to change aim without moving, learn just to tap the joystick, not to jam it.\n\nB) When pursued by hall monsters outside the dungeons, don't waste time by shooting them. Reverse direction, switch from side to side, and do whatever else you must to escape.\n\nC) Do your best not to shoot a monster where its corpse might block your path to or from the treasure. If you do, you have no choice but to wait until it has completely disintegrated; under no circumstances should you shoot it again.\n\nD) Because you want to get out of each dungeon quickly, you should waste no time in picking up the treasure. It can and should be done in one fluid motion. The Instant you touch the loot, you should start thinking about getting out.\n\nE) When a hall monster appears outside a dungeon, leave. Even if it is outside the room's only exit, remember that it won't be there when you get outside-although another might.\n\nOnce the half monster has actually entered the dungeon, the best policy is to flee in the opposite direction. If there is no exit there or a corpse is blocking it, it is still possible in the first three levels for a skilful Winky to escape around the hall monster. It's a risk but do it if you have to.\n\nF) When leaving a dungeon, look out. You don't want to run straight into a waiting hall monster. The more time you've spent in the level so far, the more you should worry.\n\nG) The question of whether to shoot dungeon monsters when you don't absolutely have to depends on two factors : speed and accuracy. If you think you can kill several in a short time,do it. Keep in mind the bonus at the end of each level, since that determines your final score. Unless you are very fast, there is no point in risking the decrease of your score by a seventh or a sixth for a few hundred points.\n\nH) Since you Start in the same place on the level each time, it makes sense to clear the dungeons nearest you first. If you can make a circuit of the level without being killed,the strategy will save time. If you are killed and have to start over,you will have to take the same long route you avoided before.\n\nI) In The Wall Room, don't bother shooting your way through the red walls. It's a risk that earns you no points and takes more time than simply slipping around them. Since this dungeon Is the easiest, it should probably be saved for last, when you need to finish quickly.\n\nJ) In The Serpent Room, send arrows down on the two lower snakes before you enter their territory. Their length will make them easy targets from that angle.\n\nIf pressed for time enter and exit the dungeon through the door in the right wail, avoiding a confrontation with the third snake.\n\nK) The Goblin and Skeleton Rooms should be handled according to your inclination. You can easily evade the monsters, but the points you could gain with a few parting shots should be considered.\n\nL) Save The Two-Headed Room for the end of Level Two, since it is a very quick job once you have the secret. When you don't have time to shoot the crabs and then to wait for them to disintegrate from your path, split-second timing alone will get you out safely. The instant you touch the treasure,jam the joystick to the upper left. Each time, you will barely make it past the crabs and out the left head of the room.\n\nA more lucrative and time-consuming method is to stay at the bottom with your treasure and wait for the crabs to drift down from the heads into the body in search of you, as they invariably do. If you shoot well, you can kill them and still leave a clear path out. If a hall monster appears before you finish though, say goodbye to Winky.\n\nM) As soon as you enter The Troll Room, move about an inch to the left of the entrance, staying as low as possible : aim to the upper right. As soon as the walls vanish, one goblin will come thundering down since he doesn't sense that you're aiming at him. Diagonal shots are your best chance against any of the monsters,but the trolls are particularly tricky.\n\nShoot as soon as he leaves cover, then move up and get the treasure. The remaining troll will not be had to evade If you are fast.\n\nWhenever you do aim vertically or horizontally,the trolls will not give you a chance to hit them, holding you in stalemate until the hall monster shows up. What you must do (if you don't want to shoot diagonally) is aim in some other direction until your target has committed himself to attack. Then quickly shift your aim and fire before he has a chance to dodge.\n\nN) You must kill almost everything in The Dragon Room; there is no room to maneuver around the dragons while they are all alive and moving. Even if you are a skilful archer, you must take special care to shoot so that you still have a clear path to and from the treasure. If you have to wait for the dragons to disintegrate before you can reach it, you might as well forget about it. \n\nO) The red denizens of The Spider Room win always stay near the treasure in the center; they shift around it to follow you. Shoot one for best results : it takes almost no time and you can easily snatch the treasure from only two defenders.\n\nThe instant you do, look out for the two yellow spiders. They will close in on you rapidly,and your only chance is to duck under one and escape while you still have time. Once you reach the door, a couple of arrows shot at your pursuers won't hurt.\n\nP) With each new level, be prepared for greater and greater challenges. Try to view each dungeon creatively to find the best strategy.\n\nVENTURE is one game in which it is not only important but vital to watch more experienced players, observing the game's many unusual problems and the different ways of handling them. Good luck!\n\n- STAFF -\n\nDesigned & programmed by : Howell Ivy\n\n- PORTS -\n\n* CONSOLES:\nColecovision [US] (1982) \"Venture [Model 2417]\"\n[US] Atari 2600 (1982) \"Venture [Model 2457]\"\nMattel Intellivision [US] (1982) \"Venture [Model 2477]\" \n[US] Atari 2600 (1987) \"Venture [Model CX26145]\"\n\n* COMPUTERS:\nTandy Color Computer [US] (1982) \"Venturer\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/3060/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

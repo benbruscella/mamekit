@@ -1,0 +1,792 @@
+{
+  "schemaVersion": 1,
+  "type": "TRACKFLD_AUDIO",
+  "className": "trackfld_audio_device",
+  "hierarchy": [
+    "trackfld_audio_device"
+  ],
+  "sourceFiles": [
+    "src/mame/konami/trackfld_a.cpp",
+    "src/mame/konami/trackfld_a.h",
+    "src/devices/cpu/m6800/m6800.h",
+    "src/devices/cpu/m6800/m6800.cpp",
+    "src/devices/sound/vlm5030.h",
+    "src/devices/sound/vlm5030.cpp"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "TIMER_RATE": 1024,
+    "M6800_PC": 1,
+    "M6800_S": 2,
+    "M6800_A": 3,
+    "M6800_B": 4,
+    "M6800_X": 5,
+    "M6800_CC": 6,
+    "M6800_WAI_STATE": 7,
+    "M6800_IRQ_LINE": 0,
+    "M6800_LINE_MAX": 1,
+    "M6800_WAI": 8,
+    "M6800_SLP": 16,
+    "M6802_IRQ_LINE": 0,
+    "M6808_IRQ_LINE": 0,
+    "XX": 4,
+    "FR_SIZE": 4,
+    "PH_RESET": 0,
+    "PH_IDLE": 1,
+    "PH_SETUP": 2,
+    "PH_WAIT": 3,
+    "PH_RUN": 4,
+    "PH_STOP": 5,
+    "PH_END": 6
+  },
+  "members": [
+    {
+      "name": "m_last_irq",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_audiocpu",
+      "valueType": "optional_device<cpu_device>",
+      "finder": {
+        "kind": "device",
+        "tag": ""
+      }
+    },
+    {
+      "name": "m_vlm",
+      "valueType": "optional_device<vlm5030_device>",
+      "finder": {
+        "kind": "device",
+        "tag": ""
+      }
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_irq"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 23,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 32,
+        "column": 1
+      }
+    },
+    {
+      "name": "trackfld_sh_timer_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "clock",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_audiocpu"
+                  },
+                  "property": "total_cycles"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "TIMER_RATE"
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "trackfld_speech_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_vlm"
+                  },
+                  "property": "bsy_r"
+                },
+                "args": []
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 16
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "trackfld_sound_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vlm"
+                },
+                "property": "st_w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vlm"
+                },
+                "property": "rst_w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 9
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 59,
+        "column": 1
+      }
+    },
+    {
+      "name": "hyperspt_sh_timer_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "clock",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_audiocpu"
+                  },
+                  "property": "total_cycles"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "TIMER_RATE"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_vlm"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "right": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vlm"
+                        },
+                        "property": "bsy_r"
+                      },
+                      "args": []
+                    },
+                    "whenTrue": {
+                      "kind": "number",
+                      "value": 4
+                    },
+                    "whenFalse": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 72,
+        "column": 1
+      }
+    },
+    {
+      "name": "hyperspt_sound_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vlm"
+                },
+                "property": "st_w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vlm"
+                },
+                "property": "rst_w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 5
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 82,
+        "column": 1
+      }
+    },
+    {
+      "name": "sh_irqtrigger_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_last_irq"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_audiocpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "HOLD_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_irq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.cpp",
+        "line": 100,
+        "column": 1
+      }
+    },
+    {
+      "name": "trackfld_audio_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&cpu_tag, auto &&vlm_tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_audiocpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vlm"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vlm_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.h",
+        "line": 12,
+        "column": 1
+      }
+    },
+    {
+      "name": "trackfld_audio_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&cpu_tag, auto &&vlm_tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_audiocpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vlm"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vlm_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.h",
+        "line": 20,
+        "column": 1
+      }
+    },
+    {
+      "name": "trackfld_audio_device::trackfld_audio_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&cpu_tag, auto &&vlm_tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_audiocpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vlm"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vlm_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/konami/trackfld_a.h",
+        "line": 13,
+        "column": 1
+      }
+    }
+  ],
+  "clockDivider": 4,
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 11,
+    "compiledMethods": 11,
+    "diagnostics": 0
+  }
+}

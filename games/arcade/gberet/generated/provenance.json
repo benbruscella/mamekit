@@ -1,0 +1,364 @@
+{
+  "generatedFrom": "src/mame/konami/gberet.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 742,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 743,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 744,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 745,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 748,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 752,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 756
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 742,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 743,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 744,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 745,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 748,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 735,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 750,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 445,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 735,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 738,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 741,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 747,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 750,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 755,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 756,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 759,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 761,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 384,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 378,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/konami/k005849.h",
+      "line": 21,
+      "column": 42
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/konami/k005849.h",
+      "line": 25,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/konami/k005849.cpp",
+      "line": 86,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 514,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 529,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 547,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 403,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 390,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 742,
+      "column": 2
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 743,
+      "column": 2
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 745,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 445,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 410,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/konami/k005849.h",
+      "line": 20,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 335,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 536,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 537,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 538,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 539,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 540,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 541,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 542,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 543,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 544,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 545,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 546,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 547,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 548,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 549,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 550,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 534,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 335,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 403,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/konami/gberet.cpp",
+      "line": 403,
+      "column": 1
+    }
+  ]
+}

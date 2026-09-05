@@ -1,0 +1,380 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "gauntlet",
+  "family": "gauntlet",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "runtime-certified",
+  "generationGaps": [
+    "alpha:TILEMAP",
+    "mob:ATARI_MOTION_OBJECTS",
+    "playfield:TILEMAP"
+  ],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 141,
+    "total": 200,
+    "percent": 70.5
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M68010",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68010.cpp:8"
+      },
+      {
+        "name": "audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "eeprom:EEPROM_2804",
+        "status": "declarative-host"
+      },
+      {
+        "name": "outlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "scantimer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "playfield:TILEMAP",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "alpha:TILEMAP",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "mob:ATARI_MOTION_OBJECTS",
+        "status": "blocked",
+        "source": "src/mame/atari/atarimo.cpp:121",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "mainlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ymsnd:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "pokey:POKEY",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "tms:TMS5220C",
+        "status": "executable",
+        "source": "src/devices/sound/tms5220.cpp:2173"
+      },
+      {
+        "name": "soundctl:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "slapstic:SLAPSTIC",
+        "status": "executable",
+        "source": "src/mame/atari/slapstic.cpp:204"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "alpha.write16",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "bank.slapstic_bank",
+        "status": "generated"
+      },
+      {
+        "name": "eeprom.read",
+        "status": "declarative-host"
+      },
+      {
+        "name": "eeprom.unlock_write16",
+        "status": "declarative-host"
+      },
+      {
+        "name": "eeprom.write",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gauntlet_state.mixer_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:524"
+      },
+      {
+        "name": "gauntlet_state.sound_irq_ack_r",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:445"
+      },
+      {
+        "name": "gauntlet_state.sound_irq_ack_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:453"
+      },
+      {
+        "name": "gauntlet_state.switch_6502_r",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:485"
+      },
+      {
+        "name": "gauntlet_state.video_int_ack_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:431"
+      },
+      {
+        "name": "gauntlet_state.xscroll_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:323"
+      },
+      {
+        "name": "gauntlet_state.yscroll_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:347"
+      },
+      {
+        "name": "mainlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "mainlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "outlatch.write_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "palette.write16",
+        "status": "declarative-host"
+      },
+      {
+        "name": "playfield.write16",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "pokey.read",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "pokey.write",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "port.803000",
+        "status": "generated"
+      },
+      {
+        "name": "port.803002",
+        "status": "generated"
+      },
+      {
+        "name": "port.803004",
+        "status": "generated"
+      },
+      {
+        "name": "port.803006",
+        "status": "generated"
+      },
+      {
+        "name": "port.803008",
+        "status": "generated"
+      },
+      {
+        "name": "port.COIN",
+        "status": "generated"
+      },
+      {
+        "name": "soundctl.write_d7",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "tms.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/tms5220.cpp:2173"
+      },
+      {
+        "name": "watchdog.reset16_w",
+        "status": "generated"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "outlatch.q_out_cb<7> -> gauntlet_state.sound_reset_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:760"
+      },
+      {
+        "name": "scantimer.configure_scanline -> screen.scanline_update",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:762"
+      },
+      {
+        "name": "playfield.set_info_callback -> gauntlet_state.get_playfield_tile_info",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:771"
+      },
+      {
+        "name": "alpha.set_info_callback -> gauntlet_state.get_alpha_tile_info",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:772"
+      },
+      {
+        "name": "screen.set_screen_update -> gauntlet_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:782"
+      },
+      {
+        "name": "screen.screen_vblank -> maincpu",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:784"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:790"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> perfect_quantum",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:791"
+      },
+      {
+        "name": "mainlatch.data_pending_callback -> maincpu",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:794"
+      },
+      {
+        "name": "soundctl.q_out_cb<0> -> ymsnd.reset_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:809"
+      },
+      {
+        "name": "soundctl.q_out_cb<1> -> tms.wsq_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:810"
+      },
+      {
+        "name": "soundctl.q_out_cb<2> -> tms.rsq_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:811"
+      },
+      {
+        "name": "soundctl.q_out_cb<3> -> gauntlet_state.speech_squeak_w",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:812"
+      },
+      {
+        "name": "soundctl.q_out_cb<4> -> gauntlet_state.coin_counter_w_1",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:813"
+      },
+      {
+        "name": "soundctl.q_out_cb<5> -> gauntlet_state.coin_counter_w_0",
+        "status": "generated",
+        "source": "src/mame/atari/gauntlet.cpp:814"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/gauntlet/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 19,
+    "compiledMethods": 18,
+    "blockedMethods": 1,
+    "usedCompiledHandlers": 7,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 2,
+    "screenUpdate": "gauntlet_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": [
+      "could not parse statement at byte 202"
+    ]
+  },
+  "summary": {
+    "executable": 21,
+    "generated": 31,
+    "declarative-host": 11,
+    "blocked": 1,
+    "missing": 4
+  }
+}

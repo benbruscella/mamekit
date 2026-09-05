@@ -1,0 +1,1816 @@
+{
+  "generatedFrom": "src/mame/namco/polepos.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 888,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 889,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 890,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 891,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 892,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 893,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 898,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 899,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 902,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 903,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 904,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/11/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 905,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/12/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 906,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/13/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 913,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/14/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 914,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/15/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 915,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/16/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 916,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/17/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 917,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/18/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 918,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/19/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 919,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/20/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 920,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/21/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 921,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/22/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 922,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/23/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 923,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/24/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 929,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/25/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 932,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/26/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 933,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/27/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 934,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/28/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 935,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/29/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 936,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/30/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/31/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 938,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/32/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 939,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/33/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 940,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/34/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 941,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/35/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 942,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/36/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 943,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/37/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 946,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/38/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 951,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/39/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 953,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/40/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 171,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/41/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 172,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/42/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 173,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/43/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 174,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/44/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 175,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/45/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 176,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/46/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 177,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/47/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/48/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 139,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/49/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 140,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/50/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 141,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/51/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 142,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/52/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 171,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/53/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 172,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/54/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 173,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/55/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 174,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/56/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 175,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/57/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 176,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/58/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 177,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/59/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 137,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/60/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 138,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/61/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 139,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/62/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 140,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/63/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 141,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/64/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 142,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/65/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 143,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/66/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 956
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 888,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 889,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 890,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 891,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 892,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 893,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 898,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 899,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 902,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 903,
+      "column": 2
+    },
+    {
+      "path": "/connections/10/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 904,
+      "column": 2
+    },
+    {
+      "path": "/connections/11/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 905,
+      "column": 2
+    },
+    {
+      "path": "/connections/12/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 906,
+      "column": 2
+    },
+    {
+      "path": "/connections/13/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 913,
+      "column": 2
+    },
+    {
+      "path": "/connections/14/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 914,
+      "column": 2
+    },
+    {
+      "path": "/connections/15/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 915,
+      "column": 2
+    },
+    {
+      "path": "/connections/16/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 916,
+      "column": 2
+    },
+    {
+      "path": "/connections/17/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 917,
+      "column": 2
+    },
+    {
+      "path": "/connections/18/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 918,
+      "column": 2
+    },
+    {
+      "path": "/connections/19/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 919,
+      "column": 2
+    },
+    {
+      "path": "/connections/20/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 920,
+      "column": 2
+    },
+    {
+      "path": "/connections/21/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 921,
+      "column": 2
+    },
+    {
+      "path": "/connections/22/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 922,
+      "column": 2
+    },
+    {
+      "path": "/connections/23/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 923,
+      "column": 2
+    },
+    {
+      "path": "/connections/24/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 929,
+      "column": 2
+    },
+    {
+      "path": "/connections/25/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 932,
+      "column": 2
+    },
+    {
+      "path": "/connections/26/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 933,
+      "column": 2
+    },
+    {
+      "path": "/connections/27/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 934,
+      "column": 2
+    },
+    {
+      "path": "/connections/28/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 935,
+      "column": 2
+    },
+    {
+      "path": "/connections/29/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 936,
+      "column": 2
+    },
+    {
+      "path": "/connections/30/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/connections/31/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 938,
+      "column": 2
+    },
+    {
+      "path": "/connections/32/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 939,
+      "column": 2
+    },
+    {
+      "path": "/connections/33/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 940,
+      "column": 2
+    },
+    {
+      "path": "/connections/34/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 941,
+      "column": 2
+    },
+    {
+      "path": "/connections/35/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 942,
+      "column": 2
+    },
+    {
+      "path": "/connections/36/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 943,
+      "column": 2
+    },
+    {
+      "path": "/connections/37/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 946,
+      "column": 2
+    },
+    {
+      "path": "/connections/38/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 953,
+      "column": 2
+    },
+    {
+      "path": "/connections/39/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 171,
+      "column": 2
+    },
+    {
+      "path": "/connections/40/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 172,
+      "column": 2
+    },
+    {
+      "path": "/connections/41/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 173,
+      "column": 2
+    },
+    {
+      "path": "/connections/42/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 174,
+      "column": 2
+    },
+    {
+      "path": "/connections/43/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 175,
+      "column": 2
+    },
+    {
+      "path": "/connections/44/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 176,
+      "column": 2
+    },
+    {
+      "path": "/connections/45/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 177,
+      "column": 2
+    },
+    {
+      "path": "/connections/46/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/connections/47/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 139,
+      "column": 2
+    },
+    {
+      "path": "/connections/48/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 140,
+      "column": 2
+    },
+    {
+      "path": "/connections/49/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 141,
+      "column": 2
+    },
+    {
+      "path": "/connections/50/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 142,
+      "column": 2
+    },
+    {
+      "path": "/connections/51/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 171,
+      "column": 2
+    },
+    {
+      "path": "/connections/52/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 172,
+      "column": 2
+    },
+    {
+      "path": "/connections/53/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 173,
+      "column": 2
+    },
+    {
+      "path": "/connections/54/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 174,
+      "column": 2
+    },
+    {
+      "path": "/connections/55/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 175,
+      "column": 2
+    },
+    {
+      "path": "/connections/56/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 176,
+      "column": 2
+    },
+    {
+      "path": "/connections/57/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 177,
+      "column": 2
+    },
+    {
+      "path": "/connections/58/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 137,
+      "column": 2
+    },
+    {
+      "path": "/connections/59/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 138,
+      "column": 2
+    },
+    {
+      "path": "/connections/60/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 139,
+      "column": 2
+    },
+    {
+      "path": "/connections/61/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 140,
+      "column": 2
+    },
+    {
+      "path": "/connections/62/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 141,
+      "column": 2
+    },
+    {
+      "path": "/connections/63/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 142,
+      "column": 2
+    },
+    {
+      "path": "/connections/64/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 143,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 877,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 881,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 884,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 949,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 953,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 929,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 929,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 929,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 953,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 451,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 877,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 881,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 884,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 887,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 895,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 901,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 908,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 912,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 925,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 927,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 929,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 931,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 945,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 949,
+      "column": 2
+    },
+    {
+      "path": "/devices/14/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 955,
+      "column": 2
+    },
+    {
+      "path": "/devices/15/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 956,
+      "column": 2
+    },
+    {
+      "path": "/devices/16/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 961,
+      "column": 2
+    },
+    {
+      "path": "/devices/17/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 962,
+      "column": 2
+    },
+    {
+      "path": "/devices/18/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 964,
+      "column": 2
+    },
+    {
+      "path": "/devices/19/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 971,
+      "column": 2
+    },
+    {
+      "path": "/devices/20/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 978,
+      "column": 2
+    },
+    {
+      "path": "/devices/21/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 170,
+      "column": 2
+    },
+    {
+      "path": "/devices/22/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 170,
+      "column": 2
+    },
+    {
+      "path": "/devices/23/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 136,
+      "column": 2
+    },
+    {
+      "path": "/devices/24/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 138,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 202,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 207,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 219,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 224,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 285,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 290,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 248,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 253,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 445,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 445,
+      "column": 2
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 135,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 154,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 159,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 174,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 179,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 184,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 228,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 291,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 450,
+      "column": 2
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 451,
+      "column": 2
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/namco/polepos_a.cpp",
+      "line": 329,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/namco/polepos_a.cpp",
+      "line": 340,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 459,
+      "column": 2
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 459,
+      "column": 2
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 279,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 241,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 260,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 229,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 314,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 314,
+      "column": 1
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 425,
+      "column": 1
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 183,
+      "column": 1
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 145,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 153,
+      "column": 1
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 328,
+      "column": 1
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 337,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 342,
+      "column": 1
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 350,
+      "column": 1
+    },
+    {
+      "path": "/handlers/38/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 356,
+      "column": 1
+    },
+    {
+      "path": "/handlers/39/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 362,
+      "column": 1
+    },
+    {
+      "path": "/handlers/40/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 387,
+      "column": 1
+    },
+    {
+      "path": "/handlers/41/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 86,
+      "column": 1
+    },
+    {
+      "path": "/handlers/42/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 76,
+      "column": 1
+    },
+    {
+      "path": "/handlers/43/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 81,
+      "column": 1
+    },
+    {
+      "path": "/handlers/44/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 91,
+      "column": 1
+    },
+    {
+      "path": "/handlers/45/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 96,
+      "column": 1
+    },
+    {
+      "path": "/handlers/46/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 101,
+      "column": 1
+    },
+    {
+      "path": "/handlers/47/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 95,
+      "column": 1
+    },
+    {
+      "path": "/handlers/48/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 90,
+      "column": 1
+    },
+    {
+      "path": "/handlers/49/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 101,
+      "column": 1
+    },
+    {
+      "path": "/handlers/50/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 106,
+      "column": 1
+    },
+    {
+      "path": "/handlers/51/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 111,
+      "column": 1
+    },
+    {
+      "path": "/handlers/52/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 86,
+      "column": 1
+    },
+    {
+      "path": "/handlers/53/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 91,
+      "column": 1
+    },
+    {
+      "path": "/handlers/54/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 97,
+      "column": 1
+    },
+    {
+      "path": "/handlers/55/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 392,
+      "column": 1
+    },
+    {
+      "path": "/handlers/56/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 64,
+      "column": 1
+    },
+    {
+      "path": "/handlers/57/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 53,
+      "column": 1
+    },
+    {
+      "path": "/handlers/58/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 63,
+      "column": 1
+    },
+    {
+      "path": "/handlers/59/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 56,
+      "column": 1
+    },
+    {
+      "path": "/handlers/60/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 1055,
+      "column": 2
+    },
+    {
+      "path": "/handlers/61/source",
+      "file": "src/mame/namco/polepos_a.cpp",
+      "line": 316,
+      "column": 1
+    },
+    {
+      "path": "/handlers/62/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 304,
+      "column": 1
+    },
+    {
+      "path": "/handlers/63/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 309,
+      "column": 1
+    },
+    {
+      "path": "/handlers/64/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 266,
+      "column": 1
+    },
+    {
+      "path": "/handlers/65/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 286,
+      "column": 1
+    },
+    {
+      "path": "/handlers/66/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 451,
+      "column": 1
+    },
+    {
+      "path": "/handlers/67/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 304,
+      "column": 1
+    },
+    {
+      "path": "/handlers/68/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 423,
+      "column": 1
+    },
+    {
+      "path": "/handlers/69/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 375,
+      "column": 1
+    },
+    {
+      "path": "/handlers/70/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 70,
+      "column": 1
+    },
+    {
+      "path": "/handlers/71/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 59,
+      "column": 1
+    },
+    {
+      "path": "/handlers/72/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 95,
+      "column": 1
+    },
+    {
+      "path": "/handlers/73/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 80,
+      "column": 1
+    },
+    {
+      "path": "/handlers/74/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 64,
+      "column": 1
+    },
+    {
+      "path": "/handlers/75/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 69,
+      "column": 1
+    },
+    {
+      "path": "/handlers/76/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 74,
+      "column": 1
+    },
+    {
+      "path": "/handlers/77/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 85,
+      "column": 1
+    },
+    {
+      "path": "/handlers/78/source",
+      "file": "src/mame/namco/namco52.cpp",
+      "line": 90,
+      "column": 1
+    },
+    {
+      "path": "/handlers/79/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 62,
+      "column": 1
+    },
+    {
+      "path": "/handlers/80/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 72,
+      "column": 1
+    },
+    {
+      "path": "/handlers/81/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 67,
+      "column": 1
+    },
+    {
+      "path": "/handlers/82/source",
+      "file": "src/mame/namco/namco54.cpp",
+      "line": 80,
+      "column": 1
+    },
+    {
+      "path": "/handlers/83/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 106,
+      "column": 1
+    },
+    {
+      "path": "/handlers/84/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/85/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/86/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/87/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/88/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 117,
+      "column": 1
+    },
+    {
+      "path": "/handlers/89/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 122,
+      "column": 1
+    },
+    {
+      "path": "/handlers/90/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 127,
+      "column": 1
+    },
+    {
+      "path": "/handlers/91/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 69,
+      "column": 1
+    },
+    {
+      "path": "/handlers/92/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 80,
+      "column": 1
+    },
+    {
+      "path": "/handlers/93/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 85,
+      "column": 1
+    },
+    {
+      "path": "/handlers/94/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/95/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/96/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/97/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/98/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 323,
+      "column": 1
+    },
+    {
+      "path": "/handlers/99/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 30,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 437,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 438,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 439,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 440,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 441,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 442,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 444,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 445,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 447,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 448,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 449,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 450,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 451,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 452,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 453,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 435,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 459,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 456,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 466,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 467,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 468,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 469,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/4/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 470,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/5/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 471,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 464,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 477,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 478,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 474,
+      "column": 1
+    },
+    {
+      "path": "/maps/4/ranges/0/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 484,
+      "column": 2
+    },
+    {
+      "path": "/maps/4/ranges/1/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 485,
+      "column": 2
+    },
+    {
+      "path": "/maps/4/source",
+      "file": "src/mame/namco/polepos.cpp",
+      "line": 481,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 30,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 183,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 183,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/namco/polepos_v.cpp",
+      "line": 183,
+      "column": 1
+    }
+  ]
+}

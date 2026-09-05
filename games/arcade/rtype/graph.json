@@ -1,0 +1,4117 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/irem/m72.cpp",
+    "generatedAt": "2026-09-05T03:50:05.898Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/irem/m72.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/irem/m72.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:m72.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "m72.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:iremipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "iremipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/nec/nec.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/nec/nec.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/nec/v25.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/nec/v25.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:irem_cpu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "irem_cpu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/rstbuf.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rstbuf.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "callback:timer/m72_state.scanline_interrupt",
+      "label": "Callback",
+      "props": {
+        "ownerTag": "scanline_timer",
+        "signal": "timer",
+        "operation": "adjust",
+        "targetClass": "m72_state",
+        "targetMethod": "scanline_interrupt",
+        "startClass": "m72_state",
+        "startMethod": "machine_start",
+        "scanlineStart": 0,
+        "scanlineIncrement": 1,
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 256,
+        "sourceColumn": 1,
+        "sourceEndLine": 279
+      }
+    },
+    {
+      "id": "handler:m72_state.scanline_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "scanline_interrupt",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 256,
+        "sourceColumn": 1,
+        "sourceEndLine": 279,
+        "sourceParameters": "int param",
+        "sourceBody": "int scanline = param;\n\n\t/* raster interrupt */\n\tif (scanline == m_raster_irq_position)\n\t{\n\t\tm_screen->update_partial(m_screen->vpos());\n\t\tm_upd71059c->ir2_w(1);\n\t}\n\telse\n\t\tm_upd71059c->ir2_w(0);\n\n\t/* VBLANK interrupt */\n\tif (scanline == 256)\n\t\tm_upd71059c->ir0_w(1);\n\telse\n\t\tm_upd71059c->ir0_w(0);\n\n\t/* adjust for next scanline */\n\tif (++scanline >= m_screen->height())\n\t\tscanline = 0;\n\tm_scanline_timer->adjust(m_screen->time_until_pos(scanline), scanline);"
+      }
+    },
+    {
+      "id": "game:rtype",
+      "label": "Game",
+      "props": {
+        "name": "rtype",
+        "year": "1987",
+        "company": "Irem",
+        "fullname": "R-Type (World)",
+        "monitor": "ROT0",
+        "cls": "m72_state",
+        "init": "empty_init",
+        "flags": "MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 4625,
+        "sourceColumn": 1,
+        "sourceEndLine": 4625
+      }
+    },
+    {
+      "id": "romset:rtype",
+      "label": "RomSet",
+      "props": {
+        "name": "rtype",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2035,
+        "sourceColumn": 1,
+        "sourceEndLine": 2035
+      }
+    },
+    {
+      "id": "region:rtype/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 1048576,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2036,
+        "sourceColumn": 2,
+        "sourceEndLine": 2036
+      }
+    },
+    {
+      "id": "rom:rtype/maincpu/rt_r-h0-b.1b",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-h0-b.1b",
+        "offset": 1,
+        "size": 65536,
+        "crc": "591c7754",
+        "sha1": "0b9d5474bc5963224923126cf84d74a39b8270cc",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:rtype/maincpu/rt_r-l0-b.3b",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-l0-b.3b",
+        "offset": 0,
+        "size": 65536,
+        "crc": "a1928df0",
+        "sha1": "3001c1b87cd1d441ba1226fb5b9dd6268458c0e8",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:rtype/maincpu/rt_r-h1-b.1c",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-h1-b.1c",
+        "offset": 131073,
+        "size": 65536,
+        "crc": "a9d71eca",
+        "sha1": "008d1dc289df2ae2ba8f93d319c2b2c108cb9b89",
+        "reloadOffsets": [
+          917505
+        ],
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:rtype/maincpu/rt_r-l1-b.3c",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-l1-b.3c",
+        "offset": 131072,
+        "size": 65536,
+        "crc": "0df3573d",
+        "sha1": "0144c846fd0bdb3e4d790f6cb7bb64829e931b76",
+        "reloadOffsets": [
+          917504
+        ],
+        "skip": 1
+      }
+    },
+    {
+      "id": "region:rtype/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 524288,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2044,
+        "sourceColumn": 2,
+        "sourceEndLine": 2044
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-00.1h",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-00.1h",
+        "offset": 0,
+        "size": 65536,
+        "crc": "dad53bc0",
+        "sha1": "1e3bc498861946278a0b1fe24259f5d224e265d7",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2045,
+        "sourceColumn": 2,
+        "sourceEndLine": 2045
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-01.1j",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-01.1j",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "5e441e7f",
+        "sha1": "6741eb7f2d9d985b5a89eefc73ea44c3e38de6f7",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2046,
+        "sourceColumn": 2,
+        "sourceEndLine": 2046,
+        "reloadOffsets": [
+          98304
+        ]
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-10.1k",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-10.1k",
+        "offset": 131072,
+        "size": 65536,
+        "crc": "d6a66298",
+        "sha1": "d2873d05aa3b257e7699c188880ac3daad672fa5",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2048,
+        "sourceColumn": 2,
+        "sourceEndLine": 2048
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-11.1l",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-11.1l",
+        "offset": 196608,
+        "size": 32768,
+        "crc": "791df4f8",
+        "sha1": "5239a97222212ac9c019177771cb2b5096b7bc17",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2049,
+        "sourceColumn": 2,
+        "sourceEndLine": 2049,
+        "reloadOffsets": [
+          229376
+        ]
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-20.3h",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-20.3h",
+        "offset": 262144,
+        "size": 65536,
+        "crc": "fc247c8a",
+        "sha1": "01cf0a60f47fa5e2ed430a3f075e69e6cb762a48",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2051,
+        "sourceColumn": 2,
+        "sourceEndLine": 2051
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-21.3j",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-21.3j",
+        "offset": 327680,
+        "size": 32768,
+        "crc": "ed793841",
+        "sha1": "7e55a9a11fcd989db39bce6be48821b747c7d97f",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2052,
+        "sourceColumn": 2,
+        "sourceEndLine": 2052,
+        "reloadOffsets": [
+          360448
+        ]
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-30.3k",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-30.3k",
+        "offset": 393216,
+        "size": 65536,
+        "crc": "eb02a1cb",
+        "sha1": "60a394ab53afdcbbf9e88083b8dbe8c897170d77",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2054,
+        "sourceColumn": 2,
+        "sourceEndLine": 2054
+      }
+    },
+    {
+      "id": "rom:rtype/sprites/rt_r-31.3l",
+      "label": "Rom",
+      "props": {
+        "file": "rt_r-31.3l",
+        "offset": 458752,
+        "size": 32768,
+        "crc": "8558355d",
+        "sha1": "b5467d1f22f6e5f90c5d8a8ac2d55974f287d589",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2055,
+        "sourceColumn": 2,
+        "sourceEndLine": 2055,
+        "reloadOffsets": [
+          491520
+        ]
+      }
+    },
+    {
+      "id": "region:rtype/tiles0",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles0",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2058,
+        "sourceColumn": 2,
+        "sourceEndLine": 2058
+      }
+    },
+    {
+      "id": "rom:rtype/tiles0/rt_b-a0.ic20",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-a0.ic20",
+        "offset": 0,
+        "size": 32768,
+        "crc": "4e212fb0",
+        "sha1": "687061ecade2ebd0bd1343c9c4a831791853f79c",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2059,
+        "sourceColumn": 2,
+        "sourceEndLine": 2059
+      }
+    },
+    {
+      "id": "rom:rtype/tiles0/rt_b-a1.ic22",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-a1.ic22",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "8a65bdff",
+        "sha1": "130bf6af521f13247a739a95eab4bdaa24b2ac10",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2060,
+        "sourceColumn": 2,
+        "sourceEndLine": 2060
+      }
+    },
+    {
+      "id": "rom:rtype/tiles0/rt_b-a2.ic20",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-a2.ic20",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "5a4ae5b9",
+        "sha1": "95c3b64f50e6f673b2bf9b40642c152da5009d25",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2061,
+        "sourceColumn": 2,
+        "sourceEndLine": 2061
+      }
+    },
+    {
+      "id": "rom:rtype/tiles0/rt_b-a3.ic23",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-a3.ic23",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "73327606",
+        "sha1": "9529ecdedd30e2a0400fb1083117992cc18b5158",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2062,
+        "sourceColumn": 2,
+        "sourceEndLine": 2062
+      }
+    },
+    {
+      "id": "region:rtype/tiles1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles1",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2064,
+        "sourceColumn": 2,
+        "sourceEndLine": 2064
+      }
+    },
+    {
+      "id": "rom:rtype/tiles1/rt_b-b0.ic26",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-b0.ic26",
+        "offset": 0,
+        "size": 32768,
+        "crc": "a7b17491",
+        "sha1": "5b390770e56ba2d35e108534d7eda8dca996fdf7",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2065,
+        "sourceColumn": 2,
+        "sourceEndLine": 2065
+      }
+    },
+    {
+      "id": "rom:rtype/tiles1/rt_b-b1.ic27",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-b1.ic27",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "b9709686",
+        "sha1": "700905a3e9661e0874939f54da2909e1396ce596",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2066,
+        "sourceColumn": 2,
+        "sourceEndLine": 2066
+      }
+    },
+    {
+      "id": "rom:rtype/tiles1/rt_b-b2.ic25",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-b2.ic25",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "433b229a",
+        "sha1": "14222eaa3e67e5a7f80eafcf22bac4eb2d485a9a",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2067,
+        "sourceColumn": 2,
+        "sourceEndLine": 2067
+      }
+    },
+    {
+      "id": "rom:rtype/tiles1/rt_b-b3.ic24",
+      "label": "Rom",
+      "props": {
+        "file": "rt_b-b3.ic24",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "ad89b072",
+        "sha1": "e2683d0e7415f3abd147e518bf6c87e44744cd4f",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2068,
+        "sourceColumn": 2,
+        "sourceEndLine": 2068
+      }
+    },
+    {
+      "id": "region:rtype/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2070,
+        "sourceColumn": 2,
+        "sourceEndLine": 2070
+      }
+    },
+    {
+      "id": "rom:rtype/proms/m72_a-8l-.ic66",
+      "label": "Rom",
+      "props": {
+        "file": "m72_a-8l-.ic66",
+        "offset": 0,
+        "size": 256,
+        "crc": "b460c438",
+        "sha1": "00e20cf754b6fd5138ee4d2f6ec28dff9e292fe6",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2071,
+        "sourceColumn": 2,
+        "sourceEndLine": 2071
+      }
+    },
+    {
+      "id": "rom:rtype/proms/m72_a-9l-.ic75",
+      "label": "Rom",
+      "props": {
+        "file": "m72_a-9l-.ic75",
+        "offset": 256,
+        "size": 256,
+        "crc": "a4f2c4bc",
+        "sha1": "f13b0a4b52dcc6704063b676f09d83dcba170133",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2072,
+        "sourceColumn": 2,
+        "sourceEndLine": 2072
+      }
+    },
+    {
+      "id": "region:rtype/plds",
+      "label": "RomRegion",
+      "props": {
+        "tag": "plds",
+        "size": 1536,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2074,
+        "sourceColumn": 2,
+        "sourceEndLine": 2074
+      }
+    },
+    {
+      "id": "rom:rtype/plds/m72_a-3d-.ic11",
+      "label": "Rom",
+      "props": {
+        "file": "m72_a-3d-.ic11",
+        "offset": 0,
+        "size": 279,
+        "crc": "8a3732ff",
+        "sha1": "6e3039e7dc424cbef7156312fa1ce67d7b082d30",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2075,
+        "sourceColumn": 2,
+        "sourceEndLine": 2075
+      }
+    },
+    {
+      "id": "rom:rtype/plds/m72_a-4d-.ic19",
+      "label": "Rom",
+      "props": {
+        "file": "m72_a-4d-.ic19",
+        "offset": 512,
+        "size": 279,
+        "crc": "56c29834",
+        "sha1": "a66c589845f9995c673325f1161c687eb90d68c1",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2076,
+        "sourceColumn": 2,
+        "sourceEndLine": 2076
+      }
+    },
+    {
+      "id": "rom:rtype/plds/m72_r-3a-.3a",
+      "label": "Rom",
+      "props": {
+        "file": "m72_r-3a-.3a",
+        "offset": 1024,
+        "size": 279,
+        "crc": "055af779",
+        "sha1": "740d860df45109710e082d79c534ec0eeaa779f2",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2077,
+        "sourceColumn": 2,
+        "sourceEndLine": 2077
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m72_state",
+        "name": "m72_cpu1_common_map",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 1,
+        "sourceEndLine": 603
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 786432,
+        "end": 787455,
+        "raw": "map(0xc0000, 0xc03ff).ram().share(\"spriteram\")",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 819200,
+        "end": 822271,
+        "raw": "map(0xc8000, 0xc8bff).rw(FUNC(m72_state::palette_r<0>), FUNC(m72_state::palette_w<0>)).share(m_paletteram[0])",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 597,
+        "sourceColumn": 2,
+        "sourceEndLine": 597,
+        "share": "paletteram[0]"
+      }
+    },
+    {
+      "id": "handler:m72_state.palette_r_0",
+      "label": "Handler",
+      "props": {
+        "method": "palette_r_0",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 1,
+        "sourceEndLine": 550,
+        "sourceConstants": [
+          "N=0"
+        ],
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "/* A9 isn't connected, so 0x200-0x3ff mirrors 0x000-0x1ff etc. */\n\toffset &= ~0x100;\n\n\treturn m_paletteram[N][offset] | 0xffe0;    /* only D0-D4 are connected */"
+      }
+    },
+    {
+      "id": "handler:m72_state.palette_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "palette_w_0",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 558,
+        "sourceColumn": 1,
+        "sourceEndLine": 569,
+        "sourceConstants": [
+          "N=0"
+        ],
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "/* A9 isn't connected, so 0x200-0x3ff mirrors 0x000-0x1ff etc. */\n\toffset &= ~0x100;\n\n\tCOMBINE_DATA(&m_paletteram[N][offset]);\n\toffset &= 0x0ff;\n\tchangecolor(offset + (N << 8),\n\t\t\tm_paletteram[N][offset + 0x000],\n\t\t\tm_paletteram[N][offset + 0x200],\n\t\t\tm_paletteram[N][offset + 0x400]);"
+      }
+    },
+    {
+      "id": "handler:m72_state.changecolor",
+      "label": "Handler",
+      "props": {
+        "method": "changecolor",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 552,
+        "sourceColumn": 1,
+        "sourceEndLine": 555,
+        "sourceParameters": "offs_t color, u8 r, u8 g, u8 b",
+        "sourceBody": "m_palette->set_pen_color(color,pal5bit(r),pal5bit(g),pal5bit(b));"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 835584,
+        "end": 838655,
+        "raw": "map(0xcc000, 0xccbff).rw(FUNC(m72_state::palette_r<1>), FUNC(m72_state::palette_w<1>)).share(m_paletteram[1])",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 598,
+        "sourceColumn": 2,
+        "sourceEndLine": 598,
+        "share": "paletteram[1]"
+      }
+    },
+    {
+      "id": "handler:m72_state.palette_r_1",
+      "label": "Handler",
+      "props": {
+        "method": "palette_r_1",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 1,
+        "sourceEndLine": 550,
+        "sourceConstants": [
+          "N=1"
+        ],
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "/* A9 isn't connected, so 0x200-0x3ff mirrors 0x000-0x1ff etc. */\n\toffset &= ~0x100;\n\n\treturn m_paletteram[N][offset] | 0xffe0;    /* only D0-D4 are connected */"
+      }
+    },
+    {
+      "id": "handler:m72_state.palette_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "palette_w_1",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 558,
+        "sourceColumn": 1,
+        "sourceEndLine": 569,
+        "sourceConstants": [
+          "N=1"
+        ],
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "/* A9 isn't connected, so 0x200-0x3ff mirrors 0x000-0x1ff etc. */\n\toffset &= ~0x100;\n\n\tCOMBINE_DATA(&m_paletteram[N][offset]);\n\toffset &= 0x0ff;\n\tchangecolor(offset + (N << 8),\n\t\t\tm_paletteram[N][offset + 0x000],\n\t\t\tm_paletteram[N][offset + 0x200],\n\t\t\tm_paletteram[N][offset + 0x400]);"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 851968,
+        "end": 868351,
+        "raw": "map(0xd0000, 0xd3fff).ram().w(FUNC(m72_state::videoram1_w)).share(m_videoram[0])",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 599,
+        "sourceColumn": 2,
+        "sourceEndLine": 599,
+        "ram": true,
+        "share": "videoram[0]"
+      }
+    },
+    {
+      "id": "handler:m72_state.videoram1_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram1_w",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 252,
+        "sourceColumn": 1,
+        "sourceEndLine": 256,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_videoram[0][offset]);\n\tm_fg_tilemap->mark_tile_dirty(offset/2);"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 884736,
+        "end": 901119,
+        "raw": "map(0xd8000, 0xdbfff).ram().w(FUNC(m72_state::videoram2_w)).share(m_videoram[1])",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 600,
+        "sourceColumn": 2,
+        "sourceEndLine": 600,
+        "ram": true,
+        "share": "videoram[1]"
+      }
+    },
+    {
+      "id": "handler:m72_state.videoram2_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram2_w",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 258,
+        "sourceColumn": 1,
+        "sourceEndLine": 262,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_videoram[1][offset]);\n\tm_bg_tilemap->mark_tile_dirty(offset/2);"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 917504,
+        "end": 983039,
+        "raw": "map(0xe0000, 0xeffff).rw(FUNC(m72_state::soundram_r), FUNC(m72_state::soundram_w))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 601,
+        "sourceColumn": 2,
+        "sourceEndLine": 601
+      }
+    },
+    {
+      "id": "handler:m72_state.soundram_r",
+      "label": "Handler",
+      "props": {
+        "method": "soundram_r",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 1,
+        "sourceEndLine": 587,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "return m_soundram[offset];"
+      }
+    },
+    {
+      "id": "handler:m72_state.soundram_w",
+      "label": "Handler",
+      "props": {
+        "method": "soundram_w",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 1,
+        "sourceEndLine": 592,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "m_soundram[offset] = data;"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_cpu1_common_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 1048560,
+        "end": 1048575,
+        "raw": "map(0xffff0, 0xfffff).rom()",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 602,
+        "sourceColumn": 2,
+        "sourceEndLine": 602,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:m72_state.m72_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m72_state",
+        "name": "m72_map",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 1,
+        "sourceEndLine": 610,
+        "calls": [
+          "m72_cpu1_common_map"
+        ]
+      }
+    },
+    {
+      "id": "map:m72_state.m72_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 524287,
+        "raw": "map(0x00000, 0x7ffff).rom()",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 2,
+        "sourceEndLine": 608,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:m72_state.m72_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 655360,
+        "end": 671743,
+        "raw": "map(0xa0000, 0xa3fff).ram()",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 609,
+        "sourceColumn": 2,
+        "sourceEndLine": 609,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:m72_state.rtype_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m72_state",
+        "name": "rtype_map",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 612,
+        "sourceColumn": 1,
+        "sourceEndLine": 617,
+        "calls": [
+          "m72_cpu1_common_map"
+        ]
+      }
+    },
+    {
+      "id": "map:m72_state.rtype_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 262143,
+        "raw": "map(0x00000, 0x3ffff).rom()",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 615,
+        "sourceColumn": 2,
+        "sourceEndLine": 615,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:m72_state.rtype_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 262144,
+        "end": 278527,
+        "raw": "map(0x40000, 0x43fff).ram()",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 2,
+        "sourceEndLine": 616,
+        "ram": true
+      }
+    },
+    {
+      "id": "handler:m72_state.irq_line_w",
+      "label": "Handler",
+      "props": {
+        "method": "irq_line_w",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 274,
+        "sourceColumn": 1,
+        "sourceEndLine": 285,
+        "sourceConstants": [
+          "NEC_INPUT_LINE_INTP2=12"
+        ],
+        "sourceParameters": "u16 data",
+        "sourceBody": "// KNA70H015(11): ISET\n\tm_raster_irq_position = (data & 0x1ff) - 128;\n\t// printf(\"m_raster_irq_position %d\\n\", m_raster_irq_position);\n\n\t// bchopper title screen jumps around, as does ingame at times, if this isn't done here\n\tif (m_upd71059c.found())\n\t\tm_upd71059c->ir2_w(0);\n\telse\n\t\tm_maincpu->set_input_line(NEC_INPUT_LINE_INTP2, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "handler:m72_state.dmaon_w",
+      "label": "Handler",
+      "props": {
+        "method": "dmaon_w",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 287,
+        "sourceColumn": 1,
+        "sourceEndLine": 290,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_spriteram->copy();"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m72_state",
+        "name": "m72_portmap",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 1,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 1,
+        "raw": "map(0x00, 0x01).portr(\"IN0\")",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 750,
+        "sourceColumn": 2,
+        "sourceEndLine": 750,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 3,
+        "raw": "map(0x02, 0x03).portr(\"IN1\")",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 751,
+        "sourceColumn": 2,
+        "sourceEndLine": 751,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 4,
+        "end": 5,
+        "raw": "map(0x04, 0x05).portr(\"DSW\")",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 752,
+        "sourceColumn": 2,
+        "sourceEndLine": 752,
+        "portRead": "DSW"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 753,
+        "sourceColumn": 2,
+        "sourceEndLine": 753
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 898,
+        "sourceColumn": 2,
+        "sourceEndLine": 898
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).w(FUNC(m72_state::port02_w))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 754,
+        "sourceColumn": 2,
+        "sourceEndLine": 754
+      }
+    },
+    {
+      "id": "handler:m72_state.port02_w",
+      "label": "Handler",
+      "props": {
+        "method": "port02_w",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 293,
+        "sourceColumn": 1,
+        "sourceEndLine": 314,
+        "sourceParameters": "u8 data",
+        "sourceBody": "if (data & 0xe0) logerror(\"write %02x to port 02\\n\",data);\n\n\t/* bits 0/1 are coin counters */\n\tmachine().bookkeeping().coin_counter_w(0, BIT(data, 0));\n\tmachine().bookkeeping().coin_counter_w(1, BIT(data, 1));\n\n\t/* bit 2 is flip screen (handled both by software and hardware) */\n\tflip_screen_set(BIT(data, 2) ^ BIT(~m_io_dsw->read(), 8));\n\n\t/* bit 3 is display disable */\n\tm_video_off = BIT(data, 3);\n\n\t/* bit 4 resets sound CPU (active low) */\n\tif (BIT(data, 4))\n\t\tm_soundcpu->set_input_line(INPUT_LINE_RESET, CLEAR_LINE);\n\telse\n\t\tm_soundcpu->set_input_line(INPUT_LINE_RESET, ASSERT_LINE);\n\n\t/* bit 5 = \"bank\"? */",
+        "inputMembers": [
+          "m_io_dsw=DSW"
+        ]
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 4,
+        "end": 4,
+        "raw": "map(0x04, 0x04).w(FUNC(m72_state::dmaon_w))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 2,
+        "sourceEndLine": 755
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 6,
+        "end": 7,
+        "raw": "map(0x06, 0x07).w(FUNC(m72_state::irq_line_w))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 756,
+        "sourceColumn": 2,
+        "sourceEndLine": 756
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 64,
+        "end": 67,
+        "raw": "map(0x40, 0x43).rw(m_upd71059c, FUNC(pic8259_device::read), FUNC(pic8259_device::write)).umask16(0x00ff)",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 757,
+        "sourceColumn": 2,
+        "sourceEndLine": 757,
+        "umask": 255
+      }
+    },
+    {
+      "id": "handler:pic8259_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "pic8259_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 847,
+        "sourceColumn": 2,
+        "sourceEndLine": 847
+      }
+    },
+    {
+      "id": "handler:pic8259_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "pic8259_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 847,
+        "sourceColumn": 2,
+        "sourceEndLine": 847
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 128,
+        "end": 129,
+        "raw": "map(0x80, 0x81).w(FUNC(m72_state::scrolly_w<0>))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 758,
+        "sourceColumn": 2,
+        "sourceEndLine": 758
+      }
+    },
+    {
+      "id": "handler:m72_state.scrolly_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "scrolly_w_0",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 1,
+        "sourceEndLine": 581,
+        "sourceConstants": [
+          "N=0"
+        ],
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_scrolly[N]);"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 130,
+        "end": 131,
+        "raw": "map(0x82, 0x83).w(FUNC(m72_state::scrollx_w<0>))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 759,
+        "sourceColumn": 2,
+        "sourceEndLine": 759
+      }
+    },
+    {
+      "id": "handler:m72_state.scrollx_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "scrollx_w_0",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 572,
+        "sourceColumn": 1,
+        "sourceEndLine": 575,
+        "sourceConstants": [
+          "N=0"
+        ],
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_scrollx[N]);"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 132,
+        "end": 133,
+        "raw": "map(0x84, 0x85).w(FUNC(m72_state::scrolly_w<1>))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 760,
+        "sourceColumn": 2,
+        "sourceEndLine": 760
+      }
+    },
+    {
+      "id": "handler:m72_state.scrolly_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "scrolly_w_1",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 1,
+        "sourceEndLine": 581,
+        "sourceConstants": [
+          "N=1"
+        ],
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_scrolly[N]);"
+      }
+    },
+    {
+      "id": "map:m72_state.m72_portmap/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 134,
+        "end": 135,
+        "raw": "map(0x86, 0x87).w(FUNC(m72_state::scrollx_w<1>))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 761,
+        "sourceColumn": 2,
+        "sourceEndLine": 761
+      }
+    },
+    {
+      "id": "handler:m72_state.scrollx_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "scrollx_w_1",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 572,
+        "sourceColumn": 1,
+        "sourceEndLine": 575,
+        "sourceConstants": [
+          "N=1"
+        ],
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_scrollx[N]);"
+      }
+    },
+    {
+      "id": "map:m72_state.sound_ram_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m72_state",
+        "name": "sound_ram_map",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 869,
+        "sourceColumn": 1,
+        "sourceEndLine": 872
+      }
+    },
+    {
+      "id": "map:m72_state.sound_ram_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 65535,
+        "raw": "map(0x0000, 0xffff).ram().share(m_soundram)",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 871,
+        "sourceColumn": 2,
+        "sourceEndLine": 871,
+        "ram": true,
+        "share": "soundram"
+      }
+    },
+    {
+      "id": "map:m72_state.rtype_sound_portmap",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m72_state",
+        "name": "rtype_sound_portmap",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 880,
+        "sourceColumn": 1,
+        "sourceEndLine": 886,
+        "globalMask": 255
+      }
+    },
+    {
+      "id": "map:m72_state.rtype_sound_portmap/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 1,
+        "raw": "map(0x00, 0x01).rw(\"ymsnd\", FUNC(ym2151_device::read), FUNC(ym2151_device::write))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 883,
+        "sourceColumn": 2,
+        "sourceEndLine": 883
+      }
+    },
+    {
+      "id": "handler:ym2151_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 918,
+        "sourceColumn": 2,
+        "sourceEndLine": 918
+      }
+    },
+    {
+      "id": "handler:ym2151_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 918,
+        "sourceColumn": 2,
+        "sourceEndLine": 918
+      }
+    },
+    {
+      "id": "map:m72_state.rtype_sound_portmap/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 884,
+        "sourceColumn": 2,
+        "sourceEndLine": 884
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "map:m72_state.rtype_sound_portmap/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 6,
+        "end": 6,
+        "raw": "map(0x06, 0x06).w(\"soundlatch\", FUNC(generic_latch_8_device::acknowledge_w))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 885,
+        "sourceColumn": 2,
+        "sourceEndLine": 885
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.acknowledge_w",
+      "label": "Handler",
+      "props": {
+        "method": "acknowledge_w",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "map:m72_state.sound_portmap",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m72_state",
+        "name": "sound_portmap",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 888,
+        "sourceColumn": 1,
+        "sourceEndLine": 893,
+        "calls": [
+          "rtype_sound_portmap"
+        ]
+      }
+    },
+    {
+      "id": "map:m72_state.sound_portmap/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 130,
+        "end": 130,
+        "raw": "map(0x82, 0x82).w(m_audio, FUNC(m72_audio_device::sample_w))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 891,
+        "sourceColumn": 2,
+        "sourceEndLine": 891
+      }
+    },
+    {
+      "id": "handler:m72_audio_device.sample_w",
+      "label": "Handler",
+      "props": {
+        "method": "sample_w",
+        "ownerClass": "m72_audio_device",
+        "sourceFile": "src/mame/irem/m72_a.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 131,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_dac->write(data);\n\tm_sample_addr++;"
+      }
+    },
+    {
+      "id": "map:m72_state.sound_portmap/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 132,
+        "end": 132,
+        "raw": "map(0x84, 0x84).r(m_audio, FUNC(m72_audio_device::sample_r))",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 892,
+        "sourceColumn": 2,
+        "sourceEndLine": 892
+      }
+    },
+    {
+      "id": "handler:m72_audio_device.sample_r",
+      "label": "Handler",
+      "props": {
+        "method": "sample_r",
+        "ownerClass": "m72_audio_device",
+        "sourceFile": "src/mame/irem/m72_a.cpp",
+        "sourceLine": 122,
+        "sourceColumn": 1,
+        "sourceEndLine": 125,
+        "sourceParameters": "",
+        "sourceBody": "return read_byte(m_sample_addr);"
+      }
+    },
+    {
+      "id": "machine:m72_state.m72_audio_chips",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "m72_state",
+        "name": "m72_audio_chips",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_raster_irq_position\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_scrollx\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_scrolly\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_video_off\",\"bits\":1}",
+          "{\"name\":\"m_fg_source\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_bg_source\",\"bits\":32,\"signed\":true}"
+        ],
+        "resetHandlers": [
+          "m72_state.machine_reset"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"soundcpu\",\"config\":[\"m_soundcpu->set_irq_acknowledge_callback(\\\"soundirq\\\", FUNC(rst_neg_buffer_device::inta_cb))\"]}"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1660,
+        "sourceColumn": 1,
+        "sourceEndLine": 1682
+      }
+    },
+    {
+      "id": "handler:m72_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 233,
+        "sourceColumn": 1,
+        "sourceEndLine": 243,
+        "sourceParameters": "",
+        "sourceBody": "//m_mcu_snd_cmd_latch = 0;\n\n\tm_scanline_timer->adjust(m_screen->time_until_pos(0));\n\tmachine().scheduler().synchronize(timer_expired_delegate(FUNC(m72_state::synch_callback),this));\n\n\t// Hold sound CPU in reset if main CPU has to upload the program into RAM\n\tif (m_soundram.found())\n\t\tm_soundcpu->set_input_line(INPUT_LINE_RESET, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "handler:m72_state.synch_callback",
+      "label": "Handler",
+      "props": {
+        "method": "synch_callback",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 227,
+        "sourceColumn": 1,
+        "sourceEndLine": 231,
+        "sourceConstants": [
+          "MASTER_CLOCK=32000000"
+        ],
+        "sourceParameters": "int param",
+        "sourceBody": "//machine().scheduler().perfect_quantum(attotime::from_usec(8000000));\n\tmachine().scheduler().add_quantum(attotime::from_hz(MASTER_CLOCK/4/12), attotime::from_seconds(25));"
+      }
+    },
+    {
+      "id": "machine:m72_state.m72_audio_chips/callback:soundcpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_irq_acknowledge_callback",
+        "operation": "set_irq_acknowledge_callback",
+        "raw": "m_soundcpu->set_irq_acknowledge_callback(\"soundirq\", FUNC(rst_neg_buffer_device::inta_cb))",
+        "ownerTag": "soundcpu",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1671,
+        "sourceColumn": 2,
+        "sourceEndLine": 1671,
+        "targetTag": "soundirq",
+        "targetClass": "rst_neg_buffer_device",
+        "targetMethod": "inta_cb"
+      }
+    },
+    {
+      "id": "handler:rst_neg_buffer_device.inta_cb",
+      "label": "Handler",
+      "props": {
+        "method": "inta_cb",
+        "ownerClass": "rst_neg_buffer_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1671,
+        "sourceColumn": 2,
+        "sourceEndLine": 1671
+      }
+    },
+    {
+      "id": "device:m72_state.m72_audio_chips/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1663,
+        "sourceColumn": 2,
+        "sourceEndLine": 1663
+      }
+    },
+    {
+      "id": "device:m72_state.m72_audio_chips/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "generic_latch_8_device &soundlatch(GENERIC_LATCH_8(config, \"soundlatch\"))",
+          "soundlatch.data_pending_callback().set(\"soundirq\", FUNC(rst_neg_buffer_device::rst18_w))",
+          "soundlatch.set_separate_acknowledge(true)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1665,
+        "sourceColumn": 2,
+        "sourceEndLine": 1665
+      }
+    },
+    {
+      "id": "device:m72_state.m72_audio_chips/soundlatch/callback:soundlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set",
+        "raw": "soundlatch.data_pending_callback().set(\"soundirq\", FUNC(rst_neg_buffer_device::rst18_w))",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1666,
+        "sourceColumn": 2,
+        "sourceEndLine": 1666,
+        "targetTag": "soundirq",
+        "targetClass": "rst_neg_buffer_device",
+        "targetMethod": "rst18_w"
+      }
+    },
+    {
+      "id": "handler:rst_neg_buffer_device.rst18_w",
+      "label": "Handler",
+      "props": {
+        "method": "rst18_w",
+        "ownerClass": "rst_neg_buffer_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1666,
+        "sourceColumn": 2,
+        "sourceEndLine": 1666
+      }
+    },
+    {
+      "id": "device:m72_state.m72_audio_chips/soundirq",
+      "label": "Device",
+      "props": {
+        "type": "RST_NEG_BUFFER",
+        "tag": "soundirq",
+        "clock": null,
+        "config": [
+          "RST_NEG_BUFFER(config, \"soundirq\").int_callback().set_inputline(m_soundcpu, 0)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1669,
+        "sourceColumn": 2,
+        "sourceEndLine": 1669
+      }
+    },
+    {
+      "id": "device:m72_state.m72_audio_chips/soundirq/callback:soundirq:0",
+      "label": "Callback",
+      "props": {
+        "signal": "int_callback",
+        "operation": "set_inputline",
+        "raw": "RST_NEG_BUFFER(config, \"soundirq\").int_callback().set_inputline(m_soundcpu, 0)",
+        "ownerTag": "soundirq",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1669,
+        "sourceColumn": 2,
+        "sourceEndLine": 1669,
+        "inputLine": "0",
+        "targetTag": "soundcpu"
+      }
+    },
+    {
+      "id": "device:m72_state.m72_audio_chips/ymsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM2151",
+        "tag": "ymsnd",
+        "clock": 3579545,
+        "config": [
+          "ym2151_device &ymsnd(YM2151(config, \"ymsnd\", SOUND_CLOCK))",
+          "ymsnd.irq_handler().set(\"soundirq\", FUNC(rst_neg_buffer_device::rst28_w))",
+          "ymsnd.add_route(ALL_OUTPUTS, \"speaker\", 0.33)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1677,
+        "sourceColumn": 2,
+        "sourceEndLine": 1677
+      }
+    },
+    {
+      "id": "audioroute:device:m72_state.m72_audio_chips/ymsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.33,
+        "raw": "ymsnd.add_route(ALL_OUTPUTS, \"speaker\", 0.33)",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1679,
+        "sourceColumn": 2,
+        "sourceEndLine": 1679
+      }
+    },
+    {
+      "id": "device:m72_state.m72_audio_chips/ymsnd/callback:ymsnd:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set",
+        "raw": "ymsnd.irq_handler().set(\"soundirq\", FUNC(rst_neg_buffer_device::rst28_w))",
+        "ownerTag": "ymsnd",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1678,
+        "sourceColumn": 2,
+        "sourceEndLine": 1678,
+        "targetTag": "soundirq",
+        "targetClass": "rst_neg_buffer_device",
+        "targetMethod": "rst28_w"
+      }
+    },
+    {
+      "id": "handler:rst_neg_buffer_device.rst28_w",
+      "label": "Handler",
+      "props": {
+        "method": "rst28_w",
+        "ownerClass": "rst_neg_buffer_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1678,
+        "sourceColumn": 2,
+        "sourceEndLine": 1678
+      }
+    },
+    {
+      "id": "machine:m72_state.m72_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "m72_state",
+        "name": "m72_base",
+        "calls": [
+          "m72_audio_chips"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_raster_irq_position\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_scrollx\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_scrolly\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_video_off\",\"bits\":1}",
+          "{\"name\":\"m_fg_source\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_bg_source\",\"bits\":32,\"signed\":true}"
+        ],
+        "resetHandlers": [
+          "m72_state.machine_reset"
+        ],
+        "startHandlers": [
+          "m72_state.video_start_m72"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1684,
+        "sourceColumn": 1,
+        "sourceEndLine": 1713
+      }
+    },
+    {
+      "id": "handler:m72_state.video_start_m72",
+      "label": "Handler",
+      "props": {
+        "method": "video_start_m72",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 87,
+        "sourceColumn": 1,
+        "sourceEndLine": 115,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(m72_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8,8, 64,64);\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(m72_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8,8, 64,64);\n\n\tm_fg_tilemap->set_transmask(0,0xffff,0x0001);\n\tm_fg_tilemap->set_transmask(1,0x00ff,0xff01);\n\tm_fg_tilemap->set_transmask(2,0x0001,0xffff);\n\tm_fg_tilemap->set_transmask(3,0x0001,0xffff);\n\n\tm_bg_tilemap->set_transmask(0,0xffff,0x0000);\n\tm_bg_tilemap->set_transmask(1,0x00ff,0xff00);\n\tm_bg_tilemap->set_transmask(2,0x0001,0xfffe);\n\tm_bg_tilemap->set_transmask(3,0x0001,0xfffe);\n\n\tmemset(m_spriteram->buffer(),0,m_spriteram->bytes());\n\n\tm_fg_tilemap->set_scrolldx(0,0);\n\tm_fg_tilemap->set_scrolldy(-128,-128);\n\n\tm_bg_tilemap->set_scrolldx(0,0);\n\tm_bg_tilemap->set_scrolldy(-128,-128);\n\n\t// on M72 the FG data always comes from the Ax roms and the BG data always comes from the Bx roms\n\tm_fg_source = 1;\n\tm_bg_source = 2;\n\n\tregister_savestate();"
+      }
+    },
+    {
+      "id": "handler:m72_state.register_savestate",
+      "label": "Handler",
+      "props": {
+        "method": "register_savestate",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 76,
+        "sourceColumn": 1,
+        "sourceEndLine": 82,
+        "sourceParameters": "",
+        "sourceBody": "save_item(NAME(m_raster_irq_position));\n\tsave_item(NAME(m_video_off));\n\tsave_item(NAME(m_scrollx));\n\tsave_item(NAME(m_scrolly));"
+      }
+    },
+    {
+      "id": "handler:m72_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 36,
+        "sourceColumn": 1,
+        "sourceEndLine": 39,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "m72_m81_get_tile_info(tileinfo, tile_index, m_videoram[1], m_bg_source);"
+      }
+    },
+    {
+      "id": "handler:m72_state.m72_m81_get_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "m72_m81_get_tile_info",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 13,
+        "sourceColumn": 1,
+        "sourceEndLine": 33,
+        "sourceParameters": "tile_data &tileinfo, int tile_index, const u16 *vram, int gfxnum",
+        "sourceBody": "// word 0               word 1\n\t// fftt tttt tttt tttt  ---- ---- zz-? pppp\n\n\t// f = flips, t = tilenum, z = pri, p = palette\n\t// ? = possible more priority\n\n\ttile_index *= 2;\n\n\tconst u16 code = vram[tile_index];\n\tconst u16 attr = vram[tile_index+1];\n\n\t/* attr & 0x0010 is used in bchopper and hharry, more priority? */\n\n\ttileinfo.set(gfxnum,\n\t\t\tcode & 0x3fff,\n\t\t\tattr & 0x000f,\n\t\t\tTILE_FLIPYX((code & 0xc000) >> 14));\n\ttileinfo.group = (attr & 0x00c0) >> 6;"
+      }
+    },
+    {
+      "id": "handler:m72_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 41,
+        "sourceColumn": 1,
+        "sourceEndLine": 44,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "m72_m81_get_tile_info(tileinfo, tile_index, m_videoram[0], m_fg_source);"
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "V30",
+        "tag": "maincpu",
+        "clock": 8000000,
+        "config": [
+          "V30(config, m_maincpu, MASTER_CLOCK/2/2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &m72_state::m72_map)",
+          "m_maincpu->set_addrmap(AS_IO, &m72_state::m72_portmap)",
+          "m_maincpu->set_irq_acknowledge_callback(\"upd71059c\", FUNC(pic8259_device::inta_cb))"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1687,
+        "sourceColumn": 2,
+        "sourceEndLine": 1687
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_irq_acknowledge_callback",
+        "operation": "set_irq_acknowledge_callback",
+        "raw": "m_maincpu->set_irq_acknowledge_callback(\"upd71059c\", FUNC(pic8259_device::inta_cb))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1690,
+        "sourceColumn": 2,
+        "sourceEndLine": 1690,
+        "targetTag": "upd71059c",
+        "targetClass": "pic8259_device",
+        "targetMethod": "inta_cb"
+      }
+    },
+    {
+      "id": "handler:pic8259_device.inta_cb",
+      "label": "Handler",
+      "props": {
+        "method": "inta_cb",
+        "ownerClass": "pic8259_device",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1966,
+        "sourceColumn": 2,
+        "sourceEndLine": 1966
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/soundcpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "soundcpu",
+        "clock": 3579545,
+        "config": [
+          "Z80(config, m_soundcpu, SOUND_CLOCK)",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &m72_state::sound_ram_map)",
+          "m_soundcpu->set_addrmap(AS_IO, &m72_state::sound_portmap)",
+          "m_soundcpu->set_irq_acknowledge_callback(\"soundirq\", FUNC(rst_neg_buffer_device::inta_cb))"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1692,
+        "sourceColumn": 2,
+        "sourceEndLine": 1692
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/upd71059c",
+      "label": "Device",
+      "props": {
+        "type": "PIC8259",
+        "tag": "upd71059c",
+        "clock": null,
+        "config": [
+          "PIC8259(config, m_upd71059c)",
+          "m_upd71059c->out_int_callback().set_inputline(m_maincpu, 0)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1696,
+        "sourceColumn": 2,
+        "sourceEndLine": 1696
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/upd71059c/callback:upd71059c:0",
+      "label": "Callback",
+      "props": {
+        "signal": "out_int_callback",
+        "operation": "set_inputline",
+        "raw": "m_upd71059c->out_int_callback().set_inputline(m_maincpu, 0)",
+        "ownerTag": "upd71059c",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1697,
+        "sourceColumn": 2,
+        "sourceEndLine": 1697,
+        "inputLine": "0",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/spriteram",
+      "label": "Device",
+      "props": {
+        "type": "BUFFERED_SPRITERAM16",
+        "tag": "spriteram",
+        "clock": null,
+        "config": [
+          "BUFFERED_SPRITERAM16(config, m_spriteram)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1700,
+        "sourceColumn": 2,
+        "sourceEndLine": 1700
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_m72)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1702,
+        "sourceColumn": 2,
+        "sourceEndLine": 1702,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_entries(512)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1703,
+        "sourceColumn": 2,
+        "sourceEndLine": 1703
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(MASTER_CLOCK/4, 512, 64, 448, 284, 0, 256)",
+          "m_screen->set_screen_update(FUNC(m72_state::screen_update))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1705,
+        "sourceColumn": 2,
+        "sourceEndLine": 1705,
+        "configCalls": [
+          "set_raw(8000000,512,64,448,284,0,256)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          8000000,
+          512,
+          64,
+          448,
+          284,
+          0,
+          256
+        ],
+        "screenRawExpr": [
+          "MASTER_CLOCK/4",
+          "512",
+          "64",
+          "448",
+          "284",
+          "0",
+          "256"
+        ]
+      }
+    },
+    {
+      "id": "device:m72_state.m72_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(m72_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1707,
+        "sourceColumn": 2,
+        "sourceEndLine": 1707,
+        "targetClass": "m72_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:m72_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 472,
+        "sourceColumn": 1,
+        "sourceEndLine": 508,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "if (m_video_off)\n\t{\n\t\tbitmap.fill(m_palette->black_pen(), cliprect);\n\t\treturn 0;\n\t}\n\n\tscreen.priority().fill(0, cliprect);\n\n\tm_fg_tilemap->set_scrollx(0,m_scrollx[0]);\n\tm_fg_tilemap->set_scrolly(0,m_scrolly[0]);\n\n\tm_bg_tilemap->set_scrollx(0,m_scrollx[1]);\n\tm_bg_tilemap->set_scrolly(0,m_scrolly[1]);\n\n\t// prepare screen priority for sprites\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER0, 1);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER0, 1);\n\n\t// tile-tile priorities are different, see m72_mcu_state games POST & bchopper ending sequence\n\tm_bg_tilemap->set_transmask(2, 0xffff, 0x0000);\n\n\t// low priority tiles\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER1, 0);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER1, 0);\n\n\t// high priority tiles\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER0, 0);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER0, 0);\n\n\tm_bg_tilemap->set_transmask(2, 0x0001, 0xfffe);\n\n\tdraw_sprites(screen, bitmap, cliprect);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:m72_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "m72_state",
+        "sourceFile": "src/mame/irem/m72_v.cpp",
+        "sourceLine": 370,
+        "sourceColumn": 1,
+        "sourceEndLine": 425,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "u16 *spriteram = m_spriteram->buffer();\n\tstd::vector<int> spritelist;\n\n\t// reverse spritelist due to priority buffer\n\tfor (int i = 0, w = 0; i < m_spriteram->length(); i += w * 4)\n\t{\n\t\tspritelist.push_back(i);\n\t\tw = 1 << ((spriteram[i+2] & 0xc000) >> 14);\n\t}\n\n\tfor (int i = spritelist.size() - 1; i >= 0; i--)\n\t{\n\t\tconst int offs = spritelist[i];\n\t\tconst int code = spriteram[offs+1];\n\t\tconst u32 color = spriteram[offs+2] & 0x0f;\n\t\tint sx = -256 + (spriteram[offs+3] & 0x3ff);\n\t\tint sy = 384 - (spriteram[offs+0] & 0x1ff);\n\t\tint flipx = spriteram[offs+2] & 0x0800;\n\t\tint flipy = spriteram[offs+2] & 0x0400;\n\n\t\tconst int w = 1 << ((spriteram[offs+2] & 0xc000) >> 14);\n\t\tconst int h = 1 << ((spriteram[offs+2] & 0x3000) >> 12);\n\t\tsy -= 16 * h;\n\n\t\tif (flip_screen())\n\t\t{\n\t\t\tsx = 512 - 16*w - sx;\n\t\t\tsy = 284 - 16*h - sy;\n\t\t\tflipx = !flipx;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\tfor (int x = 0; x < w; x++)\n\t\t{\n\t\t\tfor (int y = 0; y < h; y++)\n\t\t\t{\n\t\t\t\tint c = code;\n\n\t\t\t\tif (flipx) c += 8*(w-1-x);\n\t\t\t\telse c += 8*x;\n\t\t\t\tif (flipy) c += h-1-y;\n\t\t\t\telse c += y;\n\n\t\t\t\tm_gfxdecode->gfx(0)->prio_transpen(bitmap, cliprect,\n\t\t\t\t\t\tc, color,\n\t\t\t\t\t\tflipx, flipy,\n\t\t\t\t\t\tsx + 16*x,\n\t\t\t\t\t\tsy + 16*y,\n\t\t\t\t\t\tscreen.priority(), ~1,\n\t\t\t\t\t\t0);\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "machine:m72_state.rtype",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "m72_state",
+        "name": "rtype",
+        "calls": [
+          "m72_base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_raster_irq_position\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_scrollx\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_scrolly\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_video_off\",\"bits\":1}",
+          "{\"name\":\"m_fg_source\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_bg_source\",\"bits\":32,\"signed\":true}"
+        ],
+        "resetHandlers": [
+          "m72_state.machine_reset"
+        ],
+        "removedDevices": [
+          "m72",
+          "dac"
+        ],
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1785,
+        "sourceColumn": 1,
+        "sourceEndLine": 1793
+      }
+    },
+    {
+      "id": "inputs:common",
+      "label": "InputPorts",
+      "props": {
+        "name": "common",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 980,
+        "sourceColumn": 8,
+        "sourceEndLine": 980
+      }
+    },
+    {
+      "id": "inputs:common/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4096,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4096
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8192,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8192
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f14",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:common/IN0/f15",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32768,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "inputs:common/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_SERVICE",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:common/IN1/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 65280
+      }
+    },
+    {
+      "id": "inputs:rtype",
+      "label": "InputPorts",
+      "props": {
+        "name": "rtype",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1011,
+        "sourceColumn": 8,
+        "sourceEndLine": 1011
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW",
+      "label": "Port",
+      "props": {
+        "tag": "DSW",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:1,2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 3,
+        "location": "SW1:1,2",
+        "settings": [
+          "2=2",
+          "3=3",
+          "1=4",
+          "0=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:3\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW1:3",
+        "settings": [
+          "4=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:4\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 8,
+        "location": "SW1:4",
+        "settings": [
+          "0=50K 150K 250K 400K 600K",
+          "8=100K 200K 350K 500K 700K"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "modifiers": [
+          "PORT_CONDITION(\"DSW\", 0x0400, NOTEQUALS, 0x0000)",
+          "PORT_DIPLOCATION(\"SW1:5,6,7,8\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 240,
+        "location": "SW1:5,6,7,8",
+        "settings": [
+          "160=6C 1C",
+          "176=5C 1C",
+          "192=4C 1C",
+          "208=3C 1C",
+          "16=8C 3C",
+          "224=2C 1C",
+          "32=5C 3C",
+          "48=3C 2C",
+          "240=1C 1C",
+          "64=2C 3C",
+          "144=1C 2C",
+          "128=1C 3C",
+          "112=1C 4C",
+          "96=1C 5C",
+          "80=1C 6C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_CONDITION(\"DSW\", 0x0400, EQUALS, 0x0000)",
+          "PORT_DIPLOCATION(\"SW1:5,6\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 48,
+        "location": "SW1:5,6",
+        "settings": [
+          "0=5C 1C",
+          "16=3C 1C",
+          "32=2C 1C",
+          "48=1C 1C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "modifiers": [
+          "PORT_CONDITION(\"DSW\", 0x0400, EQUALS, 0x0000)",
+          "PORT_DIPLOCATION(\"SW1:7,8\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 192,
+        "location": "SW1:7,8",
+        "settings": [
+          "192=1C 2C",
+          "128=1C 3C",
+          "64=1C 5C",
+          "0=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 256,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:1\")"
+        ],
+        "name": "Flip Screen",
+        "defaultValue": 256,
+        "location": "SW2:1",
+        "settings": [
+          "256=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 512,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:2\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:2",
+        "settings": [
+          "0=Upright",
+          "512=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1024,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:3\")"
+        ],
+        "name": "Coin Mode",
+        "defaultValue": 1024,
+        "location": "SW2:3",
+        "settings": [
+          "1024=Mode 1",
+          "0=Mode 2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2048,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:4\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 2048,
+        "location": "SW2:4",
+        "settings": [
+          "2048=Normal",
+          "0=Hard"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4096,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:5\")"
+        ],
+        "name": "Allow Continue",
+        "defaultValue": 4096,
+        "location": "SW2:5",
+        "settings": [
+          "0=No",
+          "4096=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8192,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:6\")"
+        ],
+        "name": "Stop Mode",
+        "defaultValue": 8192,
+        "location": "SW2:6",
+        "settings": [
+          "8192=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16384,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:7\")"
+        ],
+        "name": "Invulnerability",
+        "defaultValue": 16384,
+        "location": "SW2:7",
+        "settings": [
+          "16384=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rtype/DSW/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 32768,
+        "activeLow": true,
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "gfxlayout:tilelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "tilelayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m72",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_m72",
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1642,
+        "sourceColumn": 8,
+        "sourceEndLine": 1642
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m72/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m72/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles0",
+        "offset": 0,
+        "layout": "tilelayout",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m72/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles1",
+        "offset": 0,
+        "layout": "tilelayout",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:rtype",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 4625,
+        "sourceColumn": 1,
+        "sourceEndLine": 4625
+      }
+    },
+    {
+      "from": "game:rtype",
+      "to": "machine:m72_state.rtype",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:rtype",
+      "to": "inputs:rtype",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:rtype",
+      "to": "romset:rtype",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:m72.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:iremipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:cpu/nec/nec.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:cpu/nec/v25.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:irem_cpu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:machine/rstbuf.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:sound/ymopm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m72.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:m72_state.rtype",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1785,
+        "sourceColumn": 1,
+        "sourceEndLine": 1793
+      }
+    },
+    {
+      "from": "machine:m72_state.rtype",
+      "to": "handler:m72_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:m72_state.rtype",
+      "to": "callback:timer/m72_state.scanline_interrupt",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:m72_state.rtype",
+      "to": "machine:m72_state.m72_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:m72_state.rtype",
+      "to": "map:m72_state.rtype_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:m72_state.rtype",
+      "to": "map:m72_state.rtype_sound_portmap",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_IO",
+        "deviceTag": "soundcpu"
+      }
+    },
+    {
+      "from": "inputs:rtype",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1011,
+        "sourceColumn": 8,
+        "sourceEndLine": 1011
+      }
+    },
+    {
+      "from": "inputs:rtype",
+      "to": "inputs:common",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:rtype",
+      "to": "inputs:rtype/DSW",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:rtype",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 2035,
+        "sourceColumn": 1,
+        "sourceEndLine": 2035
+      }
+    },
+    {
+      "from": "romset:rtype",
+      "to": "region:rtype/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rtype",
+      "to": "region:rtype/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rtype",
+      "to": "region:rtype/tiles0",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rtype",
+      "to": "region:rtype/tiles1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rtype",
+      "to": "region:rtype/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rtype",
+      "to": "region:rtype/plds",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:m72_state.machine_reset",
+      "to": "handler:m72_state.synch_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "callback:timer/m72_state.scanline_interrupt",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 256,
+        "sourceColumn": 1,
+        "sourceEndLine": 279
+      }
+    },
+    {
+      "from": "callback:timer/m72_state.scanline_interrupt",
+      "to": "handler:m72_state.scanline_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1684,
+        "sourceColumn": 1,
+        "sourceEndLine": 1713
+      }
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "handler:m72_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "handler:m72_state.video_start_m72",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "callback:timer/m72_state.scanline_interrupt",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "machine:m72_state.m72_audio_chips",
+      "rel": "CALLS",
+      "props": {
+        "order": 7
+      }
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "device:m72_state.m72_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "device:m72_state.m72_base/soundcpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "device:m72_state.m72_base/upd71059c",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "device:m72_state.m72_base/spriteram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "device:m72_state.m72_base/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "gfxdecode:gfx_m72",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "device:m72_state.m72_base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_base",
+      "to": "device:m72_state.m72_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:m72_state.rtype_map",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 612,
+        "sourceColumn": 1,
+        "sourceEndLine": 617
+      }
+    },
+    {
+      "from": "map:m72_state.rtype_map",
+      "to": "map:m72_state.m72_cpu1_common_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:m72_state.rtype_map",
+      "to": "map:m72_state.rtype_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.rtype_map",
+      "to": "map:m72_state.rtype_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 880,
+        "sourceColumn": 1,
+        "sourceEndLine": 886
+      }
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap",
+      "to": "map:m72_state.rtype_sound_portmap/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap",
+      "to": "map:m72_state.rtype_sound_portmap/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap",
+      "to": "map:m72_state.rtype_sound_portmap/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "inputs:common",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 980,
+        "sourceColumn": 8,
+        "sourceEndLine": 980
+      }
+    },
+    {
+      "from": "inputs:common",
+      "to": "inputs:common/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:common",
+      "to": "inputs:common/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rtype/DSW",
+      "to": "inputs:rtype/DSW/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:rtype/maincpu",
+      "to": "rom:rtype/maincpu/rt_r-h0-b.1b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/maincpu",
+      "to": "rom:rtype/maincpu/rt_r-l0-b.3b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/maincpu",
+      "to": "rom:rtype/maincpu/rt_r-h1-b.1c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/maincpu",
+      "to": "rom:rtype/maincpu/rt_r-l1-b.3c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-00.1h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-01.1j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-10.1k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-11.1l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-20.3h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-21.3j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-30.3k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/sprites",
+      "to": "rom:rtype/sprites/rt_r-31.3l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles0",
+      "to": "rom:rtype/tiles0/rt_b-a0.ic20",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles0",
+      "to": "rom:rtype/tiles0/rt_b-a1.ic22",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles0",
+      "to": "rom:rtype/tiles0/rt_b-a2.ic20",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles0",
+      "to": "rom:rtype/tiles0/rt_b-a3.ic23",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles1",
+      "to": "rom:rtype/tiles1/rt_b-b0.ic26",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles1",
+      "to": "rom:rtype/tiles1/rt_b-b1.ic27",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles1",
+      "to": "rom:rtype/tiles1/rt_b-b2.ic25",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/tiles1",
+      "to": "rom:rtype/tiles1/rt_b-b3.ic24",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/proms",
+      "to": "rom:rtype/proms/m72_a-8l-.ic66",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/proms",
+      "to": "rom:rtype/proms/m72_a-9l-.ic75",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/plds",
+      "to": "rom:rtype/plds/m72_a-3d-.ic11",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/plds",
+      "to": "rom:rtype/plds/m72_a-4d-.ic19",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rtype/plds",
+      "to": "rom:rtype/plds/m72_r-3a-.3a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:m72_state.video_start_m72",
+      "to": "handler:m72_state.register_savestate",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:m72_state.video_start_m72",
+      "to": "handler:m72_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:m72_state.video_start_m72",
+      "to": "handler:m72_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1660,
+        "sourceColumn": 1,
+        "sourceEndLine": 1682
+      }
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "handler:m72_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "callback:timer/m72_state.scanline_interrupt",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "machine:m72_state.m72_audio_chips/callback:soundcpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "device:m72_state.m72_audio_chips/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "device:m72_state.m72_audio_chips/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "device:m72_state.m72_audio_chips/soundirq",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips",
+      "to": "device:m72_state.m72_audio_chips/ymsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:m72_state.m72_base/maincpu",
+      "to": "device:m72_state.m72_base/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m72_state.m72_base/maincpu",
+      "to": "map:m72_state.m72_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:m72_state.m72_base/maincpu",
+      "to": "map:m72_state.m72_portmap",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:m72_state.m72_base/soundcpu",
+      "to": "map:m72_state.sound_ram_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:m72_state.m72_base/soundcpu",
+      "to": "map:m72_state.sound_portmap",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:m72_state.m72_base/upd71059c",
+      "to": "device:m72_state.m72_base/upd71059c/callback:upd71059c:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_m72",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 1642,
+        "sourceColumn": 8,
+        "sourceEndLine": 1642
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_m72",
+      "to": "gfxdecode:gfx_m72/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_m72",
+      "to": "gfxdecode:gfx_m72/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_m72",
+      "to": "gfxdecode:gfx_m72/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:m72_state.m72_base/screen",
+      "to": "device:m72_state.m72_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 1,
+        "sourceEndLine": 603
+      }
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "map:m72_state.m72_cpu1_common_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "map:m72_state.m72_cpu1_common_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "map:m72_state.m72_cpu1_common_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "map:m72_state.m72_cpu1_common_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "map:m72_state.m72_cpu1_common_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "map:m72_state.m72_cpu1_common_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map",
+      "to": "map:m72_state.m72_cpu1_common_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap/range0",
+      "to": "handler:ym2151_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap/range0",
+      "to": "handler:ym2151_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap/range1",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:m72_state.rtype_sound_portmap/range2",
+      "to": "handler:generic_latch_8_device.acknowledge_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f14",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN0",
+      "to": "inputs:common/IN0/f15",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:common/IN1",
+      "to": "inputs:common/IN1/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "handler:m72_state.get_bg_tile_info",
+      "to": "handler:m72_state.m72_m81_get_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:m72_state.get_fg_tile_info",
+      "to": "handler:m72_state.m72_m81_get_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:m72_state.m72_audio_chips/callback:soundcpu:0",
+      "to": "handler:rst_neg_buffer_device.inta_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m72_state.m72_audio_chips/soundlatch",
+      "to": "device:m72_state.m72_audio_chips/soundlatch/callback:soundlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m72_state.m72_audio_chips/soundirq",
+      "to": "device:m72_state.m72_audio_chips/soundirq/callback:soundirq:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m72_state.m72_audio_chips/ymsnd",
+      "to": "audioroute:device:m72_state.m72_audio_chips/ymsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:m72_state.m72_audio_chips/ymsnd",
+      "to": "device:m72_state.m72_audio_chips/ymsnd/callback:ymsnd:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m72_state.m72_base/maincpu/callback:maincpu:0",
+      "to": "handler:pic8259_device.inta_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:m72_state.m72_map",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 1,
+        "sourceEndLine": 610
+      }
+    },
+    {
+      "from": "map:m72_state.m72_map",
+      "to": "map:m72_state.m72_cpu1_common_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:m72_state.m72_map",
+      "to": "map:m72_state.m72_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_map",
+      "to": "map:m72_state.m72_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 1,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap",
+      "to": "map:m72_state.m72_portmap/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.sound_ram_map",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 869,
+        "sourceColumn": 1,
+        "sourceEndLine": 872
+      }
+    },
+    {
+      "from": "map:m72_state.sound_ram_map",
+      "to": "map:m72_state.sound_ram_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.sound_portmap",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/m72.cpp",
+        "sourceLine": 888,
+        "sourceColumn": 1,
+        "sourceEndLine": 893
+      }
+    },
+    {
+      "from": "map:m72_state.sound_portmap",
+      "to": "map:m72_state.rtype_sound_portmap",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:m72_state.sound_portmap",
+      "to": "map:m72_state.sound_portmap/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m72_state.sound_portmap",
+      "to": "map:m72_state.sound_portmap/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:m72_state.m72_base/upd71059c/callback:upd71059c:0",
+      "to": "device:m72_state.m72_base/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "gfxdecode:gfx_m72/e0",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_m72/e1",
+      "to": "gfxlayout:tilelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_m72/e2",
+      "to": "gfxlayout:tilelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:m72_state.m72_base/screen/callback:screen:0",
+      "to": "handler:m72_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range1",
+      "to": "handler:m72_state.palette_r_0",
+      "rel": "READS"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range1",
+      "to": "handler:m72_state.palette_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range2",
+      "to": "handler:m72_state.palette_r_1",
+      "rel": "READS"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range2",
+      "to": "handler:m72_state.palette_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range3",
+      "to": "handler:m72_state.videoram1_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range4",
+      "to": "handler:m72_state.videoram2_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range5",
+      "to": "handler:m72_state.soundram_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:m72_state.m72_cpu1_common_map/range5",
+      "to": "handler:m72_state.soundram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "device:m72_state.m72_audio_chips/soundlatch/callback:soundlatch:0",
+      "to": "handler:rst_neg_buffer_device.rst18_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m72_state.m72_audio_chips/ymsnd/callback:ymsnd:0",
+      "to": "handler:rst_neg_buffer_device.rst28_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m72_state.m72_audio_chips/ymsnd/callback:ymsnd:0",
+      "to": "device:m72_state.m72_audio_chips/soundirq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range3",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range4",
+      "to": "handler:m72_state.port02_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range5",
+      "to": "handler:m72_state.dmaon_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range6",
+      "to": "handler:m72_state.irq_line_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range7",
+      "to": "handler:pic8259_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "upd71059c"
+      }
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range7",
+      "to": "handler:pic8259_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "upd71059c"
+      }
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range8",
+      "to": "handler:m72_state.scrolly_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range9",
+      "to": "handler:m72_state.scrollx_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range10",
+      "to": "handler:m72_state.scrolly_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.m72_portmap/range11",
+      "to": "handler:m72_state.scrollx_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m72_state.sound_portmap/range0",
+      "to": "handler:m72_audio_device.sample_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "m72"
+      }
+    },
+    {
+      "from": "map:m72_state.sound_portmap/range1",
+      "to": "handler:m72_audio_device.sample_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "m72"
+      }
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:tilelayout",
+      "to": "file:src/mame/irem/m72.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:m72_state.screen_update",
+      "to": "handler:m72_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:m72_state.palette_w_0",
+      "to": "handler:m72_state.changecolor",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:m72_state.palette_w_1",
+      "to": "handler:m72_state.changecolor",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

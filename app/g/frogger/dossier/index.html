@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frogger — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Frogger</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/frogger/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/frogger/frogger-dossier.md" download="frogger-dossier.md">Download frogger-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Konami · 1981</div>
+    <h1>Frogger</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/frogger.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>frogger</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/galaxian/galaxian.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>galaxian</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ay8910</strong></div>
+      <div class="fact"><span>Screen</span><strong>256×224 @ 60.61 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>90°</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>3.072 MHz</td><td>11</td></tr><tr><td>audiocpu</td><td>Z80</td><td>1.790 MHz</td><td>3</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>frogger.26</td><td>0x0</td><td>0x1000</td><td>597696d6</td></tr><tr><td>maincpu</td><td>frogger.27</td><td>0x1000</td><td>0x1000</td><td>b6e6fcc3</td></tr><tr><td>maincpu</td><td>frsm3.7</td><td>0x2000</td><td>0x1000</td><td>aca22ae0</td></tr><tr><td>audiocpu</td><td>frogger.608</td><td>0x0</td><td>0x800</td><td>e8ab0256</td></tr><tr><td>audiocpu</td><td>frogger.609</td><td>0x800</td><td>0x800</td><td>7380a48f</td></tr><tr><td>audiocpu</td><td>frogger.610</td><td>0x1000</td><td>0x800</td><td>31d7eb27</td></tr><tr><td>gfx1</td><td>frogger.607</td><td>0x0</td><td>0x800</td><td>05f7d883</td></tr><tr><td>gfx1</td><td>frogger.606</td><td>0x800</td><td>0x800</td><td>f524ee30</td></tr><tr><td>proms</td><td>pr-91.6l</td><td>0x0</td><td>0x20</td><td>413703bf</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>9</td><td>service1</td><td>IN0</td><td>0x4</td></tr><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x10</td></tr><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x20</td></tr><tr><td>6</td><td>coin2</td><td>IN0</td><td>0x40</td></tr><tr><td>5</td><td>coin1</td><td>IN0</td><td>0x80</td></tr><tr><td>2</td><td>start2</td><td>IN1</td><td>0x40</td></tr><tr><td>1</td><td>start1</td><td>IN1</td><td>0x80</td></tr><tr><td>Up</td><td>joystick up</td><td>IN2</td><td>0x10</td></tr><tr><td>Down</td><td>joystick down</td><td>IN2</td><td>0x40</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/galaxian/galaxian.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Aaron Giles, Couriersud, Stephane Humbert, Robbbert</strong></div>
+    <div class="fact"><span>Development</span><strong>659 commits by 49 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Ivan Vangelista, Miodrag Milanovic, ClawGrip, David Haywood</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 45 years ago:
+
+Frogger (c) 1981 Konami Industry Company, Limited.
+
+Frogger is a one or two-player game in which players must overcome a number of hazards to safely guide the green amphibian from the bottom of the screen to one of five home bases situated at the top of the screen.
+
+The lower half of the screen consists of a bi-directional flow of traffic moving across five lanes. To navigate across the road safely, Frogger's hops must be timed to avoid the vehicles, which include buses, civilian traffic and racing cars, with different vehicle types moving at different speeds. As well as being able to hop vertically, Frogger can also move left and right, allowing him to move with the flow of traffic. 
+
+The upper half of the screen consists of a fast-flowing river populated with logs, crocodiles and turtles. Frogger will drown if he has any contact with the water and these act as platforms onto which Frogger can hop. He must be careful to avoid contact with crocodiles' snapping jaws, however and some of the turtles will periodically dive below the water's surface, drowning Frogger. Frogger will also die if he is on a log, turtle or crocodile when it reaches the edge of the screen.
+
+On the logs of the river section a female frog will occasionally appear and bonus points are awarded if Frogger successfully escorts her safely home. A fly also appears randomly in a home base and bonus points are awarded if Frogger enters the base when the fly is present. Conversely, a crocodile may also appear in a home base and a life is lost if Frogger enters the base while the crocodile is present.
+
+A round is completed once five frogs have been guided safely home, after which the next round begins with an increased level of difficulty. This includes faster-moving vehicles on the road section and new, deadly hazards on the river section, including crocodiles, otters and snakes.</p><details><summary>TECHNICAL</summary><p class="story">Game ID : GX392
+
+Main CPU : Zilog Z80 (@ 3.072 Mhz)
+Sound CPU : Zilog Z80 (@ 1.78975 Mhz)
+Sound Chips : General Instrument AY8910 (@ 1.78975 Mhz)
+
+Players : 2
+Control : 4-Way Joystick</p></details><details><summary>TRIVIA</summary><p class="story">Frogger was released by Konami in June 1981 in Japan; it became a runaway hit. 
+
+1981 was a big year in video games. A lot of companies were putting some pretty popular games on the market and it created a very competitive atmosphere as to what company was putting out the most popular ones. In addition, 1981 continued on the trend of the 'cute' type games such as &quot;Ms. Pac-Man&quot;, &quot;Qix&quot;, and a host of Pac-Man clones. Konami was already becoming a force to be reckoned with in the video gaming world. With such hits as &quot;Space War&quot;, &quot;Scramble&quot;, and &quot;Super Cobra&quot;, Konami was making its mark. 
+
+The sound that can be heard when a coin is inserted into the machine was sampled by producer Richard X for the Sugababes' song, 'Freak Like Me' (and is the very first sound on the track). 
+
+Frogger has numerous bugs, although many of these are not immediately apparent to the average player : 
+1. Sections of the music will occasionally cut out, although the main melody will continue to play. 
+2. On occasion, Frogger displays a somewhat haphazard approach to collision detection. One side effect of this is that the player can sometimes make a perfectly legal and safe jump and still lose a life. Another side effect of this is that the player can jump up onto the first row of turtles, and then immediately jump back. This will place the player 'off the grid', and it is now possible to jump right off the side of the screen, leading to a loss of life. 
+3. There are several other odd jumps that can be made as well. Firstly, the player can 'hang off' the left side of a turtle, but attempting to do the same on the right side results in death. If the player jumps onto a home base with an alligator (and the 'gator vanishes after you jump, but before the player lands), Frogger will be killed, but he will ALSO make it home. Finally, left and right jumps on the top row of logs are sometimes much slower than usual - this is more likely to occur after previously eating a fly. 
+4. Another in-game bug is that the lady frog will sometimes be invisible, but will flash red when the player jumps onto the spot where she is. 
+
+Mark Robichek holds the official record for this game with 442,330 points. 
+
+A Frogger unit appears in the 1999 movie 'Magnolia' and the sitcom 'Two and a Half Men'; Season 5, Episode 2 (People Who Love Peepholes). 
+
+Frogger inspired a catchy hit song by Buckner and Garcia called 'Froggy's Lament' released on the 'Pac-Man Fever' album. 
+
+The TV show, Seinfeld, has an episode named 'The Frogger'. George and Jerry are in Mario's Pizza which is closing down, and they find a Frogger game still there. They realize that the high score of 860,630 points has George's initials GLC [George Louis Costanza]. They reminisce about the night it happened : &quot;I was unstoppable!... Just the right amount of grease on the joystick&quot;. George decides to buy the Frogger machine to immortalize his high score, but Jerry informs him that unplugging the game will erase all of the scores. Later, George tries in vain to call an electrician to help : &quot;I need a guy that can rig a Frogger machine so that I can move it without losing power, 'cause I have the high score. H-hello?&quot;. Kramer suggests an electrician who can help. George says, &quot;Kramer, listen to me. I'm never gonna have a child. If I lose this Frogger high score, that's it for me&quot;. George assembles a team and hatches a plan to salvage the game. But when he arrives, he finds the team playing the game, which has only three minutes of battery life left. They can't get it back in the closed pizzeria, but there is an open pharmacy across the street where it could be plugged in. George decides to push the machine across the highway, and an overhead shot of this feat looks much like the Frogger game itself, and the music from the game is played. At the end, George is unable to push the game onto the sidewalk and it gets destroyed by an oncoming truck. 
+
+MB (Milton Bradley) released a board game based on this video game (same name) the same year, 'One Wrong Leap Will Get You Squished And Splattered' : in this version of the game, 2 players face off, each with their own army of frogs, logs, and automobiles. Each turn, a player spends his movement points either moving his frogs toward their goal (the other side of the board), or moving logs and cars in an attempt to block or squash the other player's frogs. Complete with 'bonus points' for landing on flies, this is actually a pretty faithful interpretation of the video-game, but far too simple to have any long-lasting interest. More of a curiosity for video game enthusiasts than anything. 
+
+Frogger also spawned a cartoon series of the same name : Ruby-Spears Productions. Produced By Joe Ruby, Ken Spears. Originally aired September 17, 1983 as part of 'Saturday Supercade' on CBS. 
+
+Michael Jackson used to own this game. It was sold at the official Michael Jackson Auction on April 24, 2009.
+
+The main character appears on the 2012 animation movie &quot;Wreck-It Ralph&quot; from Walt Disney Animation Studios.</p></details><details><summary>SCORING</summary><p class="story">Forward Hop : 10 points (max points per home is 100)
+Frog Safely Put in Home : 50 points
+Completing a Level : 1,000 points
+Bringing a Lady Frog to Your Home : 200 points
+Eating a Fly : 200 points
+
+You also get a time bonus of 10 x the remaining seconds added to your score.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* When you start the game, your frog will start at the bottom of the screen. You will have 60 seconds to move your frog up 10 spaces and successfully put it in one of the homes. If you are successful, then you will try to put another frog in another home and so on until you fill up all five homes with frogs. When you do this, you progress to the next level. 
+
+* Note the traffic flow of the two parts. The cars travel on the roadway while the logs, turtles, crocodiles, etc. travel on the water lanes in the following direction : 
+a) Lanes #1, #3, and #5 go from right to left. 
+b) Lanes #2 and #4 go from left to right. 
+
+* First, you must cross the highway. You will become roadkill if a vehicle hits you or you hit a vehicle. Try to find 'lanes' in between the vehicles. You must plan for gaps to form in the first three lanes so you don't become trapped. The vehicles in the first three lanes move slowly enough that you can jump side to side with reasonable safety. 
+
+* Lane #4 is the dangerous lane. Depending on how much time you are taking, the cars may pick up speed even though it shows slow on the chart. Keep this in mind when you are moving your frog. 
+
+* At level 3, a snake will either be in the median or on the log in water lane #3. The snake is deadly to your frog and you cannot hop over it. 
+
+* The turtles are pretty easy to navigate over in water lanes #1 and #4. Be wary of the diving turtles and only use them as a quick bypass to a more solid footing. If your frog is on a diving turtle when it dives, your frog will drown. 
+
+* Again, time your jumps to coincide with the logs and turtles to ensure you will always have a solid footing to jump to. As the levels progress, you will have less things you can jump to. 
+
+* You can jump on the backs of the crocodiles and otters. Just don't get near their mouths or they are apt to turn your frog into a meal. 
+
+* You may see a purple lady frog hopping around on a log in water lane #2. Just cross over her to give her a piggyback ride to your home and get an extra 200 points. 
+
+* Watch out for the snakes, they sometimes like to ride on the logs. If you see a snake on a log, jump back to solid footing. 
+
+* Your frog cannot 'wrap-around' the screen so make sure you bail off before that footing disappears off the edge of the screen or your frog will come out the other side in a squished condition. 
+
+* By that same token, if you have the time and necessary footing, you can hold out until the fly appears in your home before you settle your frog in. That's another 200 points. 
+
+* Try to fill in the two end homes before going for the middle. The hardest home to get into is the left-hand one (home #1) since everything in water lane #5 goes from right to left. This means you may have to bounce back to water lane #4 so you can get a good shot at your home. 
+
+* Speaking of getting your frogs into their homes, you must hit exact center or your frog will die. Also, keep in mind that crocodiles like to randomly appear in your home. Make sure that your home is clear before trying to settle your frog down into it. 
+
+* Again, if you waste too much time, the things on the river will move quicker so you will have to adjust your strategy accordingly. 
+
+* When the game is playing in attract mode, you can control the frog. When the frog reaches water lane #4, you can control the frog's movements until you move either up or down. 
+
+* If you jump into your home at the same time the crocodile is leaving your home, you will be credited with making to your home but you will still lose a frog in the process. 
+
+* You can dangle your frog from the left side of the turtles but not the right side. 
+
+* Your side-to-side movements in water lane #5 may be slow and sluggish. 
+
+* The lady frog will sometimes be invisible. In this case, the only time you know she's there is when you jump on her. She will then ride on your back to your home.</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES: 
+[EU] Magnavox Odyssey 2 (1982) 
+[BR] Magnavox Odyssey 2 (1984) 
+[AU] Atari 2600 (1990) &quot;2 Pak Special: Star Warrior &amp; Frogger&quot;
+[EU] [JP] Microsoft XBOX 360 [XBLA] (jul.12, 2006) 
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy Color (1997) &quot;Frogger [Model DMG-AFRP-EUR]&quot; 
+[JP] Nintendo GBA (may.2, 2002) &quot;Konami Arcade Game Collection [Model AGB-AKCJ-JPN]&quot; 
+[EU] Nintendo GBA (june.21, 2002) &quot;Konami Collector's Series - Arcade Classics [Model AGB-AKCP-EUR]&quot; 
+
+* COMPUTERS: 
+[EU] Sinclair ZX 81 (1981) by Sega 
+[EU] BBC Micro (1982) by A&amp;F Software 
+[EU] BBC Micro (1983) &quot;Froggy&quot; by Superior Software 
+[EU] Commodore C64 (1983) 
+[EU] Sinclair ZX Spectrum (1983) by Rabbit Software 
+[EU] Sinclair ZX Spectrum (1983) &quot;Froggy&quot; by DJL Software 
+[JP] Tomy Tutor (1983)
+[JP] MSX (dec.1983) &quot;Frogger [Model RC704]&quot; 
+[EU] Acorn Electron (1984) &quot;Hopper&quot; 
+[EU] Amstrad CPC (1985) &quot;Froggy&quot; by R&amp;B Software 
+[EU] Oric I (1983) &quot;Hopper&quot; by PSS (Personal Software Services)
+[JP] Sharp X68000 (1991) 
+
+* OTHERS: 
+VFD handheld game (19??) by Computer Games Limited
+[JP] VFD handheld game by Gakken</p></details><details><summary>SERIES</summary><p class="story">1. Frogger (1981)
+2. Frogger II - Three Deep (1984, Colecovision)
+3. Frogger [Unreleased Prototype] (1991, Sega Game Gear)
+4. Frogger [3D remake] (1997, Sony PlayStation, PC CD-ROM)
+5. Frogger 2 - Swampy's Revenge (2000, PC CD-ROM, Sony PlayStation, Sega Dreamcast)
+6. Frogger's Adventures Temple of the Frog (2001, Nintendo Game Boy Advance)
+7. Frogger's Adventures 2 - The Lost Wand (2002, Nintendo Game Boy Advance)
+8. Frogger - The Great Quest (2002, PC CD-ROM, Sony PS2)
+9. Frogger Beyond (2003, PC CD-ROM, Microsoft XBOX, Nintendo GameCube)
+10. Frogger's Adventures: The Rescue (2003, PC CD-ROM, Nintendo GameCube, Sony PS2)
+11. Frogger - Ancient Shadow (2005, Microsoft XBOX, Sony PlayStation 2, Nintendo GameCube)
+12. Frogger Helmet Chaos (2005, Nintendo DS, Nintendo GameCube, Sony PS2)
+13. My Frogger Toy Trials (2007, Nintendo DS)
+14. Frogger - Hyper Arcade Edition (2012, PSN)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/879/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

@@ -1,0 +1,1117 @@
+{
+  "game": "gauntlet",
+  "title": "Gauntlet (rev 14) (Atari Games, 1985)",
+  "family": "gauntlet",
+  "dataPath": "games/arcade/gauntlet",
+  "board": {
+    "family": "gauntlet",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "m68010",
+        "clock": 7159090.5,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 229375,
+            "kind": "rom",
+            "mirror": 2621440
+          },
+          {
+            "start": 229376,
+            "end": 237567,
+            "kind": "handler",
+            "mirror": 2646016,
+            "read": "bank.slapstic_bank",
+            "bank": "slapstic_bank"
+          },
+          {
+            "start": 262144,
+            "end": 524287,
+            "kind": "rom",
+            "mirror": 2621440
+          },
+          {
+            "start": 8388608,
+            "end": 8396799,
+            "kind": "ram",
+            "mirror": 3129344
+          },
+          {
+            "start": 8396800,
+            "end": 8397823,
+            "kind": "handler",
+            "mirror": 3132416,
+            "umask": 255,
+            "read": "eeprom.read",
+            "write": "eeprom.write"
+          },
+          {
+            "start": 8400896,
+            "end": 8400897,
+            "kind": "handler",
+            "mirror": 3133168,
+            "read": "port.803000"
+          },
+          {
+            "start": 8400898,
+            "end": 8400899,
+            "kind": "handler",
+            "mirror": 3133168,
+            "read": "port.803002"
+          },
+          {
+            "start": 8400900,
+            "end": 8400901,
+            "kind": "handler",
+            "mirror": 3133168,
+            "read": "port.803004"
+          },
+          {
+            "start": 8400902,
+            "end": 8400903,
+            "kind": "handler",
+            "mirror": 3133168,
+            "read": "port.803006"
+          },
+          {
+            "start": 8400904,
+            "end": 8400905,
+            "kind": "handler",
+            "mirror": 3133168,
+            "read": "port.803008"
+          },
+          {
+            "start": 8400911,
+            "end": 8400911,
+            "kind": "handler",
+            "mirror": 3133168,
+            "read": "mainlatch.read"
+          },
+          {
+            "start": 8401152,
+            "end": 8401153,
+            "kind": "handler",
+            "mirror": 3133070,
+            "write": "watchdog.reset16_w"
+          },
+          {
+            "start": 8401184,
+            "end": 8401199,
+            "kind": "handler",
+            "mirror": 3133056,
+            "umask": 255,
+            "write": "outlatch.write_d0"
+          },
+          {
+            "start": 8401216,
+            "end": 8401217,
+            "kind": "handler",
+            "mirror": 3133070,
+            "write": "gauntlet_state.video_int_ack_w"
+          },
+          {
+            "start": 8401232,
+            "end": 8401233,
+            "kind": "handler",
+            "mirror": 3133070,
+            "write": "eeprom.unlock_write16"
+          },
+          {
+            "start": 8401265,
+            "end": 8401265,
+            "kind": "handler",
+            "mirror": 3133070,
+            "write": "soundlatch.write"
+          },
+          {
+            "start": 9437184,
+            "end": 9445375,
+            "kind": "ram",
+            "mirror": 2916352,
+            "share": "playfield",
+            "write": "playfield.write16"
+          },
+          {
+            "start": 9445376,
+            "end": 9453567,
+            "kind": "ram",
+            "mirror": 2916352,
+            "share": "mob"
+          },
+          {
+            "start": 9453568,
+            "end": 9457663,
+            "kind": "ram",
+            "mirror": 2916352
+          },
+          {
+            "start": 9457664,
+            "end": 9461631,
+            "kind": "ram",
+            "mirror": 2916352,
+            "share": "alpha",
+            "write": "alpha.write16"
+          },
+          {
+            "start": 9461614,
+            "end": 9461615,
+            "kind": "ram",
+            "mirror": 2916352,
+            "share": "yscroll",
+            "write": "gauntlet_state.yscroll_w"
+          },
+          {
+            "start": 9461632,
+            "end": 9461759,
+            "kind": "ram",
+            "mirror": 2916352,
+            "share": "mob:slip"
+          },
+          {
+            "start": 9502720,
+            "end": 9504767,
+            "kind": "ram",
+            "mirror": 2947072,
+            "share": "palette",
+            "write": "palette.write16"
+          },
+          {
+            "start": 9633792,
+            "end": 9633793,
+            "kind": "handler",
+            "mirror": 2949118,
+            "share": "xscroll",
+            "write": "gauntlet_state.xscroll_w"
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "m6502",
+        "clock": 1789772.625,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "ram",
+            "mirror": 8192
+          },
+          {
+            "start": 4096,
+            "end": 4111,
+            "kind": "handler",
+            "mirror": 10176,
+            "write": "mainlatch.write"
+          },
+          {
+            "start": 4112,
+            "end": 4127,
+            "kind": "handler",
+            "mirror": 10176,
+            "read": "soundlatch.read"
+          },
+          {
+            "start": 4128,
+            "end": 4143,
+            "kind": "handler",
+            "mirror": 10176,
+            "write": "gauntlet_state.mixer_w",
+            "handlerWidth": 8,
+            "read": "port.COIN"
+          },
+          {
+            "start": 4144,
+            "end": 4144,
+            "kind": "handler",
+            "mirror": 10191,
+            "read": "gauntlet_state.switch_6502_r"
+          },
+          {
+            "start": 4144,
+            "end": 4151,
+            "kind": "handler",
+            "mirror": 10184,
+            "write": "soundctl.write_d7"
+          },
+          {
+            "start": 6144,
+            "end": 6159,
+            "kind": "handler",
+            "mirror": 10176,
+            "read": "pokey.read",
+            "write": "pokey.write"
+          },
+          {
+            "start": 6160,
+            "end": 6161,
+            "kind": "handler",
+            "mirror": 10190,
+            "read": "ymsnd.read",
+            "write": "ymsnd.write"
+          },
+          {
+            "start": 6176,
+            "end": 6191,
+            "kind": "handler",
+            "mirror": 10176,
+            "write": "tms.data_w"
+          },
+          {
+            "start": 6192,
+            "end": 6207,
+            "kind": "handler",
+            "mirror": 10176,
+            "read": "gauntlet_state.sound_irq_ack_r",
+            "write": "gauntlet_state.sound_irq_ack_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 16384,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 229375,
+        "kind": "rom",
+        "mirror": 2621440
+      },
+      {
+        "start": 229376,
+        "end": 237567,
+        "kind": "handler",
+        "mirror": 2646016,
+        "read": "bank.slapstic_bank",
+        "bank": "slapstic_bank"
+      },
+      {
+        "start": 262144,
+        "end": 524287,
+        "kind": "rom",
+        "mirror": 2621440
+      },
+      {
+        "start": 8388608,
+        "end": 8396799,
+        "kind": "ram",
+        "mirror": 3129344
+      },
+      {
+        "start": 8396800,
+        "end": 8397823,
+        "kind": "handler",
+        "mirror": 3132416,
+        "umask": 255,
+        "read": "eeprom.read",
+        "write": "eeprom.write"
+      },
+      {
+        "start": 8400896,
+        "end": 8400897,
+        "kind": "handler",
+        "mirror": 3133168,
+        "read": "port.803000"
+      },
+      {
+        "start": 8400898,
+        "end": 8400899,
+        "kind": "handler",
+        "mirror": 3133168,
+        "read": "port.803002"
+      },
+      {
+        "start": 8400900,
+        "end": 8400901,
+        "kind": "handler",
+        "mirror": 3133168,
+        "read": "port.803004"
+      },
+      {
+        "start": 8400902,
+        "end": 8400903,
+        "kind": "handler",
+        "mirror": 3133168,
+        "read": "port.803006"
+      },
+      {
+        "start": 8400904,
+        "end": 8400905,
+        "kind": "handler",
+        "mirror": 3133168,
+        "read": "port.803008"
+      },
+      {
+        "start": 8400911,
+        "end": 8400911,
+        "kind": "handler",
+        "mirror": 3133168,
+        "read": "mainlatch.read"
+      },
+      {
+        "start": 8401152,
+        "end": 8401153,
+        "kind": "handler",
+        "mirror": 3133070,
+        "write": "watchdog.reset16_w"
+      },
+      {
+        "start": 8401184,
+        "end": 8401199,
+        "kind": "handler",
+        "mirror": 3133056,
+        "umask": 255,
+        "write": "outlatch.write_d0"
+      },
+      {
+        "start": 8401216,
+        "end": 8401217,
+        "kind": "handler",
+        "mirror": 3133070,
+        "write": "gauntlet_state.video_int_ack_w"
+      },
+      {
+        "start": 8401232,
+        "end": 8401233,
+        "kind": "handler",
+        "mirror": 3133070,
+        "write": "eeprom.unlock_write16"
+      },
+      {
+        "start": 8401265,
+        "end": 8401265,
+        "kind": "handler",
+        "mirror": 3133070,
+        "write": "soundlatch.write"
+      },
+      {
+        "start": 9437184,
+        "end": 9445375,
+        "kind": "ram",
+        "mirror": 2916352,
+        "share": "playfield",
+        "write": "playfield.write16"
+      },
+      {
+        "start": 9445376,
+        "end": 9453567,
+        "kind": "ram",
+        "mirror": 2916352,
+        "share": "mob"
+      },
+      {
+        "start": 9453568,
+        "end": 9457663,
+        "kind": "ram",
+        "mirror": 2916352
+      },
+      {
+        "start": 9457664,
+        "end": 9461631,
+        "kind": "ram",
+        "mirror": 2916352,
+        "share": "alpha",
+        "write": "alpha.write16"
+      },
+      {
+        "start": 9461614,
+        "end": 9461615,
+        "kind": "ram",
+        "mirror": 2916352,
+        "share": "yscroll",
+        "write": "gauntlet_state.yscroll_w"
+      },
+      {
+        "start": 9461632,
+        "end": 9461759,
+        "kind": "ram",
+        "mirror": 2916352,
+        "share": "mob:slip"
+      },
+      {
+        "start": 9502720,
+        "end": 9504767,
+        "kind": "ram",
+        "mirror": 2947072,
+        "share": "palette",
+        "write": "palette.write16"
+      },
+      {
+        "start": 9633792,
+        "end": 9633793,
+        "kind": "handler",
+        "mirror": 2949118,
+        "share": "xscroll",
+        "write": "gauntlet_state.xscroll_w"
+      }
+    ],
+    "customs": [
+      {
+        "port": "803008",
+        "mask": 16,
+        "member": "pending_r",
+        "source": "device-line",
+        "deviceTag": "mainlatch",
+        "activeLow": false
+      },
+      {
+        "port": "803008",
+        "mask": 32,
+        "member": "pending_r",
+        "source": "device-line",
+        "deviceTag": "soundlatch",
+        "activeLow": false
+      },
+      {
+        "port": "803008",
+        "mask": 64,
+        "member": "vblank",
+        "source": "screen-vblank",
+        "activeLow": true
+      }
+    ],
+    "screen": {
+      "width": 336,
+      "height": 240,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 59.92274758939333,
+      "htotal": 456,
+      "vtotal": 262,
+      "vbstart": 240,
+      "vbend": 0,
+      "updateMode": "partial",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545.25,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.48,
+        "target": "speaker",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.48,
+        "target": "speaker",
+        "targetInput": 1
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "POKEY",
+        "deviceTag": "pokey",
+        "member": "m_pokey",
+        "clock": 1789772.625,
+        "gain": 0.32,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "write"
+        ]
+      },
+      {
+        "type": "TMS5220C",
+        "deviceTag": "tms",
+        "member": "m_tms5220",
+        "clock": 650826.4090909091,
+        "gain": 0.8,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "data_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 524288,
+      "loads": [
+        {
+          "file": "136037-1307.9a",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "46fe8743",
+          "alt": [
+            {
+              "file": "136037-1507.9a",
+              "crc": "b5183228"
+            },
+            {
+              "file": "136037-1007.9a",
+              "crc": "6a224cea"
+            },
+            {
+              "file": "136037-1207.9a",
+              "crc": "6dc0610d"
+            },
+            {
+              "file": "136037-907.9a",
+              "crc": "c13a6399"
+            },
+            {
+              "file": "136037-807.9a",
+              "crc": "671c0bc2"
+            },
+            {
+              "file": "136037-207.9a",
+              "crc": "fd871f81"
+            },
+            {
+              "file": "136037-307.9a",
+              "crc": "759827c9"
+            },
+            {
+              "file": "136037-107.9a",
+              "crc": "a5885e14"
+            },
+            {
+              "file": "136041-507.9a",
+              "crc": "8784133f"
+            },
+            {
+              "file": "136041-407.9a",
+              "crc": "cde72140"
+            },
+            {
+              "file": "136041-207.9a",
+              "crc": "0e1af1b4"
+            },
+            {
+              "file": "136041-107.9a",
+              "crc": "3faf74d8"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 0,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        },
+        {
+          "file": "136037-1308.9b",
+          "offset": 32769,
+          "size": 16384,
+          "crc": "276e15c4",
+          "alt": [
+            {
+              "file": "136037-1508.9b",
+              "crc": "afd3c501"
+            },
+            {
+              "file": "136037-1008.9b",
+              "crc": "fa391dab"
+            },
+            {
+              "file": "136037-1208.9b",
+              "crc": "faa306eb"
+            },
+            {
+              "file": "136037-908.9b",
+              "crc": "417607d9"
+            },
+            {
+              "file": "136037-808.9b",
+              "crc": "f2842af4"
+            },
+            {
+              "file": "136037-208.9b",
+              "crc": "bcb2fb1d"
+            },
+            {
+              "file": "136037-308.9b",
+              "crc": "d71262d1"
+            },
+            {
+              "file": "136037-108.9b",
+              "crc": "0087f1ab"
+            },
+            {
+              "file": "136041-508.9b",
+              "crc": "2843bde3"
+            },
+            {
+              "file": "136041-408.9b",
+              "crc": "4ab1af62"
+            },
+            {
+              "file": "136041-208.9b",
+              "crc": "bf51a238"
+            },
+            {
+              "file": "136041-108.9b",
+              "crc": "f1e6d815"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 1,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        },
+        {
+          "file": "136037-205.10a",
+          "offset": 229376,
+          "size": 16384,
+          "crc": "6d99ed51",
+          "alt": [
+            {
+              "file": "136037-105.10a",
+              "crc": "4642cd95"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136037-206.10b",
+          "offset": 229377,
+          "size": 16384,
+          "crc": "545ead91",
+          "alt": [
+            {
+              "file": "136037-106.10b",
+              "crc": "c8df945e"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136037-1409.7a",
+          "offset": 294912,
+          "size": 16384,
+          "crc": "6fb8419c",
+          "alt": [
+            {
+              "file": "136037-1509.7a",
+              "crc": "69e50ae9"
+            },
+            {
+              "file": "136037-1309.7a",
+              "crc": "e8ba39d8"
+            },
+            {
+              "file": "136037-1009.7a",
+              "crc": "75d1f966"
+            },
+            {
+              "file": "136037-1109.7a",
+              "crc": "500194fb"
+            },
+            {
+              "file": "136037-909.7a",
+              "crc": "fb1cdc1c"
+            },
+            {
+              "file": "136037-809.7a",
+              "crc": "05642d60"
+            },
+            {
+              "file": "136037-709.7a",
+              "crc": "73e1ad79"
+            },
+            {
+              "file": "136037-609.7a",
+              "crc": "cd3381de"
+            },
+            {
+              "file": "136037-409.7a",
+              "crc": "c57377b3"
+            },
+            {
+              "file": "136037-309.7a",
+              "crc": "7f03696b"
+            },
+            {
+              "file": "136037-209.7a",
+              "crc": "d810a7dc"
+            },
+            {
+              "file": "136037-109.7a",
+              "crc": "55d87198"
+            },
+            {
+              "file": "136041-609.7a",
+              "crc": "5b4ee415"
+            },
+            {
+              "file": "136041-509.7a",
+              "crc": "fb2ef226"
+            },
+            {
+              "file": "136041-409.7a",
+              "crc": "44e01459"
+            },
+            {
+              "file": "136041-309.7a",
+              "crc": "5acbcd2b"
+            },
+            {
+              "file": "136041-209.7a",
+              "crc": "ddc9b56f"
+            },
+            {
+              "file": "136041-109.7a",
+              "crc": "56d0c5b8"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 262144,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        },
+        {
+          "file": "136037-1410.7b",
+          "offset": 294913,
+          "size": 16384,
+          "crc": "931bd2a0",
+          "alt": [
+            {
+              "file": "136037-1510.7b",
+              "crc": "54e2692c"
+            },
+            {
+              "file": "136037-1310.7b",
+              "crc": "a204d997"
+            },
+            {
+              "file": "136037-1010.7b",
+              "crc": "28a4197b"
+            },
+            {
+              "file": "136037-1110.7b",
+              "crc": "b2969076"
+            },
+            {
+              "file": "136037-910.7b",
+              "crc": "f188e7b3"
+            },
+            {
+              "file": "136037-810.7b",
+              "crc": "36d295e3"
+            },
+            {
+              "file": "136037-710.7b",
+              "crc": "fd248cea"
+            },
+            {
+              "file": "136037-610.7b",
+              "crc": "2cff932a"
+            },
+            {
+              "file": "136037-510.7b",
+              "crc": "1cac2071"
+            },
+            {
+              "file": "136037-410.7b",
+              "crc": "6b971a27"
+            },
+            {
+              "file": "136037-310.7b",
+              "crc": "8d7197fc"
+            },
+            {
+              "file": "136037-210.7b",
+              "crc": "fbba7290"
+            },
+            {
+              "file": "136037-110.7b",
+              "crc": "f84ad06d"
+            },
+            {
+              "file": "136041-610.7b",
+              "crc": "41f5c9e2"
+            },
+            {
+              "file": "136041-510.7b",
+              "crc": "a69be8da"
+            },
+            {
+              "file": "136041-410.7b",
+              "crc": "b58d96d3"
+            },
+            {
+              "file": "136041-310.7b",
+              "crc": "1889ab77"
+            },
+            {
+              "file": "136041-210.7b",
+              "crc": "ffe78a4f"
+            },
+            {
+              "file": "136041-110.7b",
+              "crc": "3b9ae397"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 262145,
+              "size": 16384,
+              "fileOffset": 16384
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "136037-120.16r",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "6ee7f3cc"
+        },
+        {
+          "file": "136037-119.16s",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "fa19861f"
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "136037-104.6p",
+          "offset": 0,
+          "size": 16384,
+          "crc": "6c276a1d"
+        }
+      ]
+    },
+    {
+      "region": "spr_tiles",
+      "size": 262144,
+      "invert": true,
+      "loads": [
+        {
+          "file": "136037-111.1a",
+          "offset": 0,
+          "size": 32768,
+          "crc": "91700f33"
+        },
+        {
+          "file": "136037-112.1b",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "869330be"
+        },
+        {
+          "file": "136037-113.1l",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "d497d0a8"
+        },
+        {
+          "file": "136037-114.1mn",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "29ef9882"
+        },
+        {
+          "file": "136037-115.2a",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "9510b898"
+        },
+        {
+          "file": "136037-116.2b",
+          "offset": 163840,
+          "size": 32768,
+          "crc": "11e0ac5b"
+        },
+        {
+          "file": "136037-117.2l",
+          "offset": 196608,
+          "size": 32768,
+          "crc": "29a5db41"
+        },
+        {
+          "file": "136037-118.2mn",
+          "offset": 229376,
+          "size": 32768,
+          "crc": "8bf3b263"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1280,
+      "loads": [
+        {
+          "file": "74s472-136037-101.7u",
+          "offset": 0,
+          "size": 512,
+          "crc": "2964f76f"
+        },
+        {
+          "file": "74s472-136037-102.5l",
+          "offset": 512,
+          "size": 512,
+          "crc": "4d4fec6c"
+        },
+        {
+          "file": "74s287-136037-103.4r",
+          "offset": 1024,
+          "size": 256,
+          "crc": "6c5ccf08"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "803000",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 16,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 32,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 64,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "803000",
+      "mask": 128,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 4,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 8,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "803008",
+      "mask": 8,
+      "value": 8,
+      "name": "Service Mode"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "803000",
+      "init": 65535
+    },
+    {
+      "tag": "803002",
+      "init": 65535
+    },
+    {
+      "tag": "803004",
+      "init": 65535
+    },
+    {
+      "tag": "803006",
+      "init": 65535
+    },
+    {
+      "tag": "803008",
+      "init": 72
+    },
+    {
+      "tag": "COIN",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

@@ -1,0 +1,1224 @@
+{
+  "game": "xevious",
+  "title": "Xevious (Namco) (Namco, 1982)",
+  "fullname": "Xevious (Namco)",
+  "year": "1982",
+  "company": "Namco",
+  "family": "galaga",
+  "driverFile": "src/mame/namco/galaga.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom",
+          "readOnly": true
+        },
+        {
+          "start": 26624,
+          "end": 26631,
+          "kind": "handler",
+          "read": "xevious_state.bosco_dsw_r"
+        },
+        {
+          "start": 26624,
+          "end": 26655,
+          "kind": "handler",
+          "write": "namco.pacman_sound_w"
+        },
+        {
+          "start": 26656,
+          "end": 26663,
+          "kind": "handler",
+          "write": "misclatch.write_d0"
+        },
+        {
+          "start": 26672,
+          "end": 26672,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 28672,
+          "end": 28927,
+          "kind": "handler",
+          "read": "06xx.data_r",
+          "write": "06xx.data_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28928,
+          "end": 28928,
+          "kind": "handler",
+          "read": "06xx.ctrl_r",
+          "write": "06xx.ctrl_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 30720,
+          "end": 32767,
+          "kind": "ram",
+          "share": "share1"
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram",
+          "share": "xevious_sr1"
+        },
+        {
+          "start": 36864,
+          "end": 38911,
+          "kind": "ram",
+          "share": "xevious_sr2"
+        },
+        {
+          "start": 40960,
+          "end": 43007,
+          "kind": "ram",
+          "share": "xevious_sr3"
+        },
+        {
+          "start": 45056,
+          "end": 47103,
+          "kind": "ram",
+          "share": "fg_colorram",
+          "write": "xevious_state.xevious_fg_colorram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 47104,
+          "end": 49151,
+          "kind": "ram",
+          "share": "bg_colorram",
+          "write": "xevious_state.xevious_bg_colorram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 49152,
+          "end": 51199,
+          "kind": "ram",
+          "share": "fg_videoram",
+          "write": "xevious_state.xevious_fg_videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 51200,
+          "end": 53247,
+          "kind": "ram",
+          "share": "bg_videoram",
+          "write": "xevious_state.xevious_bg_videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 53375,
+          "kind": "handler",
+          "write": "xevious_state.xevious_vh_latch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61440,
+          "end": 65535,
+          "kind": "handler",
+          "read": "xevious_state.xevious_bb_r",
+          "write": "xevious_state.xevious_bs_w",
+          "handlerWidth": 8
+        }
+      ]
+    },
+    {
+      "tag": "sub",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "sub",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom",
+          "readOnly": true
+        },
+        {
+          "start": 26624,
+          "end": 26631,
+          "kind": "handler",
+          "read": "xevious_state.bosco_dsw_r"
+        },
+        {
+          "start": 26624,
+          "end": 26655,
+          "kind": "handler",
+          "write": "namco.pacman_sound_w"
+        },
+        {
+          "start": 26656,
+          "end": 26663,
+          "kind": "handler",
+          "write": "misclatch.write_d0"
+        },
+        {
+          "start": 26672,
+          "end": 26672,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 28672,
+          "end": 28927,
+          "kind": "handler",
+          "read": "06xx.data_r",
+          "write": "06xx.data_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28928,
+          "end": 28928,
+          "kind": "handler",
+          "read": "06xx.ctrl_r",
+          "write": "06xx.ctrl_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 30720,
+          "end": 32767,
+          "kind": "ram",
+          "share": "share1"
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram",
+          "share": "xevious_sr1"
+        },
+        {
+          "start": 36864,
+          "end": 38911,
+          "kind": "ram",
+          "share": "xevious_sr2"
+        },
+        {
+          "start": 40960,
+          "end": 43007,
+          "kind": "ram",
+          "share": "xevious_sr3"
+        },
+        {
+          "start": 45056,
+          "end": 47103,
+          "kind": "ram",
+          "share": "fg_colorram",
+          "write": "xevious_state.xevious_fg_colorram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 47104,
+          "end": 49151,
+          "kind": "ram",
+          "share": "bg_colorram",
+          "write": "xevious_state.xevious_bg_colorram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 49152,
+          "end": 51199,
+          "kind": "ram",
+          "share": "fg_videoram",
+          "write": "xevious_state.xevious_fg_videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 51200,
+          "end": 53247,
+          "kind": "ram",
+          "share": "bg_videoram",
+          "write": "xevious_state.xevious_bg_videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 53375,
+          "kind": "handler",
+          "write": "xevious_state.xevious_vh_latch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61440,
+          "end": 65535,
+          "kind": "handler",
+          "read": "xevious_state.xevious_bb_r",
+          "write": "xevious_state.xevious_bs_w",
+          "handlerWidth": 8
+        }
+      ]
+    },
+    {
+      "tag": "sub2",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "sub2",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom",
+          "readOnly": true
+        },
+        {
+          "start": 26624,
+          "end": 26631,
+          "kind": "handler",
+          "read": "xevious_state.bosco_dsw_r"
+        },
+        {
+          "start": 26624,
+          "end": 26655,
+          "kind": "handler",
+          "write": "namco.pacman_sound_w"
+        },
+        {
+          "start": 26656,
+          "end": 26663,
+          "kind": "handler",
+          "write": "misclatch.write_d0"
+        },
+        {
+          "start": 26672,
+          "end": 26672,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 28672,
+          "end": 28927,
+          "kind": "handler",
+          "read": "06xx.data_r",
+          "write": "06xx.data_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28928,
+          "end": 28928,
+          "kind": "handler",
+          "read": "06xx.ctrl_r",
+          "write": "06xx.ctrl_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 30720,
+          "end": 32767,
+          "kind": "ram",
+          "share": "share1"
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram",
+          "share": "xevious_sr1"
+        },
+        {
+          "start": 36864,
+          "end": 38911,
+          "kind": "ram",
+          "share": "xevious_sr2"
+        },
+        {
+          "start": 40960,
+          "end": 43007,
+          "kind": "ram",
+          "share": "xevious_sr3"
+        },
+        {
+          "start": 45056,
+          "end": 47103,
+          "kind": "ram",
+          "share": "fg_colorram",
+          "write": "xevious_state.xevious_fg_colorram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 47104,
+          "end": 49151,
+          "kind": "ram",
+          "share": "bg_colorram",
+          "write": "xevious_state.xevious_bg_colorram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 49152,
+          "end": 51199,
+          "kind": "ram",
+          "share": "fg_videoram",
+          "write": "xevious_state.xevious_fg_videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 51200,
+          "end": 53247,
+          "kind": "ram",
+          "share": "bg_videoram",
+          "write": "xevious_state.xevious_bg_videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 53375,
+          "kind": "handler",
+          "write": "xevious_state.xevious_vh_latch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61440,
+          "end": 65535,
+          "kind": "handler",
+          "read": "xevious_state.xevious_bb_r",
+          "write": "xevious_state.xevious_bs_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "auxiliary": {
+      "type": "DAC_FILTER",
+      "levels": [
+        0,
+        0.05606523955147809,
+        0.11977573904179407,
+        0.17584097859327213,
+        0.263506625891947,
+        0.3195718654434251,
+        0.38328236493374107,
+        0.4393476044852191,
+        0.5606523955147809,
+        0.6167176350662589,
+        0.6804281345565749,
+        0.7364933741080529,
+        0.8241590214067278,
+        0.8802242609582059,
+        0.9439347604485219,
+        1
+      ],
+      "channels": [
+        {
+          "input": 2,
+          "frequency": 2520.9816921671772,
+          "q": 1.7423774640682894,
+          "gain": 0.10957176220160833
+        },
+        {
+          "input": 1,
+          "frequency": 450.43388318211043,
+          "q": 2.1226196674992623,
+          "gain": 0.1626142212349928
+        },
+        {
+          "input": 0,
+          "frequency": 167.41656583794713,
+          "q": 2.4719868706309156,
+          "gain": 0.7278140165633988
+        }
+      ],
+      "outputGain": 0.65,
+      "source": {
+        "file": "src/mame/namco/galaga_a.cpp",
+        "line": 310,
+        "netlist": "galaga_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 288,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "xvi_1.3p",
+          "offset": 0,
+          "size": 4096,
+          "crc": "09964dda",
+          "alt": [
+            {
+              "file": "xvi_u_.3p",
+              "crc": "7b203868"
+            },
+            {
+              "file": "4.7h",
+              "crc": "1f8ca4c0"
+            },
+            {
+              "file": "bg1.h7",
+              "crc": "475d848a"
+            }
+          ]
+        },
+        {
+          "file": "xvi_2.3m",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "60ecce84",
+          "alt": [
+            {
+              "file": "xv_2-2.3m",
+              "crc": "b6fe738e"
+            },
+            {
+              "file": "5.6h",
+              "crc": "2e47ce8f"
+            },
+            {
+              "file": "bg2.h6",
+              "crc": "c66f2a87"
+            }
+          ]
+        },
+        {
+          "file": "xvi_3.2m",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "79754b7d",
+          "alt": [
+            {
+              "file": "xv_2-3.2m",
+              "crc": "dbd52ff5"
+            }
+          ]
+        },
+        {
+          "file": "xvi_4.2l",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "c7d4bbf0",
+          "alt": [
+            {
+              "file": "xvi_u_.2l",
+              "crc": "ad12af53"
+            },
+            {
+              "file": "7.4h",
+              "crc": "17f48277"
+            },
+            {
+              "file": "bg4.h4",
+              "crc": "3da1a0a2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "xvi_5.3f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c85b703f",
+          "alt": [
+            {
+              "file": "xv2_5.3f",
+              "crc": "f8cc2861"
+            }
+          ]
+        },
+        {
+          "file": "xvi_6.3j",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "e18cdaad"
+        }
+      ]
+    },
+    {
+      "region": "sub2",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "xvi_7.2c",
+          "offset": 0,
+          "size": 4096,
+          "crc": "dd35cf1c"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "xvi_12.3b",
+          "offset": 0,
+          "size": 4096,
+          "crc": "088c8b26",
+          "alt": [
+            {
+              "file": "bg9.c10",
+              "crc": "5bd6e9ae"
+            },
+            {
+              "file": "bg17.f8",
+              "crc": "9571e400"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "xvi_13.3c",
+          "offset": 0,
+          "size": 4096,
+          "crc": "de60ba25",
+          "alt": [
+            {
+              "file": "bg10.c8",
+              "crc": "b43ea55d"
+            }
+          ]
+        },
+        {
+          "file": "xvi_14.3d",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "535cdbbc",
+          "alt": [
+            {
+              "file": "bg11.c7",
+              "crc": "73603931"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx3",
+      "size": 40960,
+      "fills": [
+        {
+          "offset": 36864,
+          "size": 4096,
+          "value": 0
+        }
+      ],
+      "loads": [
+        {
+          "file": "xvi_15.4m",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dc2c0ecb"
+        },
+        {
+          "file": "xvi_17.4p",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "dfb587ce"
+        },
+        {
+          "file": "xvi_16.4n",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "605ca889"
+        },
+        {
+          "file": "xvi_18.4r",
+          "offset": 20480,
+          "size": 8192,
+          "crc": "02417d19",
+          "alt": [
+            {
+              "file": "16.8d",
+              "crc": "44262c04"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx4",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "xvi_9.2a",
+          "offset": 0,
+          "size": 4096,
+          "crc": "57ed9879",
+          "alt": [
+            {
+              "file": "10.1d",
+              "crc": "10baeebb"
+            }
+          ]
+        },
+        {
+          "file": "xvi_10.2b",
+          "offset": 4096,
+          "size": 8192,
+          "crc": "ae3ba9e5"
+        },
+        {
+          "file": "xvi_11.2c",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "31e244dd",
+          "alt": [
+            {
+              "file": "12.3d",
+              "crc": "51a4e83b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 2816,
+      "loads": [
+        {
+          "file": "xvi-8.6a",
+          "offset": 0,
+          "size": 256,
+          "crc": "5cc2727f"
+        },
+        {
+          "file": "xvi-9.6d",
+          "offset": 256,
+          "size": 256,
+          "crc": "5c8796cc"
+        },
+        {
+          "file": "xvi-10.6e",
+          "offset": 512,
+          "size": 256,
+          "crc": "3cb60975"
+        },
+        {
+          "file": "xvi-7.4h",
+          "offset": 768,
+          "size": 512,
+          "crc": "22d98032"
+        },
+        {
+          "file": "xvi-6.4f",
+          "offset": 1280,
+          "size": 512,
+          "crc": "3a7599f0"
+        },
+        {
+          "file": "xvi-4.3l",
+          "offset": 1792,
+          "size": 512,
+          "crc": "fd8b9d91"
+        },
+        {
+          "file": "xvi-5.3m",
+          "offset": 2304,
+          "size": 512,
+          "crc": "bf906d82"
+        }
+      ]
+    },
+    {
+      "region": "pals_vidbd",
+      "size": 512,
+      "loads": [
+        {
+          "file": "xvi-3.1f",
+          "offset": 0,
+          "size": 279,
+          "crc": "9192d57a"
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "xvi-2.7n",
+          "offset": 0,
+          "size": 256,
+          "crc": "550f06bc"
+        },
+        {
+          "file": "xvi-1.5n",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66"
+        }
+      ]
+    },
+    {
+      "region": "50xx:mcu",
+      "size": 2048,
+      "romSet": "namco50",
+      "loads": [
+        {
+          "file": "50xx.bin",
+          "offset": 0,
+          "size": 2048,
+          "crc": "a0acbaf7"
+        }
+      ]
+    },
+    {
+      "region": "51xx:mcu",
+      "size": 1024,
+      "romSet": "namco51",
+      "loads": [
+        {
+          "file": "51xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "c2f57ef8"
+        }
+      ]
+    },
+    {
+      "region": "54xx:mcu",
+      "size": 1024,
+      "romSet": "namco54",
+      "loads": [
+        {
+          "file": "54xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "ee7357e0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "DSWB",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 3,
+      "value": 3,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 28,
+      "value": 28,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSWA",
+      "mask": 96,
+      "value": 96,
+      "name": "Lives"
+    },
+    {
+      "port": "DSWA",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSWB",
+      "mask": 2,
+      "value": 2,
+      "name": "Flags Award Bonus Life"
+    },
+    {
+      "port": "DSWB",
+      "mask": 12,
+      "value": 12,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWB",
+      "mask": 96,
+      "value": 96,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSWB",
+      "mask": 128,
+      "value": 128,
+      "name": "Freeze"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 283,
+    "contributors": 37,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 94,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2013-08-05"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 46,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 23,
+        "firstCommit": "2016-08-26",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 17,
+        "firstCommit": "2014-03-22",
+        "lastCommit": "2025-12-17"
+      },
+      {
+        "name": "hap",
+        "commits": 11,
+        "firstCommit": "2020-06-11",
+        "lastCommit": "2026-03-30"
+      },
+      {
+        "name": "AJR",
+        "commits": 7,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2022-08-09"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2017-02-11",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 6,
+        "firstCommit": "2011-10-23",
+        "lastCommit": "2012-02-03"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 6,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-03-09"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 5,
+        "firstCommit": "2008-11-14",
+        "lastCommit": "2010-05-23"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 5,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2014-04-11"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 5,
+        "firstCommit": "2009-06-26",
+        "lastCommit": "2015-06-05"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2020-04-02"
+      },
+      {
+        "name": "Mike",
+        "commits": 4,
+        "firstCommit": "2020-04-25",
+        "lastCommit": "2022-01-14"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 4,
+        "firstCommit": "2018-03-10",
+        "lastCommit": "2018-12-19"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 4,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 4,
+        "firstCommit": "2009-05-03",
+        "lastCommit": "2009-08-13"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 3,
+        "firstCommit": "2014-02-12",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2009-07-27",
+        "lastCommit": "2009-07-28"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 2,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MASH",
+        "commits": 2,
+        "firstCommit": "2016-08-26",
+        "lastCommit": "2016-09-08"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2011-03-20"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 2,
+        "firstCommit": "2013-01-01",
+        "lastCommit": "2018-04-12"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 2,
+        "firstCommit": "2018-05-20",
+        "lastCommit": "2018-05-26"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-02",
+        "lastCommit": "2008-08-02"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2026-04-03",
+        "lastCommit": "2026-04-03"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2024-04-06",
+        "lastCommit": "2024-04-06"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2010-03-07",
+        "lastCommit": "2010-03-07"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "neSneSgB",
+        "commits": 1,
+        "firstCommit": "2022-10-26",
+        "lastCommit": "2022-10-26"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2012-09-18",
+        "lastCommit": "2012-09-18"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Robert Hildinger",
+        "commits": 1,
+        "firstCommit": "2019-11-03",
+        "lastCommit": "2019-11-03"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2009-05-02"
+      },
+      {
+        "name": "Sandro Ronco",
+        "commits": 1,
+        "firstCommit": "2012-09-14",
+        "lastCommit": "2012-09-14"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nXevious (c) 1982 Namco.\n\nXevious (pronounced 'zeevious') is a vertically-scrolling shoot-em-up in which the player pilots the heavily-armed 'Solvalou' combat ship and must destroy the evil Xevious forces trying to take over the planet. The Solvalou is equipped with two weapon systems; the forwards-firing \"air zapper\" for shooting air-based enemies and 'blaster bombs', for destroying ground-based enemies. To enable accurate targetting of the air-to-ground blaster bombs, a white and blue targeting indicator is situated in front of the Solvalou. This flashes when an enemy is in its sights.\n\nEnemy craft appear in a number of different guises; from the standard variety that arrive in large numbers but shoot slow-moving projectiles, to exploding black spheres that shoot projectiles at high speed. There are also rotating shields that cannot be destroyed and must be carefully avoided. Ground enemies are a combination of both stationary bases and moving vehicles, most of which fire slow-moving projectiles. A gigantic, floating fortress called 'Andor Genesis' appears in certain areas; this is defeated by knocking out its core. \n\nXevious is divided into 16 different areas, each separated by an area of forest. If the player dies before less than 70% of an area has been completed, play restarts at the beginning of the same area; should a life be lost AFTER 70% of an area has been completed, however, play restarts at the beginning of the next area. After Area 16 has been completed, the game loops back to Area 7.\n\nThe game becomes progressively more difficult as the player becomes more skilled - once the player does well at destroying a certain enemy type, a more advanced enemy type will replace it. This can be reverted by destroying flashing-red 'Zolback' radars found on the ground, which will cause the more advanced enemies to be replaced with weaker ones.\n\n- CAST OF CHARACTERS - \n\nAIR UNITS : \nThese are the air units you will encounter during the game. A players skill will determine what air units they may face. \n* Andor Genesis (mother ship) - the large ship in Areas 4, 9, and 14. \n* Bacura (resistor shield) - the large rotating floating walls which are indestructible. \n* Brag Zakato (energy blaster) - medium black ball, with a red dot, that explode and send several shots at your Solvalou. \n* Bragza (crystal) - the crystal core of the Andor Genesis mother ship which escapes upon its destruction. \n* Garu Zakato (energy bombarder) - large black ball that explode sending out a multitude of shots in all directions. \n* Giddo Spario (energy blast) - small, white crystal-like projectiles that come in diagonally at your Solvalou. \n* Jara (spinner) - looks like a UFO with a spinning gear in the middle. \n* Kapi (deflector) - flat-looking fighter with two front projections that flies in, fires multiple shots, then escapes quickly. \n* Sheonite (escort) - small spinning diamond-shaped craft which escort your Solvalou for a bit and fly off. \n* Terrazi (destructor) - flat looking, diamond shaped fighter that flies in, fires multiple shots, then escapes quickly. \n* Torkan (scout ship) - ridged fighter that flies in, fires one shot, then escapes quickly. \n* Toroid (fleet) - ring-shaped fighter which is traditionally the first enemy you encounter. \n* Zakato (energy launcher) - small black ball that explodes sending a single shot at your Solvalou. \n* Zoshi (death squad) - the round spinning fighter which can sometimes attack from behind. \n\nGROUND UNITS : \nThese are the ground units you will encounter during the game. \n* Barra (energy station) - small pyramid-shaped buildings. \n* Boza Logram (dome network) - a structure of four Lograms surrounding a Derota. \n* Derota (defense site) - the small octagonal-shaped gun batteries that fire multiple shots at your Solvalou. \n* Domogram (rover) - looks like a mobile Logram that travels along the roads and fires shots at your Solvalou. \n* Garu Barra (energy base) - medium and large pyramid-shaped buildings. \n* Garu Derota (mega site) - the large octagonal-shaped gun batteries that fire multiple shots at your Solvalou. \n* Grobda (tank) - the tank-like vehicles that travel along the road. They can detect when your bombsight is on them and they will move out of the way. \n* Logram (sphere station) - silver circular domes that fire single shots at your Solvalou. \n* Sol (citadel) - underground structures which rise up when initially bombed. \n* Zolbak (detector dome) - domes with red squares on top and around their base.\n\n- TECHNICAL -\n\nGame ID : XVI \n\nMain CPU : Zilog Z80 (x3), MB88xx \nSound Chips : Namco 3-channel WSG, discrete circuitry (for the explosion sounds) \n\nPlayers : 2 \nControl : 8-way joystick \nButtons : 2 \n= > [1] Zapper, [2] Blaster\n\n- TRIVIA -\n\nXevious was released on December 22, 1982 (Wednesday) in Japan.\n\nXevious is not the world's first vertically-scrolling shoot-em-up but has a huge and lasting influence on the genre.\n\nXevious was the first game to use pre-rendered graphics and, among its countless innovations, was also the first vertical shoot-em-up that allowed accurate targeting of both airborne and ground-based enemies. The graphics were hugely revolutionary for their time; the sprites were rendered with remarkable clarity and detail due to the game's clever use of colors and shades as well as palette-shifting. Xevious was also the first game to feature 'hidden characters', which, being hidden, are not mentioned in the game's instructions but can be revealed by performing a secret maneuver. Among these was the 'special flag', which gave the player an extra life. This feature was carried over to a number of subsequent Namco games. \n\nWhile Xevious enjoyed limited popularity in North America, the game was a huge cult hit in Japan, and to this day is considered one of the greatest video games of all time. Popular Japanese musicians, Haruomi Hosono (Yellow Magic Orchestra) and Kuwata Keisuke (Southern All Stars) were known to be fans of the game, and the former produced an album of music from Namco video games, with Xevious as its centerpiece. A follow-up 12-inch single featured in its liner notes an entire science-fiction short story by Endoh, set in the world of Xevious, with even included a rudimentary fictional language. \n\nAt one point in the game, the Solvalou flies over the Nazca lines. The Nazca Lines are geoglyphs (drawings on the ground) located in the Nazca Desert; a high, arid plateau that stretches 37 miles between the towns of Nazca and Palpa, situated in the Pampa region. They were created during the Nazca occupation of the area, between 200 BC and 600 AD. \n\nThe graphic ROMs contain several additional enemies which don't actually appear in gameplay including a silver-grey Galaxian flagship. These enemies do appear in the game-play of \"Super Xevious\" which uses the same graphics data as Xevious. \n\nThe highest score possible is 9,999,990, at which point the game terminates abnormally and resets. Some time before this score is reached, the game starts to award extra ships on every blaster shot fired. \n\nMarco Borroni holds the official record for this game with 7,009,560 points (!) on August 16, 1984. \n\nThe background is actually one large 1024x2048 image. Each of the 16 game areas is a 224x2048 strip starting at a different horizontal offset in the image.\n\n- UPDATES -\n\n* The high-score names are ten characters long on the Namco versions, but only three characters long on the Atari versions. \n\n* The Zapper and Blaster buttons were reversed between the Japanese and American versions.\n\n- SCORING -\n\nScoring in this game is relatively complicated due to all the different units. \n\nAIR UNITS \nAndor Genesis : 1,000-4,000 points \nBrag Zakato : 500 points \nGaru Zakato : 1,000 points \nGiddo Spario : 10 points \nJarra : 70-100 points \nKapi : 300 points \nTerrazi : 700 points \nTorkan : 50 points \nToroid : 30 points \nZakato : 50 points \nZoshi : 100 points \n\nGROUND UNITS \nBarra : 100 points \nBoza Logram : 2,000 points \nDerota : 1,000 points \nDomogram : 800 points \nGaru Barra : 300 points \nGaru Derota : 2,000 points \nGrobda : 400 points \nLogram : 300 points \nZolbak : 200 points \n\nSpecials (see Tips and Tricks below for how to get them) \nFlag : 1,000 points for uncovering it, bonus Solvalou for flying over it \nSol Citadel : 2,000 points for making it surface; 2,000 points for destroying it\n\n- TIPS AND TRICKS -\n\nWhen you start the game, your Solvalou will be at the bottom of the screen. Keep in mind, this is a scrolling game. This means you can go no faster then the top and no slower then the bottom of the screen. You can, however, vary your speed in-between by pushing the joystick up and down. The biggest key in getting through this game is learning how to use the joystick to speed up and slow down because you will sometimes be put into some very tight areas that will require precision joystick control.\n\n* One interesting aspect of this game is the fact if you are too successful against a particular kind of enemy, the game will adjust itself to send different enemies until you have difficulty dealing with them.\n\n* Make sure you know what you will be encountering in each area.\n\n* If you hold down the fire and bomb buttons, you will constantly be doing both at a slower rate. This is great when you are in the thick of things with both air and ground targets swarming the area.\n\n* Speaking of bombs, your Solvalou is equipped with smart bombs (so to speak). They are launch and forget weapons. When you 'paint' the target with your bomb-sight and launch your bomb, it will hit that target even when you have already flown over it. There are a couple of strategies to make your bombing runs more effective :\n1) When you have targets close together (usually bomb batteries are arranged this way), put a bomb between them. You will have a very good chance of taking out both batteries with one hit since you can only have one bomb on the screen at a time.\n2) For moving targets (such as Grobdas), anticipate the targets direction and 'lead' it a little. This basically means putting the bomb at the point where the target will run into it.\n3) Your bomb-sight will turn red whenever any target is 'sighted', even if the target is hidden like Sol Citadels and flags.\n\n* Keep away from the corners. These can become death traps real quickly if you are swamped by enemies.\n\n* Since you have free reign of most of the screen to move around, make sure you use all that room for maneuvering. Enemy fighters have a nasty habit of either shooting from behind your fighter or re-entering the screen from random sides. It also is handy when you are dodging a heavy volume of enemy fire.\n\n* Make sure when you are maneuvering around the Bacuras, you always leave yourself a clear 'out'.  What I mean by this is there another direction to escape instead of having to move along with the Bacuras. An occasional enemy likes to put up shots at your fighter since it is very difficult to maneuver around the rolling plates.\n\n* The Andor Genesis Motherships are pretty easy to destroy if you work quickly. Most of the time, Zakatos and Brag Zakatos precede the arrival of the Andor Genesis Mothership. Blast these out of the sky and avoid the shrapnel. When the Andor Genesis Mothership appears, lead the target a little and quickly move up and plant your bomb at the point the center of the ship will be. The less time you waste taking on this ship, the better.\n\n* Secret Message : The designer of Xevious has included a trick for generating his name right at the beginning of the game. When Solvalou appears, move to the right edge of the screen, wait a few seconds and drop a single bomb as soon as the music changes (after the long note). The message 'Namco ORIGINAL Program by EVEZOO' will appear on the screen.\n\n* THE FLAGS : There are four flags hidden throughout the game. These flags occur in areas 1, 3, 5, and 6. All flags are along a horizontal line across the terrain. The only way to uncover a flag is to bomb it so you will have to lay a string of bombs along the entire horizontal line. This basically means moving up quickly, dealing with enemies quickly, and dropping your bombs quickly. Once a flag is uncovered, you must fly over it to get the benefits from it.\n\nFLAG 1 : The first flag is located in the first river you encounter after you start the game. Look for the three Grobdas in a row. Just above them is a river that cuts horizontally across the terrain. Just bomb the river from left to right and around the bank closest to you. The flag should appear.\n\nFLAG 2 : After you get past the plates, look up and to the right. There is a little lake with a small river feeding into the ocean. Start in the middle of the lake and bomb toward the little river. The flag should appear around where the river dumps into the ocean.\n\nFLAG 3 : When you cross the first ocean, you will eventually see a dock/harbor at the top. The flag is located around the horizontal line that the longest pier projecting out is part of. You will need to quickly bomb that entire length to find and get the flag before the bottom scrolls your Solvalou too far up.\n\nFLAG 4 : You will see a big bird picture on the desert. At the lowest point of its tail-feathers (in the lower right corner), start to bomb horizontally from right to left. The flag will appear.\n\n* Sol Citadels : These structures require you to bomb them once to cause them to surface. They look like large storage tanks or grain silos. You then need to bomb them again to destroy them. You have a potential to collect several hundred thousand points by taking out these structures. They come in groups of 1, 4, or 8. Unlike flags, these structures are always in the same place. There are six sets of Sol Citadels.\n\nFIRST SET : One in area 2. When you see the three Grobdas in a row on the road, start laying bombs in the area around the cul-de-sac below the last tank in a right and diagonal-down point. The citadel will be even with the cul-de-sac.\n\nSECOND SET : One in area 3. When you see the Garu Bara, go to the left of the Garu Bara and start bombing. This is also the area that the second flag can be found.\n\nTHIRD SET : Four in area 9. There is a clear area right before you tangle with the second Andor Genesis Mothership. Where the road splits around the woods, start to lay bombs a little below the bottom edge of the road that goes to the right. You should uncover four Sol Citadels.\n\nFOURTH SET : Eight in area 13. At the point the desert ends, there is a little grass, then the air field starts. Use the birds leg as a reference and fly straight up. When the bomb-sight glows, start bombing. This will be the lower left Sol Citadel of the group which is arranged in two rows of four citadels. You will be hard pressed to get all eight citadels.\n\nFIFTH SET : Four in area 14. After the plates roll by, look for where two roads merge into one road. At the top edge of the slanted right hand road, start dropping bombs to uncover some more citadels.\n\nSIXTH SET : Four in area 15. Look for a forest on the left side. There will be a small clearing and then a river. Bomb the small clearing to bring the citadels up. There will be very intense ground fire in this location so be especially watchful.\n\n- STAFF -\n\nFrom highscore table : Masanobu Endoh (Evezoo End), Masaya Nakamura (M.Nakamura), Eirry Mou, Shin-ichiro Okamoto (S.Okamoto), Shin-ichi Kojima (S.Kojima)\nMusic by : Yuriko Keino\n\n- PORTS -\n\nNOTE: For ports released in North America, please see the Atari version entry.\n\n* CONSOLES: \n[JP] Nintendo Famicom (nov.8, 1984) \"Xevious [Model NXV-4900]\"\n[EU] Nintendo NES (oct.25, 1989) \"Xevious [Model NES-XV-EEC]\"\n[JP] Nintendo Famicom Disk (may.18, 1990) \"Xevious [Model NDS-XEV]\"\n[JP] NEC PC-Engine (june.29, 1990) \"Xevious Fardraut Densetsu [Model NC90004]\" \n[AU] Sony PlayStation (1996) \"Namco Museum Vol.2 [Model SCES-00267]\" \n[JP] Sony PlayStation (feb.9, 1996) \"Namco Museum Vol.2 [Model SLPS-00210]\" \n[EU] Sony PlayStation (nov.1996) \"Namco Museum Vol.2 [Model SCES-00267]\" \n[JP] Sony PlayStation (mar.28, 1997) \"Xevious 3D/G+ [Model SLPS-00750]\" \n[EU] Sony PlayStation (aug.1997) \"Xevious 3D/G+ [Model SCES-00736]\" \n[JP] Sony PS2 (jan.26, 2006) \"Namco Museum Arcade Hits! [Model SLPS-25590]\" \n[EU] Microsoft XBOX (mar.24, 2006) \"Namco Museum - 50th Anniversary\" \n[EU] Sony PS2 (mar.31, 2006) \"Namco Museum - 50th Anniversary [Model SLES-53957]\" \n[EU] Nintendo GameCube (may.5, 2006) \"Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]\" \n[EU] [AU] [JP] [KO] Microsoft XBOX 360 [XBLA] (may.23, 2007) \n[JP] Nintendo Wii (dec.6, 2007) \"Minna de Asobou! Namco Carnival [Model RVL-RNWJ-JPN]\" \n[EU] Nintendo Wii (apr.18, 2008) \"Namco Museum Remix [Model RVL-RN2P]\" \n[KO] Nintendo Wii (apr.26, 2008) \"Namco Museum Remix [Model RVL-RNWK-KOR]\" \n[AU] Nintendo Wii (may.1, 2008) \"Namco Museum Remix [Model RVL-RN2P]\" \n[JP] Sony PlayStation 3 [PSN] (jan.29, 2009) \"Namco Museum.comm [Model NPJB-00012]\" \n[EU] Microsoft XBOX 360 (may.15, 2009) \"Namco Museum - Virtual Arcade\" \n[AU] Microsoft XBOX 360 (june.4, 2009) \"Namco Museum - Virtual Arcade\" \n[JP] Nintendo Wii [Virtual Console Arcade] (sept.1, 2009) \n[JP] Microsoft XBOX 360 (nov.5, 2009) \"Namco Museum - Virtual Arcade [Model 2RD-00001]\" \n[EU] Sony PlayStation 3 [PSN] (apr.1, 2010) \"Namco Museum Essentials [Model NPEB-00104]\" \n[AU] Sony PlayStation 3 [PSN] (apr.1, 2010) \"Namco Museum Essentials\" \n\n* HANDHELDS: \n[EU] Sony PSP (dec.9, 2005) \"Namco Museum Battle Collection [Model UCES-00116]\" \n[JP] Sony PSP (feb.23, 2006) \"Namco Museum Vol.2 [Model ULJS-00047]\" \n[EU] Nintendo DS (feb.29, 2008) \"Namco Museum DS [Model NTR-YNMP-EUR]\" \n[JP] Nintendo DS (oct.11, 2007) \"Namco Museum DS [Model NTR-YNMJ-JPN]\" \n[KO] Sony PSP (nov.8, 2007) \"Namco Museum Vol.2\" \n[JP] Nintendo 3DS [3DSWare] (june.7, 2011) \"3D Classics: Xevious [Model CTR-SABJ-JPN]\": Re-mastered version, featuring 3D effects.\n[EU] Nintendo 3DS [3DSWare] (jul.21, 2011) \"3D Classics: Xevious [Model CTR-SABP-EUR]\": Re-mastered version, featuring 3D effects.\n[AU] Nintendo 3DS [3DSWare] (jul.21, 2011) \"3D Classics: Xevious [Model CTR-SABP-AUS]\": Re-mastered version, featuring 3D effects.\n\n* COMPUTERS: \n[JP] Sharp MZ2500 (1982) \nAtari 800 (1984) \nApple II (1984) \nTandy Color Computer (1984) \"Devious\" \n[JP] Fujitsu FM-7 (1984) \n[JP] NEC PC9801 (1985) by Enix Corporation \n[EU] Commodore C64 (1986) \n[EU] Amstrad CPC (1986) \n[EU] Atari ST (1987) \n[EU] Sinclair ZX Spectrum (1987) \n[JP] MSX 2 (dec.23, 1988) \"Xevious Fardraut Densetsu\" \n[JP] PC [MS Windows, CD-ROM] (apr.25, 1997) \"Namco History Vol.1\" \n[AU] PC [MS Windows, CD-ROM] (mar.27, 2006) \"Namco Museum - 50th Anniversary\" \n[EU] PC [MS Windows, CD-ROM] (may.19, 2006) \"Namco Museum - 50th Anniversary\" \n[JP] Sharp X1\n\n* OTHERS: \n[JP] Let's! TV play classic series - Namco Nostalgia 1\n\n- SERIES -\n\n1. Xevious (1982, Arcade)\n2. Super Xevious (1984, Arcade)\n3. Super Xevious - Gump no Nazo [Model SX-4900] (1986, Arcade)\n4. Xevious - Fardraut Saga (1988, MSX2)\n4. Solvalou (1991, Arcade)\n5. Xevious 3D/G (1995, Arcade)\n6. Xevious Arrangement (1995, Arcade): part of \"Namco Classics Collection Vol.1\"\n7. Xevious Resurrection (2010, PS3/PSN): part of \"Namco Museum.com\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/3217/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

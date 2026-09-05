@@ -1,0 +1,843 @@
+{
+  "game": "robotron",
+  "title": "Robotron: 2084 (Release 5, solid blue label) (Williams / Vid Kidz, 1982)",
+  "fullname": "Robotron: 2084 (Release 5, solid blue label)",
+  "year": "1982",
+  "company": "Williams / Vid Kidz",
+  "family": "williams",
+  "driverFile": "src/mame/williams/williams.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "mc6809e",
+      "clock": 1000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 49151,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 0,
+          "end": 36863,
+          "kind": "nop"
+        },
+        {
+          "start": 0,
+          "end": 36863,
+          "kind": "rom",
+          "romOffset": 0,
+          "viewTag": "m_rom_view",
+          "viewEntry": 0
+        },
+        {
+          "start": 49152,
+          "end": 49167,
+          "kind": "ram",
+          "mirror": 1008,
+          "share": "paletteram",
+          "writeOnly": true
+        },
+        {
+          "start": 51204,
+          "end": 51207,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "pia_0.read",
+          "write": "pia_0.write"
+        },
+        {
+          "start": 51212,
+          "end": 51215,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "pia_1.read",
+          "write": "pia_1.write"
+        },
+        {
+          "start": 51456,
+          "end": 51711,
+          "kind": "handler",
+          "write": "williams_state.vram_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 51968,
+          "end": 52223,
+          "kind": "handler",
+          "read": "williams_state.video_counter_r"
+        },
+        {
+          "start": 52223,
+          "end": 52223,
+          "kind": "handler",
+          "write": "williams_state.watchdog_reset_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 52224,
+          "end": 53247,
+          "kind": "ram",
+          "share": "nvram",
+          "write": "williams_state.cmos_4bit_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 51712,
+          "end": 51719,
+          "kind": "handler",
+          "mirror": 248,
+          "write": "blitter.register_write"
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "m6808",
+      "clock": 3579545,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 127,
+          "kind": "ram"
+        },
+        {
+          "start": 128,
+          "end": 255,
+          "kind": "ram"
+        },
+        {
+          "start": 1024,
+          "end": 1027,
+          "kind": "handler",
+          "mirror": 32768,
+          "read": "pia_2.read",
+          "write": "pia_2.write"
+        },
+        {
+          "start": 45056,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "dac",
+    "clock": 3579545,
+    "chips": 1,
+    "deviceTypes": [
+      "MC1408"
+    ],
+    "dacs": [
+      {
+        "deviceTag": "dac",
+        "bits": 8,
+        "mapper": "unsigned",
+        "gain": 1
+      }
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "speaker"
+      }
+    ],
+    "masterGain": 0.5,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 292,
+    "height": 240,
+    "xOffset": 6,
+    "yOffset": 7,
+    "refresh": 60.09615384615385,
+    "htotal": 512,
+    "vtotal": 260,
+    "vbstart": 247,
+    "vbend": 7,
+    "updateMode": "scanline",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "2084_rom_1b_3005-13.e4",
+          "offset": 0,
+          "size": 4096,
+          "crc": "66c7d3ef",
+          "alt": [
+            {
+              "file": "r3_1.e4",
+              "crc": "2e5433ee"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_2b_3005-14.c4",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "5bc6c614"
+        },
+        {
+          "file": "2084_rom_3b_3005-15.a4",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "e99a82be",
+          "alt": [
+            {
+              "file": "2084_rom_3b_3005-3.a4",
+              "crc": "67a369bc"
+            },
+            {
+              "file": "r3_3.a4",
+              "crc": "37962af2"
+            },
+            {
+              "file": "wave201.a4",
+              "crc": "85eb583e"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_4b_3005-16.e5",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "afb1c561",
+          "alt": [
+            {
+              "file": "2084_rom_4b_3005-4.e5",
+              "crc": "b0de677a"
+            },
+            {
+              "file": "r3_4.e5",
+              "crc": "9c140843"
+            },
+            {
+              "file": "tiedie_rom_4b.e5",
+              "crc": "e8238019"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_5b_3005-17.c5",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "62691e77",
+          "alt": [
+            {
+              "file": "2084_rom_5b_3005-5.c5",
+              "crc": "24726007"
+            },
+            {
+              "file": "fixrobo_rom_5b.c5",
+              "crc": "827cb5c9"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_6b_3005-18.a5",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "bd2c853d",
+          "alt": [
+            {
+              "file": "2084_rom_6b_3005-6.a5",
+              "crc": "028181a6"
+            },
+            {
+              "file": "r3_6.a5",
+              "crc": "097e174d"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_7b_3005-19.e6",
+          "offset": 24576,
+          "size": 4096,
+          "crc": "49ac400c",
+          "alt": [
+            {
+              "file": "2084_rom_7b_3005-7.e6",
+              "crc": "4dfcceae"
+            },
+            {
+              "file": "r3_7.e6",
+              "crc": "17a7ce34"
+            },
+            {
+              "file": "roboun11.7b",
+              "crc": "8981a43b"
+            },
+            {
+              "file": "tiedie_rom_7b.e6",
+              "crc": "3ecf4620"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_8b_3005-20.c6",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "3a96e88c",
+          "alt": [
+            {
+              "file": "r3_8.c6",
+              "crc": "b6e8dbb9"
+            },
+            {
+              "file": "tiedie_rom_8b.c6",
+              "crc": "752d7a46"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_9b_3005-21.a6",
+          "offset": 32768,
+          "size": 4096,
+          "crc": "b124367b",
+          "alt": [
+            {
+              "file": "r3_9.a6",
+              "crc": "e7b53345"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_10b_3005-22.a7",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "13797024",
+          "alt": [
+            {
+              "file": "2084_rom_10b_3005-10.a7",
+              "crc": "4a9d5f52"
+            },
+            {
+              "file": "r3_10.a7",
+              "crc": "1fb75828"
+            },
+            {
+              "file": "tiedie_rom_10b.a7",
+              "crc": "952bea55"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_11b_3005-23.c7",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "7e3c1b87",
+          "alt": [
+            {
+              "file": "2084_rom_11b_3005-11.c7",
+              "crc": "2afc5e7f"
+            },
+            {
+              "file": "r3_11.c7",
+              "crc": "ccfaf7da"
+            },
+            {
+              "file": "fixrobo_rom_11b.c7",
+              "crc": "e83a2eda"
+            },
+            {
+              "file": "tiedie_rom_11b.c7",
+              "crc": "4c05fd3c"
+            }
+          ]
+        },
+        {
+          "file": "2084_rom_12b_3005-24.e7",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "645d543e",
+          "alt": [
+            {
+              "file": "2084_rom_12b_3005-12.e7",
+              "crc": "45da9202"
+            },
+            {
+              "file": "r3_12.e7",
+              "crc": "cfdc9990"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "video_sound_rom_3_std_767.ic12",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "c56c1d28"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "decoder_rom_4.3g",
+          "offset": 0,
+          "size": 512,
+          "crc": "e6631c23"
+        },
+        {
+          "file": "decoder_rom_6.3c",
+          "offset": 512,
+          "size": 512,
+          "crc": "83faf25e"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "KeyW"
+      ],
+      "label": "Move Up",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "Move Down",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "Move Left",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "Move Right",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "KeyI"
+      ],
+      "label": "Fire Up",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "KeyK"
+      ],
+      "label": "Fire Down",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "KeyJ"
+      ],
+      "label": "Fire Left",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "KeyL"
+      ],
+      "label": "Fire Right",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Auto Up / Manual Down",
+      "activeLow": false,
+      "toggle": true
+    },
+    {
+      "port": "IN2",
+      "mask": 2,
+      "keys": [
+        "F2"
+      ],
+      "label": "Advance",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "keys": [
+        "F3"
+      ],
+      "label": "High Score Reset",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-18",
+    "commits": 291,
+    "contributors": 42,
+    "topAuthors": [
+      "Aaron Giles",
+      "Vas Crabb",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 73,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-18"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 36,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-06-18"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 30,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 19,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2025-05-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 13,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "hap",
+        "commits": 13,
+        "firstCommit": "2017-05-29",
+        "lastCommit": "2025-06-06"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 13,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2014-09-03"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 13,
+        "firstCommit": "2016-05-13",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 6,
+        "firstCommit": "2014-06-01",
+        "lastCommit": "2020-09-07"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 6,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2016-01-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 5,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-05-04"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 5,
+        "firstCommit": "2018-11-02",
+        "lastCommit": "2025-05-14"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 5,
+        "firstCommit": "2008-06-20",
+        "lastCommit": "2008-06-21"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 5,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2019-12-24"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2018-06-16",
+        "lastCommit": "2024-04-15"
+      },
+      {
+        "name": "couriersud",
+        "commits": 3,
+        "firstCommit": "2020-03-05",
+        "lastCommit": "2020-05-08"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2013-06-01",
+        "lastCommit": "2016-03-24"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 3,
+        "firstCommit": "2017-05-04",
+        "lastCommit": "2020-11-19"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2024-11-30"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2014-08-09"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-08"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MajorHavocOnKLOV",
+        "commits": 2,
+        "firstCommit": "2025-12-24",
+        "lastCommit": "2025-12-26"
+      },
+      {
+        "name": "MASH",
+        "commits": 2,
+        "firstCommit": "2016-08-24",
+        "lastCommit": "2018-08-31"
+      },
+      {
+        "name": "0kmg",
+        "commits": 1,
+        "firstCommit": "2022-06-24",
+        "lastCommit": "2022-06-24"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2020-08-05",
+        "lastCommit": "2020-08-05"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2010-03-07",
+        "lastCommit": "2010-03-07"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-04-28"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 1,
+        "firstCommit": "2020-10-09",
+        "lastCommit": "2020-10-09"
+      },
+      {
+        "name": "Michael.S.G",
+        "commits": 1,
+        "firstCommit": "2018-06-25",
+        "lastCommit": "2018-06-25"
+      },
+      {
+        "name": "Nathan Woods",
+        "commits": 1,
+        "firstCommit": "2009-01-11",
+        "lastCommit": "2009-01-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2018-01-13",
+        "lastCommit": "2018-01-13"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2018-05-21",
+        "lastCommit": "2018-05-21"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      },
+      {
+        "name": "SynaMax",
+        "commits": 1,
+        "firstCommit": "2026-06-10",
+        "lastCommit": "2026-06-10"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Zoë Blade",
+        "commits": 1,
+        "firstCommit": "2014-12-01",
+        "lastCommit": "2014-12-01"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-01-20",
+        "lastCommit": "2008-01-20"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nRobotron: 2084 (c) 1982 Williams.\n\nRobotron: 2084 is a single-screen shoot-em-up set in a near future in which mankind has developed super-intelligent, self-aware robots called Robotrons, in order to aid mankind and to build a better world. The robots quickly realised that they don't need the Human Race and have revolted against their creators, vowing to either genetically reprogram the remaining humans to side with the Robotrons, or to wipe them out entirely. \n\nThe player takes on the role of the single human who due to a malfunction in his genetic engineering, cannot be re-programmed by the Robotrons. The free-minded human must destroy the enemy Robotrons and rescue as many of the Earth's remaining human families as possible. \n\nRobotron: 2084 utilizes a dual joystick control system, with the left stick controlling player movement and the right controlling the direction of fire. The player's only weapon is an Anti-Robot Laser Gun. Each single-screen wave is populated with enemy robots and obstacles, as well as human family members who can be rescued to earn additional points. \n\nThere are three types of trapped humans; Man, Woman and Child and they will wander aimlessly until the player makes contact with them. If a Robotron touches them first, they are either killed or, if touched by the brain-like Robotron, converted into enemy 'progs. \n\nIn addition to the Robotrons, each wave also features static obstacles called Electrodes. These pulsating objects can block the player's path and a collision with one results in instant death. Electrodes come in a number of different shapes and must be avoided or destroyed with the Laser Gun.\n\nENEMY ROBOTRON UNITS:\n\n* GRUNT: The least sophisticated species of Robot is the Grunt. It has no weapon and possesses only minimal intelligence. Grunts appear in large numbers and will relentlessly pursue players to overrun and destroy them. Each Grunt killed is worth 100 points.\n\n* TANK: Its goal is to kill the player using rebounding Shells. Annihilate the Tank for 300 points; the Shell for 50 points.\n\n* SPHEROID: This pulsating sphere may initially look harmless, but it is the mother-ship that spawns deadly 'Enforcer Embryos'. Players must try to destroy the Spheroid before it ejects the Embryos to earn 1,000 points.\n\n* ENFORCER: The Embryos grow into evil Enforcers. Kill them for 200 points. Let them live and they will lessen the player's chance for survival by launching Enforcer Sparks. Destroy the Sparks for 25 points.\n\n* HULK: In all attack waves except every 5th, the Hulk will stalk his prey. Hulk units are invincible but the player's Gun can only slow it down or divert it from its objective. \n\n* BRAIN: The Brain is the most clever and dangerous of the Robotrons. Its two-pronged attack will be launched every 5th wave. If it touches the player, it will electrocute them where they stand. It can also fire Cruise Missiles that will relentlessly follow the player until either contact is made or they are shot and destroyed. Kill the Brain for 500 points; destroy the Cruise Missile for 75 points.\n\nThe victims of the 2nd prong of the Brain's attack are the defenseless humans. If captured, a human will be irreversibly transformed - literally re-programmed by the Brain's incredible mind powers - into a Prog: a Robot that will viciously turn against its own protector, the player. Annihilate the Progs for 100 points or meet a violent death at their hands.\n\n- TECHNICAL -\n\nRobotron was available in both upright and cocktail format, with the cocktail cabinet being fairly rare. The alternate cabinets also had different graphics (at least the color scheme was different), and are much more difficult to find replacement graphics for. The standard Robotron upright was 6'2\" tall and featured white sides and a black front. It had painted side-art in the form of a '2084' logo and a few stripes (this is a very simple design, and is easy to repaint if your cabinet happens to be scratched up). The control panel is covered with a geometric shape design, and has two 8-Way joysticks and two start buttons. These joysticks are of a peculiar design, but can easily be replaced with a pair of modern joysticks (purchase red ball tops ones, because that is what the originals had). The games marquee has the 'Robotron' logo in a font reminiscent of an early 80s computer. This is superimposed over a triangular design made from shapes and lines. The Robotron cocktail cabinet was finished completely with woodgrain laminate. The only graphics were on the control panels, and the small instruction cards that were placed under the top glass. The players would sit across from each other, and the screen image would flip for each player. \n\nMain CPU : Motorola M6809 (@ 1 Mhz) \nSound CPU : M6808 (@ 894.75 Khz) \nSound Chips : DAC \n\nPlayers : 2 \nControl : Double 8-way joysticks (see 'Trivia' section for more information)\n\n- TRIVIA -\n\nRobotron: 2084 was released in March 1982 in the USA.\n\nTotal production is estimated at 18,000 units. The upright cabinet style is common. Both the cabaret (or mini) and cocktail styles were produced in much lower numbers, one estimate citing only 500 cocktails produced. \n\nThe basic play of Robotron was programmed in three days. The design of Robotron was influenced by \"Berzerk\" and the Commodore PET game 'Chase'. The concept name was 'Robot Wars - 1984'. \n\nThe original name for the production was '2084 - Robotron', but the name Robotron was more commonly used by virtually everyone involved, and the game was renamed shortly before production. This is why the cabinet side artwork simply has the number 2084 vertically. \n\nRobotron was unique at the time in that the controls were two 8-way joysticks (one for running, one for shooting) rather than the more typical single joystick and fire button. This unique dual-joystick control was created because of two occurrences : Jarvis liked the game Berzerk, but hated the joystick-and-button run-and-shoot configuration; and the fact that Jarvis's right hand had been broken in a car accident shortly after he finished creating Stargate. \n\nThis game shares some sounds from \"Defender\" and \"Stargate\". \n\nThe human characters in this game are named Mommy, Daddy and Mikey. The idea and the inspiration for the character Mikey was from the 1970's commercial for 'Life' cereal. \n\nWilliams were sued by Walt Disney Productions for copyright and patent infringement regarding Williams use of 'Tron' in Robotron. Williams won the suit and Walt Disney releases Tron on time. \n\nA Robotron machine appears in the 1983 movie 'Koyaanisqatsi - Life out of Balance' and on the 1986 movie 'Better Off Dead'.\n\n- UPDATES -\n\nYellow/Orange label:\n* The default difficulty is 5.\n* The demo calls the Quarks 'Cubeoids'.\n* The default high score is 131682.\n\nBlue label:\n* The default difficulty is 3.\n* The default high score is 151782.\n* The 'shot-in-corner' bug is fixed.\n\n- SCORING -\n\nG.R.U.N.T. (GROUND ROVING UNIT NETWORK TERMINATOR) - The red robots: 100 points \nSPHEROID - The red circles that travel around the game screen: 1,000 points \nQUARK - The white boxes with an 'X' in the middle that travel around the game screen: 1,000 points \nENFORCER - The blue, 'Robby the Robot' looking robots: 150 points \nSPARKS (Shot by ENFORCERS): 25 points \nTANK - The red robots that have tracked wheels underneath them hence making them look like tanks : 200 points \nTANK SHELLS: 50 points \nBRAIN - The robots that are blue and have really large heads: 500 points \nCRUISE MISSILES (shot by BRAINS): 25 points \nPROG (reprogrammed humans): 100 points \nFAMILY MEMBERS: 1,000 points for the first human rescued, progressing to 2,000, 3,000, 4,000, then 5,000 for every human rescued after that. The scoring starts over when the player is killed or finishes a wave.\n\n- TIPS AND TRICKS -\n\n* When you start the game, your man will be in the middle of the playing field surrounded by various robots. Depending on the wave that you are on will determine exactly what robots are ready to terminate your existence. The game is straight-forward, take out all the robots (except HULKS) to advance to the next wave. It is vital for your survival that you learn how to 'scoot and shoot'. If you don't learn how operate the controls independently and run in one direction while shooting in other directions, you won't survive very long in this game.\n\n* Equally important to 'scoot and shoot' is your ability to be able to fire on the diagonal. It's easy firing up, down, left, and right, but it takes a little more mastery to fire in the diagonal directions.\n\n* Learn the different things the enemy robots do. For example, the SPEROIDS have a tendency to congregate in the corners. This works to your advantage since you can blast about three or four before they discharge their supply of ENFORCER robots.\n\n* Your main objective is to blast a path through the robots and get to the edge of the screen. It doesn't matter what edge, just get to one. The reason is painfully simple : it give the robots one less direction to assault you from. Plus, you can lead them around in circles blasting them and also cleaning out the corners from the above-mentioned ENFORCERS.\n\n* Enforcer Bug : The enforcer bug is when an enforcer is in the lower right corner and you shoot it diagonal there is a 1 in 3,000 chance the game will reset. The reason for the game resetting is there is a bug in the diagonal explosion code for enforcers. The memory below the screen holds the stack and an unclipped pixel can get 'drawn' into the stack causing the game to lock and the watchdog to kick in and reset the system.\n\n* The only times where you won't want to seek the sides is during the BRAIN and TANK robot waves. The BRAINS fire a homing shot at your man so you need as much room to maneuver as possible so going against the wall would restrict that movement. The same goes for the TANK robots which fire bounce shots. They may miss you initially but you might get hit by the shot as it bounces up. You are safer in the middle area where you have room to maneuver. Just watch out for other enemies (which will be very low in number).\n\n* Try to rescue the humans as long as it doesn't put your man in danger of dying. You can rack up some major points on the BRAIN waves since they are loaded with humans for the BRAIN robots to 're-program'. Again, make sure you have an avenue of escape. Doesn't make sense to save a human, get the extra man, then die. You, in essence, gained nothing from that level. You can also shoot the HULK robots to push them away from humans also. On the BRAIN waves, make sure you pick off the BRAIN robots as soon as possible. This prevents them from reprogramming the humans and leaves you more people to get major points with.\n\n* The 'Mikey' bug - on the first Brain wave. There are a lot of Mommies and only one Mikey. The Brains all go for Mikey - if you can protect him (don't pick him up, though!), the Brains will ignore all other humans, making for a point-fest if you can grab them all. As soon as you die, however, the Brains will grab any human they find. This actually works on all Brain waves, but in the other waves the 'golden human' is a random Daddy or Mommy or Mikey, so you don't know who to protect. It's a bug, but a cool one. For this bug to work, the player must make sure that no humans are left alive in the level previous.\n\n* Since you don't have a limit on your shots, you can put up a 'wall' of energy in whatever direction you move. This can have a very devastating effect if applied right.\n\n* Make sure you take a quick look at the wave to assess where the main threats are. You will have from one to two seconds to get ready for action. If you can survive the initial few seconds as you blast your way toward the edge, your chances of survival will be that much greater. Also be sure to remember what each wave has in store for you, this also will give you a greater chance of getting through the wave.\n\n* If you get tired, you can take a break. That's right, wait for a TANK wave. Eliminate all of the robots except for one. After firing a few shots, the TANK robot will run out. After that, it's just a matter of avoiding the TANK and any other pesky robots.\n\n* During the tank wave, try to avoid shooting the tanks shots for as long as you can. If the tanks fire 20 shots that do not hit anything, the tanks will cease firing.\n\n* ENFORCERS, like their SPHEROID transports, tend to congregate in corners. Use this to your advantage.  Every now and then one or two will zip very fast across the field. Their main threat, though, is volume of fire. When you are on the edges, watch out since their shots tend to roll toward your man.\n\n* See all those pretty shapes on the playing field? They are there as a nuisance. They will kill your man if he hits them. They can, however, be shot out of the way but yield no points.\n\n* Robotron Name Trick : The formula consists of three sequences of buttons, that all must be completed within a quarter of a second of each other, without the player dying on-screen. The moves are as follows...\n1) Fire Up while moving Right and press Player 1 button.\n2) Fire Down while moving Up and press Player 2 button.\n3) Move Down while firing Up.\nThe designer's names will appear and stay on the screen until the joystick is released from the Up position. Your game is over(!) once you've done this trick.\n\n- STAFF -\n\nStaff: Larry DeMar (LED), Eugene Jarvis (DRJ) (EPJ), (JER), (KID), (MLG), Steve Ritchie (SSR), (UNA), (JRS), (CJM)\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600 : Unreleased prototype\n[US] Atari 5200 (1983) \"Robotron: 2084 [Model CX5225]\" \n[US] Atari 7800 (1986) \"Robotron: 2084 [Model CX7809]\" \nAtari XEGS \n[US] Sega Genesis (1996) \"Williams Arcade's Greatest Hits\" \n[EU] Sega Mega Drive (1996) \"Arcade's Greatest Hits [Model T-97126-50]\" \n[US] Sega Saturn (1996) \"Arcade's Greatest Hits [Model T-9703H]\" \n[US] Sony PlayStation (apr.10, 1996) \"Williams Arcade's Greatest Hits [Model SLUS-00201]\" \n[EU] Sony PlayStation (sept.1, 1996) \"Williams Arcade's Greatest Hits [Model SLES-00323]\" \n[US] Nintendo SNES (oct.1996) \"Williams Arcade's Greatest Hits [Model SNS-AW8E-USA]\" \n[EU] Nintendo SNES (jan.8, 1997) \"Williams Arcade's Greatest Hits [Model SNSP-AW8P-EUR]\" \n[US] Sega Dreamcast (june.27, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9713N]\" \n[US] Sega Dreamcast (jul.28, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9710D-50]\" \n[US] Nintendo 64 (nov.14, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]\" \n[US] Sony PS2 (nov.18, 2003) \"Midway Arcade Treasures [Model SLUS-20801]\" \n[US] Microsoft XBOX (nov.24, 2003) \"Midway Arcade Treasures\" \n[US] Nintendo GameCube (dec.18, 2003) \"Midway Arcade Treasures [Model DOL-GAKE-USA]\" \n[EU] Microsoft XBOX (feb.6, 2004) \"Midway Arcade Treasures\" \n[EU] Sony PS2 (feb.6, 2004) \"Midway Arcade Treasures [Model SLES-51927]\" \n[EU] Microsoft XBOX 360 [XBLA] (dec.2, 2005) : Retired in 2010\n[US] Microsoft XBOX 360 [XBLA] (dec.16, 2005) : Retired in 2010\n[JP] Microsoft XBOX 360 [XBLA] (dec.17, 2005) : Retired in 2010\n[US] Microsoft XBOX 360 (nov.6, 2012) \"Midway Arcade Origins\" \n[US] Sony PlayStation 3 (nov.6, 2012) \"Midway Arcade Origins [Model BLUS-31083]\" \n[EU] Microsoft XBOX 360 (nov.15, 2012) \"Midway Arcade Origins\" \n[EU] Sony PlayStation 3 (nov.15, 2012) \"Midway Arcade Origins [Model BLES-01768]\" \n\n* HANDHELDS: \n[US] Atari Lynx (1991) \"Robotron: 2084 [Model PT5003]\" \n[US] Nintendo GBA (nov.22, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3E-USA]\" \n[EU] Nintendo GBA (nov.30, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3P-EUR]\" \n\n* COMPUTERS: \n[EU] BBC Micro (1982) \n[US] Atari 800 (1983) \"Robotron: 2084 [Model RX8033]\" \n[US] Tandy Color Computer (1983) \"Robotack\" \n[US] Commodore VIC-20 (1983) \"Robotron: 2084 [Model RX-8520]\" \n[EU] Commodore C64 (1983) \n[US] Commodore C64 (1983) \"Robotron: 2084 [Model RX8521]\" \n[US] PC [Booter] (1983) \n[US] Apple II (1983) \n[EU] BBC B (1984) by Atarisoft \n[EU] Sinclair ZX Spectrum : Unreleased\n[EU] Atari ST (1987) \n[US] PC [MS Windows 3.1/DOS, CD-ROM] (1995) \"Williams Arcade Classics\" \n[US] PC [MS Windows 95/DOS, CD-ROM] (1996) \"Williams Arcade Classics\" \n[US] PC [MS Windows, CD-ROM] (aug.27, 2004) \"Midway Arcade Treasures\" \n[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) \"Midway Arcade Treasures\" \n\n* OTHERS: \n[US] Tiger Game.com (1997) \"Williams Arcade Classics [Model 71-722]\" \n[US] Mobile Phones (apr.5, 2005)\n\n- SERIES -\n\n1. Robotron: 2084 (1982, ARC) \n2. Blaster (1983, ARC) \n3. Robotron X [Model SLUS-00252] (1996, PSX)\n4. Robotron 64 [Model NUS-NRXE-USA] (1998, N64)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2243/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

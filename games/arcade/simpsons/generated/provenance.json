@@ -1,0 +1,694 @@
+{
+  "generatedFrom": "src/mame/konami/simpsons.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 643,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 644,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 659,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 667,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 668,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 671,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 689,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 643,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 644,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 668,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 689,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 641,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 646,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 390,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 390,
+      "column": 1
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 654,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 643,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 293,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 641,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 646,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 649,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 651,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 654,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 662,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 664,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 670,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 675,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 678,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 680,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 686,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 341,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 402,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 659,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 445,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/konami/k053246_k053247_k055673.cpp",
+      "line": 216,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/konami/k053251.cpp",
+      "line": 167,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/konami/k053251.cpp",
+      "line": 187,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 357,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/konami/k052109.h",
+      "line": 51,
+      "column": 36
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/konami/k053246_k053247_k055673.cpp",
+      "line": 221,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 337,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 276,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 370,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/konami/k053246_k053247_k055673.cpp",
+      "line": 198,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 459,
+      "column": 2
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 246,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 251,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 256,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 266,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 512,
+      "column": 2
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 512,
+      "column": 2
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 487,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 514,
+      "column": 2
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 514,
+      "column": 2
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 469,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 410,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 628,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 602,
+      "column": 1
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/konami/k053246_k053247_k055673.cpp",
+      "line": 50,
+      "column": 1
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/konami/k053246_k053247_k055673.cpp",
+      "line": 226,
+      "column": 1
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 385,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 293,
+      "column": 1
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/konami/k053251.cpp",
+      "line": 181,
+      "column": 1
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 653,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/konami/k053251.cpp",
+      "line": 176,
+      "column": 1
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 648,
+      "column": 1
+    },
+    {
+      "path": "/handlers/38/source",
+      "file": "src/mame/konami/konami_helper.h",
+      "line": 34,
+      "column": 1
+    },
+    {
+      "path": "/handlers/39/source",
+      "file": "src/mame/konami/konami_helper.h",
+      "line": 18,
+      "column": 1
+    },
+    {
+      "path": "/handlers/40/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 210,
+      "column": 1
+    },
+    {
+      "path": "/handlers/41/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 223,
+      "column": 1
+    },
+    {
+      "path": "/handlers/42/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 501,
+      "column": 1
+    },
+    {
+      "path": "/handlers/43/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 715,
+      "column": 1
+    },
+    {
+      "path": "/handlers/44/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 720,
+      "column": 1
+    },
+    {
+      "path": "/handlers/45/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 725,
+      "column": 1
+    },
+    {
+      "path": "/handlers/46/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 684,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 443,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 444,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 445,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 446,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 447,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 448,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 449,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 450,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 451,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 452,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 453,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 454,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 455,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 456,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 458,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/16/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 459,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/17/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 460,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/18/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 461,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/19/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 462,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/20/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 463,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/21/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 464,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/22/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 465,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/23/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 466,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 441,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 509,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 510,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 511,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 512,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 513,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 514,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 515,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 507,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/emu/emupal.cpp",
+      "line": 271
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/2/source",
+      "file": "src/mame/konami/k052109.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/konami/simpsons.cpp",
+      "line": 293,
+      "column": 1
+    }
+  ]
+}

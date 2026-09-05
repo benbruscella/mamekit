@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ms. Pac-Man — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Ms. Pac-Man</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/mspacman/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/mspacman/mspacman-dossier.md" download="mspacman-dossier.md">Download mspacman-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Midway / General Computer Corporation · 1981</div>
+    <h1>Ms. Pac-Man</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/mspacman.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>mspacman</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/pacman/pacman.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>pacman</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>wsg</strong></div>
+      <div class="fact"><span>Screen</span><strong>288×224 @ 60.61 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>90°</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>3.072 MHz</td><td>25</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>pacman.6e</td><td>0x0</td><td>0x1000</td><td>c1e6ab10</td></tr><tr><td>maincpu</td><td>pacman.6f</td><td>0x1000</td><td>0x1000</td><td>1a6fb2d4</td></tr><tr><td>maincpu</td><td>pacman.6h</td><td>0x2000</td><td>0x1000</td><td>bcdd1beb</td></tr><tr><td>maincpu</td><td>pacman.6j</td><td>0x3000</td><td>0x1000</td><td>817d94e3</td></tr><tr><td>maincpu</td><td>u5</td><td>0x8000</td><td>0x800</td><td>f45fbbcd</td></tr><tr><td>maincpu</td><td>u6</td><td>0x9000</td><td>0x1000</td><td>a90e7000</td></tr><tr><td>maincpu</td><td>u7</td><td>0xb000</td><td>0x1000</td><td>c82cd714</td></tr><tr><td>gfx1</td><td>5e</td><td>0x0</td><td>0x1000</td><td>5c281d01</td></tr><tr><td>gfx1</td><td>5f</td><td>0x1000</td><td>0x1000</td><td>615af909</td></tr><tr><td>proms</td><td>82s123.7f</td><td>0x0</td><td>0x20</td><td>2fc650bd</td></tr><tr><td>proms</td><td>82s126.4a</td><td>0x20</td><td>0x100</td><td>3eb3a8e4</td></tr><tr><td>namco</td><td>82s126.1m</td><td>0x0</td><td>0x100</td><td>a9cc86bf</td></tr><tr><td>namco</td><td>82s126.3m</td><td>0x100</td><td>0x100</td><td>77245b66</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Up</td><td>joystick up</td><td>IN0</td><td>0x1</td></tr><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x2</td></tr><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x4</td></tr><tr><td>Down</td><td>joystick down</td><td>IN0</td><td>0x8</td></tr><tr><td>F1</td><td>rack test (cheat)</td><td>IN0</td><td>0x10</td></tr><tr><td>5</td><td>coin1</td><td>IN0</td><td>0x20</td></tr><tr><td>6</td><td>coin2</td><td>IN0</td><td>0x40</td></tr><tr><td>9</td><td>service1</td><td>IN0</td><td>0x80</td></tr><tr><td>1</td><td>start1</td><td>IN1</td><td>0x20</td></tr><tr><td>2</td><td>start2</td><td>IN1</td><td>0x40</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/pacman/pacman.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Nicola Salmoria,Stephane Humbert</strong></div>
+    <div class="fact"><span>Development</span><strong>437 commits by 52 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Ivan Vangelista, Miodrag Milanovic, Michaël Banaan Ananas, Vas Crabb</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 44 years ago:
+
+Ms. Pac-Man (c) 1982 Midway. 
+
+In this, the first proper sequel to Namco's legendary pill eating maze game, players must once again run around a number of mazes, eating all of the pills that are scattered throughout. The ever-present ghosts (Blinky, Pinky, Inky and Sue) return to hamper the player's progress. The infamous 'Power Pills' are also present and correct, with four appearing in each maze. 
+
+Namco introduced a number of changes and enhancements over the original game. The first difference is in the main character. For the first time in video-game history, the game's lead character was female. Ms. Pac-Man is almost identical to the original character with two main differences; she wears a bow in her 'hair', and is also wearing lipstick. 
+
+Another change from the original is that the bonus fruit items are no longer static but now move randomly around the mazes. 
+
+Ms Pac-Man features four different maze layouts, which alternate every two to four rounds : 
+
+The first maze is only encountered in Rounds 1 and 2, and has 220 dots and 4 Power Pills. There are two sets of tunnels in this maze equidistant from the center of the maze. You must clear this maze two times before moving on to the next maze. 
+
+The second maze is only encountered in Rounds 3, 4, and 5, and has 240 dots and 4 Power Pills. There are two sets of tunnels in this maze; one set in the lower half, and the other set at the very top. You must clear this maze three times before moving on to the next maze. 
+
+The third maze is first encountered in Round 6 and has 238 dots and 4 Power Pills. Unlike all other mazes, there is only one set of tunnels in this maze, slightly above the center of the board. You must clear this maze four times before moving on to the next maze. 
+
+The fourth and final unique maze is first encountered in Round 10 and has 234 dots and 4 Power Pills. There are two sets of tunnels in this maze, directly next to one another in the middle of the maze. The turns at the entrance to the tunnels change the usual immediate accessibility of the tunnels and should be taken in to account. You must clear this maze four times before moving on to the next maze. 
+
+After Round 13, the game alternates every four rounds between the third and fourth mazes. 
+
+Finally, the ghosts' movement patterns are also completely different from those of the original game. 
+
+As in the original game, intermission scenes will be played after certain rounds. Ms. Pac-Man's intermissions tell the story of how Pac-Man and Ms. Pac-Man met, fell in love, and had a baby. Ms. Pac-Man's intermissions are also preceded by a sign and a title. 3 intermissions are present : 
+
+1) Act I - They Meet : Pac-Man, the star of the original game, enters the screen being chased by Inky while Ms. Pac-Man enters from the other side being chased by Pinky. As the two of them are about to collide, they quickly move upwards, causing Inky and Pinky to collide. Pac-Man and Ms. Pac-Man face each other at the top of the screen, and a heart appears above them. This intermission is played after Round 2. 
+
+2) Act II - The Chase : Pac-Man and Ms. Pac-Man are seen giving each other a playful chase. One chases the other in one direction, and they take turns alternating who chases who and in what direction. After three turns, they chase each other twice more at a faster speed. This intermission is played after Round 5. 
+
+3) Act III - Junior : Pac-Man and Ms. Pac-Man anxiously await the arrival of a stork, who flies overhead with a bundle. As the stork is about to pass over them, he releases the bundle, which drops to the ground in front of Pac-Man and Ms. Pac-Man, and opens up to reveal a baby Pac. This intermission, which is played after Rounds 9, 13, and 17, would later serve as the introductory sequence to &quot;Jr. Pac-Man&quot;. 
+
+No intermission is present between rounds after the 18th one.</p><details><summary>TECHNICAL</summary><p class="story">[Upright model] 
+[No. 595] 
+
+The upright model came in the standard Namco/Midway cabinet. This is the same 'swoopy' cabinet that &quot;Galaxian&quot;, &quot;Galaga&quot;, and &quot;Pac-Man&quot; came in as well. These featured painted side-art of Ms. Pac-Man and the ghosts, along with some pink accent lines. The last 10, 000 or so Ms. Pac-Man machines to roll off the assembly line had sticker side-art instead, it was the same basic scene, but the colors were brighter, and there were a few minor differences in the layout of the graphics. The marquee showed an image of Ms. Pac-Man lounging on her own logo, with a ghost off to the side. The exact colors used on the marquee varied a bit over the production run (as did the paint codes used on the side). The control panel and monitor bezel had a single design that covered both of them, that of a blue background with a pink or maroon stripe going around it, with a few game instructions printed upon them. 
+
+Main CPU : Zilog Z80 (@ 3.072 Mhz) 
+Sound Chips : Namco 3-channel WSG (@ 96 Khz)  
+
+Players : 2 
+Control : 4-way joystick</p></details><details><summary>TRIVIA</summary><p class="story">Ms. Pac-Man was released on January 13, 1982 (Wednesday) in the USA, even if the copyright year is 1981.
+
+Having won their enhancement kit lawsuit against Atari, General Computing went to Bally Midway and showed them an enhancement kit that they were working on for Pac-Man called Crazy Otto. Crazy Otto was a character similar to Pac-Man with the exception that he had legs. GCC was going to bluff Midway into letting them release their enhancement kit by telling them that they won their lawsuit against Atari, and that they just wanted Midway's blessing. Midway suggested that they create a sequel to the original Pac-Man instead of an enhancement kit, and GCC got to work on Ms. Pac-Man. Ms. Pac-Man had two prior names before settling on the one that everyone knows. 'Mrs. Pac-Man' was the original, but some of the women employees at Midway had a problem with that, so it was changed to 'Miss Pac-Man'. When someone pointed out the third intermission, where Pac and Ms. Pac welcome &quot;Jr. Pac-Man&quot; (or Baby Pac-Man) into the fold, they changed it to the final name of 'Ms. Pac-Man'. Midway released &quot;Baby Pac-Man&quot; as a pinball/video hybrid, and General Computing sued the company, claiming they had created the concept of a Pac Family. They won the suit and were awarded royalties from Pac Family merchandise. 
+
+The logo for General Computer Corporation is present among the graphics, probably a leftover from the game's days as Crazy Otto.
+
+In its initial run, 110,000 units were produced in the U.S. making it the best selling domestic arcade video game of all time. 
+
+The game added a few improvements over the original : 
+* Non-deterministic artificial intelligence for the ghosts, making it harder for enthusiasts to follow set patterns through levels. 
+* A variety of different mazes used through the game. 
+* Bonus items (such as cherries and pretzels) entered the maze and bounced through it, rather than appear in a set location as in the original, making the player go out of his way to attain it. 
+* Brand new sound effects, including a new 'death' sound and opening theme. 
+
+It was also one of the more successful of early arcade games in the female demographic, which has been attributed to 'Ms. Pac-Man' being a girl - although the Ms. Pac-Man sprite was little more than &quot;Pac-Man&quot; with eyelashes, a bow, lipstick and a dimple. 
+
+After the 255th level, the maze (including dots) disappears. The game becomes unplayable, since there are no more dots to eat. 
+
+Chris Ayra holds the record for this game on 'Regular' settings with 920,310 points on August 16, 1998. 
+
+Victor Kunisada holds the record for this game on 'Speed-Up' settings with 922,810 points on June 16, 2001. 
+
+Vancouver, Canada (Reuters) - Little 7-year old Al Nagac attained the Guinness World Record for Ms. Pac-Man v.2.97 with a score of 18,976,048. Al was exhausted and dehydrated and asked for several glasses of skim milk after shattering the longtime record of 11,056,736 set by Faith DeRivera, who was onhand to congratulate the victor with a kiss on the cheek. 
+
+A Ms. Pac-Man unit appears in the 1983 movie 'WarGames', in the 1983 movie 'Joysticks', in the 1984 movie 'Tightrope' (the cab appears in the background of the bar scene), in the 1990 movie 'The Grifters', in the 1999 movie 'Man In The Moon' and in the 2002 movie 'Van Wilder'. 
+
+Milton Bradley (MB) released a board game based on this video game in 1983. Up to 4 players can play. The maze is divided into four colored areas, representing each player; the object of the game is to clear all the dots in your colored area. Only one player at a time controls Ms. Pac-Man; the other players control the ghosts. Once a ghost catches Ms. Pac-Man, the player controlling that ghost takes over control of Ms. Pac-Man. 
+
+Michael Jackson used to own this game (Midway upright). It was sold at the official Michael Jackson Auction on April 24th, 2009.</p></details><details><summary>SCORING</summary><p class="story">Dot : 10 points 
+Power pill (energizer) : 50 points 
+Ghosts : 200, 400, 800, 1,600 points 
+Cherry : 100 points 
+Strawberry : 200 points 
+Peach : 500 points 
+Pretzel : 700 points 
+Apple : 1,000 points 
+Pear : 2,000 points 
+Banana : 5,000 points</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* The most dangerous section of the first maze is the long path at the very top. It is safest to clear it when the ghosts are blue, or at least 3 of them occupy the bottom half of the maze. 
+
+* There are a couple of dangerous sections in the second maze. The pathways above and below the T section at the top of the maze can be particularly easy to get trapped in. It is easiest to clear these when all 4 ghosts are close on your tail, or after eating one of the top two power pellets. The two sections directly above the lower escape tunnels on either side should also be cleared with caution. 
+
+* The most dangerous section of the 3rd maze is the center of the bottom, directly below where you begin. It is advisable to clear it out as early as possible before the ghosts can organize and trap you. The top section of the maze presents the ghosts with many pathways to reach you, so use caution. 
+
+* The most dangerous sections of the 4th maze is the section that you begin in, and the section directly above the ghosts' den. The very top section of the maze should also be cleared with caution. 
+
+* Secret Message : the message 'GENERAL COMPUTER CORPORATION Hello, Nakamura!' is buried at the end of the Ms. Pac-Man ROM image (Masaya Nakamura was head of Namco). 
+
+* There's a fairly well-known glitch in the game - if you put a coin in when the Ms. Pac-Man marquee title first appears but before Blinky appears then the first board will be blue instead of pink and will remain blue until you either finish the board or lose a life, after which the board will return to its normal color.</p></details><details><summary>STAFF</summary><p class="story">Co-Creator: Steve Golson</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES: 
+[US] Atari 2600 (1982) &quot;Ms. Pac-Man [Model CX2675]&quot;
+[US] Atari 5200 (1983) &quot;Ms. Pac-Man [Model CX5243]&quot;
+[US] Atari 7800 (1984) &quot;Ms. Pac-Man [Model CX7807]&quot;
+[US] Atari XEGS (198?)
+
+Nintendo NES
+[US] (1990) by Tengen 
+[US] (nov.1993) &quot;Ms. Pac-Man [Model NES-M9-USA]&quot;
+
+Sega Master System
+[EU] (1991) &quot;Ms. Pac-Man [Model 301030]&quot;
+[BR] (1991) by Tec Toy 
+
+Sega Mega Drive / Genesis
+[US] (1991) by Tengen
+[EU] (1992) by Time Warner Interactive 
+
+Nintendo SNES
+[US] (sept.1996) &quot;Ms. Pac-Man [Model SNS-AN8E-USA]&quot;
+[EU] (mar.27, 1997) &quot;Ms. Pac-Man [Model SNSP-AN8P-EUR]&quot;
+
+Sony PlayStation
+[JP] (june.21, 1996) &quot;Namco Museum Vol.3 [Model SLPS-00390]&quot;
+[AU] (1997) &quot;Namco Museum Vol.3 [Model SCES-00268]&quot;
+[US] (jan.31, 1997) &quot;Namco Museum Vol.3 [Model SLUS-00398]&quot;
+[EU] (feb.1997) &quot;Namco Museum Vol.3 [Model SCES-00268]&quot;
+
+Nintendo 64
+[US] (oct.31, 1999) &quot;Namco Museum 64 [Model NUS-NNME-USA]&quot;
+
+Sega Dreamcast
+[US] (june.25, 2000) &quot;Namco Museum [Model T-1403N]&quot;
+
+Sony PlayStation 2
+[US] (dec.4, 2001) &quot;Namco Museum [Model SLUS-20273]&quot;
+[US] (aug.30, 2005) &quot;Namco Museum - 50th Anniversary [Model SLUS-21164]&quot;
+[JP] (jan.26, 2006) &quot;Namco Museum Arcade Hits! [Model SLPS-25590]&quot;
+[EU] (mar.31, 2006) &quot;Namco Museum - 50th Anniversary [Model SLES-53957]&quot;
+
+Nintendo GameCube
+[US] (oct.9, 2002) &quot;Namco Museum [Model DOL-GNME-USA]&quot;
+[US] (aug.30, 2005) &quot;Namco Museum - 50th Anniversary [Model DOL-G5NE-USA]&quot;
+[EU] (may.5, 2006) &quot;Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]&quot;
+
+Microsoft XBOX 
+[US] (oct.9, 2002) &quot;Namco Museum&quot;
+[US] (aug.30, 2005) &quot;Namco Museum - 50th Anniversary [Model NMO-2201A-NM]&quot;
+[EU] (mar.24, 2006) &quot;Namco Museum - 50th Anniversary&quot;
+
+Microsoft XBOX 360 [XBLA]
+[US] [EU] [JP] (jan.10, 2007) 
+[US] (nov.4, 2008) &quot;Namco Museum - Virtual Arcade [Model 21022]&quot;
+[EU] (may.15, 2009) &quot;Namco Museum - Virtual Arcade&quot;
+[AU] (june.3, 2009) &quot;Namco Museum - Virtual Arcade&quot;
+[JP] (nov.5, 2009) &quot;Namco Museum - Virtual Arcade [Model 2RD-00001]&quot;
+[KO] [EU] [AU] (feb.26, 2014) &quot;Pac-Man Museum&quot; as DLC.
+[US] (feb.26, 2014) &quot;Pac-Man Museum&quot; as DLC.
+[JP] (june.25, 2014) &quot;Pac-Man Museum&quot; as DLC.
+
+Sony PlayStation 3 [PSN]
+[US] (feb.25, 2014) &quot;Pac-Man Museum [Model NPUB-31383]&quot; as DLC.
+[EU] [AU] (feb.26, 2014) &quot;Pac-Man Museum [Model NPEB-01892]&quot; as DLC.
+[KO] (feb.26, 2014) &quot;Pac-Man Museum&quot; as DLC.
+[JP] (june.25, 2014) &quot;Pac-Man Museum&quot; as DLC.
+
+Microsoft XBOX One [XBOX Store]
+[US] [EU] [AU] [JP] (apr.20, 2016) &quot;Arcade Game Series - Ms. Pac-Man&quot; 
+
+Sony PlayStation 4 [PSN]
+[US] (apr.20, 2016) &quot;Arcade Game Series - Ms. Pac-Man [Model CUSA-03957]&quot; 
+[EU] [AU] (apr.20, 2016) &quot;Arcade Game Series - Ms. Pac-Man [Model CUSA-03864]&quot; 
+[JP] (apr.20, 2016) &quot;Arcade Game Series - Ms. Pac-Man [Model CUSA-03671]&quot; 
+
+* HANDHELDS: 
+[US] Atari Lynx (1990) &quot;Ms. Pac-Man [Model PA2057]&quot; 
+
+Nintendo Game Boy
+[EU] (1993) &quot;Ms. Pac-Man [Model DMG-N4]&quot;
+[US] (oct.1993) &quot;Ms. Pac-Man [Model DMG-N4-USA]&quot;
+
+[US] Sega Game Gear (1995)
+
+Nintendo Game Boy Color
+[US] (1999) &quot;Ms. Pac-Man - Special Color Edition [Model DMG-AQCE-USA]&quot;
+[EU] (1999) &quot;Ms. Pac-Man - Special Colour Edition [Model DMG-AQCP-EUR]&quot;
+
+Nintendo Game Boy Advance 
+[US] (june.10, 2001) &quot;Namco Museum [Model AGB-ANME-USA]&quot;
+[JP] (dec.7, 2001) &quot;Namco Museum [Model AGB-ANMJ-JPN]&quot;
+[EU] (dec.7, 2001) &quot;Namco Museum [Model AGB-ANMP-EUR]&quot;
+[US] (aug.30, 2005) &quot;Namco Museum - 50th Anniversary [Model AGB-B5NE-USA]&quot;
+[EU] (mar.31, 2006) &quot;Namco Museum - 50th Anniversary [Model AGB-B5NP-EUR]&quot;
+
+Sony PSP
+[JP] (feb.24, 2005) &quot;Namco Museum [Model ULJS-00012]&quot;
+[US] (aug.23, 2005) &quot;Namco Museum Battle Collection [Model ULUS-10035]&quot;
+
+* COMPUTERS: 
+[US] Atari 800 (1982) &quot;Ms. Pac-Man [Model RX8043]&quot; 
+[US] Apple II (1983) 
+[EU] Commodore C64 (1983) 
+[US] Commodore C64 (1983) &quot;Ms. Pac-Man [Model RX8545]&quot; 
+[US] PC [Booter] (1983) 
+[US] Commodore VIC-20 (1983) 
+[US] Texas Instruments TI-99/4A (1983) 
+Tandy Color Computer (1983) &quot;Miss Gobbler&quot; 
+Tandy Color Computer (1984) &quot;Ms. Maze&quot; 
+[EU] Sinclair ZX Spectrum (1984)
+
+PC [MS Windows]
+[JP] (june.9, 1998) &quot;Namco History Vol.3&quot;
+[US] (jul.31, 1998) &quot;Microsoft Revenge of Arcade&quot;
+[US] (2000) &quot;Microsoft Return of Arcade Anniversary Edition&quot;
+[US] (oct.25, 2005) &quot;Namco Museum - 50th Anniversary&quot;
+[AU] (mar.27, 2006) &quot;Namco Museum - 50th Anniversary&quot;
+[EU] (may.19, 2006) &quot;Namco Museum - 50th Anniversary&quot;
+
+Steam
+[US] [EU] (feb.25, 2014) &quot;Pac-Man Museum&quot; : as DLC.
+[US] (apr.19, 2016) &quot;Arcade Game Series - Ms. Pac-Man [Model 403410]&quot; 
+
+* OTHERS: 
+[US] VFD handheld game (1981) by Coleco 
+[US] LCD handheld game (1992) by Micro Games of America 
+[US] Arcade (1998) &quot;Galaxy Games StarPak 2&quot; 
+[US] Arcade (2001) &quot;Ms. Pac-Man/Galaga - Class of 1981&quot; 
+[US] Mobile Phones (june.13, 2003) 
+[US] Ms. Pac-Man TV Game (2004) by Jakk's Pacific 
+[US] Arcade (2005) &quot;Pac-Man - 25th Anniversary Edition&quot; 
+[US] Ms. Pac-Man TV Game Wireless Version (2005) by Jakk's Pacific 
+[US] Mobile Phone (jan.5, 2005) &quot;Ms. Pac-Man for Prizes&quot;
+[US] Apple iPod (feb.27, 2007) &quot;Ms. Pac-Man [Model 284736660]&quot; 
+[US] Apple iPhone (jul.9, 2008) 
+[US] Blackberry (nov.23, 2009) &quot;Ms. Pac-Man [Model 4532]&quot; 
+[US] Windows Mobile (mar.23, 2010) &quot;Ms. Pac-Man by Namco&quot; 
+[US] Arcade (2010) &quot;Pac-Man's Arcade Party&quot;: included in home cabaret and cocktail models only.
+[US] Apple iPhone/iPad (feb.10, 2011) &quot;Ms. Pac-Man for iPad [Model 404072981]&quot; 
+[US] Android Market (mar.18, 2011) by Namco
+[US] Arcade (2018) &quot;Pac-Man's Pixel Bash&quot;: only available if the machine is set to Free Play.</p></details><details><summary>SERIES</summary><p class="story">1. Pac-Man (1980, ARC)
+2. Ms. Pac-Man (1981, ARC)
+3. Super Pac-Man (1982, ARC) 
+4. Pac-Man Plus (1982, ARC)
+5. Jr. Pac-Man (1983, ARC)
+6. Professor Pac-Man (1983, ARC)
+7. Pac-Land (1984, ARC) 
+8. Pac-Mania (1987, ARC) 
+9. Pac-Attack (1993, SNES, Genesis; 1994, Game Boy, Game Gear)
+10. Pac-Man 2 - The New Adventures [Model SNS-25-USA] (1994, SNES, Genesis)
+11. Pac-In-Time [Model SNS-APTE-USA] (1994, SNES, PC) 
+12. Pac-Man Arrangement (1996, ARC) : part of &quot;Namco Classics Collection Vol.2&quot;
+13. Pac-Man VR (1996, ARC)
+14. Pac-Man World [Model SLUS-00439] (1999, PS) 
+15. Pac-Man - Adventures in Time (2000, PC)
+16. Ms. Pac-Man - Maze Madness [Model SLUS-01018] (2000, PS) 
+17. Ms. Pac-Man - Quest for the Golden Maze (2001, PC)
+18. Pac-Man All-Stars (2002, PC)
+19. Pac-Man Fever [Model SLUS-20197] (2002, PS)
+20. Pac-Man World 2 [Model SLUS-20224] (2002, PS2, GC, XBOX) 
+21. Pac-Man Vs. [Model DOL-PRJE-USA] (2003, GC)
+22. Pac-Pix [Model NTR-APCE-USA] (2005, DS) 
+23. Pac-Man Pinball Advance [Model AGB-BP8E-USA] (2005, GBA)
+24. Pac-Man Arrangement (2005, PSP) : part of &quot;Namco Museum Battle Collection [Model ULUS-10035]&quot; 
+25. Pac'n Roll [Model NTR-APNE-USA] (2005, DS) 
+26. Pac-Man World 3 [Model SLUS-21219] (2005, PSP, PS2, GC, XBOX, PC, DS)
+27. Pac-Man World Rally [Model SLUS-21328] (2006, GameCube, PS2, PSP, PC)
+28. Pac-Man Championship Edition (2007, XBLA) 
+29. Pac-Man Championship Edition DX (2010, XBLA, PSN) 
+30. Pac-Man Party [Model RVL-SP7E-USA] (2010, Wii)
+31. Pac-Man Battle Royale (2011, ARC) 
+32. Pac-Man Tilt (2011, 3DS) : part of &quot;Pac-Man &amp; Galaga Dimensions [Model CTR-APGE-USA]&quot;
+33. Pac-Man Championship Edition DX+ (2013, XBLA, PSN, Steam)
+34. Pac-Man Dash! (2013, Android/iOS)
+35. Pac-Man and the Ghostly Adventures (2013, 3DS, XBOX 360, PS3, Wii U, PC)
+36. Pac-Man and the Ghostly Adventures 2 (2014, 3DS, XBOX 360, PS3, Wii U, PC)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/1698/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

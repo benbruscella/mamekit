@@ -1,0 +1,372 @@
+{
+  "type": "GFXDECODE",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "arkanoid",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "bankp",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "cavenger",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "centiped",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "congo",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "ddragon",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "ffight",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gameboy",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gauntlet",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gberet",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "ghouls",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "jumpbug",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "chr_decode",
+        "spr_decode"
+      ]
+    },
+    {
+      "game": "ladybug",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "matmania",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "bg_gfxdecode",
+        "sp_gfxdecode",
+        "tx_gfxdecode"
+      ]
+    },
+    {
+      "game": "mrdo",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "mspacman",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "panic",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "phoenix",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "popeye",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "qbert",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "rtype",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "rygar",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "sf2",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "shinobi",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "travrusa",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "upndown",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "venture",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "wboy",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "gfxdecode"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

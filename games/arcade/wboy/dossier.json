@@ -1,0 +1,934 @@
+{
+  "game": "wboy",
+  "title": "Wonder Boy (set 1, 315-5177) (Escape (Sega license), 1986)",
+  "fullname": "Wonder Boy (set 1, 315-5177)",
+  "year": "1986",
+  "company": "Escape (Sega license)",
+  "family": "system1",
+  "driverFile": "src/mame/sega/system1.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Jarek Parchanski, Nicola Salmoria, Mirko Buffoni",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "sega_315_5177",
+      "clock": 4000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.bank1",
+          "bank": "bank1"
+        },
+        {
+          "start": 49152,
+          "end": 53247,
+          "kind": "ram",
+          "share": "ram"
+        },
+        {
+          "start": 53248,
+          "end": 55295,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 55296,
+          "end": 57343,
+          "kind": "ram",
+          "share": "paletteram",
+          "write": "system1_state.paletteram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "handler",
+          "read": "system1_state.videoram_r",
+          "write": "system1_state.videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61440,
+          "end": 62463,
+          "kind": "handler",
+          "read": "system1_state.mixer_collision_r",
+          "write": "system1_state.mixer_collision_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 62464,
+          "end": 63487,
+          "kind": "handler",
+          "write": "system1_state.mixer_collision_reset_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 63488,
+          "end": 64511,
+          "kind": "handler",
+          "read": "system1_state.sprite_collision_r",
+          "write": "system1_state.sprite_collision_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 64512,
+          "end": 65535,
+          "kind": "handler",
+          "write": "system1_state.sprite_collision_reset_w",
+          "handlerWidth": 8
+        }
+      ],
+      "opcode": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom",
+            "share": "decrypted_opcodes"
+          },
+          {
+            "start": 32768,
+            "end": 49151,
+            "kind": "handler",
+            "read": "bank.bank1",
+            "bank": "bank1"
+          },
+          {
+            "start": 49152,
+            "end": 53247,
+            "kind": "ram",
+            "share": "ram"
+          },
+          {
+            "start": 53248,
+            "end": 55295,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 55296,
+            "end": 57343,
+            "kind": "ram",
+            "share": "paletteram",
+            "write": "system1_state.paletteram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          }
+        ],
+        "region": "decrypted_opcodes"
+      },
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.P1"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.P2"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "kind": "handler",
+            "mirror": 2,
+            "read": "port.SWA"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "kind": "handler",
+            "mirror": 2,
+            "read": "port.SWB"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.SWB"
+          },
+          {
+            "start": 24,
+            "end": 27,
+            "kind": "handler",
+            "read": "pio.read",
+            "write": "pio.write"
+          }
+        ],
+        "globalMask": 31
+      }
+    },
+    {
+      "tag": "soundcpu",
+      "type": "z80",
+      "clock": 4000000,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram",
+          "mirror": 6144
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "mirror": 8191,
+          "write": "sn1.write"
+        },
+        {
+          "start": 49152,
+          "end": 49152,
+          "kind": "handler",
+          "mirror": 8191,
+          "write": "sn2.write"
+        },
+        {
+          "start": 57344,
+          "end": 57344,
+          "kind": "handler",
+          "mirror": 8191,
+          "read": "system1_state.sound_data_r"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 2000000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489A",
+      "SN76489A"
+    ],
+    "clocks": [
+      2000000,
+      4000000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 512,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.09615384615385,
+    "htotal": 640,
+    "vtotal": 260,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-7489.116",
+          "offset": 0,
+          "size": 16384,
+          "crc": "130f4b70",
+          "alt": [
+            {
+              "file": "epr-7532.116",
+              "crc": "51d27534"
+            },
+            {
+              "file": "wb_1",
+              "crc": "bd6fef49"
+            },
+            {
+              "file": "ic116_89.bin",
+              "crc": "73d8cef0"
+            },
+            {
+              "file": "wb1.ic116",
+              "crc": "6c67407c"
+            },
+            {
+              "file": "1.bin",
+              "crc": "67d5af52"
+            }
+          ]
+        },
+        {
+          "file": "epr-7490.109",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "9e656733",
+          "alt": [
+            {
+              "file": "epr-7533.109",
+              "crc": "e29d1cd1"
+            },
+            {
+              "file": "wb_2",
+              "crc": "4081b624"
+            },
+            {
+              "file": "ic109_90.bin",
+              "crc": "29546828"
+            },
+            {
+              "file": "2.bin",
+              "crc": "e0d36862"
+            }
+          ]
+        },
+        {
+          "file": "epr-7491.96",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "1f7d0efe",
+          "alt": [
+            {
+              "file": "wb_3",
+              "crc": "c48a0e36"
+            },
+            {
+              "file": "ic096_91.bin",
+              "crc": "c7145c2a"
+            },
+            {
+              "file": "3.bin",
+              "crc": "8dba0aad"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-7498.120",
+          "offset": 0,
+          "size": 8192,
+          "crc": "78ae1e7b",
+          "alt": [
+            {
+              "file": "epr7498a.3",
+              "crc": "c198205c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "epr-7497.62",
+          "offset": 0,
+          "size": 8192,
+          "crc": "08d609ca"
+        },
+        {
+          "file": "epr-7496.61",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "6f61fdf1"
+        },
+        {
+          "file": "epr-7495.64",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "6a0d2c2d"
+        },
+        {
+          "file": "epr-7494.63",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "a8e281c7"
+        },
+        {
+          "file": "epr-7493.66",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "89305df4"
+        },
+        {
+          "file": "epr-7492.65",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "60f806b1"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-7485.117",
+          "offset": 0,
+          "size": 16384,
+          "crc": "c2891722",
+          "alt": [
+            {
+              "file": "ic117_85.bin",
+              "crc": "1ee96ae8"
+            },
+            {
+              "file": "4.bin",
+              "crc": "8b3124e6"
+            }
+          ]
+        },
+        {
+          "file": "epr-7487.04",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "2d3a421b",
+          "alt": [
+            {
+              "file": "ic004_87.bin",
+              "crc": "119735bb"
+            },
+            {
+              "file": "5.bin",
+              "crc": "b75278e7"
+            }
+          ]
+        },
+        {
+          "file": "epr-7486.110",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "8d622c50",
+          "alt": [
+            {
+              "file": "ic110_86.bin",
+              "crc": "26d0fac4"
+            }
+          ]
+        },
+        {
+          "file": "epr-7488.05",
+          "offset": 49152,
+          "size": 16384,
+          "crc": "007c2f1b",
+          "alt": [
+            {
+              "file": "ic005_88.bin",
+              "crc": "2602e519"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "lookup_proms",
+      "size": 256,
+      "loads": [
+        {
+          "file": "pr-5317.76",
+          "offset": 0,
+          "size": 256,
+          "crc": "648350b8"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "value": 4,
+      "name": "Service Mode"
+    },
+    {
+      "port": "SWA",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "SWA",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "SWB",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "SWB",
+      "mask": 2,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "SWB",
+      "mask": 12,
+      "value": 12,
+      "name": "Lives"
+    },
+    {
+      "port": "SWB",
+      "mask": 16,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "SWB",
+      "mask": 32,
+      "value": 32,
+      "name": "Allow Continue"
+    },
+    {
+      "port": "SWB",
+      "mask": 64,
+      "value": 64,
+      "name": "Difficulty"
+    },
+    {
+      "port": "SWB",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 361,
+    "contributors": 43,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "hap",
+      "Michaël Banaan Ananas"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 105,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 40,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 28,
+        "firstCommit": "2013-11-21",
+        "lastCommit": "2024-11-21"
+      },
+      {
+        "name": "hap",
+        "commits": 24,
+        "firstCommit": "2018-08-29",
+        "lastCommit": "2026-05-11"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 23,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-26"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 22,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 19,
+        "firstCommit": "2013-01-15",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 13,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "braintro",
+        "commits": 9,
+        "firstCommit": "2018-06-13",
+        "lastCommit": "2019-10-05"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 9,
+        "firstCommit": "2011-10-27",
+        "lastCommit": "2018-07-22"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-16",
+        "lastCommit": "2022-06-28"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 5,
+        "firstCommit": "2009-05-01",
+        "lastCommit": "2014-04-29"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 4,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2010-07-05"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 3,
+        "firstCommit": "2009-02-11",
+        "lastCommit": "2012-03-25"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2013-01-13",
+        "lastCommit": "2021-03-01"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2020-01-10"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 3,
+        "firstCommit": "2009-12-02",
+        "lastCommit": "2012-03-24"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 3,
+        "firstCommit": "2016-06-17",
+        "lastCommit": "2021-04-04"
+      },
+      {
+        "name": "0kmg",
+        "commits": 2,
+        "firstCommit": "2022-05-02",
+        "lastCommit": "2022-05-21"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 2,
+        "firstCommit": "2010-02-17",
+        "lastCommit": "2010-02-18"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2009-01-25",
+        "lastCommit": "2009-05-12"
+      },
+      {
+        "name": "holub",
+        "commits": 2,
+        "firstCommit": "2022-04-25",
+        "lastCommit": "2023-08-30"
+      },
+      {
+        "name": "MetalliC",
+        "commits": 2,
+        "firstCommit": "2016-12-17",
+        "lastCommit": "2019-07-27"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-09-03",
+        "lastCommit": "2018-12-09"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-09-12",
+        "lastCommit": "2008-09-12"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-06-24",
+        "lastCommit": "2008-06-24"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2015-08-12",
+        "lastCommit": "2015-08-12"
+      },
+      {
+        "name": "f205v",
+        "commits": 1,
+        "firstCommit": "2021-01-23",
+        "lastCommit": "2021-01-23"
+      },
+      {
+        "name": "Guru",
+        "commits": 1,
+        "firstCommit": "2015-04-19",
+        "lastCommit": "2015-04-19"
+      },
+      {
+        "name": "Jackson",
+        "commits": 1,
+        "firstCommit": "2018-04-07",
+        "lastCommit": "2018-04-07"
+      },
+      {
+        "name": "negunma",
+        "commits": 1,
+        "firstCommit": "2023-03-12",
+        "lastCommit": "2023-03-12"
+      },
+      {
+        "name": "Nekoziman",
+        "commits": 1,
+        "firstCommit": "2023-09-18",
+        "lastCommit": "2023-09-18"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2013-08-20",
+        "lastCommit": "2013-08-20"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "sjy555525",
+        "commits": 1,
+        "firstCommit": "2025-08-23",
+        "lastCommit": "2025-08-23"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-02-07",
+        "lastCommit": "2008-02-07"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 1,
+        "firstCommit": "2023-04-30",
+        "lastCommit": "2023-04-30"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 40 years ago:\n\nWonder Boy (c) 1986 Sega Enterprises, Limited.\n\nRe-release. For more information about the game itself, please see the original release entry; \"Wonder Boy [Model 315-5135]\".\n\n- TECHNICAL -\n\nGame ID: 315-5177\n\nRuns on the Sega \"System 1\" hardware.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/71996/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

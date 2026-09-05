@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nintendo Entertainment System / Famicom (NTSC) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Nintendo Entertainment System / Famicom (NTSC)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/consoles/nes/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/consoles/nes/nes-dossier.md" download="nes-dossier.md">Download nes-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Nintendo · 1985</div>
+    <h1>Nintendo Entertainment System / Famicom (NTSC)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/nes.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>nes</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/nintendo/nes.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>nes</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>nes</strong></div>
+      <div class="fact"><span>Screen</span><strong>256×240 @ 60.10 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>RP2A03</td><td>1.790 MHz</td><td>5</td></tr></tbody></table></div></section>
+  <section><h2>Cartridges</h2><p>4,545 entries from the nes software list; 5 supported PCB types.</p></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Z</td><td>a</td><td>ctrl1:JOYPAD</td><td>0x1</td></tr><tr><td>Space / X</td><td>b</td><td>ctrl1:JOYPAD</td><td>0x2</td></tr><tr><td>ShiftRight</td><td>select</td><td>ctrl1:JOYPAD</td><td>0x4</td></tr><tr><td>Enter</td><td>start</td><td>ctrl1:JOYPAD</td><td>0x8</td></tr><tr><td>Up</td><td>joystick up</td><td>ctrl1:JOYPAD</td><td>0x10</td></tr><tr><td>Down</td><td>joystick down</td><td>ctrl1:JOYPAD</td><td>0x20</td></tr><tr><td>Left</td><td>joystick left</td><td>ctrl1:JOYPAD</td><td>0x40</td></tr><tr><td>Right</td><td>joystick right</td><td>ctrl1:JOYPAD</td><td>0x80</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/nintendo/nes.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Brad Oliver,Fabio Priuli</strong></div>
+    <div class="fact"><span>Development</span><strong>138 commits by 30 contributors, 2012–2025</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Miodrag Milanovic, Fabio Priuli, Vas Crabb, 0kmg, AJR</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Console published 41 years ago:
+
+Nintendo Entertainment System [NES] (c) 1985 Nintendo Co., Ltd.
+
+8-Bit video game console developed in Japan. For more information about the console itself, please see the original Japanese release entry; &quot;Family Computer [FAMICOM] [Model HVC-001]&quot;.</p><details><summary>TECHNICAL</summary><p class="story">Parts:
+Nintendo Entertainment System [NES] [Model NES-001]
+AC Power Adapter [Model NES-002]
+RF Adapter [Model NES-003]
+Controller [Model NES-004]</p></details><details><summary>TRIVIA</summary><p class="story">Official Accessories:
+NES Zapper [Model NES-005]
+R.O.B the Robot [Model NES-012]
+NES Advantage [Model NES-026]
+Power Pad [Model NES-028]
+Satellite [Model NES-032]
+Satellite Wireless Receiver [Model NES-033]
+NES Four Score [Model NES-034]
+Controller (Redesigned) [Model NES-039]</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/82114/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "type": "LR35902",
+  "uses": [
+    {
+      "game": "gameboy",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "LR35902",
+    "className": "lr35902_cpu_device",
+    "shortName": "lr35902",
+    "description": "Sharp LR35902",
+    "sourceFile": "src/devices/cpu/lr35902/lr35902.cpp",
+    "sourceLine": 63,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(LR35902, lr35902_cpu_device, \"lr35902\", \"Sharp LR35902\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/lr35902/lr35902.cpp",
+    "src/devices/cpu/lr35902/lr35902.h",
+    "src/devices/cpu/lr35902/lr35902d.h",
+    "src/devices/cpu/lr35902/opc_main.hxx"
+  ]
+}

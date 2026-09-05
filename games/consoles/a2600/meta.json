@@ -1,0 +1,191 @@
+{
+  "game": "a2600",
+  "title": "Atari 2600 (NTSC) (Atari, 1977)",
+  "fullname": "Atari 2600 (NTSC)",
+  "year": "1977",
+  "manufacturer": "Atari",
+  "family": "a2600",
+  "kind": "console",
+  "driverFile": "src/mame/atari/a2600.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nathan Woods, Wilbert Pol, David Shah",
+  "gitHistory": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2026-05-29",
+    "commits": 153,
+    "contributors": 27,
+    "topAuthors": [
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Wilbert Pol",
+      "AJR",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 38,
+        "firstCommit": "2012-08-21",
+        "lastCommit": "2016-11-06"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 18,
+        "firstCommit": "2016-11-21",
+        "lastCommit": "2024-08-25"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 18,
+        "firstCommit": "2012-10-02",
+        "lastCommit": "2015-08-10"
+      },
+      {
+        "name": "AJR",
+        "commits": 10,
+        "firstCommit": "2018-05-28",
+        "lastCommit": "2026-05-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 8,
+        "firstCommit": "2017-02-26",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 7,
+        "firstCommit": "2012-10-07",
+        "lastCommit": "2023-03-24"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 6,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-11-05"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2014-03-13",
+        "lastCommit": "2020-06-14"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 5,
+        "firstCommit": "2013-05-29",
+        "lastCommit": "2014-09-28"
+      },
+      {
+        "name": "Aaron Giles",
+        "commits": 4,
+        "firstCommit": "2012-09-11",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 4,
+        "firstCommit": "2013-07-15",
+        "lastCommit": "2014-03-24"
+      },
+      {
+        "name": "0kmg",
+        "commits": 3,
+        "firstCommit": "2022-07-15",
+        "lastCommit": "2022-08-08"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2018-12-18"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 3,
+        "firstCommit": "2018-04-12",
+        "lastCommit": "2019-06-29"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 3,
+        "firstCommit": "2021-12-14",
+        "lastCommit": "2022-08-06"
+      },
+      {
+        "name": "hap",
+        "commits": 2,
+        "firstCommit": "2021-03-29",
+        "lastCommit": "2023-07-25"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2012-10-07",
+        "lastCommit": "2012-10-07"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2013-05-29",
+        "lastCommit": "2016-11-19"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-02-02",
+        "lastCommit": "2013-02-02"
+      },
+      {
+        "name": "arbee",
+        "commits": 1,
+        "firstCommit": "2015-09-26",
+        "lastCommit": "2015-09-26"
+      },
+      {
+        "name": "David Shah",
+        "commits": 1,
+        "firstCommit": "2018-01-25",
+        "lastCommit": "2018-01-25"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mahlemiut",
+        "commits": 1,
+        "firstCommit": "2012-09-23",
+        "lastCommit": "2012-09-23"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2024-08-15",
+        "lastCommit": "2024-08-15"
+      },
+      {
+        "name": "Osso13",
+        "commits": 1,
+        "firstCommit": "2015-01-16",
+        "lastCommit": "2015-01-16"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

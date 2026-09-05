@@ -1,0 +1,529 @@
+{
+  "game": "coleco",
+  "title": "ColecoVision (NTSC) (Coleco, 1982)",
+  "fullname": "ColecoVision (NTSC)",
+  "year": "1982",
+  "company": "Coleco",
+  "family": "coleco",
+  "driverFile": "src/mame/coleco/coleco.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mike Balfour, Ben Bruscella, Sean Young, Frank Palazzolo",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3579545,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 8191,
+          "kind": "rom"
+        },
+        {
+          "start": 24576,
+          "end": 25599,
+          "kind": "ram",
+          "mirror": 7168
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "handler",
+          "read": "coleco_state.cart_r",
+          "write": "coleco_state.cart_w",
+          "handlerWidth": 8
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 128,
+            "end": 128,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "coleco_state.paddle_off_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 160,
+            "end": 161,
+            "kind": "handler",
+            "mirror": 30,
+            "read": "tms9928a.read",
+            "write": "tms9928a.write"
+          },
+          {
+            "start": 192,
+            "end": 192,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "coleco_state.paddle_on_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 224,
+            "end": 224,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "sn76489a.write"
+          },
+          {
+            "start": 224,
+            "end": 224,
+            "kind": "handler",
+            "mirror": 29,
+            "read": "coleco_state.paddle_1_r"
+          },
+          {
+            "start": 226,
+            "end": 226,
+            "kind": "handler",
+            "mirror": 29,
+            "read": "coleco_state.paddle_2_r"
+          }
+        ],
+        "globalMask": 255
+      }
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 3579545,
+    "chips": 1,
+    "deviceTypes": [
+      "SN76489A"
+    ],
+    "clocks": [
+      3579545
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 280,
+    "height": 216,
+    "xOffset": 25,
+    "yOffset": 28,
+    "refresh": 59.922737824204276,
+    "htotal": 342,
+    "vtotal": 262,
+    "vbstart": 244,
+    "vbend": 28,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "313_10031-4005_73108a.u2",
+          "offset": 0,
+          "size": 8192,
+          "crc": "3aa93ef3",
+          "alt": [
+            {
+              "file": "onyx.rom",
+              "crc": "011c32e7"
+            },
+            {
+              "file": "r72114a_8317.u2",
+              "crc": "d393c0cc"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 1,
+      "keys": [
+        "Digit0",
+        "Numpad0"
+      ],
+      "label": "0 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 2,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "1 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 4,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "2 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 8,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "3 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 16,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "4 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 32,
+      "keys": [
+        "Digit5",
+        "Numpad5"
+      ],
+      "label": "5 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 64,
+      "keys": [
+        "Digit6",
+        "Numpad6"
+      ],
+      "label": "6 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 128,
+      "keys": [
+        "Digit7",
+        "Numpad7"
+      ],
+      "label": "7 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 256,
+      "keys": [
+        "Digit8",
+        "Numpad8"
+      ],
+      "label": "8 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 512,
+      "keys": [
+        "Digit9",
+        "Numpad9"
+      ],
+      "label": "9 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 1024,
+      "keys": [
+        "NumpadSubtract",
+        "Equal"
+      ],
+      "label": "# (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 2048,
+      "keys": [
+        "NumpadMultiply",
+        "Minus"
+      ],
+      "label": "* (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 16384,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 64,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "CTRLSEL",
+      "mask": 7,
+      "value": 0,
+      "name": "Port 1 Controller"
+    },
+    {
+      "port": "CTRLSEL",
+      "mask": 112,
+      "value": 0,
+      "name": "Port 2 Controller"
+    },
+    {
+      "port": "CTRLSEL",
+      "mask": 128,
+      "value": 0,
+      "name": "Extra Controller"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-10-21",
+    "commits": 86,
+    "contributors": 22,
+    "topAuthors": [
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "AJR",
+      "Dirk Best",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 18,
+        "firstCommit": "2012-08-21",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 14,
+        "firstCommit": "2016-08-01",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "AJR",
+        "commits": 9,
+        "firstCommit": "2016-08-03",
+        "lastCommit": "2025-10-21"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 7,
+        "firstCommit": "2016-03-25",
+        "lastCommit": "2025-08-30"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2018-01-31",
+        "lastCommit": "2025-02-08"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2017-02-11",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Frank Palazzolo",
+        "commits": 4,
+        "firstCommit": "2019-11-21",
+        "lastCommit": "2021-05-08"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 3,
+        "firstCommit": "2012-08-29",
+        "lastCommit": "2014-06-09"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2013-05-26",
+        "lastCommit": "2014-09-21"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 2,
+        "firstCommit": "2014-04-17",
+        "lastCommit": "2020-06-08"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2014-01-20",
+        "lastCommit": "2014-06-09"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2014-02-11"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 2,
+        "firstCommit": "2013-02-05",
+        "lastCommit": "2015-08-10"
+      },
+      {
+        "name": "Aaron Giles",
+        "commits": 1,
+        "firstCommit": "2013-07-24",
+        "lastCommit": "2013-07-24"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2014-03-13",
+        "lastCommit": "2014-03-13"
+      },
+      {
+        "name": "Felipe Corrêa da Silva Sanches",
+        "commits": 1,
+        "firstCommit": "2015-06-23",
+        "lastCommit": "2015-06-23"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-12-21",
+        "lastCommit": "2018-12-21"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2013-02-18",
+        "lastCommit": "2013-02-18"
+      }
+    ]
+  },
+  "historyText": "Console published 44 years ago:\n\nColecoVision [NTSC model] (c) 1982 Coleco Industries, Inc. [Amsterdam, NY, USA]\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/275382/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)",
+  "cart": {
+    "list": "coleco",
+    "entries": 229,
+    "slots": [
+      "standard",
+      "megacart",
+      "xin1",
+      "activision",
+      "activision_256b",
+      "activision_32k",
+      "sgc_1mbit",
+      "sgc_2mbit",
+      "sgc_4mbit"
+    ]
+  }
+}

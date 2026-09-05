@@ -1,0 +1,109 @@
+{
+  "type": "DISCRETE",
+  "uses": [
+    {
+      "game": "asteroid",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "dacvol"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "dacvol"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "filtermix"
+      ]
+    },
+    {
+      "game": "phoenix",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "qix",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "travrusa",
+      "tags": [
+        "filtermix"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "discrete"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "DISCRETE",
+    "className": "discrete_sound_device",
+    "shortName": "discrete",
+    "description": "Discrete Sound",
+    "sourceFile": "src/devices/sound/discrete.cpp",
+    "sourceLine": 50,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(DISCRETE, discrete_sound_device, \"discrete\", \"Discrete Sound\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

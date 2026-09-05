@@ -1,0 +1,912 @@
+{
+  "game": "pacman",
+  "title": "Pac-Man (Midway) (Namco (Midway license), 1980)",
+  "fullname": "Pac-Man (Midway)",
+  "year": "1980",
+  "company": "Namco (Midway license)",
+  "family": "pacman",
+  "driverFile": "src/mame/pacman/pacman.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria,Stephane Humbert",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom",
+          "mirror": 32768
+        },
+        {
+          "start": 16384,
+          "end": 17407,
+          "kind": "ram",
+          "mirror": 40960,
+          "share": "videoram",
+          "write": "pacman_state.pacman_videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 17408,
+          "end": 18431,
+          "kind": "ram",
+          "mirror": 40960,
+          "share": "colorram",
+          "write": "pacman_state.pacman_colorram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 18432,
+          "end": 19455,
+          "kind": "handler",
+          "mirror": 40960,
+          "readOnly": true,
+          "read": "pacman_state.pacman_read_nop"
+        },
+        {
+          "start": 19456,
+          "end": 20463,
+          "kind": "ram",
+          "mirror": 40960
+        },
+        {
+          "start": 20464,
+          "end": 20479,
+          "kind": "ram",
+          "mirror": 40960,
+          "share": "spriteram"
+        },
+        {
+          "start": 20480,
+          "end": 20487,
+          "kind": "handler",
+          "mirror": 44856,
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 20544,
+          "end": 20575,
+          "kind": "handler",
+          "mirror": 44800,
+          "write": "namco.pacman_sound_w"
+        },
+        {
+          "start": 20576,
+          "end": 20591,
+          "kind": "ram",
+          "mirror": 44800,
+          "share": "spriteram2",
+          "writeOnly": true
+        },
+        {
+          "start": 20592,
+          "end": 20607,
+          "kind": "nop",
+          "mirror": 44800,
+          "readOnly": true
+        },
+        {
+          "start": 20608,
+          "end": 20608,
+          "kind": "nop",
+          "mirror": 44863,
+          "readOnly": true
+        },
+        {
+          "start": 20672,
+          "end": 20672,
+          "kind": "handler",
+          "mirror": 44863,
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.IN0"
+        },
+        {
+          "start": 20544,
+          "end": 20544,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.IN1"
+        },
+        {
+          "start": 20608,
+          "end": 20608,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.DSW1"
+        },
+        {
+          "start": 20672,
+          "end": 20672,
+          "kind": "handler",
+          "mirror": 44863,
+          "read": "port.DSW2"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "write": "pacman_state.pacman_interrupt_vector_w",
+            "handlerWidth": 8
+          }
+        ],
+        "globalMask": 255
+      }
+    }
+  ],
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 288,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "romSet": "puckman",
+      "loads": [
+        {
+          "file": "pacman.6e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c1e6ab10",
+          "alt": [
+            {
+              "file": "namcopac.6e",
+              "crc": "fee263b3"
+            },
+            {
+              "file": "pm01.6e",
+              "crc": "5fe8610a"
+            },
+            {
+              "file": "pacmanh.6e",
+              "crc": "3b2ec270"
+            },
+            {
+              "file": "puckman.6e",
+              "crc": "a8ae23c5"
+            },
+            {
+              "file": "p1.6ef",
+              "crc": "50b38941"
+            },
+            {
+              "file": "pr1.cpu",
+              "crc": "bc5ad024"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "1a6fb2d4",
+          "alt": [
+            {
+              "file": "namcopac.6f",
+              "crc": "39d1fc83"
+            },
+            {
+              "file": "nampfast.6f",
+              "crc": "51b38db9"
+            },
+            {
+              "file": "pm02.6f",
+              "crc": "61d38c6c"
+            },
+            {
+              "file": "pacfast.6f",
+              "crc": "720dc3ee"
+            },
+            {
+              "file": "hangly.6f",
+              "crc": "73726586"
+            },
+            {
+              "file": "p2.7ef",
+              "crc": "195883b8"
+            },
+            {
+              "file": "d2.e7",
+              "crc": "713af282"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6h",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "bcdd1beb",
+          "alt": [
+            {
+              "file": "namcopac.6h",
+              "crc": "02083b03"
+            },
+            {
+              "file": "pm03.6h",
+              "crc": "4e7ef99f"
+            },
+            {
+              "file": "pacmanh.6h",
+              "crc": "18811780"
+            },
+            {
+              "file": "puckman.6h",
+              "crc": "197443f8"
+            },
+            {
+              "file": "p3.bin",
+              "crc": "124a4507"
+            },
+            {
+              "file": "pr3.cpu",
+              "crc": "473c379d"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6j",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "817d94e3",
+          "alt": [
+            {
+              "file": "namcopac.6j",
+              "crc": "7a36fe55"
+            },
+            {
+              "file": "pm04.6j",
+              "crc": "8939ddd2"
+            },
+            {
+              "file": "npacmod.6j",
+              "crc": "7d98d5f5"
+            },
+            {
+              "file": "pacmanh.6j",
+              "crc": "5c96a733"
+            },
+            {
+              "file": "puckman.6j",
+              "crc": "2e64a3ba"
+            },
+            {
+              "file": "hangly.6j",
+              "crc": "7f4147e6"
+            },
+            {
+              "file": "bcuda_prg4.bin",
+              "crc": "55e86c2b"
+            },
+            {
+              "file": "p4.bin",
+              "crc": "08ac65da"
+            },
+            {
+              "file": "pr4.cpu",
+              "crc": "63fbf895"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "romSet": "puckman",
+      "loads": [
+        {
+          "file": "pacman.5e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "0c944964",
+          "alt": [
+            {
+              "file": "pacmanh.5e",
+              "crc": "299fb17a"
+            }
+          ]
+        },
+        {
+          "file": "pacman.5f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "958fedf9"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 288,
+      "romSet": "puckman",
+      "loads": [
+        {
+          "file": "82s123.7f",
+          "offset": 0,
+          "size": 32,
+          "crc": "2fc650bd",
+          "alt": [
+            {
+              "file": "pacm.8h",
+              "crc": "2c3cc909"
+            }
+          ]
+        },
+        {
+          "file": "82s126.4a",
+          "offset": 32,
+          "size": 256,
+          "crc": "3eb3a8e4",
+          "alt": [
+            {
+              "file": "piranha.4a",
+              "crc": "08c9447b"
+            },
+            {
+              "file": "6301.4a",
+              "crc": "720528b4"
+            },
+            {
+              "file": "as4a.bin",
+              "crc": "1605b324"
+            },
+            {
+              "file": "titan.4a",
+              "crc": "b67a0c10"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "romSet": "puckman",
+      "loads": [
+        {
+          "file": "82s126.1m",
+          "offset": 0,
+          "size": 256,
+          "crc": "a9cc86bf",
+          "alt": [
+            {
+              "file": "pacm.1m",
+              "crc": "3cb61034"
+            },
+            {
+              "file": "63s141.1k",
+              "crc": "459d2618"
+            }
+          ]
+        },
+        {
+          "file": "82s126.3m",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66",
+          "alt": [
+            {
+              "file": "63s141.3k",
+              "crc": "fcc24d5d"
+            },
+            {
+              "file": "mmi63s141j.3m",
+              "crc": "deadc015"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "F1"
+      ],
+      "label": "Rack Test (Cheat)",
+      "activeLow": true,
+      "activeValue": 0,
+      "toggle": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 16,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 1,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 8,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 128,
+      "name": "Ghost Names"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-20",
+    "commits": 437,
+    "contributors": 52,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "Michaël Banaan Ananas",
+      "Vas Crabb"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 84,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 47,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2026-03-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 40,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 37,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 34,
+        "firstCommit": "2016-09-26",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 24,
+        "firstCommit": "2013-03-19",
+        "lastCommit": "2016-03-28"
+      },
+      {
+        "name": "hap",
+        "commits": 16,
+        "firstCommit": "2015-11-04",
+        "lastCommit": "2026-04-29"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 16,
+        "firstCommit": "2010-11-11",
+        "lastCommit": "2017-08-15"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 14,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2020-11-02"
+      },
+      {
+        "name": "AJR",
+        "commits": 13,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 10,
+        "firstCommit": "2021-02-16",
+        "lastCommit": "2024-03-31"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 9,
+        "firstCommit": "2018-10-02",
+        "lastCommit": "2026-07-20"
+      },
+      {
+        "name": "smf-",
+        "commits": 9,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2020-04-02"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 8,
+        "firstCommit": "2011-04-26",
+        "lastCommit": "2011-12-12"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 6,
+        "firstCommit": "2016-06-18",
+        "lastCommit": "2020-12-10"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 5,
+        "firstCommit": "2009-07-06",
+        "lastCommit": "2012-07-17"
+      },
+      {
+        "name": "RobertoFresca",
+        "commits": 5,
+        "firstCommit": "2015-11-29",
+        "lastCommit": "2016-01-24"
+      },
+      {
+        "name": "briantro",
+        "commits": 4,
+        "firstCommit": "2016-12-24",
+        "lastCommit": "2017-11-02"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 4,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "angelosa",
+        "commits": 3,
+        "firstCommit": "2016-09-22",
+        "lastCommit": "2017-09-15"
+      },
+      {
+        "name": "braintro",
+        "commits": 3,
+        "firstCommit": "2018-03-14",
+        "lastCommit": "2018-06-13"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-29",
+        "lastCommit": "2014-04-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 3,
+        "firstCommit": "2009-05-03",
+        "lastCommit": "2009-11-16"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "cam900",
+        "commits": 2,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2026-04-03"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2008-05-25",
+        "lastCommit": "2008-07-28"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MASH",
+        "commits": 2,
+        "firstCommit": "2016-08-27",
+        "lastCommit": "2018-08-05"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-24"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-03",
+        "lastCommit": "2008-08-03"
+      },
+      {
+        "name": "Antonio Paradossi",
+        "commits": 1,
+        "firstCommit": "2016-02-23",
+        "lastCommit": "2016-02-23"
+      },
+      {
+        "name": "arbee",
+        "commits": 1,
+        "firstCommit": "2016-06-18",
+        "lastCommit": "2016-06-18"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "Devin Acker",
+        "commits": 1,
+        "firstCommit": "2020-10-09",
+        "lastCommit": "2020-10-09"
+      },
+      {
+        "name": "eientei95",
+        "commits": 1,
+        "firstCommit": "2022-06-25",
+        "lastCommit": "2022-06-25"
+      },
+      {
+        "name": "Ian Eure",
+        "commits": 1,
+        "firstCommit": "2020-12-07",
+        "lastCommit": "2020-12-07"
+      },
+      {
+        "name": "Liron486",
+        "commits": 1,
+        "firstCommit": "2026-04-29",
+        "lastCommit": "2026-04-29"
+      },
+      {
+        "name": "Luca Elia",
+        "commits": 1,
+        "firstCommit": "2016-11-13",
+        "lastCommit": "2016-11-13"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2014-11-09",
+        "lastCommit": "2014-11-09"
+      },
+      {
+        "name": "mariuszw1",
+        "commits": 1,
+        "firstCommit": "2010-11-21",
+        "lastCommit": "2010-11-21"
+      },
+      {
+        "name": "MASHinfo",
+        "commits": 1,
+        "firstCommit": "2016-09-11",
+        "lastCommit": "2016-09-11"
+      },
+      {
+        "name": "mdeslaur",
+        "commits": 1,
+        "firstCommit": "2022-08-12",
+        "lastCommit": "2022-08-12"
+      },
+      {
+        "name": "MetalliC",
+        "commits": 1,
+        "firstCommit": "2018-06-07",
+        "lastCommit": "2018-06-07"
+      },
+      {
+        "name": "Osso13",
+        "commits": 1,
+        "firstCommit": "2015-01-19",
+        "lastCommit": "2015-01-19"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      },
+      {
+        "name": "Stiletto",
+        "commits": 1,
+        "firstCommit": "2016-12-24",
+        "lastCommit": "2016-12-24"
+      },
+      {
+        "name": "Uncle Petros",
+        "commits": 1,
+        "firstCommit": "2025-11-26",
+        "lastCommit": "2025-11-26"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nPac-Man (c) 1980 Midway Mfg. Co.\n\nExport release by Bally/Midway for North America. Game developed by Namco and originally known as Puckman in Japan. For more information about the game itself, please see the original Japanese release entry, \"Puckman [Upright model]\".\n\n- TECHNICAL -\n\nUpright model\nGame No. 932\n\n- TRIVIA -\n\nPac-Man was released by Midway Manufacturing, under license from Namco, in the USA on October 10, 1980 (Friday). 96,000 units were produced in America. \n\nReportedly, when Bally/Midway obtained the rights to Pac-Man, Namco was offering four different games, which ended up being licensed to Game Plan and Bally/Midway. Game Plan's Ken Anderson reports that he and Bally's Dave Marofske flipped a coin to see who would get first crack at the games. Game Plan won and chose a tank game (which they released as \"Tank Battalion\") over Pac-Man. The other game they got was released as \"King & Balloon\". Bally/Midway, meanwhile, took Pac-Man and \"Rally-X\".\n\nMidway made the following changes to the game (from the original Namco version):\n- The game's name (and likewise its main character) has been changed to Pac-Man. Refer to the Namco Upright version entry, Trivia section, for details behind this name change. \n- The name/nickname combinations for the ghosts in this version are:\nShadow - \"Blinky\" (red ghost)\nSpeedy - \"Pinky\" (pink ghost)\nBashful - \"Inky\" (cyan ghost)\nPokey - \"Clyde\" (orange ghost)\n- Notice that the pink ghost's nickname remains unchanged from the Japanese version.\n- Unlike the Japanese version, the American version has no DIP switch for alternate ghost names.  \n\nThe game's cult status in the early 80's was such that it inspired a hit single by 'Buckner and Garcia' called 'Pac-Man Fever'. Initially released as a single in December, 1981, it eventually reached #9 on the pop charts.  It was so popular the label encouraged them to record an entire album with video game themed songs.  The album 'Pac-Man Fever' was quickly released in January of 1982 featuring 8 songs based on Donkey Kong, Frogger, Asteroids, Centipede, and other popular games.\n\nThe game also spawned a virtual cottage industry of best-selling how-to books strategy guides on how to beat the game by using patterns with names like the \"Bazo's Breaker\", the \"Donut Dazzler\" and the \"GET pattern\" (named after the first initials of the members of a team of players from Davis, California: George Huang, Ed Bazo, and Tom Fertado). \n\nA Pac-Man unit appears in the movie 'Getting There', in the 1982 movie 'Jekyll & Hyde - Together Again', in the 1982 movie 'Fast Times at Ridgemont High', in the 1983 movie 'WarGames', in the 1983 movie 'Joysticks', in the 1983 movie 'Koyaanisqatsi - Life out of Balance', in the 1985 movie 'The Heavenly Kid', in the 1985 movie 'Better Off Dead', and in the 1986 movie 'The Color of Money'. \n\nA Pac-Man unit appears in the pilot of Season One of 'The A-Team'. It is where Amy (Melinda Culea) meets Murdock (Dwight Schultz) for the first time. \n\nMB (Milton Bradley) released a board game based on this video game in 1982 (Pac-Man Game, 'As Much Fun as the Action Packed Arcade Game of the Same Name'). In this board game, the dots in the maze are represented by white marbles. There are also yellow marbles representing the power pills in the maze. There are also two ghosts pawns of the same color in the game. The object is to roll the dice and move your Pac-Man playing piece around the maze gobbling up as many marbles as you can using the count on one die, and move either ghost pawn using the count on the other die. There are yellow dots imprinted on the game board to lay out the path each character must take; these dots do not count as spaces. Use the ghosts to try to catch your opponents. When this happens, that opponent is sent back home and surrenders two marbles to the player who moved the ghost. If a Pac-Man gobbles up a yellow marble, that player earns the right to gobble a ghost. When this happens, the gobbled ghost is returned to the ghost pen, the player takes two marbles away from any opponent, and the player's yellow marble is returned to the game board. Once the maze is cleared of white marbles, the game is over and the player with the most white marbles (yellow marbles do not count) is the winner. \n\n'Pac-Man' is also the nickname of the Filipino boxing champion Manny Pacquiao. The two-time world champion earned the distinction as the only boxer who has knocked down both future Mexican 'Hall of Famer' Marco Antonio 'Baby Face Assassin' Barrera (knocked out in 11th round) and Erik 'El Terrible' Morales (knocked out in 10th round). Pacquiao has been on the top 10 list of the best 'pound-for-pound' fighters in the world. \n\nIn the multi-racial country of Malaysia, 'Pac-Man' is a slang term coined to describe men who only date ladies of other races. \n\nThe name 'Pac-Man' has been given to a nebula, cataloged as NGC 281. The Pac-Man Nebula is an H II region in the constellation of Cassiopeia. It includes or is near the open cluster IC 1590, the double star HD 5005, and several Bok globules. The shape of the nebula resembles the famous video game icon, Pac-Man. It is visible in amateur telescopes from dark sky locations. \n\nThe Cassini Robotic spacecraft (Cassini-Huygens) were captured images during a close pass to the moon of Saturn named 'Mimas', and collected by the composite infrared spectrometer (CIRS). The images show the fluctuating temperatures experienced by Mimas. The combined map with this images form a shape of this character Pac-Man. \n\nOn May 21, 2010, to celebrate Pac-Man's 30th Anniversary, Google, the famous internet search engine, has created the first ever interactive Doodle! This doodle allowed people to play Pac-Man on the home page (at the place of the original logo).\n\n- UPDATES -\n\nMidway's new revision program for Pac-Man was released in December 1981; the new program increases the difficulty of the game and adds a new challenge to players already familiar with the original.\n\n- PORTS -\n\nNOTE: Only ports released in North America [US] are listed here. For ports released in other regions, please see the original Namco (Japanese version) upright entry. \n\n* CONSOLES: \nBally Astrocade \"Muncher\" \nEmerson Arcadia \"Gobbler\" \nAtari 2600 (1981) \"Pac-Man [Model CX2646]\" \nAtari 5200 (1982) \"Pac-Man [Model CX5208]\" \nMattel Intellivision (1983) \"Pac-Man [Model 70251]\" \nNintendo NES (1987) by Tengen \nNintendo NES (nov.1993) \"Pac-Man [Model NES-P7]\" \nSony PlayStation (jul.31, 1996) \"Namco Museum Vol.1 [Model SLUS-00215]\" \nNintendo 64 (oct.31, 1999) \"Namco Museum 64 [Model NUS-NNME-USA]\" \nSega Dreamcast (june.25, 2000) \"Namco Museum [Model T-1403N]\" \nSony PlayStation 2 (dec.4, 2001) \"Namco Museum [Model SLUS-20273]\" \nMicrosoft XBOX (oct.9, 2002) \"Namco Museum\" \nNintendo GameCube (oct.9, 2002) \"Namco Museum [Model DOL-GNME-USA]\" \nSony PlayStation 2 (aug.30, 2005) \"Namco Museum - 50th Anniversary [Model SLUS-21164]\" \nMicrosoft XBOX (aug.30, 2005) \"Namco Museum - 50th Anniversary [Model NMO-2201A-NM]\" \nNintendo GameCube (aug.30, 2005) \"Namco Museum - 50th Anniversary [Model DOL-G5NE-USA]\" \nMicrosoft XBOX 360 [XBLA] (aug.9, 2006) \nMicrosoft XBOX 360 [XBLA] (nov.4, 2008) \"Namco Museum - Virtual Arcade [Model 21022]\" \nSony PlayStation 3 (jul.16, 2009) \"Namco Museum Essentials [Model NPUB-30086]\" \nNintendo Wii (nov.16, 2010) \"Namco Museum Megamix\" \nSony PlayStation 3 [PSN] (feb.25, 2014) \"Pac-Man Museum [Model NPUB-31383]\" \nMicrosoft XBOX 360 [XBLA] (feb.26, 2014) \"Pac-Man Museum\"\nMicrosoft XBOX One [XBOX Store] (apr.20, 2016) \"Arcade Game Series - Pac-Man\"\nSony PlayStation 4 [PSN] (apr.20, 2016) \"Arcade Game Series - Pac-Man [Model CUSA-03955]\" \n\n* HANDHELDS: \nSega Game Gear (1991) \"Pac-Man [Model T-14018]\" \nNintendo Game Boy (apr.1991) \"Pac-Man [Model DMG-PC-USA]\"  \nSNK Neo-Geo Pocket Color (jul.31, 1999) \"Pac-Man [Model NEOP00551]\" \nNintendo Game Boy Color (aug.1999) \"Pac-Man - Special Color Edition [Model DMG-AACE-USA]\" \nNintendo Game Boy Advance (jul.12, 2001) \"Pac-Man Collection [Model AGB-APCE-USA]\" \nSony PSP (aug.23, 2005) \"Namco Museum Battle Collection [Model ULUS-10035]\" \nNintendo DS (sept.18, 2007) \"Namco Museum DS [Model NTR-YNME-USA]\" \nNintendo 3DS (jul.26, 2011) \"Pac-Man & Galaga Dimensions [Model CTR-APGE-USA]\" \n\n* COMPUTERS: \nTandy Color Computer (1981) \"Pac-Tac\" \nAtari 400 (1982) \nAtari 800 (1982) \"Pac-Man [Model CXL4022]\" \nCommodore VIC-20 (1982) \nPC [Booter] (1982) \"PC-Man\" \nTandy Color Computer (1982) \"Ghost Gobbler\" \nTandy Color Computer (1982) \"Pack Maze\" \nApple II (1983) \nCommodore C64 (1983) by Thunder Mountain \nCommodore C64 (1983) \"Pac-Man [Model RX8502]\" \nPC [Booter] (1983) \nPC [Booter] (1983) \"Ascii Man\" : Part of the \"Friendlyware PC Arcade\" suite \nPC [MS-DOS] (1983) \nTandy Color Computer (1983) \"Pac Jaws\" \nTandy Color Computer (1983) \"Pac-Tac II\" \nTexas Instruments TI-99/4A (1983) \"Pac-Man [Model RX8500]\"\nTandy Color Computer (1990) \"Pac-Dude\"\nApple II GS (1992) \"Pac Man GS\"\nNEC PC-9801 (1992) Pac Man\nApple Macintosh (1992) \"Mac-Man\"\nPC [MS Windows 95, CD-ROM] (1995) \"Mac-Man\" : Part of \"Windows Arcade Pack\" \nPC [MS Windows 95, 3.5\"] (mar.31, 1996) \"Microsoft Return of Arcade\" \nTandy Color Computer 3 (1997) \nPC [MS-DOS] (1997) \"Champ Pac-Em\" by CHAMProgramming \nPC [MS Windows, CD-ROM] (2000) \"Microsoft Return of Arcade Anniversary Edition\" \nPC [MS Windows, CD-ROM] (oct.25, 2005) \"Namco Museum - 50th Anniversary\" \nPC [MS Windows, Online] (2009) \"Namco All Stars: Pac-Man and Dig Dug\" by WildTangent Games \nApple iPhone/iPad (mar.31, 2010) \"Pac-Man for iPad [Model 363297482]\"  \nPC [MS Windows, Online] (aug.4, 2010) \"Namco All-Stars: PAC-MAN\" by WildTangent Games \nSteam (feb.25, 2014) \"Pac-Man Museum [Model 236470]\" \nSteam (apr.19, 2016) \"Arcade Game Series - Pac-Man [Model 394160]\" \n\n* OTHERS: \nVFD handheld game (1981) by Coleco. \nLCD handheld game (1992) by Micro Games of America \nArcade (1996) \"Namco Classics Collection Vol.2\" \nLCD handheld color game (1999) by Micro Games of America \nArcade (2000) \"Ms. Pac-Man/Galaga - 20th Anniversary Class of 1981 Reunion\" : as a hidden game. \nNamco Classics TV game (2003) by Jakks Pacific \nMobile Phones (june.13, 2003) \nArcade (2005) \"Pac-Man - 25th Anniversary Edition\" \nSuper Pac-Man TV game (2006) by Jakks Pacific \nArcade Gold featuring Pac-Man (2007) by Jakks Pacific \nRetro Arcade featuring Pac-Man (2008) by Jakks Pacific \nApple iPhone/iPod (jul.9, 2008) \"Pac-Man [Model 281656475]\" \nAndroid Market (sept.23, 2008)\nBlackBerry (june.30, 2009) \"Pac-Man [Model 967]\" \nAndroid (jan.11, 2010) \nWindows Mobile (mar.15, 2010)\nApple iPhone/iPod (mar.31, 2010) \"Pac-Man for iPad [Model 363297482]\" \nArcade (2010) \"Pac-Man's Arcade Party\" \nAndroid Market (2011) \nPac-Man Connect and Play (2012) by Bandai \nApple iPhone/iPod (mar.13, 2012) \"Namco Arcade [Model 465606050]\" \nAndroid Market (apr.6, 2012) by Namco Networks America \nAndroid (mar.22, 2013) \"Pac-Man + Tournaments\"\nArcade (2018) \"Pac-Man's Pixel Bash\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1914/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

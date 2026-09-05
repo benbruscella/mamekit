@@ -1,0 +1,4772 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/taito/taitosj.cpp",
+    "generatedAt": "2026-09-05T03:49:46.712Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/taito/taitosj.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/taito/taitosj.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:taitosj.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "taitosj.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/taito/taitosj_m.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/taito/taitosj_m.cpp"
+      }
+    },
+    {
+      "id": "file:cpu/m6805/m6805.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6805/m6805.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:junglek",
+      "label": "Game",
+      "props": {
+        "name": "junglek",
+        "year": "1982",
+        "company": "Taito",
+        "fullname": "Jungle King (Japan)",
+        "monitor": "ROT180",
+        "cls": "taitosj_state",
+        "init": "init_taitosj",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 2827,
+        "sourceColumn": 1,
+        "sourceEndLine": 2827
+      }
+    },
+    {
+      "id": "handler:taitosj_state.characterram_w",
+      "label": "Handler",
+      "props": {
+        "method": "characterram_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 208,
+        "sourceColumn": 1,
+        "sourceEndLine": 225,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (m_characterram[offset] != data)\n\t{\n\t\tif (offset < 0x1800)\n\t\t{\n\t\t\tm_gfxdecode->gfx(0)->mark_dirty((offset / 8) & 0xff);\n\t\t\tm_gfxdecode->gfx(1)->mark_dirty((offset / 32) & 0x3f);\n\t\t}\n\t\telse\n\t\t{\n\t\t\tm_gfxdecode->gfx(2)->mark_dirty((offset / 8) & 0xff);\n\t\t\tm_gfxdecode->gfx(3)->mark_dirty((offset / 32) & 0x3f);\n\t\t}\n\n\t\tm_characterram[offset] = data;\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.bankswitch_w",
+      "label": "Handler",
+      "props": {
+        "method": "bankswitch_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 40,
+        "sourceColumn": 1,
+        "sourceEndLine": 58,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "machine().bookkeeping().coin_lockout_global_w(~data & 1);\n\n\t/* this is a bit of a hack, but works.\n\t    Eventually the mixing of the ay1 outs and\n\t    amplitude-overdrive-mute stuff done by\n\t    bit 1 here should be done on a netlist.\n\t*/\n\tm_ay[0]->set_output_gain(0, (data & 0x2) ? 1.0 : 0.0); // 3 outputs for Ay1 since it doesn't use tied together outs\n\tm_ay[0]->set_output_gain(1, (data & 0x2) ? 1.0 : 0.0);\n\tm_ay[0]->set_output_gain(2, (data & 0x2) ? 1.0 : 0.0);\n\tm_ay[1]->set_output_gain(0, (data & 0x2) ? 1.0 : 0.0);\n\tm_ay[2]->set_output_gain(0, (data & 0x2) ? 1.0 : 0.0);\n\tm_ay[3]->set_output_gain(0, (data & 0x2) ? 1.0 : 0.0);\n\tm_dac->set_output_gain(0, (data & 0x2) ? 1.0 : 0.0);\n\n\tm_mainbank->set_entry(BIT(data, 7));"
+      }
+    },
+    {
+      "id": "romset:junglek",
+      "label": "RomSet",
+      "props": {
+        "name": "junglek",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1825,
+        "sourceColumn": 1,
+        "sourceEndLine": 1825
+      }
+    },
+    {
+      "id": "region:junglek/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 73728,
+        "flags": "0",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1767,
+        "sourceColumn": 2,
+        "sourceEndLine": 1767
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn21-1.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn21-1.bin",
+        "offset": 0,
+        "size": 4096,
+        "crc": "45f55d30",
+        "sha1": "bb9518d7728938f673a663801e47ae0438cdbea1",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1827,
+        "sourceColumn": 2,
+        "sourceEndLine": 1827
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn22-1.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn22-1.bin",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "07cc9a21",
+        "sha1": "3fe35935e0a430ab0edc6a762623972fa37ea926",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1828,
+        "sourceColumn": 2,
+        "sourceEndLine": 1828
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn43.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn43.bin",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "a20e5a48",
+        "sha1": "af961b671dc4c865d0181d08a70b902bb96f29d0",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1829,
+        "sourceColumn": 2,
+        "sourceEndLine": 1829
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn24.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn24.bin",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "19ea7f83",
+        "sha1": "2399cc89f73811575c3f644d5c04ef13ceec6838",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1830,
+        "sourceColumn": 2,
+        "sourceEndLine": 1830
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn25.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn25.bin",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "844365ea",
+        "sha1": "af34712620e4b784a5014283d3111048c5f81a56",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1831,
+        "sourceColumn": 2,
+        "sourceEndLine": 1831
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn46.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn46.bin",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "27a95fd5",
+        "sha1": "160ee5d11126ac4155b479e43ec1bd6a4e9e21e7",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1832,
+        "sourceColumn": 2,
+        "sourceEndLine": 1832
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn47.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn47.bin",
+        "offset": 24576,
+        "size": 4096,
+        "crc": "5c3199e0",
+        "sha1": "c57dec92998b971d76aecd23674c25cf7b8be667",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1833,
+        "sourceColumn": 2,
+        "sourceEndLine": 1833
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn28.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn28.bin",
+        "offset": 28672,
+        "size": 4096,
+        "crc": "194a2d09",
+        "sha1": "88999493e470acdcf932efff71cd6155387a63d0",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1834,
+        "sourceColumn": 2,
+        "sourceEndLine": 1834
+      }
+    },
+    {
+      "id": "rom:junglek/maincpu/kn60.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn60.bin",
+        "offset": 69632,
+        "size": 4096,
+        "crc": "1a9c0a26",
+        "sha1": "82f4cebeba90419e83a00427b671985824babd7a",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1836,
+        "sourceColumn": 2,
+        "sourceEndLine": 1836
+      }
+    },
+    {
+      "id": "region:junglek/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1778,
+        "sourceColumn": 2,
+        "sourceEndLine": 1778
+      }
+    },
+    {
+      "id": "rom:junglek/audiocpu/kn37.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn37.bin",
+        "offset": 0,
+        "size": 4096,
+        "crc": "dee7f5d4",
+        "sha1": "cd8179a17ccd054fb470c4eee97192c2dd226397",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1839,
+        "sourceColumn": 2,
+        "sourceEndLine": 1839
+      }
+    },
+    {
+      "id": "rom:junglek/audiocpu/kn38.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn38.bin",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "bffd3d21",
+        "sha1": "a2b3393e9694d6979d39ab0f1ab82b7ef892b3da",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1840,
+        "sourceColumn": 2,
+        "sourceEndLine": 1840
+      }
+    },
+    {
+      "id": "rom:junglek/audiocpu/kn59-1.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn59-1.bin",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "cee485fc",
+        "sha1": "1e0c52ec6b1d3cfd47247db71bcf3fe476c32039",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1841,
+        "sourceColumn": 2,
+        "sourceEndLine": 1841
+      }
+    },
+    {
+      "id": "region:junglek/gfx",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1783,
+        "sourceColumn": 2,
+        "sourceEndLine": 1783
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn29.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn29.bin",
+        "offset": 0,
+        "size": 4096,
+        "crc": "8f83c290",
+        "sha1": "aa95ed2d2e15f573e092e8eed7d80479512d9409",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1844,
+        "sourceColumn": 2,
+        "sourceEndLine": 1844
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn30.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn30.bin",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "89fd19f1",
+        "sha1": "fc7dfe3a1d78ac37a036fa9d8ebf3a33a2f4cbe8",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1845,
+        "sourceColumn": 2,
+        "sourceEndLine": 1845
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn51.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn51.bin",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "70e8fc12",
+        "sha1": "505c90c662d372d28cb38201433054b8e3d723d1",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1846,
+        "sourceColumn": 2,
+        "sourceEndLine": 1846
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn52.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn52.bin",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "bcbac1a3",
+        "sha1": "bcd5fc9b3791ab67e0ad9f9ced7226853e9a2a00",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1847,
+        "sourceColumn": 2,
+        "sourceEndLine": 1847
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn53.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn53.bin",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "b946c87d",
+        "sha1": "d16cb6bf38e00ae11c204cbf8f400f8a85c807c2",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1848,
+        "sourceColumn": 2,
+        "sourceEndLine": 1848
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn34.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn34.bin",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "320db2e1",
+        "sha1": "ca8722010712302b491eb5f51d73043bcb2ddc8f",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1849,
+        "sourceColumn": 2,
+        "sourceEndLine": 1849
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn55.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn55.bin",
+        "offset": 24576,
+        "size": 4096,
+        "crc": "70aef58f",
+        "sha1": "df7454a1c3676181eca698bb3b2ef3253a45ca0f",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1850,
+        "sourceColumn": 2,
+        "sourceEndLine": 1850
+      }
+    },
+    {
+      "id": "rom:junglek/gfx/kn56.bin",
+      "label": "Rom",
+      "props": {
+        "file": "kn56.bin",
+        "offset": 28672,
+        "size": 4096,
+        "crc": "932eb667",
+        "sha1": "4bf7c01ab212b616931a21a43a453521aa01ff36",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1851,
+        "sourceColumn": 2,
+        "sourceEndLine": 1851
+      }
+    },
+    {
+      "id": "region:junglek/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1789,
+        "sourceColumn": 2,
+        "sourceEndLine": 1789
+      }
+    },
+    {
+      "id": "rom:junglek/proms/eb16.22",
+      "label": "Rom",
+      "props": {
+        "file": "eb16.22",
+        "offset": 0,
+        "size": 256,
+        "crc": "b833b5ea",
+        "sha1": "d233f1bf8a3e6cd876853ffd721b9b64c61c9047",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1790,
+        "sourceColumn": 2,
+        "sourceEndLine": 1790
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "taitosj_state",
+        "name": "main_nomcu_map",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 204,
+        "sourceColumn": 1,
+        "sourceEndLine": 243
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 24575,
+        "raw": "map(0x0000, 0x5fff).rom()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 206,
+        "sourceColumn": 2,
+        "sourceEndLine": 206,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 32767,
+        "raw": "map(0x6000, 0x7fff).bankr(m_mainbank)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 207,
+        "sourceColumn": 2,
+        "sourceEndLine": 207,
+        "bankRead": "mainbank"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 34815,
+        "raw": "map(0x8000, 0x87ff).ram()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 208,
+        "sourceColumn": 2,
+        "sourceEndLine": 208,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 34816,
+        "end": 34816,
+        "raw": "map(0x8800, 0x8800).mirror(0x07fe).rw(FUNC(taitosj_state::fake_data_r), FUNC(taitosj_state::fake_data_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 209,
+        "sourceColumn": 2,
+        "sourceEndLine": 209,
+        "mirror": 2046
+      }
+    },
+    {
+      "id": "handler:taitosj_state.fake_data_r",
+      "label": "Handler",
+      "props": {
+        "method": "fake_data_r",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 76,
+        "sourceColumn": 1,
+        "sourceEndLine": 80,
+        "sourceParameters": "",
+        "sourceBody": "LOG((\"%04x: protection read\\n\", m_maincpu->pc()));\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.fake_data_w",
+      "label": "Handler",
+      "props": {
+        "method": "fake_data_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 82,
+        "sourceColumn": 1,
+        "sourceEndLine": 85,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "LOG((\"%04x: protection write %02x\\n\", m_maincpu->pc(), data));"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 34817,
+        "end": 34817,
+        "raw": "map(0x8801, 0x8801).mirror(0x07fe).r(FUNC(taitosj_state::fake_status_r))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 210,
+        "sourceColumn": 2,
+        "sourceEndLine": 210,
+        "mirror": 2046
+      }
+    },
+    {
+      "id": "handler:taitosj_state.fake_status_r",
+      "label": "Handler",
+      "props": {
+        "method": "fake_status_r",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 87,
+        "sourceColumn": 1,
+        "sourceEndLine": 91,
+        "sourceParameters": "",
+        "sourceBody": "LOG((\"%04x: protection status read\\n\", m_maincpu->pc()));\n\treturn 0xff;"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 36864,
+        "end": 49151,
+        "raw": "map(0x9000, 0xbfff).w(FUNC(taitosj_state::characterram_w)).share(m_characterram)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 211,
+        "sourceColumn": 2,
+        "sourceEndLine": 211,
+        "share": "characterram"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 50175,
+        "raw": "map(0xc000, 0xc3ff).ram()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 212,
+        "sourceColumn": 2,
+        "sourceEndLine": 212,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 50176,
+        "end": 51199,
+        "raw": "map(0xc400, 0xc7ff).ram().share(m_videoram[0])",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 213,
+        "sourceColumn": 2,
+        "sourceEndLine": 213,
+        "ram": true,
+        "share": "videoram[0]"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 52223,
+        "raw": "map(0xc800, 0xcbff).ram().share(m_videoram[1])",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 214,
+        "sourceColumn": 2,
+        "sourceEndLine": 214,
+        "ram": true,
+        "share": "videoram[1]"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 52224,
+        "end": 53247,
+        "raw": "map(0xcc00, 0xcfff).ram().share(m_videoram[2])",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 215,
+        "sourceColumn": 2,
+        "sourceEndLine": 215,
+        "ram": true,
+        "share": "videoram[2]"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 53343,
+        "raw": "map(0xd000, 0xd05f).ram().share(m_colscrolly)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 216,
+        "sourceColumn": 2,
+        "sourceEndLine": 216,
+        "ram": true,
+        "share": "colscrolly"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 53344,
+        "end": 53503,
+        "raw": "map(0xd060, 0xd0ff).ram()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 217,
+        "sourceColumn": 2,
+        "sourceEndLine": 217,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 53504,
+        "end": 53759,
+        "raw": "map(0xd100, 0xd1ff).ram().share(m_spriteram)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 218,
+        "sourceColumn": 2,
+        "sourceEndLine": 218,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 53760,
+        "end": 53887,
+        "raw": "map(0xd200, 0xd27f).mirror(0x0080).ram().share(m_paletteram)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 219,
+        "sourceColumn": 2,
+        "sourceEndLine": 219,
+        "mirror": 128,
+        "ram": true,
+        "share": "paletteram"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 54016,
+        "end": 54016,
+        "raw": "map(0xd300, 0xd300).mirror(0x00ff).writeonly().share(m_video_priority)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 220,
+        "sourceColumn": 2,
+        "sourceEndLine": 220,
+        "mirror": 255,
+        "writeonly": true,
+        "share": "video_priority"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 54272,
+        "end": 54275,
+        "raw": "map(0xd400, 0xd403).mirror(0x00f0).readonly().share(m_collision_reg)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 221,
+        "sourceColumn": 2,
+        "sourceEndLine": 221,
+        "mirror": 240,
+        "readonly": true,
+        "share": "collision_reg"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 54276,
+        "end": 54276,
+        "raw": "map(0xd404, 0xd404).mirror(0x00f3).r(FUNC(taitosj_state::gfxrom_r))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 222,
+        "sourceColumn": 2,
+        "sourceEndLine": 222,
+        "mirror": 243
+      }
+    },
+    {
+      "id": "handler:taitosj_state.gfxrom_r",
+      "label": "Handler",
+      "props": {
+        "method": "gfxrom_r",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 187,
+        "sourceColumn": 1,
+        "sourceEndLine": 204,
+        "sourceParameters": "",
+        "sourceBody": "uint8_t ret;\n\n\toffs_t offs = m_gfxpointer[0] | (m_gfxpointer[1] << 8);\n\n\tif (offs < 0x8000)\n\t\tret = m_gfx[offs];\n\telse\n\t\tret = 0;\n\n\toffs = offs + 1;\n\n\tm_gfxpointer[0] = offs & 0xff;\n\tm_gfxpointer[1] = offs >> 8;\n\n\treturn ret;"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 54280,
+        "end": 54280,
+        "raw": "map(0xd408, 0xd408).mirror(0x00f0).portr(\"IN0\")",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 223,
+        "sourceColumn": 2,
+        "sourceEndLine": 223,
+        "mirror": 240,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range18",
+      "label": "AddressRange",
+      "props": {
+        "start": 54281,
+        "end": 54281,
+        "raw": "map(0xd409, 0xd409).mirror(0x00f0).portr(\"IN1\")",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 224,
+        "sourceColumn": 2,
+        "sourceEndLine": 224,
+        "mirror": 240,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range19",
+      "label": "AddressRange",
+      "props": {
+        "start": 54282,
+        "end": 54282,
+        "raw": "map(0xd40a, 0xd40a).mirror(0x00f0).portr(\"DSW1\")",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 225,
+        "sourceColumn": 2,
+        "sourceEndLine": 225,
+        "mirror": 240,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range20",
+      "label": "AddressRange",
+      "props": {
+        "start": 54283,
+        "end": 54283,
+        "raw": "map(0xd40b, 0xd40b).mirror(0x00f0).portr(\"IN2\")",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 226,
+        "sourceColumn": 2,
+        "sourceEndLine": 226,
+        "mirror": 240,
+        "portRead": "IN2"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range21",
+      "label": "AddressRange",
+      "props": {
+        "start": 54284,
+        "end": 54284,
+        "raw": "map(0xd40c, 0xd40c).mirror(0x00f0).portr(\"IN3\")",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 227,
+        "sourceColumn": 2,
+        "sourceEndLine": 227,
+        "mirror": 240,
+        "portRead": "IN3"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range22",
+      "label": "AddressRange",
+      "props": {
+        "start": 54285,
+        "end": 54285,
+        "raw": "map(0xd40d, 0xd40d).mirror(0x00f0).portr(\"IN4\")",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 228,
+        "sourceColumn": 2,
+        "sourceEndLine": 228,
+        "mirror": 240,
+        "portRead": "IN4"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range23",
+      "label": "AddressRange",
+      "props": {
+        "start": 54286,
+        "end": 54287,
+        "raw": "map(0xd40e, 0xd40f).mirror(0x00f0).w(m_ay[0], FUNC(ay8910_device::address_data_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 229,
+        "sourceColumn": 2,
+        "sourceEndLine": 229,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "handler:ay8910_device.address_data_w",
+      "label": "Handler",
+      "props": {
+        "method": "address_data_w",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 374,
+        "sourceColumn": 2,
+        "sourceEndLine": 374
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range24",
+      "label": "AddressRange",
+      "props": {
+        "start": 54287,
+        "end": 54287,
+        "raw": "map(0xd40f, 0xd40f).mirror(0x00f0).r(m_ay[0], FUNC(ay8910_device::data_r))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 230,
+        "sourceColumn": 2,
+        "sourceEndLine": 230,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_r",
+      "label": "Handler",
+      "props": {
+        "method": "data_r",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 375,
+        "sourceColumn": 2,
+        "sourceEndLine": 375
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range25",
+      "label": "AddressRange",
+      "props": {
+        "start": 54528,
+        "end": 54533,
+        "raw": "map(0xd500, 0xd505).mirror(0x00f0).writeonly().share(m_scroll)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 231,
+        "sourceColumn": 2,
+        "sourceEndLine": 231,
+        "mirror": 240,
+        "writeonly": true,
+        "share": "scroll"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range26",
+      "label": "AddressRange",
+      "props": {
+        "start": 54534,
+        "end": 54535,
+        "raw": "map(0xd506, 0xd507).mirror(0x00f0).writeonly().share(m_colorbank)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 232,
+        "sourceColumn": 2,
+        "sourceEndLine": 232,
+        "mirror": 240,
+        "writeonly": true,
+        "share": "colorbank"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range27",
+      "label": "AddressRange",
+      "props": {
+        "start": 54536,
+        "end": 54536,
+        "raw": "map(0xd508, 0xd508).mirror(0x00f0).w(FUNC(taitosj_state::collision_reg_clear_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 233,
+        "sourceColumn": 2,
+        "sourceEndLine": 233,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "handler:taitosj_state.collision_reg_clear_w",
+      "label": "Handler",
+      "props": {
+        "method": "collision_reg_clear_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 233,
+        "sourceColumn": 1,
+        "sourceEndLine": 239,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_collision_reg[0] = 0;\n\tm_collision_reg[1] = 0;\n\tm_collision_reg[2] = 0;\n\tm_collision_reg[3] = 0;"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range28",
+      "label": "AddressRange",
+      "props": {
+        "start": 54537,
+        "end": 54538,
+        "raw": "map(0xd509, 0xd50a).mirror(0x00f0).writeonly().share(m_gfxpointer)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 234,
+        "sourceColumn": 2,
+        "sourceEndLine": 234,
+        "mirror": 240,
+        "writeonly": true,
+        "share": "gfxpointer"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range29",
+      "label": "AddressRange",
+      "props": {
+        "start": 54539,
+        "end": 54539,
+        "raw": "map(0xd50b, 0xd50b).mirror(0x00f0).w(FUNC(taitosj_state::soundlatch_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 235,
+        "sourceColumn": 2,
+        "sourceEndLine": 235,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "handler:taitosj_state.soundlatch_w",
+      "label": "Handler",
+      "props": {
+        "method": "soundlatch_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 181,
+        "sourceColumn": 1,
+        "sourceEndLine": 184,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "machine().scheduler().synchronize(timer_expired_delegate(FUNC(taitosj_state::soundlatch_w_cb), this), data);"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.soundlatch_w_cb",
+      "label": "Handler",
+      "props": {
+        "method": "soundlatch_w_cb",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 308,
+        "sourceColumn": 1,
+        "sourceEndLine": 315,
+        "sourceParameters": "int param",
+        "sourceBody": "if (m_soundlatch_flag && (m_soundlatch_data != param))\n\t\tlogerror(\"Warning: soundlatch written before being read. Previous: %02x, new: %02x\\n\", m_soundlatch_data, param);\n\tm_soundlatch_data = param;\n\tm_soundlatch_flag = true;\n\tm_soundnmi[0]->in_w<1>(1);"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range30",
+      "label": "AddressRange",
+      "props": {
+        "start": 54540,
+        "end": 54540,
+        "raw": "map(0xd50c, 0xd50c).mirror(0x00f0).w(FUNC(taitosj_state::sound_semaphore2_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 236,
+        "sourceColumn": 2,
+        "sourceEndLine": 236,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "handler:taitosj_state.sound_semaphore2_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_semaphore2_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 193,
+        "sourceColumn": 1,
+        "sourceEndLine": 196,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "machine().scheduler().synchronize(timer_expired_delegate(FUNC(taitosj_state::sound_semaphore2_w_cb), this), data);"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.sound_semaphore2_w_cb",
+      "label": "Handler",
+      "props": {
+        "method": "sound_semaphore2_w_cb",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 324,
+        "sourceColumn": 1,
+        "sourceEndLine": 328,
+        "sourceParameters": "int param",
+        "sourceBody": "m_sound_semaphore2 = (param & 1);\n\tm_soundnmi[1]->in_w<1>((param & 1));"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range31",
+      "label": "AddressRange",
+      "props": {
+        "start": 54541,
+        "end": 54541,
+        "raw": "map(0xd50d, 0xd50d).mirror(0x00f0).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 237,
+        "sourceColumn": 2,
+        "sourceEndLine": 237,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 301,
+        "sourceColumn": 2,
+        "sourceEndLine": 301
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range32",
+      "label": "AddressRange",
+      "props": {
+        "start": 54542,
+        "end": 54542,
+        "raw": "map(0xd50e, 0xd50e).mirror(0x00f0).w(FUNC(taitosj_state::bankswitch_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 238,
+        "sourceColumn": 2,
+        "sourceEndLine": 238,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range33",
+      "label": "AddressRange",
+      "props": {
+        "start": 54543,
+        "end": 54543,
+        "raw": "map(0xd50f, 0xd50f).mirror(0x00f0).nopw()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 239,
+        "sourceColumn": 2,
+        "sourceEndLine": 239,
+        "mirror": 240,
+        "nopw": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range34",
+      "label": "AddressRange",
+      "props": {
+        "start": 54784,
+        "end": 54784,
+        "raw": "map(0xd600, 0xd600).mirror(0x00ff).writeonly().share(m_video_mode)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 240,
+        "sourceColumn": 2,
+        "sourceEndLine": 240,
+        "mirror": 255,
+        "writeonly": true,
+        "share": "video_mode"
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range35",
+      "label": "AddressRange",
+      "props": {
+        "start": 55040,
+        "end": 57343,
+        "raw": "map(0xd700, 0xdfff).noprw()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 241,
+        "sourceColumn": 2,
+        "sourceEndLine": 241
+      }
+    },
+    {
+      "id": "map:taitosj_state.main_nomcu_map/range36",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 65535,
+        "raw": "map(0xe000, 0xffff).rom()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 242,
+        "sourceColumn": 2,
+        "sourceEndLine": 242,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "taitosj_state",
+        "name": "taitosj_audio_map",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 366,
+        "sourceColumn": 1,
+        "sourceEndLine": 379
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rom()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 368,
+        "sourceColumn": 2,
+        "sourceEndLine": 368,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 17407,
+        "raw": "map(0x4000, 0x43ff).ram()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 369,
+        "sourceColumn": 2,
+        "sourceEndLine": 369,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 18432,
+        "end": 18433,
+        "raw": "map(0x4800, 0x4801).mirror(0x07f8).w(m_ay[1], FUNC(ay8910_device::address_data_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 370,
+        "sourceColumn": 2,
+        "sourceEndLine": 370,
+        "mirror": 2040
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 18433,
+        "end": 18433,
+        "raw": "map(0x4801, 0x4801).mirror(0x07f8).r(m_ay[1], FUNC(ay8910_device::data_r))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 371,
+        "sourceColumn": 2,
+        "sourceEndLine": 371,
+        "mirror": 2040
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 18434,
+        "end": 18435,
+        "raw": "map(0x4802, 0x4803).mirror(0x07f8).w(m_ay[2], FUNC(ay8910_device::address_data_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 372,
+        "sourceColumn": 2,
+        "sourceEndLine": 372,
+        "mirror": 2040
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 18435,
+        "end": 18435,
+        "raw": "map(0x4803, 0x4803).mirror(0x07f8).r(m_ay[2], FUNC(ay8910_device::data_r))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 373,
+        "sourceColumn": 2,
+        "sourceEndLine": 373,
+        "mirror": 2040
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 18436,
+        "end": 18437,
+        "raw": "map(0x4804, 0x4805).mirror(0x07fa).w(m_ay[3], FUNC(ay8910_device::address_data_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 374,
+        "sourceColumn": 2,
+        "sourceEndLine": 374,
+        "mirror": 2042
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 18437,
+        "end": 18437,
+        "raw": "map(0x4805, 0x4805).mirror(0x07fa).r(m_ay[3], FUNC(ay8910_device::data_r))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 375,
+        "sourceColumn": 2,
+        "sourceEndLine": 375,
+        "mirror": 2042
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 20480,
+        "raw": "map(0x5000, 0x5000).mirror(0x07fc).rw(FUNC(taitosj_state::soundlatch_r), FUNC(taitosj_state::soundlatch_clear7_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 376,
+        "sourceColumn": 2,
+        "sourceEndLine": 376,
+        "mirror": 2044
+      }
+    },
+    {
+      "id": "handler:taitosj_state.soundlatch_r",
+      "label": "Handler",
+      "props": {
+        "method": "soundlatch_r",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 337,
+        "sourceColumn": 1,
+        "sourceEndLine": 345,
+        "sourceParameters": "",
+        "sourceBody": "if (!machine().side_effects_disabled())\n\t{\n\t\tm_soundlatch_flag = false;\n\t\tm_soundnmi[0]->in_w<1>(0);\n\t}\n\treturn m_soundlatch_data;"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.soundlatch_clear7_w",
+      "label": "Handler",
+      "props": {
+        "method": "soundlatch_clear7_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 354,
+        "sourceColumn": 1,
+        "sourceEndLine": 357,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "machine().scheduler().synchronize(timer_expired_delegate(FUNC(taitosj_state::soundlatch_clear7_w_cb), this), data);"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.soundlatch_clear7_w_cb",
+      "label": "Handler",
+      "props": {
+        "method": "soundlatch_clear7_w_cb",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 317,
+        "sourceColumn": 1,
+        "sourceEndLine": 322,
+        "sourceParameters": "int param",
+        "sourceBody": "if (m_soundlatch_flag)\n\t\tlogerror(\"Warning: soundlatch bit 7 cleared before being read. Previous: %02x, new: %02x\\n\", m_soundlatch_data, m_soundlatch_data & 0x7f);\n\tm_soundlatch_data &= 0x7f;"
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 20481,
+        "end": 20481,
+        "raw": "map(0x5001, 0x5001).mirror(0x07fc).rw(FUNC(taitosj_state::soundlatch_flags_r), FUNC(taitosj_state::sound_semaphore2_clear_w))",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 377,
+        "sourceColumn": 2,
+        "sourceEndLine": 377,
+        "mirror": 2044
+      }
+    },
+    {
+      "id": "handler:taitosj_state.soundlatch_flags_r",
+      "label": "Handler",
+      "props": {
+        "method": "soundlatch_flags_r",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 348,
+        "sourceColumn": 1,
+        "sourceEndLine": 351,
+        "sourceParameters": "",
+        "sourceBody": "return (m_soundlatch_flag ? 8 : 0) | (m_sound_semaphore2 ? 4 : 0) | 3;"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.sound_semaphore2_clear_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_semaphore2_clear_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 360,
+        "sourceColumn": 1,
+        "sourceEndLine": 363,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "machine().scheduler().synchronize(timer_expired_delegate(FUNC(taitosj_state::sound_semaphore2_clear_w_cb), this), data);"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.sound_semaphore2_clear_w_cb",
+      "label": "Handler",
+      "props": {
+        "method": "sound_semaphore2_clear_w_cb",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 330,
+        "sourceColumn": 1,
+        "sourceEndLine": 334,
+        "sourceParameters": "int param",
+        "sourceBody": "m_sound_semaphore2 = false;\n\tm_soundnmi[1]->in_w<1>(0);"
+      }
+    },
+    {
+      "id": "map:taitosj_state.taitosj_audio_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 61439,
+        "raw": "map(0xe000, 0xefff).rom()",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 2,
+        "sourceEndLine": 378,
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:taitosj_state.nomcu",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "taitosj_state",
+        "name": "nomcu",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_input_port_4_f0\",\"bits\":8}",
+          "{\"name\":\"m_kikstart_gears\",\"bits\":8,\"arrayLength\":2}",
+          "{\"name\":\"m_spacecr_prot_value\",\"bits\":8}",
+          "{\"name\":\"m_protection_value\",\"bits\":8}",
+          "{\"name\":\"m_address\",\"bits\":32}",
+          "{\"name\":\"m_soundlatch_data\",\"bits\":8}",
+          "{\"name\":\"m_soundlatch_flag\",\"bits\":1}",
+          "{\"name\":\"m_sound_semaphore2\",\"bits\":1}"
+        ],
+        "resetHandlers": [
+          "taitosj_state.machine_reset"
+        ],
+        "startHandlers": [
+          "taitosj_state.video_start"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1662,
+        "sourceColumn": 1,
+        "sourceEndLine": 1725
+      }
+    },
+    {
+      "id": "handler:taitosj_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 30,
+        "sourceColumn": 1,
+        "sourceEndLine": 37,
+        "sourceParameters": "",
+        "sourceBody": "/* set the default ROM bank (many games only have one bank and\n\t   never write to the bank selector register) */\n\tbankswitch_w(0);\n\n\tm_spacecr_prot_value = 0;"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 164,
+        "sourceColumn": 1,
+        "sourceEndLine": 183,
+        "sourceParameters": "",
+        "sourceBody": "m_sprite_layer_collbitmap1.allocate(16, 16);\n\n\tfor (int i = 0; i < 3; i++)\n\t{\n\t\tm_layer_bitmap[i].allocate(32*8, 32*8);\n\t\tm_sprite_layer_collbitmap2[i].allocate(32*8, 32*8);\n\t}\n\n\tm_sprite_sprite_collbitmap1.allocate(32, 32);\n\tm_sprite_sprite_collbitmap2.allocate(32, 32);\n\n\tm_gfxdecode->gfx(0)->set_source(m_characterram);\n\tm_gfxdecode->gfx(1)->set_source(m_characterram);\n\tm_gfxdecode->gfx(2)->set_source(m_characterram + 0x1800);\n\tm_gfxdecode->gfx(3)->set_source(m_characterram + 0x1800);\n\n\tcompute_draw_order();"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.compute_draw_order",
+      "label": "Handler",
+      "props": {
+        "method": "compute_draw_order",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 137,
+        "sourceColumn": 1,
+        "sourceEndLine": 162,
+        "sourceParameters": "",
+        "sourceBody": "uint8_t *color_prom = memregion(\"proms\")->base();\n\n\t/* do a simple conversion of the PROM into layer priority order. Note that\n\t   this is a simplification, which assumes the PROM encodes a sensible priority\n\t   scheme. */\n\tfor (int i = 0; i < 32; i++)\n\t{\n\t\tint mask = 0;   /* start with all four layers active, so we'll get the highest\n\t\t                   priority one in the first loop */\n\t\tfor (int j = 3; j >= 0; j--)\n\t\t{\n\t\t\tint data = color_prom[0x10 * (i & 0x0f) + mask] & 0x0f;\n\n\t\t\tif (i & 0x10)\n\t\t\t\tdata = data >> 2;\n\t\t\telse\n\t\t\t\tdata = data & 0x03;\n\n\t\t\tmask |= (1 << data);    /* in next loop, we'll see which of the remaining\n\t\t\t                           layers has top priority when this one is transparent */\n\t\t\tm_draw_order[i][j] = data;\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "bank:taitosj_state.nomcu/mainbank/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "mainbank",
+        "member": "m_mainbank",
+        "startEntry": 0,
+        "entries": 1,
+        "region": "maincpu",
+        "offset": 24576,
+        "stride": 0,
+        "raw": "m_mainbank->configure_entry(0, memregion(\"maincpu\")->base() + 0x6000)",
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 21,
+        "sourceColumn": 1,
+        "sourceEndLine": 28
+      }
+    },
+    {
+      "id": "bank:taitosj_state.nomcu/mainbank/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "mainbank",
+        "member": "m_mainbank",
+        "startEntry": 1,
+        "entries": 1,
+        "region": "maincpu",
+        "offset": 65536,
+        "stride": 0,
+        "raw": "m_mainbank->configure_entry(1, memregion(\"maincpu\")->base() + 0x10000)",
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 21,
+        "sourceColumn": 1,
+        "sourceEndLine": 28
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 4000000,
+        "config": [
+          "Z80(config, m_maincpu, 8_MHz_XTAL / 2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &taitosj_state::main_nomcu_map)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1665,
+        "sourceColumn": 2,
+        "sourceEndLine": 1665
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3000000,
+        "config": [
+          "Z80(config, m_audiocpu, 12_MHz_XTAL / 4)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &taitosj_state::taitosj_audio_map)",
+          "m_audiocpu->set_periodic_int(FUNC(taitosj_state::irq0_line_hold), attotime::from_hz(12_MHz_XTAL / (2*4*16*16*10*16)))"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1668,
+        "sourceColumn": 2,
+        "sourceEndLine": 1668
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/audiocpu/callback:audiocpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_periodic_int",
+        "operation": "set_periodic_int",
+        "raw": "m_audiocpu->set_periodic_int(FUNC(taitosj_state::irq0_line_hold), attotime::from_hz(12_MHz_XTAL / (2*4*16*16*10*16)))",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1674,
+        "sourceColumn": 2,
+        "sourceEndLine": 1674,
+        "periodHz": 36.62109375,
+        "periodExpr": "attotime::from_hz(12_MHz_XTAL / (2*4*16*16*10*16))",
+        "targetClass": "taitosj_state",
+        "targetMethod": "irq0_line_hold"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.irq0_line_hold",
+      "label": "Handler",
+      "props": {
+        "method": "irq0_line_hold",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1674,
+        "sourceColumn": 2,
+        "sourceEndLine": 1674
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(12_MHz_XTAL / 2, 384, 0, 256, 264, 16, 240)",
+          "m_screen->set_screen_update(FUNC(taitosj_state::screen_update))",
+          "m_screen->set_video_attributes(VIDEO_ALWAYS_UPDATE)",
+          "m_screen->set_palette(m_palette)",
+          "m_screen->screen_vblank().set_inputline(m_maincpu, INPUT_LINE_IRQ0, HOLD_LINE)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1677,
+        "sourceColumn": 2,
+        "sourceEndLine": 1677,
+        "configCalls": [
+          "set_raw(6000000,384,0,256,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          256,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "12_MHz_XTAL / 2",
+          "384",
+          "0",
+          "256",
+          "264",
+          "16",
+          "240"
+        ],
+        "screenVideoAttributes": [
+          "VIDEO_ALWAYS_UPDATE"
+        ]
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(taitosj_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1679,
+        "sourceColumn": 2,
+        "sourceEndLine": 1679,
+        "targetClass": "taitosj_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 691,
+        "sourceColumn": 1,
+        "sourceEndLine": 694,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "return video_update_common(bitmap, cliprect, &taitosj_state::copy_layer);"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.video_update_common",
+      "label": "Handler",
+      "props": {
+        "method": "video_update_common",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 674,
+        "sourceColumn": 1,
+        "sourceEndLine": 688,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, copy_layer_func_t copy_layer_func",
+        "sourceBody": "int sprites_on[0x20]; // 1 if sprite is active\n\trectangle sprite_areas[0x20]; // areas on bitmap (sprite locations)\n\n\tcalculate_sprite_areas(sprites_on, sprite_areas);\n\tset_pens();\n\n\tdraw_layers();\n\n\tcopy_layers(bitmap, cliprect, copy_layer_func, sprites_on, sprite_areas);\n\tcheck_collision(sprites_on, sprite_areas);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.calculate_sprite_areas",
+      "label": "Handler",
+      "props": {
+        "method": "calculate_sprite_areas",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 1,
+        "sourceEndLine": 416,
+        "sourceParameters": "int *sprites_on, rectangle *sprite_areas",
+        "sourceBody": "for (int which = 0; which < 0x20; which++)\n\t{\n\t\tuint8_t sx, sy;\n\n\t\tif ((which >= 0x10) && (which <= 0x17)) continue; // no sprites here\n\n\t\tif (get_sprite_xy(which, &sx, &sy))\n\t\t{\n\t\t\tint minx, miny, maxx, maxy;\n\n\t\t\tif (GLOBAL_FLIP_X)\n\t\t\t\tsx = 238 - sx;\n\n\t\t\tif (GLOBAL_FLIP_Y)\n\t\t\t\tsy = 242 - sy;\n\n\t\t\tminx = sx;\n\t\t\tminy = sy;\n\n\t\t\tmaxx = minx + 15;\n\t\t\tmaxy = miny + 15;\n\n\t\t\tsprite_areas[which].min_x = minx;\n\t\t\tsprite_areas[which].max_x = maxx;\n\t\t\tsprite_areas[which].min_y = miny;\n\t\t\tsprite_areas[which].max_y = maxy;\n\n\t\t\tsprites_on[which] = 1;\n\t\t}\n\t\t// sprite is off\n\t\telse\n\t\t\tsprites_on[which] = 0;\n\n\t\t// check for bitmap bounds to avoid illegal memory access\n\t\tsprite_areas[which] &= m_sprite_layer_collbitmap2[0].cliprect();\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.get_sprite_xy",
+      "label": "Handler",
+      "props": {
+        "method": "get_sprite_xy",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 242,
+        "sourceColumn": 1,
+        "sourceEndLine": 250,
+        "sourceParameters": "uint8_t which, uint8_t* sx, uint8_t* sy",
+        "sourceBody": "offs_t offs = which * 4;\n\n\t*sx = m_spriteram[SPRITE_RAM_PAGE_OFFSET + offs + 0] - 1;\n\t*sy = 240 - m_spriteram[SPRITE_RAM_PAGE_OFFSET + offs + 1];\n\n\treturn (*sy < 240);"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.set_pens",
+      "label": "Handler",
+      "props": {
+        "method": "set_pens",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 92,
+        "sourceColumn": 1,
+        "sourceEndLine": 129,
+        "sourceParameters": "",
+        "sourceBody": "double rweights[3], gweights[3], bweights[3];\n\n\t// compute the color output resistor weights\n\tcompute_resistor_weights(0, 255, -1.0,\n\t\t\t3, resistances, rweights, 0, 0,\n\t\t\t3, resistances, gweights, 0, 0,\n\t\t\t3, resistances, bweights, 0, 0);\n\n\tfor (int i = 0; i < 0x40; i++)\n\t{\n\t\t// red component\n\t\tint val = m_paletteram[(i << 1) | 0x01];\n\t\tint bit0 = (~val >> 6) & 0x01;\n\t\tint bit1 = (~val >> 7) & 0x01;\n\t\tval = m_paletteram[(i << 1) | 0x00];\n\t\tint bit2 = (~val >> 0) & 0x01;\n\t\tint r = combine_weights(rweights, bit0, bit1, bit2);\n\n\t\t// green component\n\t\tval = m_paletteram[(i << 1) | 0x01];\n\t\tbit0 = (~val >> 3) & 0x01;\n\t\tbit1 = (~val >> 4) & 0x01;\n\t\tbit2 = (~val >> 5) & 0x01;\n\t\tint g = combine_weights(gweights, bit0, bit1, bit2);\n\n\t\t// blue component\n\t\tval = m_paletteram[(i << 1) | 0x01];\n\t\tbit0 = (~val >> 0) & 0x01;\n\t\tbit1 = (~val >> 1) & 0x01;\n\t\tbit2 = (~val >> 2) & 0x01;\n\t\tint b = combine_weights(bweights, bit0, bit1, bit2);\n\n\t\tm_palette->set_pen_color(i, rgb_t(r, g, b));\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.draw_layers",
+      "label": "Handler",
+      "props": {
+        "method": "draw_layers",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 478,
+        "sourceColumn": 1,
+        "sourceEndLine": 510,
+        "sourceConstants": [
+          "TRANSPARENT_PEN=64"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "m_layer_bitmap[0].fill(TRANSPARENT_PEN);\n\tm_layer_bitmap[1].fill(TRANSPARENT_PEN);\n\tm_layer_bitmap[2].fill(TRANSPARENT_PEN);\n\n\tfor (offs_t offs = 0; offs < 0x0400; offs++)\n\t{\n\t\tint sx = offs % 32;\n\t\tint sy = offs / 32;\n\n\t\tif (GLOBAL_FLIP_X) sx = 31 - sx;\n\t\tif (GLOBAL_FLIP_Y) sy = 31 - sy;\n\n\t\tm_gfxdecode->gfx(m_colorbank[0] & 0x08 ? 2 : 0)->transpen(m_layer_bitmap[0], m_layer_bitmap[0].cliprect(),\n\t\t\t\tm_videoram[0][offs],\n\t\t\t\tm_colorbank[0] & 0x07,\n\t\t\t\tGLOBAL_FLIP_X, GLOBAL_FLIP_Y,\n\t\t\t\t8 * sx, 8 * sy, 0);\n\n\t\tm_gfxdecode->gfx(m_colorbank[0] & 0x80 ? 2 : 0)->transpen(m_layer_bitmap[1], m_layer_bitmap[1].cliprect(),\n\t\t\t\tm_videoram[1][offs],\n\t\t\t\t(m_colorbank[0] >> 4) & 0x07,\n\t\t\t\tGLOBAL_FLIP_X, GLOBAL_FLIP_Y,\n\t\t\t\t8 * sx, 8 * sy, 0);\n\n\t\tm_gfxdecode->gfx(m_colorbank[1] & 0x08 ? 2 : 0)->transpen(m_layer_bitmap[2], m_layer_bitmap[2].cliprect(),\n\t\t\t\tm_videoram[2][offs],\n\t\t\t\tm_colorbank[1] & 0x07,\n\t\t\t\tGLOBAL_FLIP_X, GLOBAL_FLIP_Y,\n\t\t\t\t8 * sx, 8 * sy, 0);\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.copy_layers",
+      "label": "Handler",
+      "props": {
+        "method": "copy_layers",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 1,
+        "sourceEndLine": 660,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, copy_layer_func_t copy_layer_func, int *sprites_on, rectangle *sprite_areas",
+        "sourceBody": "// fill the screen with the background color\n\tbitmap.fill(8 * (m_colorbank[1] & 0x07), cliprect);\n\n\tfor (int i = 0; i < 4; i++)\n\t{\n\t\tint which = m_draw_order[*m_video_priority & 0x1f][i];\n\t\tcopy_layer(bitmap, cliprect, copy_layer_func, which, sprites_on, sprite_areas);\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.copy_layer",
+      "label": "Handler",
+      "props": {
+        "method": "copy_layer",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 567,
+        "sourceColumn": 1,
+        "sourceEndLine": 601,
+        "sourceConstants": [
+          "TRANSPARENT_PEN=64"
+        ],
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int *sprites_on, rectangle *sprite_areas",
+        "sourceBody": "if (*m_video_mode & TABLE(which, 0x10, 0x20, 0x40))\n\t{\n\t\tint scrollx, scrolly[32];\n\n\t\tscrollx = m_scroll[2 * which];\n\n\t\tif (GLOBAL_FLIP_X)\n\t\t\tscrollx =  (scrollx & 0xf8) + ((scrollx + TABLE(which, 3, 1, -1)) & 7) + TABLE(which, 8, 10, 12);\n\t\telse\n\t\t\tscrollx = -(scrollx & 0xf8) + ((scrollx + TABLE(which, 3, 1, -1)) & 7) + TABLE(which, 8, 10, 12);\n\n\t\tif (GLOBAL_FLIP_Y)\n\t\t\tfor (int i = 0; i < 32; i++)\n\t\t\t\tscrolly[31 - i] =  m_colscrolly[32 * which + i] + m_scroll[2 * which + 1];\n\t\telse\n\t\t\tfor (int i = 0; i < 32; i++)\n\t\t\t\tscrolly[i]      = -m_colscrolly[32 * which + i] - m_scroll[2 * which + 1];\n\n\t\tcopyscrollbitmap_trans(bitmap, m_layer_bitmap[which], 1, &scrollx, 32, scrolly, cliprect, TRANSPARENT_PEN);\n\n\t\t// store parts covered with sprites for sprites/layers collision detection\n\t\tfor (int i = 0; i < 0x20; i++)\n\t\t{\n\t\t\tif ((i >= 0x10) && (i <= 0x17)) continue; // no sprites here\n\n\t\t\tif (sprites_on[i])\n\t\t\t\tcopyscrollbitmap(m_sprite_layer_collbitmap2[which], m_layer_bitmap[which], 1, &scrollx, 32, scrolly, sprite_areas[i]);\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.check_collision",
+      "label": "Handler",
+      "props": {
+        "method": "check_collision",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 663,
+        "sourceColumn": 1,
+        "sourceEndLine": 671,
+        "sourceParameters": "int *sprites_on, rectangle *sprite_areas",
+        "sourceBody": "check_sprite_sprite_collision();\n\n\t// check_sprite_layer_collision() uses drawn bitmaps, so it must me called _AFTER_ draw_layers()\n\tcheck_sprite_layer_collision(sprites_on, sprite_areas);\n\n\t// check_layer_layer_collision(); // not implemented !!!"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.check_sprite_sprite_collision",
+      "label": "Handler",
+      "props": {
+        "method": "check_sprite_sprite_collision",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 322,
+        "sourceColumn": 1,
+        "sourceEndLine": 375,
+        "sourceParameters": "",
+        "sourceBody": "if (SPRITES_ON)\n\t{\n\t\t// check each pair of sprites\n\t\tfor (int which1 = 0; which1 < 0x20; which1++)\n\t\t{\n\t\t\tuint8_t sx1, sy1;\n\n\t\t\tif ((which1 >= 0x10) && (which1 <= 0x17)) continue; // no sprites here\n\n\t\t\tif (!get_sprite_xy(which1, &sx1, &sy1)) continue;\n\n\t\t\tfor (int which2 = which1 + 1; which2 < 0x20; which2++)\n\t\t\t{\n\t\t\t\tuint8_t sx2, sy2;\n\n\t\t\t\tif ((which2 >= 0x10) && (which2 <= 0x17)) continue; // no sprites here\n\n\t\t\t\tif (!get_sprite_xy(which2, &sx2, &sy2)) continue;\n\n\t\t\t\t// quickly rule out any pairs that cannot be touching\n\t\t\t\tif ((abs((int8_t)sx1 - (int8_t)sx2) < 16) &&\n\t\t\t\t\t(abs((int8_t)sy1 - (int8_t)sy2) < 16))\n\t\t\t\t{\n\t\t\t\t\tint reg;\n\n\t\t\t\t\tif (!check_sprite_sprite_bitpattern(sx1, sy1, which1, sx2, sy2, which2)) continue;\n\n\t\t\t\t\t/* mark sprite as collided\n\t\t\t\t\t   note that only the sprite with the higher number is marked\n\t\t\t\t\t   as collided. This is how the hardware works and required\n\t\t\t\t\t   by Pirate Pete to be able to finish the last round. */\n\n\t\t\t\t\t// the last sprite has to be moved at the start of the list\n\t\t\t\t\tif (which2 == 0x1f)\n\t\t\t\t\t{\n\t\t\t\t\t\treg = which1 >> 3;\n\t\t\t\t\t\tif (reg == 3) reg = 2;\n\n\t\t\t\t\t\tm_collision_reg[reg] |= (1 << (which1 & 0x07));\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\treg = which2 >> 3;\n\t\t\t\t\t\tif (reg == 3) reg = 2;\n\n\t\t\t\t\t\tm_collision_reg[reg] |= (1 << (which2 & 0x07));\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.check_sprite_sprite_bitpattern",
+      "label": "Handler",
+      "props": {
+        "method": "check_sprite_sprite_bitpattern",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 261,
+        "sourceColumn": 1,
+        "sourceEndLine": 319,
+        "sourceConstants": [
+          "TRANSPARENT_PEN=64"
+        ],
+        "sourceParameters": "int sx1, int sy1, int which1, int sx2, int sy2, int which2",
+        "sourceBody": "int minx, miny, maxx = 16, maxy = 16;\n\n\toffs_t offs1 = which1 * 4;\n\toffs_t offs2 = which2 * 4;\n\n\t// normalize coordinates to (0,0) and compute overlap\n\tif (sx1 < sx2)\n\t{\n\t\tsx2 -= sx1;\n\t\tsx1 = 0;\n\t\tminx = sx2;\n\t}\n\telse\n\t{\n\t\tsx1 -= sx2;\n\t\tsx2 = 0;\n\t\tminx = sx1;\n\t}\n\n\tif (sy1 < sy2)\n\t{\n\t\tsy2 -= sy1;\n\t\tsy1 = 0;\n\t\tminy = sy2;\n\t}\n\telse\n\t{\n\t\tsy1 -= sy2;\n\t\tsy2 = 0;\n\t\tminy = sy1;\n\t}\n\n\t// draw the sprites into separate bitmaps and check overlapping region\n\tm_sprite_sprite_collbitmap1.fill(TRANSPARENT_PEN);\n\tget_sprite_gfx_element(which1)->transpen(m_sprite_sprite_collbitmap1, m_sprite_sprite_collbitmap1.cliprect(),\n\t\t\tm_spriteram[SPRITE_RAM_PAGE_OFFSET + offs1 + 3] & 0x3f,\n\t\t\t0,\n\t\t\tm_spriteram[SPRITE_RAM_PAGE_OFFSET + offs1 + 2] & 0x01,\n\t\t\tm_spriteram[SPRITE_RAM_PAGE_OFFSET + offs1 + 2] & 0x02,\n\t\t\tsx1, sy1, 0);\n\n\tm_sprite_sprite_collbitmap2.fill(TRANSPARENT_PEN);\n\tget_sprite_gfx_element(which2)->transpen(m_sprite_sprite_collbitmap2, m_sprite_sprite_collbitmap2.cliprect(),\n\t\t\tm_spriteram[SPRITE_RAM_PAGE_OFFSET + offs2 + 3] & 0x3f,\n\t\t\t0,\n\t\t\tm_spriteram[SPRITE_RAM_PAGE_OFFSET + offs2 + 2] & 0x01,\n\t\t\tm_spriteram[SPRITE_RAM_PAGE_OFFSET + offs2 + 2] & 0x02,\n\t\t\tsx2, sy2, 0);\n\n\tfor (int y = miny; y < maxy; y++)\n\t\tfor (int x = minx; x < maxx; x++)\n\t\t\tif ((m_sprite_sprite_collbitmap1.pix(y, x) != TRANSPARENT_PEN) &&\n\t\t\t\t(m_sprite_sprite_collbitmap2.pix(y, x) != TRANSPARENT_PEN))\n\t\t\t\treturn 1; // collided\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.get_sprite_gfx_element",
+      "label": "Handler",
+      "props": {
+        "method": "get_sprite_gfx_element",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 253,
+        "sourceColumn": 1,
+        "sourceEndLine": 258,
+        "sourceParameters": "uint8_t which",
+        "sourceBody": "offs_t offs = which * 4;\n\n\treturn m_gfxdecode->gfx((m_spriteram[SPRITE_RAM_PAGE_OFFSET + offs + 3] & 0x40) ? 3 : 1);"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.check_sprite_layer_collision",
+      "label": "Handler",
+      "props": {
+        "method": "check_sprite_layer_collision",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 462,
+        "sourceColumn": 1,
+        "sourceEndLine": 475,
+        "sourceParameters": "int *sprites_on, rectangle *sprite_areas",
+        "sourceBody": "if (SPRITES_ON)\n\t{\n\t\t// check each sprite\n\t\tfor (int which = 0; which < 0x20; which++)\n\t\t{\n\t\t\tif ((which >= 0x10) && (which <= 0x17)) continue; // no sprites here\n\n\t\t\tif (sprites_on[which])\n\t\t\t\tm_collision_reg[3] |= check_sprite_layer_bitpattern(which, sprite_areas);\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.check_sprite_layer_bitpattern",
+      "label": "Handler",
+      "props": {
+        "method": "check_sprite_layer_bitpattern",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj_v.cpp",
+        "sourceLine": 419,
+        "sourceColumn": 1,
+        "sourceEndLine": 459,
+        "sourceConstants": [
+          "TRANSPARENT_PEN=64"
+        ],
+        "sourceParameters": "int which, rectangle *sprite_areas",
+        "sourceBody": "offs_t offs = which * 4;\n\tint result = 0;  // no collisions\n\n\tint check_layer_1 = *m_video_mode & TABLE(0, 0x10, 0x20, 0x40);\n\tint check_layer_2 = *m_video_mode & TABLE(1, 0x10, 0x20, 0x40);\n\tint check_layer_3 = *m_video_mode & TABLE(2, 0x10, 0x20, 0x40);\n\n\tint minx = sprite_areas[which].min_x;\n\tint miny = sprite_areas[which].min_y;\n\tint maxx = sprite_areas[which].max_x + 1;\n\tint maxy = sprite_areas[which].max_y + 1;\n\n\tint flip_x = (m_spriteram[SPRITE_RAM_PAGE_OFFSET + offs + 2] & 0x01) ^ GLOBAL_FLIP_X;\n\tint flip_y = (m_spriteram[SPRITE_RAM_PAGE_OFFSET + offs + 2] & 0x02) ^ GLOBAL_FLIP_Y;\n\n\t// draw sprite into a bitmap and check if layers collide\n\tm_sprite_layer_collbitmap1.fill(TRANSPARENT_PEN);\n\tget_sprite_gfx_element(which)->transpen(m_sprite_layer_collbitmap1, m_sprite_layer_collbitmap1.cliprect(),\n\t\t\tm_spriteram[SPRITE_RAM_PAGE_OFFSET + offs + 3] & 0x3f,\n\t\t\t0,\n\t\t\tflip_x, flip_y,\n\t\t\t0, 0, 0);\n\n\tfor (int y = miny; y < maxy; y++)\n\t\tfor (int x = minx; x < maxx; x++)\n\t\t\tif (m_sprite_layer_collbitmap1.pix(y - miny, x - minx) != TRANSPARENT_PEN) // is there anything to check for ?\n\t\t\t{\n\t\t\t\tif (check_layer_1 && (m_sprite_layer_collbitmap2[0].pix(y, x) != TRANSPARENT_PEN))\n\t\t\t\t\tresult |= 0x01; // collided with layer 1\n\n\t\t\t\tif (check_layer_2 && (m_sprite_layer_collbitmap2[1].pix(y, x) != TRANSPARENT_PEN))\n\t\t\t\t\tresult |= 0x02; // collided with layer 2\n\n\t\t\t\tif (check_layer_3 && (m_sprite_layer_collbitmap2[2].pix(y, x) != TRANSPARENT_PEN))\n\t\t\t\t\tresult |= 0x04; // collided with layer 3\n\t\t\t}\n\n\treturn result;"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set_inputline",
+        "raw": "m_screen->screen_vblank().set_inputline(m_maincpu, INPUT_LINE_IRQ0, HOLD_LINE)",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1682,
+        "sourceColumn": 2,
+        "sourceEndLine": 1682,
+        "inputLine": "INPUT_LINE_IRQ0",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_taitosj)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1684,
+        "sourceColumn": 2,
+        "sourceEndLine": 1684,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_entries(64)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1685,
+        "sourceColumn": 2,
+        "sourceEndLine": 1685
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1688,
+        "sourceColumn": 2,
+        "sourceEndLine": 1688
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/soundnmi1",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ALL_HIGH",
+        "tag": "soundnmi1",
+        "clock": null,
+        "config": [
+          "INPUT_MERGER_ALL_HIGH(config, m_soundnmi[0]).output_handler().set(m_soundnmi[1], FUNC(input_merger_device::in_w<0>))"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1690,
+        "sourceColumn": 2,
+        "sourceEndLine": 1690
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/soundnmi1/callback:soundnmi1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set",
+        "raw": "INPUT_MERGER_ALL_HIGH(config, m_soundnmi[0]).output_handler().set(m_soundnmi[1], FUNC(input_merger_device::in_w<0>))",
+        "ownerTag": "soundnmi1",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1690,
+        "sourceColumn": 2,
+        "sourceEndLine": 1690,
+        "targetClass": "input_merger_device",
+        "targetMethod": "in_w_0",
+        "targetTag": "soundnmi2"
+      }
+    },
+    {
+      "id": "handler:input_merger_device.in_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_0",
+        "ownerClass": "input_merger_device",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1690,
+        "sourceColumn": 2,
+        "sourceEndLine": 1690
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/soundnmi2",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ANY_HIGH",
+        "tag": "soundnmi2",
+        "clock": null,
+        "config": [
+          "INPUT_MERGER_ANY_HIGH(config, m_soundnmi[1]).output_handler().set_inputline(m_audiocpu, INPUT_LINE_NMI)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1692,
+        "sourceColumn": 2,
+        "sourceEndLine": 1692
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/soundnmi2/callback:soundnmi2:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set_inputline",
+        "raw": "INPUT_MERGER_ANY_HIGH(config, m_soundnmi[1]).output_handler().set_inputline(m_audiocpu, INPUT_LINE_NMI)",
+        "ownerTag": "soundnmi2",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1692,
+        "sourceColumn": 2,
+        "sourceEndLine": 1692,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay1",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay1",
+        "clock": 1500000,
+        "config": [
+          "AY8910(config, m_ay[0], 12_MHz_XTAL / 8)",
+          "m_ay[0]->port_a_read_callback().set_ioport(\"DSW2\")",
+          "m_ay[0]->port_b_read_callback().set_ioport(\"DSW3\")",
+          "m_ay[0]->add_route(ALL_OUTPUTS, \"speaker\", 0.15)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1694,
+        "sourceColumn": 2,
+        "sourceEndLine": 1694
+      }
+    },
+    {
+      "id": "audioroute:device:taitosj_state.nomcu/ay1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.15,
+        "raw": "m_ay[0]->add_route(ALL_OUTPUTS, \"speaker\", 0.15)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1697,
+        "sourceColumn": 2,
+        "sourceEndLine": 1697
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay1/callback:ay1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_a_read_callback",
+        "operation": "set_ioport",
+        "raw": "m_ay[0]->port_a_read_callback().set_ioport(\"DSW2\")",
+        "ownerTag": "ay1",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1695,
+        "sourceColumn": 2,
+        "sourceEndLine": 1695,
+        "targetTag": "DSW2",
+        "targetPort": "DSW2"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay1/callback:ay1:1",
+      "label": "Callback",
+      "props": {
+        "signal": "port_b_read_callback",
+        "operation": "set_ioport",
+        "raw": "m_ay[0]->port_b_read_callback().set_ioport(\"DSW3\")",
+        "ownerTag": "ay1",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1696,
+        "sourceColumn": 2,
+        "sourceEndLine": 1696,
+        "targetTag": "DSW3",
+        "targetPort": "DSW3"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay2",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay2",
+        "clock": 1500000,
+        "config": [
+          "AY8910(config, m_ay[1], 12_MHz_XTAL / 8)",
+          "m_ay[1]->set_flags(AY8910_SINGLE_OUTPUT)",
+          "m_ay[1]->port_a_write_callback().set(m_dac, FUNC(dac_byte_interface::data_w))",
+          "m_ay[1]->port_b_write_callback().set(FUNC(taitosj_state::dacvol_w))",
+          "m_ay[1]->add_route(ALL_OUTPUTS, \"speaker\", 0.5)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1699,
+        "sourceColumn": 2,
+        "sourceEndLine": 1699,
+        "configCalls": [
+          "set_flags(2)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:taitosj_state.nomcu/ay2/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.5,
+        "raw": "m_ay[1]->add_route(ALL_OUTPUTS, \"speaker\", 0.5)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1703,
+        "sourceColumn": 2,
+        "sourceEndLine": 1703
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay2/callback:ay2:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_a_write_callback",
+        "operation": "set",
+        "raw": "m_ay[1]->port_a_write_callback().set(m_dac, FUNC(dac_byte_interface::data_w))",
+        "ownerTag": "ay2",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1701,
+        "sourceColumn": 2,
+        "sourceEndLine": 1701,
+        "targetClass": "dac_byte_interface",
+        "targetMethod": "data_w",
+        "targetTag": "dac"
+      }
+    },
+    {
+      "id": "handler:dac_byte_interface.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "dac_byte_interface",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1701,
+        "sourceColumn": 2,
+        "sourceEndLine": 1701
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay2/callback:ay2:1",
+      "label": "Callback",
+      "props": {
+        "signal": "port_b_write_callback",
+        "operation": "set",
+        "raw": "m_ay[1]->port_b_write_callback().set(FUNC(taitosj_state::dacvol_w))",
+        "ownerTag": "ay2",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1702,
+        "sourceColumn": 2,
+        "sourceEndLine": 1702,
+        "targetClass": "taitosj_state",
+        "targetMethod": "dacvol_w"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.dacvol_w",
+      "label": "Handler",
+      "props": {
+        "method": "dacvol_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1657,
+        "sourceColumn": 1,
+        "sourceEndLine": 1660,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_dacvol->write(NODE_01, data ^ 0xff); // 7416 hex inverter"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay3",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay3",
+        "clock": 1500000,
+        "config": [
+          "AY8910(config, m_ay[2], 12_MHz_XTAL / 8)",
+          "m_ay[2]->set_flags(AY8910_SINGLE_OUTPUT)",
+          "m_ay[2]->port_a_write_callback().set(FUNC(taitosj_state::input_port_4_f0_w))",
+          "m_ay[2]->add_route(ALL_OUTPUTS, \"speaker\", 0.5)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1705,
+        "sourceColumn": 2,
+        "sourceEndLine": 1705,
+        "configCalls": [
+          "set_flags(2)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:taitosj_state.nomcu/ay3/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.5,
+        "raw": "m_ay[2]->add_route(ALL_OUTPUTS, \"speaker\", 0.5)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1708,
+        "sourceColumn": 2,
+        "sourceEndLine": 1708
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay3/callback:ay3:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_a_write_callback",
+        "operation": "set",
+        "raw": "m_ay[2]->port_a_write_callback().set(FUNC(taitosj_state::input_port_4_f0_w))",
+        "ownerTag": "ay3",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1707,
+        "sourceColumn": 2,
+        "sourceEndLine": 1707,
+        "targetClass": "taitosj_state",
+        "targetMethod": "input_port_4_f0_w"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.input_port_4_f0_w",
+      "label": "Handler",
+      "props": {
+        "method": "input_port_4_f0_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 187,
+        "sourceColumn": 1,
+        "sourceEndLine": 190,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_input_port_4_f0 = data >> 4;"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay4",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay4",
+        "clock": 1500000,
+        "config": [
+          "AY8910(config, m_ay[3], 12_MHz_XTAL / 8)",
+          "m_ay[3]->set_flags(AY8910_SINGLE_OUTPUT)",
+          "m_ay[3]->port_b_write_callback().set(FUNC(taitosj_state::sndnmi_msk_w))",
+          "m_ay[3]->add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1710,
+        "sourceColumn": 2,
+        "sourceEndLine": 1710,
+        "configCalls": [
+          "set_flags(2)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:taitosj_state.nomcu/ay4/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 1,
+        "raw": "m_ay[3]->add_route(ALL_OUTPUTS, \"speaker\", 1.0)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1716,
+        "sourceColumn": 2,
+        "sourceEndLine": 1716
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/ay4/callback:ay4:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_b_write_callback",
+        "operation": "set",
+        "raw": "m_ay[3]->port_b_write_callback().set(FUNC(taitosj_state::sndnmi_msk_w))",
+        "ownerTag": "ay4",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1715,
+        "sourceColumn": 2,
+        "sourceEndLine": 1715,
+        "targetClass": "taitosj_state",
+        "targetMethod": "sndnmi_msk_w"
+      }
+    },
+    {
+      "id": "handler:taitosj_state.sndnmi_msk_w",
+      "label": "Handler",
+      "props": {
+        "method": "sndnmi_msk_w",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 175,
+        "sourceColumn": 1,
+        "sourceEndLine": 179,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// B0 is the sound nmi enable, active low\n\tm_soundnmi[0]->in_w<0>((~data) & 1);"
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_vblank_count(\"screen\", 128)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1718,
+        "sourceColumn": 2,
+        "sourceEndLine": 1718
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/dac",
+      "label": "Device",
+      "props": {
+        "type": "DAC_8BIT_R2R",
+        "tag": "dac",
+        "clock": null,
+        "config": [
+          "DAC_8BIT_R2R(config, m_dac).add_route(ALL_OUTPUTS, \"speaker\", 0.15)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1720,
+        "sourceColumn": 2,
+        "sourceEndLine": 1720
+      }
+    },
+    {
+      "id": "audioroute:device:taitosj_state.nomcu/dac/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.15,
+        "raw": "DAC_8BIT_R2R(config, m_dac).add_route(ALL_OUTPUTS, \"speaker\", 0.15)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1720,
+        "sourceColumn": 2,
+        "sourceEndLine": 1720
+      }
+    },
+    {
+      "id": "device:taitosj_state.nomcu/dacvol",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "dacvol",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, m_dacvol, taitosj_dacvol_discrete)",
+          "m_dacvol->set_clock(48000 * 32)",
+          "m_dacvol->add_route(0, \"dac\", 1.0, DAC_INPUT_RANGE_HI)",
+          "m_dacvol->add_route(0, \"dac\", -1.0, DAC_INPUT_RANGE_LO)"
+        ],
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1721,
+        "sourceColumn": 2,
+        "sourceEndLine": 1721,
+        "configCalls": [
+          "set_clock(1536000)"
+        ],
+        "clockExpr": "taitosj_dacvol_discrete"
+      }
+    },
+    {
+      "id": "audioroute:device:taitosj_state.nomcu/dacvol/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "dac",
+        "gain": 1,
+        "input": 0,
+        "raw": "m_dacvol->add_route(0, \"dac\", 1.0, DAC_INPUT_RANGE_HI)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1723,
+        "sourceColumn": 2,
+        "sourceEndLine": 1723
+      }
+    },
+    {
+      "id": "audioroute:device:taitosj_state.nomcu/dacvol/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "dac",
+        "gain": -1,
+        "input": 1,
+        "raw": "m_dacvol->add_route(0, \"dac\", -1.0, DAC_INPUT_RANGE_LO)",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1724,
+        "sourceColumn": 2,
+        "sourceEndLine": 1724
+      }
+    },
+    {
+      "id": "handler:taitosj_state.input_port_4_f0_r",
+      "label": "Handler",
+      "props": {
+        "method": "input_port_4_f0_r",
+        "ownerClass": "taitosj_state",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 198,
+        "sourceColumn": 1,
+        "sourceEndLine": 201,
+        "sourceParameters": "",
+        "sourceBody": "return m_input_port_4_f0;"
+      }
+    },
+    {
+      "id": "inputs:junglek",
+      "label": "InputPorts",
+      "props": {
+        "name": "junglek",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 8,
+        "sourceEndLine": 613
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0#1",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:junglek/IN0#1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1#1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:junglek/IN1#1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:junglek/IN2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3",
+      "label": "Port",
+      "props": {
+        "tag": "IN3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_TILT",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:junglek/IN3/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:junglek/IN4",
+      "label": "Port",
+      "props": {
+        "tag": "IN4",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/IN4/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 15
+      }
+    },
+    {
+      "id": "inputs:junglek/IN4/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 240,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(taitosj_state::input_port_4_f0_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWA:1,2\")"
+        ],
+        "name": "Finish Bonus",
+        "defaultValue": 3,
+        "location": "SWA:1,2",
+        "settings": [
+          "3=None",
+          "2=Timer x1",
+          "1=Timer x2",
+          "0=Timer x3"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 24,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWA:4,5\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 24,
+        "location": "SWA:4,5",
+        "settings": [
+          "24=3",
+          "16=4",
+          "8=5",
+          "0=6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 32,
+        "activeLow": true,
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWA:7\")"
+        ],
+        "name": "Flip Screen",
+        "defaultValue": 0,
+        "location": "SWA:7",
+        "settings": [
+          "0=Off",
+          "64=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWA:8\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SWA:8",
+        "settings": [
+          "0=Upright",
+          "128=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWB:1,2,3,4\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 0,
+        "location": "SWB:1,2,3,4",
+        "settings": [
+          "15=9C 1C",
+          "14=8C 1C",
+          "13=7C 1C",
+          "12=6C 1C",
+          "11=5C 1C",
+          "10=4C 1C",
+          "9=3C 1C",
+          "8=2C 1C",
+          "0=1C 1C",
+          "1=1C 2C",
+          "2=1C 3C",
+          "3=1C 4C",
+          "4=1C 5C",
+          "5=1C 6C",
+          "6=1C 7C",
+          "7=1C 8C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWB:5,6,7,8\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 0,
+        "location": "SWB:5,6,7,8",
+        "settings": [
+          "240=9C 1C",
+          "224=8C 1C",
+          "208=7C 1C",
+          "192=6C 1C",
+          "176=5C 1C",
+          "160=4C 1C",
+          "144=3C 1C",
+          "128=2C 1C",
+          "0=1C 1C",
+          "16=1C 2C",
+          "32=1C 3C",
+          "48=1C 4C",
+          "64=1C 5C",
+          "80=1C 6C",
+          "96=1C 7C",
+          "112=1C 8C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3",
+      "label": "Port",
+      "props": {
+        "tag": "DSW3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWC:1,2\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 3,
+        "location": "SWC:1,2",
+        "settings": [
+          "2=10000",
+          "1=20000",
+          "0=30000",
+          "3=None"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Unused",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWC:6\")"
+        ],
+        "name": "Year Display",
+        "defaultValue": 32,
+        "location": "SWC:6",
+        "settings": [
+          "0=No",
+          "32=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWC:7\")"
+        ],
+        "name": "Infinite Lives",
+        "defaultValue": 64,
+        "location": "SWC:7",
+        "settings": [
+          "64=No",
+          "0=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junglek/DSW3/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SWC:8\")"
+        ],
+        "name": "Coin Slots",
+        "defaultValue": 128,
+        "location": "SWC:8",
+        "settings": [
+          "128=A and B",
+          "0=A only"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 256,
+        "planes": 3,
+        "planeOffsets": [
+          32768,
+          16384,
+          0
+        ],
+        "xOffsets": [
+          7,
+          6,
+          5,
+          4,
+          3,
+          2,
+          1,
+          0
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": 64,
+        "planes": 3,
+        "planeOffsets": [
+          32768,
+          16384,
+          0
+        ],
+        "xOffsets": [
+          7,
+          6,
+          5,
+          4,
+          3,
+          2,
+          1,
+          0,
+          71,
+          70,
+          69,
+          68,
+          67,
+          66,
+          65,
+          64
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          128,
+          136,
+          144,
+          152,
+          160,
+          168,
+          176,
+          184
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_taitosj",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_taitosj",
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1634,
+        "sourceColumn": 8,
+        "sourceEndLine": 1634
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_taitosj/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "nullptr",
+        "offset": 36864,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 8,
+        "ram": true,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_taitosj/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "nullptr",
+        "offset": 36864,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 8,
+        "ram": true,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_taitosj/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "nullptr",
+        "offset": 43008,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 8,
+        "ram": true,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_taitosj/e3",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "nullptr",
+        "offset": 43008,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 8,
+        "ram": true,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:junglek",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 2827,
+        "sourceColumn": 1,
+        "sourceEndLine": 2827
+      }
+    },
+    {
+      "from": "game:junglek",
+      "to": "machine:taitosj_state.nomcu",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:junglek",
+      "to": "inputs:junglek",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:junglek",
+      "to": "romset:junglek",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/taito/taitosj.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/taito/taitosj.cpp",
+      "to": "file:taitosj.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/taito/taitosj.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/taito/taitosj.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1662,
+        "sourceColumn": 1,
+        "sourceEndLine": 1725
+      }
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "handler:taitosj_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "handler:taitosj_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "bank:taitosj_state.nomcu/mainbank/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "bank:taitosj_state.nomcu/mainbank/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "gfxdecode:gfx_taitosj",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/soundnmi1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/soundnmi2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/ay1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/ay2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/ay3",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/ay4",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:taitosj_state.nomcu",
+      "to": "device:taitosj_state.nomcu/dacvol",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 8,
+        "sourceEndLine": 613
+      }
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/IN0#1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/IN1#1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/IN3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/IN4",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junglek",
+      "to": "inputs:junglek/DSW3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:junglek",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1825,
+        "sourceColumn": 1,
+        "sourceEndLine": 1825
+      }
+    },
+    {
+      "from": "romset:junglek",
+      "to": "region:junglek/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:junglek",
+      "to": "region:junglek/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:junglek",
+      "to": "region:junglek/gfx",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:junglek",
+      "to": "region:junglek/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:taitosj_state.machine_reset",
+      "to": "handler:taitosj_state.bankswitch_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.video_start",
+      "to": "handler:taitosj_state.compute_draw_order",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:taitosj_state.nomcu/mainbank/0",
+      "to": "file:src/mame/taito/taitosj_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 21,
+        "sourceColumn": 1,
+        "sourceEndLine": 28
+      }
+    },
+    {
+      "from": "bank:taitosj_state.nomcu/mainbank/1",
+      "to": "file:src/mame/taito/taitosj_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj_m.cpp",
+        "sourceLine": 21,
+        "sourceColumn": 1,
+        "sourceEndLine": 28
+      }
+    },
+    {
+      "from": "device:taitosj_state.nomcu/maincpu",
+      "to": "map:taitosj_state.main_nomcu_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:taitosj_state.nomcu/audiocpu",
+      "to": "device:taitosj_state.nomcu/audiocpu/callback:audiocpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/audiocpu",
+      "to": "map:taitosj_state.taitosj_audio_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:taitosj_state.nomcu/screen",
+      "to": "device:taitosj_state.nomcu/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/screen",
+      "to": "device:taitosj_state.nomcu/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 1634,
+        "sourceColumn": 8,
+        "sourceEndLine": 1634
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj",
+      "to": "gfxdecode:gfx_taitosj/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj",
+      "to": "gfxdecode:gfx_taitosj/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj",
+      "to": "gfxdecode:gfx_taitosj/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj",
+      "to": "gfxdecode:gfx_taitosj/e3",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/soundnmi1",
+      "to": "device:taitosj_state.nomcu/soundnmi1/callback:soundnmi1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/soundnmi2",
+      "to": "device:taitosj_state.nomcu/soundnmi2/callback:soundnmi2:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay1",
+      "to": "audioroute:device:taitosj_state.nomcu/ay1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay1",
+      "to": "device:taitosj_state.nomcu/ay1/callback:ay1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay1",
+      "to": "device:taitosj_state.nomcu/ay1/callback:ay1:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay2",
+      "to": "audioroute:device:taitosj_state.nomcu/ay2/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay2",
+      "to": "device:taitosj_state.nomcu/ay2/callback:ay2:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay2",
+      "to": "device:taitosj_state.nomcu/ay2/callback:ay2:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay3",
+      "to": "audioroute:device:taitosj_state.nomcu/ay3/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay3",
+      "to": "device:taitosj_state.nomcu/ay3/callback:ay3:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay4",
+      "to": "audioroute:device:taitosj_state.nomcu/ay4/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay4",
+      "to": "device:taitosj_state.nomcu/ay4/callback:ay4:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/dac",
+      "to": "audioroute:device:taitosj_state.nomcu/dac/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/dacvol",
+      "to": "audioroute:device:taitosj_state.nomcu/dacvol/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/dacvol",
+      "to": "audioroute:device:taitosj_state.nomcu/dacvol/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0",
+      "to": "inputs:junglek/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN0#1",
+      "to": "inputs:junglek/IN0#1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1",
+      "to": "inputs:junglek/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN1#1",
+      "to": "inputs:junglek/IN1#1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN2",
+      "to": "inputs:junglek/IN2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN3",
+      "to": "inputs:junglek/IN3/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN4",
+      "to": "inputs:junglek/IN4/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/IN4",
+      "to": "inputs:junglek/IN4/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW1",
+      "to": "inputs:junglek/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW1",
+      "to": "inputs:junglek/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW1",
+      "to": "inputs:junglek/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW1",
+      "to": "inputs:junglek/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW1",
+      "to": "inputs:junglek/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW1",
+      "to": "inputs:junglek/DSW1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW2",
+      "to": "inputs:junglek/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW2",
+      "to": "inputs:junglek/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW3",
+      "to": "inputs:junglek/DSW3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW3",
+      "to": "inputs:junglek/DSW3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW3",
+      "to": "inputs:junglek/DSW3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW3",
+      "to": "inputs:junglek/DSW3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW3",
+      "to": "inputs:junglek/DSW3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW3",
+      "to": "inputs:junglek/DSW3/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junglek/DSW3",
+      "to": "inputs:junglek/DSW3/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn21-1.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn22-1.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn43.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn24.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn25.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn46.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn47.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn28.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/maincpu",
+      "to": "rom:junglek/maincpu/kn60.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/audiocpu",
+      "to": "rom:junglek/audiocpu/kn37.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/audiocpu",
+      "to": "rom:junglek/audiocpu/kn38.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/audiocpu",
+      "to": "rom:junglek/audiocpu/kn59-1.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn29.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn30.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn51.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn52.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn53.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn34.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn55.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/gfx",
+      "to": "rom:junglek/gfx/kn56.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junglek/proms",
+      "to": "rom:junglek/proms/eb16.22",
+      "rel": "LOADS"
+    },
+    {
+      "from": "file:src/mame/taito/taitosj_m.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/taito/taitosj_m.cpp",
+      "to": "file:cpu/m6805/m6805.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/taito/taitosj_m.cpp",
+      "to": "file:taitosj.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 204,
+        "sourceColumn": 1,
+        "sourceEndLine": 243
+      }
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range18",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range19",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range20",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range21",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range22",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range23",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range24",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range25",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range26",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range27",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range28",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range29",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range30",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range31",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range32",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range33",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range34",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range35",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map",
+      "to": "map:taitosj_state.main_nomcu_map/range36",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/audiocpu/callback:audiocpu:0",
+      "to": "handler:taitosj_state.irq0_line_hold",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/taito/taitosj.cpp",
+        "sourceLine": 366,
+        "sourceColumn": 1,
+        "sourceEndLine": 379
+      }
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map",
+      "to": "map:taitosj_state.taitosj_audio_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/screen/callback:screen:0",
+      "to": "handler:taitosj_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/screen/callback:screen:1",
+      "to": "device:taitosj_state.nomcu/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj/e1",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj/e2",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_taitosj/e3",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/soundnmi1/callback:soundnmi1:0",
+      "to": "handler:input_merger_device.in_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/soundnmi2/callback:soundnmi2:0",
+      "to": "device:taitosj_state.nomcu/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay2/callback:ay2:0",
+      "to": "handler:dac_byte_interface.data_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay2/callback:ay2:1",
+      "to": "handler:taitosj_state.dacvol_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay3/callback:ay3:0",
+      "to": "handler:taitosj_state.input_port_4_f0_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:taitosj_state.nomcu/ay4/callback:ay4:0",
+      "to": "handler:taitosj_state.sndnmi_msk_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:junglek/IN4/f1",
+      "to": "handler:taitosj_state.input_port_4_f0_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range3",
+      "to": "handler:taitosj_state.fake_data_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range3",
+      "to": "handler:taitosj_state.fake_data_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range4",
+      "to": "handler:taitosj_state.fake_status_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range5",
+      "to": "handler:taitosj_state.characterram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range16",
+      "to": "handler:taitosj_state.gfxrom_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range23",
+      "to": "handler:ay8910_device.address_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range24",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range27",
+      "to": "handler:taitosj_state.collision_reg_clear_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range29",
+      "to": "handler:taitosj_state.soundlatch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range30",
+      "to": "handler:taitosj_state.sound_semaphore2_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range31",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:taitosj_state.main_nomcu_map/range32",
+      "to": "handler:taitosj_state.bankswitch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range2",
+      "to": "handler:ay8910_device.address_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range3",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range4",
+      "to": "handler:ay8910_device.address_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay3"
+      }
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range5",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay3"
+      }
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range6",
+      "to": "handler:ay8910_device.address_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay4"
+      }
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range7",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay4"
+      }
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range8",
+      "to": "handler:taitosj_state.soundlatch_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range8",
+      "to": "handler:taitosj_state.soundlatch_clear7_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range9",
+      "to": "handler:taitosj_state.soundlatch_flags_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:taitosj_state.taitosj_audio_map/range9",
+      "to": "handler:taitosj_state.sound_semaphore2_clear_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:taitosj_state.screen_update",
+      "to": "handler:taitosj_state.video_update_common",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/taito/taitosj.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:taitosj_state.soundlatch_w",
+      "to": "handler:taitosj_state.soundlatch_w_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.sound_semaphore2_w",
+      "to": "handler:taitosj_state.sound_semaphore2_w_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.soundlatch_clear7_w",
+      "to": "handler:taitosj_state.soundlatch_clear7_w_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.sound_semaphore2_clear_w",
+      "to": "handler:taitosj_state.sound_semaphore2_clear_w_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.video_update_common",
+      "to": "handler:taitosj_state.calculate_sprite_areas",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.video_update_common",
+      "to": "handler:taitosj_state.set_pens",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.video_update_common",
+      "to": "handler:taitosj_state.draw_layers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.video_update_common",
+      "to": "handler:taitosj_state.copy_layers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.video_update_common",
+      "to": "handler:taitosj_state.check_collision",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.calculate_sprite_areas",
+      "to": "handler:taitosj_state.get_sprite_xy",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.copy_layers",
+      "to": "handler:taitosj_state.copy_layer",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_collision",
+      "to": "handler:taitosj_state.check_sprite_sprite_collision",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_collision",
+      "to": "handler:taitosj_state.check_sprite_layer_collision",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_collision",
+      "to": "handler:taitosj_state.draw_layers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_sprite_sprite_collision",
+      "to": "handler:taitosj_state.get_sprite_xy",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_sprite_sprite_collision",
+      "to": "handler:taitosj_state.check_sprite_sprite_bitpattern",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_sprite_layer_collision",
+      "to": "handler:taitosj_state.check_sprite_layer_bitpattern",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_sprite_sprite_bitpattern",
+      "to": "handler:taitosj_state.get_sprite_gfx_element",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:taitosj_state.check_sprite_layer_bitpattern",
+      "to": "handler:taitosj_state.get_sprite_gfx_element",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

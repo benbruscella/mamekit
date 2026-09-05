@@ -1,0 +1,815 @@
+{
+  "game": "carnival",
+  "title": "Carnival (upright, AY8912 music) (Sega, 1980)",
+  "fullname": "Carnival (upright, AY8912 music)",
+  "year": "1980",
+  "company": "Sega",
+  "family": "vicdual",
+  "driverFile": "src/mame/sega/vicdual.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Zsolt Vasvari",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 1933560,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom",
+          "mirror": 16384
+        },
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "mirror": 28672,
+          "share": "videoram",
+          "write": "vicdual_state.videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 33792,
+          "end": 34815,
+          "kind": "ram",
+          "mirror": 28672
+        },
+        {
+          "start": 34816,
+          "end": 36863,
+          "kind": "ram",
+          "mirror": 28672,
+          "share": "characterram",
+          "write": "vicdual_state.characterram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "mirror": 124,
+            "read": "port.IN0"
+          },
+          {
+            "start": 1,
+            "end": 1,
+            "kind": "handler",
+            "mirror": 124,
+            "read": "port.IN1"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "kind": "handler",
+            "mirror": 124,
+            "read": "port.IN2"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "kind": "handler",
+            "mirror": 124,
+            "read": "port.IN3"
+          },
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "handler",
+            "write": "carnival_state.carnival_io_w",
+            "handlerWidth": 8
+          }
+        ],
+        "globalMask": 127
+      }
+    },
+    {
+      "tag": "audiocpu",
+      "type": "i8035",
+      "clock": 3579545,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 1023,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1193181.6666666667,
+    "chips": 1,
+    "deviceTags": [
+      "psg"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "mono"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "SAMPLES",
+        "deviceTag": "samples",
+        "member": "m_samples",
+        "clock": 0,
+        "gain": 0.5,
+        "target": "mono",
+        "writeMethods": [
+          "start",
+          "start_raw",
+          "stop",
+          "set_volume"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60,
+    "htotal": 328,
+    "vtotal": 262,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-651.u33",
+          "offset": 0,
+          "size": 1024,
+          "crc": "9f2736e6",
+          "alt": [
+            {
+              "file": "epr-501.u33",
+              "crc": "688503d2"
+            },
+            {
+              "file": "epr-479.u33",
+              "crc": "620bff59"
+            },
+            {
+              "file": "16mm.u33",
+              "crc": "0230bd0a"
+            },
+            {
+              "file": "16v.u33",
+              "crc": "a47a1c54"
+            }
+          ]
+        },
+        {
+          "file": "epr-652.u32",
+          "offset": 1024,
+          "size": 1024,
+          "crc": "a1f58beb",
+          "alt": [
+            {
+              "file": "epr-480.u32",
+              "crc": "90768717"
+            }
+          ]
+        },
+        {
+          "file": "epr-653.u31",
+          "offset": 2048,
+          "size": 1024,
+          "crc": "67b17922",
+          "alt": [
+            {
+              "file": "epr-481.u31",
+              "crc": "5c903af9"
+            }
+          ]
+        },
+        {
+          "file": "epr-654.u30",
+          "offset": 3072,
+          "size": 1024,
+          "crc": "befb09a5",
+          "alt": [
+            {
+              "file": "epr-482.u30",
+              "crc": "fb2398a1"
+            }
+          ]
+        },
+        {
+          "file": "epr-655.u29",
+          "offset": 4096,
+          "size": 1024,
+          "crc": "623fcdad",
+          "alt": [
+            {
+              "file": "epr-483.u29",
+              "crc": "306f50d2"
+            },
+            {
+              "file": "12mm.u29",
+              "crc": "b5230913"
+            }
+          ]
+        },
+        {
+          "file": "epr-656.u28",
+          "offset": 5120,
+          "size": 1024,
+          "crc": "53040332",
+          "alt": [
+            {
+              "file": "epr-506.u28",
+              "crc": "ba916e97"
+            },
+            {
+              "file": "epr-484.u28",
+              "crc": "e80a6ebc"
+            }
+          ]
+        },
+        {
+          "file": "epr-657.u27",
+          "offset": 6144,
+          "size": 1024,
+          "crc": "f2537467",
+          "alt": [
+            {
+              "file": "epr-507.u27",
+              "crc": "d0bda4a5"
+            },
+            {
+              "file": "epr-485.u27",
+              "crc": "993e2885"
+            },
+            {
+              "file": "10mm.u27",
+              "crc": "a3b9c2db"
+            }
+          ]
+        },
+        {
+          "file": "epr-658.u26",
+          "offset": 7168,
+          "size": 1024,
+          "crc": "fcc3854e",
+          "alt": [
+            {
+              "file": "epr-508.u26",
+              "crc": "f0258cad"
+            },
+            {
+              "file": "epr-486.u26",
+              "crc": "e6b7eb05"
+            }
+          ]
+        },
+        {
+          "file": "epr-659.u8",
+          "offset": 8192,
+          "size": 1024,
+          "crc": "28be8d69",
+          "alt": [
+            {
+              "file": "epr-509.u8",
+              "crc": "dcc8a530"
+            },
+            {
+              "file": "epr-487.u8",
+              "crc": "41abf6f8"
+            }
+          ]
+        },
+        {
+          "file": "epr-660.u7",
+          "offset": 9216,
+          "size": 1024,
+          "crc": "3873ccdb",
+          "alt": [
+            {
+              "file": "epr-510.u7",
+              "crc": "92c2ba51"
+            },
+            {
+              "file": "epr-488.u7",
+              "crc": "b0288f2a"
+            }
+          ]
+        },
+        {
+          "file": "epr-661.u6",
+          "offset": 10240,
+          "size": 1024,
+          "crc": "d9a96dff",
+          "alt": [
+            {
+              "file": "epr-511.u6",
+              "crc": "3af899a0"
+            },
+            {
+              "file": "epr-489.u6",
+              "crc": "c9c529ab"
+            }
+          ]
+        },
+        {
+          "file": "epr-662.u5",
+          "offset": 11264,
+          "size": 1024,
+          "crc": "d893ca72",
+          "alt": [
+            {
+              "file": "epr-512.u5",
+              "crc": "09f7b3e6"
+            },
+            {
+              "file": "epr-490.u5",
+              "crc": "9d4ffe25"
+            }
+          ]
+        },
+        {
+          "file": "epr-663.u4",
+          "offset": 12288,
+          "size": 1024,
+          "crc": "df8c63c5",
+          "alt": [
+            {
+              "file": "epr-513.u4",
+              "crc": "8f41974c"
+            },
+            {
+              "file": "epr-491.u4",
+              "crc": "5d086aec"
+            }
+          ]
+        },
+        {
+          "file": "epr-664.u3",
+          "offset": 13312,
+          "size": 1024,
+          "crc": "689a73e8",
+          "alt": [
+            {
+              "file": "epr-514.u3",
+              "crc": "2788d140"
+            },
+            {
+              "file": "epr-492.u3",
+              "crc": "0e20e4a5"
+            }
+          ]
+        },
+        {
+          "file": "epr-665.u2",
+          "offset": 14336,
+          "size": 1024,
+          "crc": "28e7b2b6",
+          "alt": [
+            {
+              "file": "epr-515.u2",
+              "crc": "10decaa9"
+            },
+            {
+              "file": "epr-493.u2",
+              "crc": "b4a7c5c9"
+            },
+            {
+              "file": "2mm.u2",
+              "crc": "b94ef7ab"
+            }
+          ]
+        },
+        {
+          "file": "epr-666.u1",
+          "offset": 15360,
+          "size": 1024,
+          "crc": "4eec7fae",
+          "alt": [
+            {
+              "file": "epr-516.u1",
+              "crc": "7c32b352"
+            },
+            {
+              "file": "epr-494.u1",
+              "crc": ""
+            },
+            {
+              "file": "1mm.u1",
+              "crc": "6e10c057"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "316-0633.u49",
+          "offset": 0,
+          "size": 32,
+          "crc": "f0084d80"
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "epr-412.u5",
+          "offset": 0,
+          "size": 1024,
+          "crc": "0dbaa2b0",
+          "alt": [
+            {
+              "file": "epr-647a.u5",
+              "crc": "422abb43"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "user1",
+      "size": 32,
+      "loads": [
+        {
+          "file": "316-0206.u14",
+          "offset": 0,
+          "size": 32,
+          "crc": "9617d796",
+          "alt": [
+            {
+              "file": "bin.u14",
+              "crc": "e60a7960"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN3",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN3",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-22",
+    "commits": 255,
+    "contributors": 35,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "Michaël Banaan Ananas",
+      "Vas Crabb"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 60,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-07"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 32,
+        "firstCommit": "2013-08-27",
+        "lastCommit": "2026-01-03"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 27,
+        "firstCommit": "2010-05-02",
+        "lastCommit": "2013-08-13"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 22,
+        "firstCommit": "2017-01-22",
+        "lastCommit": "2026-07-22"
+      },
+      {
+        "name": "hap",
+        "commits": 13,
+        "firstCommit": "2016-01-22",
+        "lastCommit": "2026-02-13"
+      },
+      {
+        "name": "angelosa",
+        "commits": 6,
+        "firstCommit": "2017-09-04",
+        "lastCommit": "2026-06-10"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 6,
+        "firstCommit": "2013-03-06",
+        "lastCommit": "2020-11-18"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 6,
+        "firstCommit": "2017-11-23",
+        "lastCommit": "2017-11-25"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 6,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-03-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 5,
+        "firstCommit": "2016-08-03",
+        "lastCommit": "2022-01-06"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2009-08-05",
+        "lastCommit": "2017-11-28"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 3,
+        "firstCommit": "2010-03-02",
+        "lastCommit": "2019-11-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Ariane Fugmann",
+        "commits": 2,
+        "firstCommit": "2017-02-26",
+        "lastCommit": "2017-03-31"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 2,
+        "firstCommit": "2024-11-09",
+        "lastCommit": "2025-03-31"
+      },
+      {
+        "name": "DavidHaywood",
+        "commits": 2,
+        "firstCommit": "2020-10-25",
+        "lastCommit": "2020-10-25"
+      },
+      {
+        "name": "mariuszw1",
+        "commits": 2,
+        "firstCommit": "2010-10-13",
+        "lastCommit": "2011-10-11"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-03",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-03",
+        "lastCommit": "2008-08-03"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2010-04-14",
+        "lastCommit": "2010-04-14"
+      },
+      {
+        "name": "briantro",
+        "commits": 1,
+        "firstCommit": "2017-01-18",
+        "lastCommit": "2017-01-18"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2012-10-07",
+        "lastCommit": "2012-10-07"
+      },
+      {
+        "name": "etabeta78",
+        "commits": 1,
+        "firstCommit": "2015-01-02",
+        "lastCommit": "2015-01-02"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-04-28"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2015-04-05",
+        "lastCommit": "2015-04-05"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-06-05",
+        "lastCommit": "2018-06-05"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2018-04-03",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "SNESNESCUBE64",
+        "commits": 1,
+        "firstCommit": "2025-12-16",
+        "lastCommit": "2025-12-16"
+      },
+      {
+        "name": "Steven Coomber",
+        "commits": 1,
+        "firstCommit": "2022-03-20",
+        "lastCommit": "2022-03-20"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2015-08-14",
+        "lastCommit": "2015-08-14"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nCarnival (c) 1980 Gremlin/Sega Ind., Incorporated.\n\nCARNIVAL is a 1 or 2 player alternate action game that simulates a carnival shooting gallery. The playfield consists of three target rows, a rotating pipe wheel, a bonus message panel, and a 'special' target block.\n\nThe player uses a left right control to position a rifle at the bottom of the screen, and a shoot control to fire the rifle. Two rows of bullets at the bottom of the screen indicate the number of shots remaining to the player. Every time the player shoots, one of the bullets disappears from the screen. More bullets are given during the first round than the others, so, the inexperienced player will have a chance to enjoy the play.\n\nThe game ends when the player runs out of bullets. This can occur on any round. A round ends when the player clears the playfield of all targets. At this point, a special 'shoot the bear' sequence appears, and when this is finished the player proceeds to the next more difficult (and higher scoring) round. This is Gremlin's Multi-Phase design concept that keeps games challenging to players of all levels.\n\nWhen a player completes a round (ending with 'shoot the bear' sequence), the screen flips to the other player. When the original player resumes play, he advances to the next level of difficulty, exactly as he would have if the screen had not flipped to the other player. This method allows the players to more directly compare their scores, since they are always within one round of each other. Note that the player who ends the game first does not necessarily lose--he might still have the higher score when the game ends.\n\nThe three target rows move in a horizontal line from left to right (top row), right to left (middle row) and left to right (bottom row). There are five types of targets. The rows move as a continuous band--the targets exiting the playfield from the right side of the bottom row reappear at the left of the top row. The point value for hitting a row target is indicated along the right side of the game--maximum points for a top row target, medium points for a middle row target, and minimum points for a bottom row target. These values increase from round to round.\n\nRabbits and owls are simple targets, which disappear when hit.\n\nNumbered sign targets award additional bullets to the player when hit, as well as awarding the points indicated for the row. These targets appear only on the top two rows to make them relatively difficult targets.\n\nFive small letters, B, 0, N, U and S are randomly interspersed through the target rows. At the upper right of the playfield is the word ''bonus\" spelled out is small letters. If the player manages to hit the moving bonus letters in order (b-o-n-u-s) a special bonus is awarded. The fact that the bonus is still active is shown by the bonus word in the upper right of the playfield. Every time a bonus letter in the correct order is hit, the small corresponding letter in the bonus panel enlarges to show that it has been hit. Whenever a bonus letter is hit out of order, the bonus panel disappears until the next round. The bonus panel reappears at the beginning of every round. The bonus value is determined by adding row target points into the bonus value. When the \"B\" letter is hit, the bonus value freezes for that round. This encourages waiting as long as possible before attempting to score the bonus.\n\nDucks are special targets. Whenever a duck reaches the bottom row, it is capable of leaving the row and flying down toward the player. If the duck manages to get past the player's rifle without being shot, it flies down to the bullet row and quickly eats 10 bullets. A maximum of three ducks can escape simultaneously.\n\nThe target rows move as a continuous band of targets, and no new owls, rabbits, or bonus letter targets are added once the round starts. 'More shots' targets and ducks are added during a round. The frequency of adding duck targets is tied to the round number. As the rounds get more difficult, more ducks are added as the round progresses.\n\nA flying duck hit scores no points.\n\nBullets left over at the end of a round earn 50 points each.\n\nThe between rounds 'shoot the bear' sequence operates as a shooting gallery bear. Whenever the bear is hit, it rears up, roars, and continues motion in the opposite direction. Each hit speeds up the bear, and increases the point value, which is shown above the bear for each hit. When the bear leaves the screen (which it will always do eventually, since it speeds up with each hit) the between rounds sequence ends and a new round begins. As the rounds progress, more bears (a maximum of 4) appear on the screen simultaneously.\n\nA special yellow-rimmed score panel appears in the upper left of the playfield, and stays on for random lengths of time. Four types of panels appear here, which either add or subtract points or bullets. Hitting any part of the panel border awards the score shown inside.\n\nThe bullet bonus panel is shown with a large plus sign, and a row of bullets. Immediately after appearing, the bullets begin disappearing fairly rapidly. When the bullets are depleted, the panel disappears. If hit, the player is awarded the number of bullets left in the panel when it was hit.\n\nThe score bonus is shown with the same large plus sign, and a score value. As with the bullets, the score value quickly decreases, until it hits zero and disappears.\n\nThe minus panels are similar to those above except a large minus sign indicates the number of bullets or points subtracted when hit. This discourages the practice of parking on the left margin and shooting--a miss will hit the negative target. These panels show a fixed number of bullets or points, and after a random time interval, disappear.\n\nThe pipe wheel contains 8 pipes of 4 different colors. A panel beneath the wheel restricts pipe hits to horizontally oriented pipes, and also indicates the point value for hitting a pipe. Every shot the player takes decrements the pipe value, except a shot which hits a pipe. This makes it advisable to hit pipes early in the round, when it is most difficult (since the player must shoot through heavily populated target rows). Hitting two pipes of the same color with two consecutive shots awards a bonus of four times the pipe value shown in the panel.\n\nCARNIVAL is accompanied by background music. At the beginning of every round, the music begins at a slow rate and relatively low key. As the round progresses, the music speeds up and the melody shifts up in key. This gives the player a growing sense of urgency. As the round progresses, the playfield motion also gradually speeds up.\n\nA small panel on the right of the playfield contains a musical note symbol. If the player wishes to turn off the music, he simply shoots the note panel. This makes the note disappear, and turns off the music. Hitting the panel again makes the note reappear and resumes the music. The note thus acts as a 'flip-flop' switch to turn the music on and off.\n\nEvery round begins with the music on.\n\nThere is a special case to consider near the end of a round: the player has cleared all of the targets except the ducks, and has plenty of bullets left so that he can simply sit and wait for the ducks. He would, in effect, prolong the game by refusing to end the round.\n\nTheoretically, by hitting the ducks and 'more shots' signs, the round could be prolonged indefinitely. However, an internal \"doomsday\" timer in the game keeps track of how long a round has lasted. After a certain time limit (the same for each round), the frequency of new duck appearances increases dramatically.\n\nThe top 3 scores are shown during advertising, along with the player's initials. A player who scores in the top 3 is allowed to enter 3 initials by a special routine explained at the time of their writing. The rank is updated during the round. The player is both audibly and visually rewarded. There is a pronounced audible sound as the player's score passes that of another ranking player's score. And, they may watch their rank progress during the game.\n\nCARNIVAL's basic play action is outlined below, as it appears in the game instructions.\n\nShoot all targets and pipes to advance to the next round.\nGame is over when you run out of bullets.\nEscaped ducks eat 10 bullets.\nHit B-O-N-U-S letters in sequence for special bonus. Bonus value stops increasing when 'B' is hit.\nHit same color pipes with 2 consecutive shots to score 4 times pipe value. Shoot number signs for more bullets.\nShoot the bear between rounds for extra points.\n\n- TECHNICAL -\n\n[Upright model]\n\nThere were 2 different upright cabinets available for this game. The first upright was the standard Sega/Gremlin woodgrain cabinet. The second was a white cabinet.\n\nThe upright machines were decorated in mostly orange, with a circus theme. The woodgrain ones often did not have sideart, but the white ones usually did. Both versions used buttons on the control panel for movement.\n\nGame ID : 651-666\n\nMain CPU : Zilog Z80 (@ 1.93356 Mhz)\nSound CPU : I8039 (@ 238.636 Khz)\nSound Chips : General Instrument AY8910 (@ 1.193181 Mhz)\n\nScreen orientation : Vertical\nVideo resolution : 224 x 256 pixels\nScreen refresh : 60.00 Hz\nPalette colors : 64\n\nPlayers : 1\nButtons : 5\nPlayer-1 start, Player-2 start, Move Left, Move Right, Fire\n\n- TRIVIA -\n\nReleased during June 1980.\n\nAlso released as \"Carnival [Cocktail model]\".\n\nCARNIVAL contains the following sounds :\nA clang sound every time a row target or bear is hit;\nA pipe hit sound whenever a pipe is hit;\nA bear roar whenever the bear is hit and rears up;\nThree different duck quack sounds, to accompany up to three simultaneously escaped ducks;\nA bonus sound for lighting the BONUS letters in the correct order;\nA secondary bonus sound for pipe bonus and special panel bonus;\nA rank sound as the player's score moves up in rank;\nBackground music; \nRifle shot.\n\nFred Pastore holds the official record for this game with 386,750 points on June 3, 2001.\n\nA Carnival unit appears in the 1983 movie 'Joysticks'.\n\n- SCORING -\n\nShooting the bonus box at the top left: the score inside the box (+ or -).\nShooting an object in the top row scores the points at the right of the screen level with the top row (50, 60, etc).\nA hit in the 2nd row scores the points at the right of the screen level with the 2nd row (30, 40, etc).\nA hit in the bottom row scores the points at the right of the screen level with the bottom row (10, 20, etc).\nA hit on a polar bear in the intermission screen scores 50 points.\n\n- TIPS AND TRICKS -\n\n* Make any ducks on the lowest level your priority at the start of a screen, as they will soon swoop down to steal some of your ammunition.\n\n* Keep an eye out for the passing boxed '5' and '10' symbols, as these award 5 or 10 extra bullets respectively when shot. You won't have enough ammo to complete a screen without at least hitting a few of these.\n\n* You can stay to the left of the screen, which will enable you to pick off any good bonuses in the bonus box at an early stage. Don't get too trigger happy though, or you might be dropping your score or losing a lot of ammo too quickly if you hit a negative 'bonus'.\n\n* The key to getting a lot of hits on the polar bear(s) in the bonus stage is to concentrate on only one bear and hit it as close to dead centre as possible. If you do this keep firing rapidly and you'll rack up a few points as it won't be able to escape from a constant barrage of bullets.\n\n* Extra bullet '5' and '10's only appear on the top two rows and don't reappear at the top after going offscreen from the middle row so make sure you pick them off whenever possible.\n\n- STAFF -\n\nLead Programmer : Medo Moreno\nProgrammer : Helene Schlein\nProgrammer : Murphy Bivens\n\n- PORTS -\n\n* CONSOLES:\nColecovision (1982)\nMattel Intellivision (1982)\nAtari 2600 (1982)\n\n* COMPUTERS:\nSinclair ZX-Spectrum (1984) \"Carnival\" by Eclipse Software.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/394/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

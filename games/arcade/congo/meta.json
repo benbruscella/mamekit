@@ -1,0 +1,214 @@
+{
+  "game": "congo",
+  "title": "Congo Bongo (Rev C, 2 board stack) (Sega, 1983)",
+  "fullname": "Congo Bongo (Rev C, 2 board stack)",
+  "year": "1983",
+  "manufacturer": "Sega",
+  "family": "zaxxon",
+  "driverFile": "src/mame/sega/zaxxon.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 197,
+    "contributors": 31,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Olivier Galibert",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 66,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-08-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-04-16"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 9,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2013-10-24",
+        "lastCommit": "2025-02-10"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2017-06-14",
+        "lastCommit": "2019-09-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-03-03"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 4,
+        "firstCommit": "2011-07-03",
+        "lastCommit": "2012-04-30"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 4,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2021-03-13"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2014-04-17"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2009-08-05",
+        "lastCommit": "2015-07-11"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2016-01-24",
+        "lastCommit": "2023-06-16"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-05-31",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-10-21",
+        "lastCommit": "2009-12-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-09-24"
+      },
+      {
+        "name": "briantro",
+        "commits": 2,
+        "firstCommit": "2016-10-29",
+        "lastCommit": "2016-10-29"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 2,
+        "firstCommit": "2015-05-09",
+        "lastCommit": "2015-05-12"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2011-03-16",
+        "lastCommit": "2012-05-17"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 2,
+        "firstCommit": "2008-05-29",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-03-30",
+        "lastCommit": "2008-03-30"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-07-06",
+        "lastCommit": "2011-07-06"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-11-15",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-05-29",
+        "lastCommit": "2008-05-29"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2008-04-19",
+        "lastCommit": "2008-04-19"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-10-04",
+        "lastCommit": "2009-10-04"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

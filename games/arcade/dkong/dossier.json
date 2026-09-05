@@ -1,0 +1,909 @@
+{
+  "game": "dkong",
+  "title": "Donkey Kong (US set 1) (Nintendo of America, 1981)",
+  "fullname": "Donkey Kong (US set 1)",
+  "year": "1981",
+  "company": "Nintendo of America",
+  "family": "dkong",
+  "driverFile": "src/mame/nintendo/dkong.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Couriersud",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 20479,
+          "kind": "rom"
+        },
+        {
+          "start": 24576,
+          "end": 27647,
+          "kind": "ram"
+        },
+        {
+          "start": 28672,
+          "end": 29695,
+          "kind": "ram",
+          "share": "sprite_ram"
+        },
+        {
+          "start": 29696,
+          "end": 30719,
+          "kind": "ram",
+          "share": "video_ram",
+          "write": "dkong_state.dkong_videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 30720,
+          "end": 30735,
+          "kind": "handler",
+          "read": "dma8257.read",
+          "write": "dma8257.write"
+        },
+        {
+          "start": 31744,
+          "end": 31744,
+          "kind": "handler",
+          "write": "ls175.3d.write",
+          "read": "port.IN0"
+        },
+        {
+          "start": 31872,
+          "end": 31872,
+          "kind": "handler",
+          "write": "dkong_state.radarscp_grid_color_w",
+          "handlerWidth": 8,
+          "read": "port.IN1"
+        },
+        {
+          "start": 32000,
+          "end": 32000,
+          "kind": "handler",
+          "read": "dkong_state.dkong_in2_r"
+        },
+        {
+          "start": 32000,
+          "end": 32007,
+          "kind": "handler",
+          "write": "ls259.6h.bit0_w"
+        },
+        {
+          "start": 32128,
+          "end": 32128,
+          "kind": "handler",
+          "write": "dkong_state.dkong_audio_irq_w",
+          "handlerWidth": 8,
+          "read": "port.DSW0"
+        },
+        {
+          "start": 32129,
+          "end": 32129,
+          "kind": "handler",
+          "write": "dkong_state.radarscp_grid_enable_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32130,
+          "end": 32130,
+          "kind": "handler",
+          "write": "dkong_state.dkong_flipscreen_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32131,
+          "end": 32131,
+          "kind": "handler",
+          "write": "dkong_state.dkong_spritebank_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32132,
+          "end": 32132,
+          "kind": "handler",
+          "write": "dkong_state.nmi_mask_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32133,
+          "end": 32133,
+          "kind": "handler",
+          "write": "dkong_state.p8257_drq_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32134,
+          "end": 32135,
+          "kind": "handler",
+          "write": "dkong_state.dkong_palettebank_w",
+          "handlerWidth": 8
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "mb8884",
+      "clock": 6000000,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "rom"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 255,
+            "kind": "handler",
+            "read": "dkong_state.dkong_tune_r",
+            "write": "dkong_state.dkong_voice_w",
+            "handlerWidth": 8
+          }
+        ]
+      }
+    }
+  ],
+  "sound": {
+    "kind": "discrete",
+    "clock": 3072000,
+    "worklet": "../../hardware/discrete-effects/discrete-effects",
+    "discreteEffects": {
+      "schemaVersion": 1,
+      "type": "DISCRETE_EFFECTS",
+      "inputNodes": {
+        "DS_SOUND0_INV": 1,
+        "DS_SOUND1_INV": 2,
+        "DS_SOUND2_INV": 3,
+        "DS_DAC": 7,
+        "DS_DISCHARGE_INV": 8,
+        "DS_SOUND0_INP": 1,
+        "DS_SOUND1_INP": 2,
+        "DS_SOUND2_INP": 3
+      },
+      "dac": {
+        "node": 7,
+        "gain": 1.25,
+        "filterFrequency": 1916.111441837517,
+        "q": 0.7416198487095663
+      },
+      "voices": [
+        {
+          "node": 3,
+          "mode": "noise",
+          "frequency": 4000,
+          "release": 0.032999999999999995,
+          "gain": 0.23943661971830987,
+          "activeLow": false,
+          "network": "dkong-stomp"
+        },
+        {
+          "node": 2,
+          "mode": "tone",
+          "frequency": 303.34948388455865,
+          "vco": {
+            "modulationFrequency": 8.417508417508419,
+            "modulationResistance": 18000,
+            "modulationParallelResistance": 3300000,
+            "modulationCapacitance": 0.0000032999999999999997,
+            "modulationType": 1,
+            "controlResistance1": 10000,
+            "controlResistance2": 10000,
+            "oscillatorResistance": 10000,
+            "outputResistance": 1200,
+            "controlCapacitance": 0.000009999999999999999,
+            "timerResistance1": 47000,
+            "timerResistance2": 27000,
+            "timerCapacitance": 4.7000000000000004e-8,
+            "supplyVoltage": 5
+          },
+          "release": 0.047,
+          "gain": 0.23943661971830987,
+          "activeLow": false,
+          "triggerEdge": "both",
+          "network": "dkong-jump"
+        },
+        {
+          "node": 1,
+          "mode": "tone",
+          "frequency": 432.043204320432,
+          "vco": {
+            "modulationFrequency": 11.627906976744187,
+            "modulationResistance": 4300,
+            "modulationParallelResistance": 43000,
+            "modulationCapacitance": 0.000009999999999999999,
+            "modulationType": 2,
+            "controlResistance1": 1000,
+            "controlResistance2": 10000,
+            "oscillatorResistance": 12000,
+            "outputResistance": 1200,
+            "controlCapacitance": 0.0000032999999999999997,
+            "timerResistance1": 47000,
+            "timerResistance2": 27000,
+            "timerCapacitance": 3.3000000000000004e-8,
+            "supplyVoltage": 5
+          },
+          "release": 0.032999999999999995,
+          "gain": 0.16666666666666666,
+          "activeLow": false,
+          "triggerEdge": "both",
+          "network": "dkong-walk"
+        }
+      ],
+      "outputNetwork": "dkong2b",
+      "dischargeNode": 8,
+      "dischargeRelease": 0.09999999999999999,
+      "outputGain": 0.682,
+      "source": {
+        "file": "src/mame/nintendo/dkong_a.cpp",
+        "line": 343,
+        "netlist": "dkong2b_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "htotal": 384,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "scanline",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "c_5et_g.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "ba70b88b",
+          "alt": [
+            {
+              "file": "dk5ehard.bin",
+              "crc": "a9445215"
+            },
+            {
+              "file": "c_5f_b.bin",
+              "crc": "424f2b11"
+            },
+            {
+              "file": "dk_f.5et",
+              "crc": "00b7efaf"
+            }
+          ]
+        },
+        {
+          "file": "c_5ct_g.bin",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "5ec461ec",
+          "alt": [
+            {
+              "file": "5g.cpu",
+              "crc": "d326599b"
+            },
+            {
+              "file": "c_5g_b.bin",
+              "crc": "3b2a6635"
+            },
+            {
+              "file": "dk_f.5ct",
+              "crc": "88af9b69"
+            },
+            {
+              "file": "c_5ct_gp.bin",
+              "crc": "45af403e"
+            }
+          ]
+        },
+        {
+          "file": "c_5bt_g.bin",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "1c97d324",
+          "alt": [
+            {
+              "file": "c_5h_b.bin",
+              "crc": "1d28895d"
+            },
+            {
+              "file": "5h.cpu",
+              "crc": "ff31ac89"
+            },
+            {
+              "file": "dk_f.5bt",
+              "crc": "de74ad91"
+            },
+            {
+              "file": "c_5bt_gp.bin",
+              "crc": "3a9783b7"
+            }
+          ]
+        },
+        {
+          "file": "c_5at_g.bin",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "b9005ac0",
+          "alt": [
+            {
+              "file": "dk5ahard.bin",
+              "crc": "a990729b"
+            },
+            {
+              "file": "tkg3c.5k",
+              "crc": "553b89bb"
+            },
+            {
+              "file": "c_5k_b.bin",
+              "crc": "394d6007"
+            },
+            {
+              "file": "5k.bin",
+              "crc": "7961599c"
+            },
+            {
+              "file": "dk_f.5at",
+              "crc": "6a6bd420"
+            },
+            {
+              "file": "c_5at_gp.bin",
+              "crc": "32bc20ff"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 6144,
+      "loads": [
+        {
+          "file": "s_3i_b.bin",
+          "offset": 0,
+          "size": 2048,
+          "crc": "45a4ed06",
+          "reloadOffsets": [
+            2048
+          ]
+        },
+        {
+          "file": "s_3j_b.bin",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "4743fe92"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "v_5h_b.bin",
+          "offset": 0,
+          "size": 2048,
+          "crc": "12c8c95d",
+          "alt": [
+            {
+              "file": "v_5h_bp.bin",
+              "crc": "007aa348"
+            }
+          ]
+        },
+        {
+          "file": "v_3pt.bin",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "15e9c5e9",
+          "alt": [
+            {
+              "file": "v_5k_b.bin",
+              "crc": "3684f914"
+            },
+            {
+              "file": "v_3ptp.bin",
+              "crc": "a967aff0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "l_4m_b.bin",
+          "offset": 0,
+          "size": 2048,
+          "crc": "59f8054d",
+          "alt": [
+            {
+              "file": "l_4m_bp.bin",
+              "crc": "766ae006"
+            }
+          ]
+        },
+        {
+          "file": "l_4n_b.bin",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "672e4714",
+          "alt": [
+            {
+              "file": "l_4n_bp.bin",
+              "crc": "39e7ca4b"
+            }
+          ]
+        },
+        {
+          "file": "l_4r_b.bin",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "feaa59ee",
+          "alt": [
+            {
+              "file": "l_4r_bp.bin",
+              "crc": "012f2f25"
+            }
+          ]
+        },
+        {
+          "file": "l_4s_b.bin",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "20f2ef7e",
+          "alt": [
+            {
+              "file": "l_4s_bp.bin",
+              "crc": "84eb5bfb"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 768,
+      "loads": [
+        {
+          "file": "c-2k.bpr",
+          "offset": 0,
+          "size": 256,
+          "crc": "e273ede5"
+        },
+        {
+          "file": "c-2j.bpr",
+          "offset": 256,
+          "size": 256,
+          "crc": "d6412358"
+        },
+        {
+          "file": "v-5e.bpr",
+          "offset": 512,
+          "size": 256,
+          "crc": "b869b8f5"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "F2"
+      ],
+      "label": "IPT_SERVICE",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 128,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "SERVICE1",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 3,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW0",
+      "mask": 12,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW0",
+      "mask": 112,
+      "value": 0,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW0",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "VIDHW",
+      "mask": 1,
+      "value": 1,
+      "name": "Video Hardware"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-27",
+    "commits": 311,
+    "contributors": 42,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Couriersud",
+      "Vas Crabb",
+      "Michaël Banaan Ananas"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 85,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2013-07-29"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 45,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 31,
+        "firstCommit": "2007-12-24",
+        "lastCommit": "2013-11-02"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 18,
+        "firstCommit": "2016-08-29",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 14,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-09-23"
+      },
+      {
+        "name": "hap",
+        "commits": 13,
+        "firstCommit": "2020-05-11",
+        "lastCommit": "2026-05-27"
+      },
+      {
+        "name": "smf-",
+        "commits": 12,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-13"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 10,
+        "firstCommit": "2009-07-30",
+        "lastCommit": "2015-04-21"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 9,
+        "firstCommit": "2013-10-27",
+        "lastCommit": "2020-06-08"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 9,
+        "firstCommit": "2018-01-01",
+        "lastCommit": "2020-11-02"
+      },
+      {
+        "name": "AJR",
+        "commits": 7,
+        "firstCommit": "2017-06-22",
+        "lastCommit": "2024-06-29"
+      },
+      {
+        "name": "0kmg",
+        "commits": 4,
+        "firstCommit": "2022-01-11",
+        "lastCommit": "2022-12-21"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 4,
+        "firstCommit": "2010-08-26",
+        "lastCommit": "2012-04-08"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2014-04-29"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 4,
+        "firstCommit": "2018-06-07",
+        "lastCommit": "2018-12-15"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 4,
+        "firstCommit": "2012-12-14",
+        "lastCommit": "2015-10-28"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2009-01-01",
+        "lastCommit": "2010-08-28"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 3,
+        "firstCommit": "2008-11-25",
+        "lastCommit": "2009-11-08"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2008-03-24",
+        "lastCommit": "2008-10-30"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 2,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-28"
+      },
+      {
+        "name": "aequites7",
+        "commits": 1,
+        "firstCommit": "2021-10-22",
+        "lastCommit": "2021-10-22"
+      },
+      {
+        "name": "ajrhacker",
+        "commits": 1,
+        "firstCommit": "2017-03-25",
+        "lastCommit": "2017-03-25"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-30",
+        "lastCommit": "2008-08-30"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-03-31",
+        "lastCommit": "2019-03-31"
+      },
+      {
+        "name": "couriersud",
+        "commits": 1,
+        "firstCommit": "2019-12-20",
+        "lastCommit": "2019-12-20"
+      },
+      {
+        "name": "cracyc",
+        "commits": 1,
+        "firstCommit": "2014-04-30",
+        "lastCommit": "2014-04-30"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "DavidHaywood",
+        "commits": 1,
+        "firstCommit": "2021-02-17",
+        "lastCommit": "2021-02-17"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 1,
+        "firstCommit": "2016-01-10",
+        "lastCommit": "2016-01-10"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2025-12-13",
+        "lastCommit": "2025-12-13"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2012-09-09",
+        "lastCommit": "2012-09-09"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2009-06-10",
+        "lastCommit": "2009-06-10"
+      },
+      {
+        "name": "Stiletto",
+        "commits": 1,
+        "firstCommit": "2016-08-10",
+        "lastCommit": "2016-08-10"
+      },
+      {
+        "name": "therealmogminer@gmail.com",
+        "commits": 1,
+        "firstCommit": "2016-01-21",
+        "lastCommit": "2016-01-21"
+      },
+      {
+        "name": "Tomasz Slanina",
+        "commits": 1,
+        "firstCommit": "2011-07-16",
+        "lastCommit": "2011-07-16"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2014-01-11",
+        "lastCommit": "2014-01-11"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 45 years ago:\n\nDonkey Kong (c) 1981 Nintendo of America, Incorporated.\n\nExport version for North America. For more information about the game itself, please see the original Japanese upright version entry.\n\n- TECHNICAL -\n\n[Blue Upright model] \nThe blue uprights (which are the most common), are a very rectangular affair, with quite a lot of artwork. They have orange-ish sticker style side-art (with Mario and Kong on them), with control panel, marquee, and monitor bezel graphics to match. This game does not use a standard arcade monitor. It requires a 'Nintendo Compatible' monitor (a normal monitor will display the picture like that of a photographic negative). This simple little monitor change basically launched the entire Nintendo Vs. Unisystem later on. Because only Donkey Kong series games and Vs. titles would work on these monitors (forcing operators to buy conversion kits for those games instead of a competitors game). \n\n[Red Upright model] \nThe red upright versions are actually \"Radar Scope\" cabinets that have been factory-converted to Donkey Kong. These are fairly rare and feature slightly different gameplay.\n\n- TRIVIA -\n\nDonkey Kong was released on July 31, 1981 in the USA.\n\nDonkey Kong was to be Nintendo's first big breakthrough into the western - and particularly American - arcade scene. Before Donkey Kong, Nintendo was having difficulty establishing itself in these markets. After the game's massive success Nintendo quickly established their headquarters of Nintendo of America to ensure that the game was being distributed properly. \n\nMario was named after Mario Segale, the landlord of Nintendo of America's first warehouse location in Seattle (though it was debated whether this occurred before or well after the game was released). Mario was originally called 'Jumpman'; only the arcade version of Donkey Kong has ever called the hero Jumpman; most home coversions, particularly the NES version, game him the Mario name.\n\nAccounts differ as to how Nintendo of America felt about the game before its release. Many sources claim that they all felt sure it would be an absolute disaster while others say they were more optimistic.\n\nAlthough Mario is a plumber in later games, his career in Donkey Kong is that of a carpenter. Mario's appearance (and consequently his career) was dictated by the primitive graphics hardware of the time - the only way to have his arms appear 'separate' to his torso was to have them as a different color - hence he wears 'dungarees'. The mustache is present merely to indicate where Mario's mouth is, again due to the low graphics resolution imposed by hardware limitations. Mario wears a hat so his head is distinguishable from the game's black backgrounds. \n\nAbout 60,000 units were sold in the US. Oddly, despite it being one of the ten best selling games of the golden age of video games, it never reached #1 on Replay's popularity charts. Instead, it was stuck at #2 behind mega hits \"Pac-Man\" and \"Ms. Pac-Man\" - the two best selling games ever. \n\nDonkey Kong inspired a catchy hit song by Buckner and Garcia called 'Do The Donkey Kong' released on the 'Pac-Man Fever' album. \n\nA Donkey Kong unit appears in the 1983 movie 'WarGames', the 1984 movie 'Gremlins', the 1985 movie 'The Heavenly Kid', and the sitcom 'Two and a Half Men' (Season 5, Episode 2 - People Who Love Peepholes). \n\nMB (Milton Bradley) released a board game based on this video game (same name) in 1982. Save the girl and avoid the barrels and fireballs as in the video game. The gameboard is laid out like the video game's Ramp Stage. 'Can You Battle Donkey Kong and Save the Fair Maiden?'. \n\nDonkey Kong also spawned a cartoon series of the same name : Ruby-Spears Productions. Produced by Joe Ruby and Ken Spears. Originally aired September 17, 1983 as part of 'Saturday Supercade' on CBS. Mario was voiced by veteran voice actor Peter Cullen, while Donkey Kong's voice was provided by the late actor/comedian Soupy Sales (1926-2009). \n\nMichael Jackson used to own this game (Blue Upright model). It was sold at the official Michael Jackson Auction on April 24, 2009.\n\n- UPDATES -\n\nThe original Japanese version had all four stages displayed in their original, logical order 1-2-3-4.\nFor this US version, they changed it to match the 'How High Can You Try/Get?' theme, with the stage order as follows : \nL-01: 1-4 \nL-02: 1-3-4 \nL-03: 1-2-3-4 (as in all levels of the Japanese version) \nL-04: 1-2-1-3-4 \nL-05: 1-2-1-3-1-4 \nL-06 through L-21 all remain the same as L-05 \nL-22: 1 (Kill screen).\n\n- PORTS -\n\nNOTE: Only ports released in North America are listed here. For ports released in other regions, please see the original Japanese upright version entry.\n\n* CONSOLES: \n[US] Atari 2600 (1982) \"Donkey Kong [Model 2451]\"\n[US] Colecovision (1982) \"Donkey Kong [Model 2411]\"\n[US] Mattel Intellivision (1982) \"Donkey Kong [Model 2471]\"\n[US] Nintendo NES (june.1986) \"Donkey Kong [Model NES-DK-USA]\"\n[US] Atari XEGS\n[US] Atari 2600 (1988) \"Donkey Kong [Model CX26143]\"\n[US] Atari 7800 (1988) \"Donkey Kong [Model CX7848]\"\n\n* HANDHELDS: \n[US] Nintendo Game Boy (june.1994) \"Donkey Kong [Model DMG-QD-USA]\"\n\n* COMPUTERS: \n[US] Tandy Color Computer (1982) \"Dunkey Munkey\"\n[US] Tandy Color Computer (1982) \"Donkey King\"\n[US] Tandy Color Computer (1983) \"The King\"\n[US] Tandy Color Computer (1983) \"Monkey Kong\"\n[US] PC [Booter] (1983) \"Donkey Kong\"\n[US] PC [Booter] (1983) \"Gorilla Gorilla\" : part of the \"FriendlyWare P.C. Arcade\" suite.\n[US] Atari 800 (1983) \"Donkey Kong [Model RX8031]\"\n[US] TI99/4A (1983) \"Donkey Kong [Model RX8512]\"\n[US] Commodore VIC-20 (1983) \"Donkey Kong [Model RX8513]\"\n[US] Apple II (1983)\n[US] Commodore C64 (1983) \"Donkey Kong [Model RX8514]\"\n[US] PC [MS-DOS] (1997) \"Champ Kong\" by CHAMProgramming.\n\n* OTHERS: \n[US] VFD handheld game (1982) by Coleco. \n[US] LCD handheld game \"Game & Watch: Donkey Kong\" by Nintendo : Uses a double screen.\n\n- SERIES -\n\n1. Donkey Kong (1981)\n2. Donkey Kong Junior (1982)\n3. Donkey Kong 3 (1983)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/34723/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

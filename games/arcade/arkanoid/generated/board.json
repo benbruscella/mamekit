@@ -1,0 +1,3747 @@
+{
+    "schemaVersion": 4,
+    "game": "arkanoid",
+    "family": "arkanoid",
+    "driverFile": "src/mame/taito/arkanoid.cpp",
+    "callbacks": [
+        {
+            "id": "device:arkanoid_state.arkanoid/mcu/callback:mcu:0",
+            "ownerTag": "mcu",
+            "signal": "portb_r_cb",
+            "operation": "set",
+            "targetClass": "arkanoid_state",
+            "targetMethod": "input_mux_r",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1365,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "arkanoid_state",
+            "targetMethod": "screen_update_arkanoid",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1372,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/screen/callback:screen:1",
+            "ownerTag": "screen",
+            "signal": "screen_vblank",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "0",
+            "delivery": "hold",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1374,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/aysnd/callback:aysnd:0",
+            "ownerTag": "aysnd",
+            "signal": "port_a_read_callback",
+            "operation": "set_ioport",
+            "targetTag": "UNUSED",
+            "targetPort": "UNUSED",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1384,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/aysnd/callback:aysnd:1",
+            "ownerTag": "aysnd",
+            "signal": "port_b_read_callback",
+            "operation": "set_ioport",
+            "targetTag": "DSW",
+            "targetPort": "DSW",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1385,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:0",
+            "ownerTag": "mcu:mcu",
+            "signal": "portb_r",
+            "operation": "set",
+            "targetClass": "arkanoid_68705p5_device",
+            "targetMethod": "mcu_pb_r",
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 345,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:1",
+            "ownerTag": "mcu:mcu",
+            "signal": "portc_r",
+            "operation": "set",
+            "targetClass": "arkanoid_68705p5_device",
+            "targetMethod": "mcu_pc_r",
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 346,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:2",
+            "ownerTag": "mcu:mcu",
+            "signal": "porta_w",
+            "operation": "set",
+            "targetClass": "arkanoid_68705p5_device",
+            "targetMethod": "mcu_pa_w",
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 347,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:3",
+            "ownerTag": "mcu:mcu",
+            "signal": "portc_w",
+            "operation": "set",
+            "targetClass": "arkanoid_68705p5_device",
+            "targetMethod": "mcu_pc_w",
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 348,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:arkanoid_state.arkanoid/mcu/callback:mcu:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "arkanoid_state.input_mux_r"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1365,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:arkanoid_state.arkanoid/screen/callback:screen:1",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "irq",
+                "delivery": "hold"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1374,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:arkanoid_state.arkanoid/aysnd/callback:aysnd:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "UNUSED"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1384,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:arkanoid_state.arkanoid/aysnd/callback:aysnd:1",
+            "effect": {
+                "kind": "port-read",
+                "port": "DSW"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1385,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "arkanoid_68705p5_device.mcu_pb_r",
+                "deviceTag": "mcu:mcu"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 345,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "arkanoid_68705p5_device.mcu_pc_r",
+                "deviceTag": "mcu:mcu"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 346,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:2",
+            "effect": {
+                "kind": "handler",
+                "handler": "arkanoid_68705p5_device.mcu_pa_w",
+                "deviceTag": "mcu:mcu"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 347,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:arkanoid_68705p5_device.device_add_mconfig/mcu/callback:mcu:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "arkanoid_68705p5_device.mcu_pc_w",
+                "deviceTag": "mcu:mcu"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 348,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 6000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 49151,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 49152,
+                        "end": 51199,
+                        "kind": "ram",
+                        "mirror": 2048
+                    },
+                    {
+                        "start": 53248,
+                        "end": 53249,
+                        "kind": "handler",
+                        "mirror": 4070,
+                        "write": "aysnd.address_data_w"
+                    },
+                    {
+                        "start": 53249,
+                        "end": 53249,
+                        "kind": "handler",
+                        "mirror": 4070,
+                        "read": "aysnd.data_r"
+                    },
+                    {
+                        "start": 53256,
+                        "end": 53256,
+                        "kind": "handler",
+                        "mirror": 4071,
+                        "write": "arkanoid_state.arkanoid_d008_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 53256,
+                        "end": 53256,
+                        "kind": "handler",
+                        "mirror": 4067,
+                        "read": "port.SYSTEM2"
+                    },
+                    {
+                        "start": 53260,
+                        "end": 53260,
+                        "kind": "handler",
+                        "mirror": 4067,
+                        "read": "port.SYSTEM"
+                    },
+                    {
+                        "start": 53264,
+                        "end": 53264,
+                        "kind": "handler",
+                        "mirror": 4071,
+                        "write": "watchdog.reset_w",
+                        "read": "port.BUTTONS"
+                    },
+                    {
+                        "start": 53272,
+                        "end": 53272,
+                        "kind": "handler",
+                        "mirror": 4071,
+                        "read": "mcu.data_r",
+                        "write": "mcu.data_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 57344,
+                        "end": 59391,
+                        "kind": "ram",
+                        "share": "videoram",
+                        "write": "arkanoid_state.arkanoid_videoram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 59392,
+                        "end": 59455,
+                        "kind": "ram",
+                        "share": "spriteram"
+                    },
+                    {
+                        "start": 59456,
+                        "end": 61439,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 61440,
+                        "end": 65535,
+                        "kind": "nop",
+                        "writeOnly": true
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 6000000,
+                "source": {
+                    "file": "src/mame/taito/arkanoid.cpp",
+                    "line": 1359,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 6000000,
+                "cycleClock": 6000000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            }
+        ],
+        "startHandlers": [
+            "arkanoid_state.video_start"
+        ],
+        "resetHandlers": [
+            "arkanoid_state.machine_reset"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 16,
+            "refresh": 59.18560606060606,
+            "htotal": 384,
+            "vtotal": 264,
+            "vbstart": 240,
+            "vbend": 16,
+            "updateMode": "frame",
+            "rotate": 90,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1370,
+                "column": 2
+            }
+        },
+        "customs": [
+            {
+                "port": "SYSTEM",
+                "mask": 192,
+                "member": "arkanoid_semaphore_input_r",
+                "handler": "arkanoid_state.arkanoid_semaphore_input_r",
+                "activeLow": false
+            }
+        ],
+        "inputMembers": [
+            {
+                "member": "m_muxports",
+                "tags": [
+                    "P1",
+                    "P2"
+                ]
+            }
+        ],
+        "frameEvents": [
+            {
+                "callbackId": "device:arkanoid_state.arkanoid/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 240,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/taito/arkanoid.cpp",
+                    "line": 1374,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "arkanoid_state.screen_update_arkanoid",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/taito/arkanoid_v.cpp",
+                "line": 206,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:arkanoid_state.arkanoid/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 6000000,
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1359,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1362,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/mcu",
+            "tag": "mcu",
+            "type": "ARKANOID_68705P5",
+            "className": "arkanoid_68705p5_device",
+            "classHierarchy": [
+                "arkanoid_68705p5_device",
+                "arkanoid_mcu_device_base",
+                "taito68705_mcu_device_base"
+            ],
+            "member": "m_mcuintf",
+            "clock": 3000000,
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1364,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        6000000,
+                        384,
+                        0,
+                        256,
+                        264,
+                        16,
+                        240
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1370,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1376,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1377,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1380,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_state.arkanoid/aysnd",
+            "tag": "aysnd",
+            "type": "YM2149",
+            "clock": 3000000,
+            "configuration": [
+                {
+                    "method": "set_flags",
+                    "args": [
+                        18
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1382,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:arkanoid_68705p5_device.device_add_mconfig/mcu",
+            "tag": "mcu:mcu",
+            "type": "M68705P5",
+            "hostTag": "mcu",
+            "member": "m_mcu",
+            "clock": 3000000,
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 344,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:ay8910_device.address_data_w",
+            "ownerClass": "ay8910_device",
+            "method": "address_data_w",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 895,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ay8910_device.data_r",
+            "ownerClass": "ay8910_device",
+            "method": "data_r",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 935,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:arkanoid_state.arkanoid_d008_w",
+            "ownerClass": "arkanoid_state",
+            "method": "arkanoid_d008_w",
+            "parameters": "uint8_t data",
+            "body": "int bank;\n\n\t/* bits 0 and 1 flip X and Y */\n\tflip_screen_x_set(data & 0x01);\n\tflip_screen_y_set(data & 0x02);\n\n\t/* bit 2 selects the input paddle */\n\tm_paddle_select = data & 0x04;\n\n\t/* bit 3 is coin lockout (but not the service coin) */\n\tmachine().bookkeeping().coin_lockout_w(0, !(data & 0x08));\n\tmachine().bookkeeping().coin_lockout_w(1, !(data & 0x08));\n\n\t/* bit 4 is unknown */\n\n\t/* bit 5 controls the graphics rom bank */\n\tbank = (data & 0x20) >> 5;\n\n\tif (m_gfxbank != bank)\n\t{\n\t\tm_gfxbank = bank;\n\t\tm_bg_tilemap->mark_all_dirty();\n\t}\n\n\t/* bit 6 controls the palette bank */\n\tbank = (data & 0x40) >> 6;\n\n\tif (m_palettebank != bank)\n\t{\n\t\tm_palettebank = bank;\n\t\tm_bg_tilemap->mark_all_dirty();\n\t}\n\n\t// bit 7 resets the MCU and semaphore flipflops\n\t// This bit is flipped early in bootup just prior to accessing the MCU for the first time.\n\tif (m_mcuintf.found()) // Bootlegs don't have the MCU but still set this bit\n\t\tm_mcuintf->reset_w(BIT(data, 7) ? CLEAR_LINE : ASSERT_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "bank",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "flip_screen_x_set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "flip_screen_y_set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_paddle_select"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 4
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_lockout_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_lockout_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 32
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 5
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_gfxbank"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "bank"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_gfxbank"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "bank"
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "mark_all_dirty"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 64
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 6
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_palettebank"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "bank"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_palettebank"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "bank"
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "mark_all_dirty"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_mcuintf"
+                                },
+                                "property": "found"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mcuintf"
+                                        },
+                                        "property": "reset_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "conditional",
+                                            "condition": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "BIT"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "data"
+                                                    },
+                                                    {
+                                                        "kind": "number",
+                                                        "value": 7
+                                                    }
+                                                ]
+                                            },
+                                            "whenTrue": {
+                                                "kind": "identifier",
+                                                "name": "CLEAR_LINE"
+                                            },
+                                            "whenFalse": {
+                                                "kind": "identifier",
+                                                "name": "ASSERT_LINE"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_v.cpp",
+                "line": 21,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:taito68705_mcu_device_base.reset_w",
+            "ownerClass": "taito68705_mcu_device_base",
+            "method": "reset_w",
+            "parameters": "int state",
+            "body": "m_reset_input = ASSERT_LINE == state;\n\tif (CLEAR_LINE != state)\n\t{\n\t\tm_host_flag = false;\n\t\tm_mcu_flag = false;\n\t\tm_mcu->set_input_line(M68705_IRQ_LINE, CLEAR_LINE);\n\t}\n\tm_mcu->set_input_line(INPUT_LINE_RESET, state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_reset_input"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "ASSERT_LINE"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "state"
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "CLEAR_LINE"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "state"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_host_flag"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_mcu_flag"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "M68705_IRQ_LINE"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_mcu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "INPUT_LINE_RESET"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 77,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_w",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_w",
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 897,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:arkanoid_mcu_device_base.data_r",
+            "ownerClass": "arkanoid_mcu_device_base",
+            "method": "data_r",
+            "body": "// clear MCU semaphore flag and return data\n\tu8 const result(m_mcu_latch);\n\tif (!machine().side_effects_disabled())\n\t{\n\t\tm_mcu_flag = false;\n\t\tm_semaphore_cb(CLEAR_LINE);\n\t}\n\treturn result;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "result",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "cast",
+                            "valueType": "u8",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "m_mcu_latch"
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "side_effects_disabled"
+                                },
+                                "args": []
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_mcu_flag"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "m_semaphore_cb"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "result"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 54,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_mcu_device_base.data_w",
+            "ownerClass": "arkanoid_mcu_device_base",
+            "method": "data_w",
+            "parameters": "u8 data",
+            "body": "// set host semaphore flag and latch data\n\tif (!m_reset_input)\n\t\tm_host_flag = true;\n\tm_host_latch = data;\n\tif (m_latch_driven)\n\t\tm_mcu->pa_w(data);\n\tm_mcu->set_input_line(M68705_IRQ_LINE, m_host_flag ? ASSERT_LINE : CLEAR_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "m_reset_input"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_host_flag"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_host_latch"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_latch_driven"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu"
+                                        },
+                                        "property": "pa_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_mcu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "M68705_IRQ_LINE"
+                                },
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "m_host_flag"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "ASSERT_LINE"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 66,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_state.arkanoid_videoram_w",
+            "ownerClass": "arkanoid_state",
+            "method": "arkanoid_videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset / 2);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "/",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_v.cpp",
+                "line": 15,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_state.input_mux_r",
+            "ownerClass": "arkanoid_state",
+            "method": "input_mux_r",
+            "body": "return m_muxports[(0 == m_paddle_select) ? 0 : 1].read_safe(0xff);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_muxports"
+                                    },
+                                    "index": {
+                                        "kind": "conditional",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 0
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "m_paddle_select"
+                                            }
+                                        },
+                                        "whenTrue": {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        "whenFalse": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                },
+                                "property": "read_safe"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 255
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_m.cpp",
+                "line": 33,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_state.machine_reset",
+            "ownerClass": "arkanoid_state",
+            "method": "machine_reset",
+            "body": "m_gfxbank = 0;\n\tm_palettebank = 0;\n\n\tm_paddle_select = 0;\n\n\tm_bootleg_cmd = 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_gfxbank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_palettebank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_paddle_select"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bootleg_cmd"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 1345,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_state.video_start",
+            "ownerClass": "arkanoid_state",
+            "method": "video_start",
+            "body": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(arkanoid_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "arkanoid_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_v.cpp",
+                "line": 170,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_state.get_bg_tile_info",
+            "ownerClass": "arkanoid_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int offs = tile_index * 2;\n\tint code = m_videoram[offs + 1] + ((m_videoram[offs] & 0x07) << 8) + 2048 * m_gfxbank;\n\tint color = ((m_videoram[offs] & 0xf8) >> 3) + 32 * m_palettebank;\n\n\ttileinfo.set(0, code, color, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "offs",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 8
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 2048
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "m_gfxbank"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_videoram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 248
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 32
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "m_palettebank"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_v.cpp",
+                "line": 161,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:arkanoid_state.screen_update_arkanoid",
+            "ownerClass": "arkanoid_state",
+            "method": "screen_update_arkanoid",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_v.cpp",
+                "line": 206,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:arkanoid_state.draw_sprites",
+            "ownerClass": "arkanoid_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "int offs;\n\n\tfor (offs = 0; offs < m_spriteram.bytes(); offs += 4)\n\t{\n\t\tint sx, sy, code;\n\n\t\tsx = m_spriteram[offs];\n\t\tsy = 248 - m_spriteram[offs + 1];\n\t\tif (flip_screen_x())\n\t\t\tsx = 248 - sx;\n\t\tif (flip_screen_y())\n\t\t\tsy = 248 - sy;\n\n\t\tcode = m_spriteram[offs + 3] + ((m_spriteram[offs + 2] & 0x03) << 8) + 1024 * m_gfxbank;\n\n\t\tm_gfxdecode->gfx(0)->transpen(bitmap,cliprect,\n\t\t\t\t2 * code,\n\t\t\t\t((m_spriteram[offs + 2] & 0xf8) >> 3) + 32 * m_palettebank,\n\t\t\t\tflip_screen_x(),flip_screen_y(),\n\t\t\t\tsx,sy + (flip_screen_y() ? 8 : -8),0);\n\t\tm_gfxdecode->gfx(0)->transpen(bitmap,cliprect,\n\t\t\t\t2 * code + 1,\n\t\t\t\t((m_spriteram[offs + 2] & 0xf8) >> 3) + 32 * m_palettebank,\n\t\t\t\tflip_screen_x(),flip_screen_y(),\n\t\t\t\tsx,sy,0);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "offs",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "property": "bytes"
+                                },
+                                "args": []
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "sx",
+                                "valueType": "int"
+                            },
+                            {
+                                "op": "declare",
+                                "name": "sy",
+                                "valueType": "int"
+                            },
+                            {
+                                "op": "declare",
+                                "name": "code",
+                                "valueType": "int"
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "sx"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "sy"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 248
+                                    },
+                                    "right": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "flip_screen_x"
+                                    },
+                                    "args": []
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "sx"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 248
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "sx"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "flip_screen_y"
+                                    },
+                                    "args": []
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "sy"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 248
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "sy"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_spriteram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "binary",
+                                                        "operator": "+",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "offs"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 2
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 8
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "*",
+                                        "left": {
+                                            "kind": "number",
+                                            "value": 1024
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxbank"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_gfxdecode"
+                                                },
+                                                "property": "gfx"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        },
+                                        "property": "transpen"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "*",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 2
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "code"
+                                            }
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_spriteram"
+                                                        },
+                                                        "index": {
+                                                            "kind": "binary",
+                                                            "operator": "+",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "offs"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 2
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 248
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "*",
+                                                "left": {
+                                                    "kind": "number",
+                                                    "value": 32
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "m_palettebank"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "flip_screen_x"
+                                            },
+                                            "args": []
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "flip_screen_y"
+                                            },
+                                            "args": []
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "sx"
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "sy"
+                                            },
+                                            "right": {
+                                                "kind": "conditional",
+                                                "condition": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "flip_screen_y"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "whenTrue": {
+                                                    "kind": "number",
+                                                    "value": 8
+                                                },
+                                                "whenFalse": {
+                                                    "kind": "unary",
+                                                    "operator": "-",
+                                                    "operand": {
+                                                        "kind": "number",
+                                                        "value": 8
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_gfxdecode"
+                                                },
+                                                "property": "gfx"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        },
+                                        "property": "transpen"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "*",
+                                                "left": {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_spriteram"
+                                                        },
+                                                        "index": {
+                                                            "kind": "binary",
+                                                            "operator": "+",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "offs"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 2
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 248
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "*",
+                                                "left": {
+                                                    "kind": "number",
+                                                    "value": 32
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "m_palettebank"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "flip_screen_x"
+                                            },
+                                            "args": []
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "flip_screen_y"
+                                            },
+                                            "args": []
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "sx"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "sy"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_v.cpp",
+                "line": 175,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:taito68705_mcu_device_base.latch_control",
+            "ownerClass": "taito68705_mcu_device_base",
+            "method": "latch_control",
+            "parameters": "u8 data, u8 &value, unsigned host_bit, unsigned mcu_bit",
+            "body": "// save this here to simulate latch propagation delays\n\tu8 const old_pa_value(pa_value());\n\n\t// rising edge clears the host semaphore flag\n\tif (BIT(data, host_bit))\n\t{\n\t\tm_latch_driven = false;\n\t\tm_mcu->pa_w(0xff);\n\t\tif (!BIT(value, host_bit))\n\t\t{\n\t\t\tm_host_flag = false;\n\t\t\tm_mcu->set_input_line(M68705_IRQ_LINE, CLEAR_LINE);\n\t\t}\n\t}\n\telse\n\t{\n\t\tm_latch_driven = true;\n\t\tm_mcu->pa_w(m_host_latch);\n\t}\n\n\t// PB2 sets the MCU semaphore when low\n\tif (!BIT(data, mcu_bit))\n\t{\n\t\tif (!m_reset_input)\n\t\t\tm_mcu_flag = true;\n\n\t\t// data is latched on falling edge\n\t\tif (BIT(value, mcu_bit))\n\t\t\tm_mcu_latch = old_pa_value;\n\t}\n\n\tvalue = data;\n\tif (!BIT(data, mcu_bit) && !m_reset_input)\n\t\tm_semaphore_cb(ASSERT_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "old_pa_value",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "cast",
+                            "valueType": "u8",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "pa_value"
+                                },
+                                "args": []
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "host_bit"
+                                }
+                            ]
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_latch_driven"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu"
+                                        },
+                                        "property": "pa_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 255
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "BIT"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "identifier",
+                                                "name": "value"
+                                            },
+                                            {
+                                                "kind": "identifier",
+                                                "name": "host_bit"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_host_flag"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_mcu"
+                                                },
+                                                "property": "set_input_line"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "M68705_IRQ_LINE"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "CLEAR_LINE"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_latch_driven"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu"
+                                        },
+                                        "property": "pa_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_host_latch"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "mcu_bit"
+                                    }
+                                ]
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "m_reset_input"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu_flag"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "value"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "mcu_bit"
+                                        }
+                                    ]
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu_latch"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "identifier",
+                                            "name": "old_pa_value"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "value"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "mcu_bit"
+                                        }
+                                    ]
+                                }
+                            },
+                            "right": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "m_reset_input"
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "m_semaphore_cb"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ASSERT_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 139,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:taito68705_mcu_device_base.pa_value",
+            "ownerClass": "taito68705_mcu_device_base",
+            "method": "pa_value",
+            "body": "return m_pa_output & (m_latch_driven ? m_host_latch : 0xff);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_pa_output"
+                            },
+                            "right": {
+                                "kind": "conditional",
+                                "condition": {
+                                    "kind": "identifier",
+                                    "name": "m_latch_driven"
+                                },
+                                "whenTrue": {
+                                    "kind": "identifier",
+                                    "name": "m_host_latch"
+                                },
+                                "whenFalse": {
+                                    "kind": "number",
+                                    "value": 255
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.h",
+                "line": 45,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:taito68705_mcu_device_base.host_flag",
+            "ownerClass": "taito68705_mcu_device_base",
+            "method": "host_flag",
+            "body": "return m_host_flag;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "m_host_flag"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.h",
+                "line": 41,
+                "column": 48
+            }
+        },
+        {
+            "id": "handler:taito68705_mcu_device_base.mcu_flag",
+            "ownerClass": "taito68705_mcu_device_base",
+            "method": "mcu_flag",
+            "body": "return m_mcu_flag;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "m_mcu_flag"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.h",
+                "line": 44,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_68705p5_device.mcu_pb_r",
+            "ownerClass": "arkanoid_68705p5_device",
+            "method": "mcu_pb_r",
+            "body": "return m_portb_r_cb();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "m_portb_r_cb"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 285,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_68705p5_device.mcu_pc_r",
+            "ownerClass": "arkanoid_68705p5_device",
+            "method": "mcu_pc_r",
+            "body": "// PC0 is the host semaphore flag (active high)\n\t// PC1 is the MCU semaphore flag (active low)\n\treturn (host_flag() ? 0x01 : 0x00) | (mcu_flag() ? 0x00 : 0x02) | 0xfc;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "host_flag"
+                                        },
+                                        "args": []
+                                    },
+                                    "whenTrue": {
+                                        "kind": "number",
+                                        "value": 1
+                                    },
+                                    "whenFalse": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "right": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "mcu_flag"
+                                        },
+                                        "args": []
+                                    },
+                                    "whenTrue": {
+                                        "kind": "number",
+                                        "value": 0
+                                    },
+                                    "whenFalse": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 252
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 290,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_68705p5_device.mcu_pa_w",
+            "ownerClass": "arkanoid_68705p5_device",
+            "method": "mcu_pa_w",
+            "parameters": "u8 data",
+            "body": "m_pa_output = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_pa_output"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 108,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_68705p5_device.mcu_pc_w",
+            "ownerClass": "arkanoid_68705p5_device",
+            "method": "mcu_pc_w",
+            "parameters": "u8 data",
+            "body": "// rising edge on PC2 clears the host semaphore flag\n\t// PC3 sets the MCU semaphore when low\n\tlatch_control(data, m_pc_output, 2, 3);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "latch_control"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_pc_output"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.cpp",
+                "line": 297,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:arkanoid_state.arkanoid_semaphore_input_r",
+            "ownerClass": "arkanoid_state",
+            "method": "arkanoid_semaphore_input_r",
+            "body": "// bit 0 is host semaphore flag, bit 1 is MCU semaphore flag (both active low)\n\treturn\n\t\t\t((CLEAR_LINE != m_mcuintf->host_semaphore_r()) ? 0x00 : 0x01) |\n\t\t\t((CLEAR_LINE != m_mcuintf->mcu_semaphore_r()) ? 0x00 : 0x02);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "conditional",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    },
+                                    "right": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_mcuintf"
+                                            },
+                                            "property": "host_semaphore_r"
+                                        },
+                                        "args": []
+                                    }
+                                },
+                                "whenTrue": {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                "whenFalse": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            },
+                            "right": {
+                                "kind": "conditional",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    },
+                                    "right": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_mcuintf"
+                                            },
+                                            "property": "mcu_semaphore_r"
+                                        },
+                                        "args": []
+                                    }
+                                },
+                                "whenTrue": {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                "whenFalse": {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/arkanoid_m.cpp",
+                "line": 25,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:taito68705_mcu_device_base.mcu_semaphore_r",
+            "ownerClass": "taito68705_mcu_device_base",
+            "method": "mcu_semaphore_r",
+            "body": "return m_mcu_flag ? 1 : 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "identifier",
+                                "name": "m_mcu_flag"
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.h",
+                "line": 25,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:taito68705_mcu_device_base.host_semaphore_r",
+            "ownerClass": "taito68705_mcu_device_base",
+            "method": "host_semaphore_r",
+            "body": "return m_host_flag ? 1 : 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "identifier",
+                                "name": "m_host_flag"
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/taito68705.h",
+                "line": 23,
+                "column": 25
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:arkanoid_state.arkanoid_map",
+            "className": "arkanoid_state",
+            "name": "arkanoid_map",
+            "ranges": [
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range0",
+                    "start": 0,
+                    "end": 49151,
+                    "raw": "map(0x0000, 0xbfff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 49151,
+                        "raw": "map(0x0000, 0xbfff).rom()",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 835,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 835,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 835,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range1",
+                    "start": 49152,
+                    "end": 51199,
+                    "raw": "map(0xc000, 0xc7ff).ram().mirror(0x0800)",
+                    "props": {
+                        "start": 49152,
+                        "end": 51199,
+                        "raw": "map(0xc000, 0xc7ff).ram().mirror(0x0800)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 836,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 836,
+                        "mirror": 2048,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 836,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range2",
+                    "start": 53248,
+                    "end": 53249,
+                    "raw": "map(0xd000, 0xd001).w(\"aysnd\", FUNC(ay8910_device::address_data_w)).mirror(0x0fe6)",
+                    "write": "aysnd.address_data_w",
+                    "props": {
+                        "start": 53248,
+                        "end": 53249,
+                        "raw": "map(0xd000, 0xd001).w(\"aysnd\", FUNC(ay8910_device::address_data_w)).mirror(0x0fe6)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 837,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 837,
+                        "mirror": 4070
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 837,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range3",
+                    "start": 53249,
+                    "end": 53249,
+                    "raw": "map(0xd001, 0xd001).r(\"aysnd\", FUNC(ay8910_device::data_r)).mirror(0x0fe6)",
+                    "read": "aysnd.data_r",
+                    "props": {
+                        "start": 53249,
+                        "end": 53249,
+                        "raw": "map(0xd001, 0xd001).r(\"aysnd\", FUNC(ay8910_device::data_r)).mirror(0x0fe6)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 838,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 838,
+                        "mirror": 4070
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 838,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range4",
+                    "start": 53256,
+                    "end": 53256,
+                    "raw": "map(0xd008, 0xd008).w(FUNC(arkanoid_state::arkanoid_d008_w)).mirror(0x0fe7)",
+                    "write": "arkanoid_state.arkanoid_d008_w",
+                    "props": {
+                        "start": 53256,
+                        "end": 53256,
+                        "raw": "map(0xd008, 0xd008).w(FUNC(arkanoid_state::arkanoid_d008_w)).mirror(0x0fe7)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 839,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 839,
+                        "mirror": 4071
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 839,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range5",
+                    "start": 53256,
+                    "end": 53256,
+                    "raw": "map(0xd008, 0xd008).portr(\"SYSTEM2\").mirror(0x0fe3)",
+                    "props": {
+                        "start": 53256,
+                        "end": 53256,
+                        "raw": "map(0xd008, 0xd008).portr(\"SYSTEM2\").mirror(0x0fe3)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 840,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 840,
+                        "mirror": 4067,
+                        "portRead": "SYSTEM2"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 840,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range6",
+                    "start": 53260,
+                    "end": 53260,
+                    "raw": "map(0xd00c, 0xd00c).portr(\"SYSTEM\").mirror(0x0fe3)",
+                    "props": {
+                        "start": 53260,
+                        "end": 53260,
+                        "raw": "map(0xd00c, 0xd00c).portr(\"SYSTEM\").mirror(0x0fe3)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 841,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 841,
+                        "mirror": 4067,
+                        "portRead": "SYSTEM"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 841,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range7",
+                    "start": 53264,
+                    "end": 53264,
+                    "raw": "map(0xd010, 0xd010).portr(\"BUTTONS\").w(\"watchdog\", FUNC(watchdog_timer_device::reset_w)).mirror(0x0fe7)",
+                    "write": "watchdog.reset_w",
+                    "props": {
+                        "start": 53264,
+                        "end": 53264,
+                        "raw": "map(0xd010, 0xd010).portr(\"BUTTONS\").w(\"watchdog\", FUNC(watchdog_timer_device::reset_w)).mirror(0x0fe7)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 842,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 842,
+                        "mirror": 4071,
+                        "portRead": "BUTTONS"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 842,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range8",
+                    "start": 53272,
+                    "end": 53272,
+                    "raw": "map(0xd018, 0xd018).rw(m_mcuintf, FUNC(arkanoid_mcu_device_base::data_r), FUNC(arkanoid_mcu_device_base::data_w)).mirror(0x0fe7)",
+                    "read": "mcu.data_r",
+                    "write": "mcu.data_w",
+                    "props": {
+                        "start": 53272,
+                        "end": 53272,
+                        "raw": "map(0xd018, 0xd018).rw(m_mcuintf, FUNC(arkanoid_mcu_device_base::data_r), FUNC(arkanoid_mcu_device_base::data_w)).mirror(0x0fe7)",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 843,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 843,
+                        "mirror": 4071
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 843,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range9",
+                    "start": 57344,
+                    "end": 59391,
+                    "raw": "map(0xe000, 0xe7ff).ram().w(FUNC(arkanoid_state::arkanoid_videoram_w)).share(\"videoram\")",
+                    "write": "arkanoid_state.arkanoid_videoram_w",
+                    "props": {
+                        "start": 57344,
+                        "end": 59391,
+                        "raw": "map(0xe000, 0xe7ff).ram().w(FUNC(arkanoid_state::arkanoid_videoram_w)).share(\"videoram\")",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 844,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 844,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 844,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range10",
+                    "start": 59392,
+                    "end": 59455,
+                    "raw": "map(0xe800, 0xe83f).ram().share(\"spriteram\")",
+                    "props": {
+                        "start": 59392,
+                        "end": 59455,
+                        "raw": "map(0xe800, 0xe83f).ram().share(\"spriteram\")",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 845,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 845,
+                        "ram": true,
+                        "share": "spriteram"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 845,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range11",
+                    "start": 59456,
+                    "end": 61439,
+                    "raw": "map(0xe840, 0xefff).ram()",
+                    "props": {
+                        "start": 59456,
+                        "end": 61439,
+                        "raw": "map(0xe840, 0xefff).ram()",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 846,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 846,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 846,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:arkanoid_state.arkanoid_map/range12",
+                    "start": 61440,
+                    "end": 65535,
+                    "raw": "map(0xf000, 0xffff).nopr()",
+                    "props": {
+                        "start": 61440,
+                        "end": 65535,
+                        "raw": "map(0xf000, 0xffff).nopr()",
+                        "sourceFile": "src/mame/taito/arkanoid.cpp",
+                        "sourceLine": 847,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 847,
+                        "nopr": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/arkanoid.cpp",
+                        "line": 847,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/arkanoid.cpp",
+                "line": 833,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_gfxbank",
+            "bits": 8
+        },
+        {
+            "name": "m_palettebank",
+            "bits": 8
+        },
+        {
+            "name": "m_paddle_select",
+            "bits": 8
+        },
+        {
+            "name": "m_bootleg_id",
+            "bits": 32,
+            "signed": true
+        },
+        {
+            "name": "m_bootleg_cmd",
+            "bits": 8
+        },
+        {
+            "name": "m_hexaa_from_main",
+            "bits": 8
+        },
+        {
+            "name": "m_hexaa_from_sub",
+            "bits": 8
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "gfx1",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 64,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 4096,
+                    "planes": 3,
+                    "planeOffsets": [
+                        524288,
+                        262144,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56
+                    ],
+                    "charIncrement": 64
+                }
+            }
+        ],
+        "palette": {
+            "region": "proms",
+            "colorCount": 512,
+            "min": 0,
+            "max": 255,
+            "scaler": 1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "offsets": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "weights": [
+                        14,
+                        31,
+                        67,
+                        143
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                },
+                {
+                    "channel": "g",
+                    "bits": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "offsets": [
+                        512,
+                        512,
+                        512,
+                        512
+                    ],
+                    "weights": [
+                        14,
+                        31,
+                        67,
+                        143
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                },
+                {
+                    "channel": "b",
+                    "bits": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "offsets": [
+                        1024,
+                        1024,
+                        1024,
+                        1024
+                    ],
+                    "weights": [
+                        14,
+                        31,
+                        67,
+                        143
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                }
+            ],
+            "lookupOffset": 0,
+            "lookupCount": 512,
+            "lookupMask": 255,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 0,
+                    "lookupOffset": 0,
+                    "lookupCount": 512,
+                    "direct": true
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/emu/emupal.cpp",
+                "line": 720,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "arkanoid_state.get_bg_tile_info",
+                "source": {
+                    "file": "src/mame/taito/arkanoid_v.cpp",
+                    "line": 170,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {},
+        "source": {
+            "file": "src/mame/taito/arkanoid_v.cpp",
+            "line": 170,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "ay8910",
+        "deviceTag": "aysnd",
+        "deviceTags": [
+            "aysnd"
+        ],
+        "deviceType": "AY8910",
+        "writeMethods": [
+            "address_w",
+            "data_w"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": -1,
+                "gain": 0.66,
+                "target": "mono"
+            }
+        ]
+    }
+}

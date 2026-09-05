@@ -1,0 +1,3085 @@
+{
+  "type": "SEGAIC16VID",
+  "uses": [
+    {
+      "game": "shinobi",
+      "tags": [
+        "segaic16vid"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SEGAIC16VID",
+    "className": "segaic16_video_device",
+    "shortName": "segaic16_video",
+    "description": "Sega 16-bit Video",
+    "sourceFile": "src/mame/sega/segaic16.cpp",
+    "sourceLine": 528,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SEGAIC16VID, segaic16_video_device, \"segaic16_video\", \"Sega 16-bit Video\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 542,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_gfxdecode"
+                  },
+                  "property": "started"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "device_missing_dependencies",
+                "valueType": "throw",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "throw"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_display_enable"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pagelatch_cb"
+                },
+                "property": "resolve"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 552,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_display_enable",
+      "parameters": "int enable",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 563,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "enable"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_display_enable"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "enable"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_display_enable"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_fill_latch",
+      "parameters": "int i, uint16_t* latched_pageselect, uint16_t* latched_yscroll, uint16_t* latched_xscroll, uint16_t* textram",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1160,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "latched_pageselect"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "i"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "textram"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "number",
+                    "value": 3712
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "latched_yscroll"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "i"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "textram"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "number",
+                    "value": 3728
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "latched_xscroll"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "i"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "textram"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "number",
+                    "value": 3736
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_init",
+      "parameters": "int which, int type, int colorbase, int xoffs, int numbanks",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1199,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_display_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_draw",
+      "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int map, int priority, int priority_mark",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1316,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "map"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "TILEMAP_TEXT"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "textmap"
+                    },
+                    "property": "draw"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "bitmap"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "priority"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "priority_mark"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "unary",
+                    "operator": "*",
+                    "operand": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "draw_layer"
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "bitmap"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "map"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "priority"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "priority_mark"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_reset",
+      "parameters": "screen_device &screen",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1337,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "reset"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "unary",
+                    "operator": "*",
+                    "operand": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "reset"
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_bank",
+      "parameters": "int which, int banknum, int offset",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1353,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "bank"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "banknum"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "bank"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "banknum"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "tilemap"
+                      },
+                      "args": []
+                    },
+                    "property": "mark_all_dirty"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_flip",
+      "parameters": "int which, int flip",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1373,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "flip"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "flip"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "flip"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "flip"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "flip"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "flip"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "textmap"
+                    },
+                    "property": "set_flip"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "flip"
+                      },
+                      "whenTrue": {
+                        "kind": "binary",
+                        "operator": "|",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "TILEMAP_FLIPX"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "TILEMAP_FLIPY"
+                        }
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "pagenum",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "pagenum"
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "numpages"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "pagenum"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "info"
+                            },
+                            "property": "tilemaps"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "pagenum"
+                          }
+                        },
+                        "property": "set_flip"
+                      },
+                      "args": [
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "identifier",
+                            "name": "flip"
+                          },
+                          "whenTrue": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "TILEMAP_FLIPX"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "TILEMAP_FLIPY"
+                            }
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_rowscroll",
+      "parameters": "int which, int enable",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1396,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "enable"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "rowscroll"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "enable"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "rowscroll"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_colscroll",
+      "parameters": "int which, int enable",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1416,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "enable"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "colscroll"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "enable"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "colscroll"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tileram_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1436,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_tileram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tileram_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1442,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "COMBINE_DATA"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_tileram"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_bg_tilemap"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "property": "tilemaps"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "/",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "number",
+                        "value": 64
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 32
+                      }
+                    }
+                  }
+                },
+                "property": "mark_tile_dirty"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "%",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "number",
+                      "value": 64
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "textram_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1449,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_textram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "textram_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1455,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "/",
+                "left": {
+                  "kind": "number",
+                  "value": 3712
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "COMBINE_DATA"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_textram"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bg_tilemap"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "property": "textmap"
+                },
+                "property": "mark_tile_dirty"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rotate_init",
+      "parameters": "int which, int type, int colorbase",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1473,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rotate_draw",
+      "parameters": "int which, bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap, bitmap_ind16 &srcbitmap",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1520,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_rotate"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "currx",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "buffer"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1008
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "buffer"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1009
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "curry",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "buffer"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1010
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "buffer"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1011
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dyy",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "buffer"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1012
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "buffer"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1013
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dxx",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "buffer"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1014
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "buffer"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1015
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dxy",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "buffer"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1016
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "buffer"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1017
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dyx",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "buffer"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1018
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "buffer"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1019
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "currx"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "identifier",
+                  "name": "dxx"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    },
+                    "property": "min_x"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 27
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "identifier",
+                  "name": "dxy"
+                },
+                "right": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cliprect"
+                  },
+                  "property": "min_y"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "curry"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "identifier",
+                  "name": "dyx"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    },
+                    "property": "min_x"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 27
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "identifier",
+                  "name": "dyy"
+                },
+                "right": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cliprect"
+                  },
+                  "property": "min_y"
+                }
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "y",
+                "valueType": "int",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cliprect"
+                  },
+                  "property": "min_y"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "y"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                },
+                "property": "max_y"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "y"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "dest",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "bitmap"
+                      },
+                      "property": "pix"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "y"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "src",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcbitmap"
+                      },
+                      "property": "pix"
+                    },
+                    "args": [
+                      {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "pri",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "priority_bitmap"
+                      },
+                      "property": "pix"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "y"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "tx",
+                "valueType": "int32_t",
+                "value": {
+                  "kind": "identifier",
+                  "name": "currx"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "ty",
+                "valueType": "int32_t",
+                "value": {
+                  "kind": "identifier",
+                  "name": "curry"
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "x",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cliprect"
+                      },
+                      "property": "min_x"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x"
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    },
+                    "property": "max_x"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "sx",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "tx"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 14
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 511
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "sy",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ty"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 14
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 511
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "pix",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "src"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sy"
+                          },
+                          "right": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "srcbitmap"
+                              },
+                              "property": "rowpixels"
+                            },
+                            "args": []
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "sx"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "pix"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 65535
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "dest"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "postfix": true
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "|",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 511
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": ">>",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "pix"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 6
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 512
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 3072
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4096
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "pri"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "postfix": true
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "pix"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "dest"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "postfix": true
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "info"
+                            },
+                            "property": "colorbase"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "sy"
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "pri"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "postfix": true
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "tx"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "dxx"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ty"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "dyx"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "currx"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "dxy"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "curry"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "dyy"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rotate_control_r",
+      "parameters": "",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1582,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_rotate"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "buffer"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "src",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "uint32_t",
+                  "pointer": true,
+                  "operand": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "rotateram"
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "dst",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "uint32_t",
+                  "pointer": true,
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "info"
+                        },
+                        "property": "buffer"
+                      },
+                      "property": "get"
+                    },
+                    "args": []
+                  }
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "/",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "ramsize"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "temp",
+                    "valueType": "uint32_t",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "src"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "src"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "dst"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "dst"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "temp"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 65535
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16a_tile_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 798,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16a_text_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 810,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_tile_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1010,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_text_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1024,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_alt_tile_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1037,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_alt_text_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1051,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_latch_values",
+      "parameters": "int param",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1168,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "textram",
+            "valueType": "auto*",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "textram"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "i",
+            "valueType": "int"
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_pagelatch_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latched_pageselect"
+                    },
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latched_yscroll"
+                    },
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latched_xscroll"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "textram"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "latch_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 261
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "segaic16_video_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&decode_tag",
+      "sourceFile": "src/mame/sega/segaic16.h",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "decode_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "segaic16_video_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&decode_tag",
+      "sourceFile": "src/mame/sega/segaic16.h",
+      "sourceLine": 126,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "decode_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "segaic16_video_device::segaic16_video_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&decode_tag",
+      "sourceFile": "src/mame/sega/segaic16.h",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "decode_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/sega/segaic16.cpp",
+    "src/mame/sega/segaic16.h"
+  ]
+}

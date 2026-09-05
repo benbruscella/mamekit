@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "coleco",
+  "family": "coleco",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 50,
+    "total": 166,
+    "percent": 30.1
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "tms9928a:TMS9928A",
+        "status": "executable",
+        "source": "src/devices/video/tms9928a.cpp:30"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "sn76489a:SN76489A",
+        "status": "executable",
+        "source": "src/devices/sound/sn76496.cpp:474"
+      },
+      {
+        "name": "cart:COLECOVISION_CARTRIDGE_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/coleco/cartridge/exp.cpp:18"
+      },
+      {
+        "name": "paddle_timer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "exp:COLECO_EXPANSION",
+        "status": "executable",
+        "source": "src/devices/bus/coleco/expansion/expansion.cpp:19"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "coleco_state.cart_r",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:408"
+      },
+      {
+        "name": "coleco_state.cart_w",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:413"
+      },
+      {
+        "name": "coleco_state.paddle_1_r",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:84"
+      },
+      {
+        "name": "coleco_state.paddle_2_r",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:89"
+      },
+      {
+        "name": "coleco_state.paddle_off_w",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:97"
+      },
+      {
+        "name": "coleco_state.paddle_on_w",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:102"
+      },
+      {
+        "name": "sn76489a.write",
+        "status": "executable",
+        "source": "src/devices/sound/sn76496.cpp:474"
+      },
+      {
+        "name": "tms9928a.read",
+        "status": "executable",
+        "source": "src/devices/video/tms9928a.cpp:30"
+      },
+      {
+        "name": "tms9928a.write",
+        "status": "executable",
+        "source": "src/devices/video/tms9928a.cpp:30"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "tms9928a.int_callback -> maincpu",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:575"
+      },
+      {
+        "name": "sn76489a.ready_cb -> maincpu",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:582"
+      },
+      {
+        "name": "exp.int_handler -> maincpu",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:596"
+      },
+      {
+        "name": "exp.nmi_handler -> maincpu",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:597"
+      },
+      {
+        "name": "screen.set_screen_update -> tms9928a_device.screen_update",
+        "status": "generated",
+        "source": "src/mame/coleco/coleco.cpp:572"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/consoles/coleco/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 8,
+    "compiledMethods": 8,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 6,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 0,
+    "screenUpdate": "tms9928a_device.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 8,
+    "generated": 12,
+    "declarative-host": 3,
+    "blocked": 0,
+    "missing": 0
+  }
+}

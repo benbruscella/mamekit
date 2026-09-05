@@ -1,0 +1,148 @@
+{
+  "game": "pooyan",
+  "title": "Pooyan (Konami, 1982)",
+  "fullname": "Pooyan",
+  "year": "1982",
+  "manufacturer": "Konami",
+  "family": "pooyan",
+  "driverFile": "src/mame/konami/pooyan.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Allard van der Bas",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-09",
+    "commits": 109,
+    "contributors": 20,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 36,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 25,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2015-11-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 10,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2015-02-26",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "AJR",
+        "commits": 5,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2018-03-28"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2012-01-27"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "hap",
+        "commits": 2,
+        "firstCommit": "2025-08-13",
+        "lastCommit": "2026-03-09"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-02-12",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-10-23",
+        "lastCommit": "2011-10-23"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2013-07-12",
+        "lastCommit": "2013-07-12"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2013-01-11"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

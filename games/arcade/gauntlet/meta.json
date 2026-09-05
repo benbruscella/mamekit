@@ -1,0 +1,184 @@
+{
+  "game": "gauntlet",
+  "title": "Gauntlet (rev 14) (Atari Games, 1985)",
+  "fullname": "Gauntlet (rev 14)",
+  "year": "1985",
+  "manufacturer": "Atari Games",
+  "family": "gauntlet",
+  "driverFile": "src/mame/atari/gauntlet.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 205,
+    "contributors": 26,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Olivier Galibert",
+      "Vas Crabb",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 83,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 25,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 18,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2016-08-26",
+        "lastCommit": "2025-04-09"
+      },
+      {
+        "name": "AJR",
+        "commits": 14,
+        "firstCommit": "2016-01-29",
+        "lastCommit": "2022-02-21"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 10,
+        "firstCommit": "2014-05-12",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 4,
+        "firstCommit": "2009-09-21",
+        "lastCommit": "2012-05-28"
+      },
+      {
+        "name": "hap",
+        "commits": 4,
+        "firstCommit": "2022-08-30",
+        "lastCommit": "2022-11-05"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-03-10"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-06-16",
+        "lastCommit": "2018-08-23"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-10",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "angelosa",
+        "commits": 2,
+        "firstCommit": "2016-10-24",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "cam900",
+        "commits": 2,
+        "firstCommit": "2019-04-28",
+        "lastCommit": "2025-01-01"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2010-01-06"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 2,
+        "firstCommit": "2010-04-26",
+        "lastCommit": "2010-04-28"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2008-03-30",
+        "lastCommit": "2013-05-14"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-04-05",
+        "lastCommit": "2011-04-05"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "ImJezze",
+        "commits": 1,
+        "firstCommit": "2016-02-21",
+        "lastCommit": "2016-02-21"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2014-11-05",
+        "lastCommit": "2014-11-05"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

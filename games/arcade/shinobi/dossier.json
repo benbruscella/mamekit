@@ -1,0 +1,875 @@
+{
+  "game": "shinobi",
+  "title": "Shinobi (set 6, System 16A) (unprotected) (Sega, 1987)",
+  "fullname": "Shinobi (set 6, System 16A) (unprotected)",
+  "year": "1987",
+  "company": "Sega",
+  "family": "segas16a",
+  "driverFile": "src/mame/sega/segas16a.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "m68000",
+      "clock": 10000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 262143,
+          "kind": "rom",
+          "mirror": 3670016
+        },
+        {
+          "start": 4194304,
+          "end": 4227071,
+          "kind": "handler",
+          "mirror": 12091392,
+          "share": "tileram",
+          "read": "segaic16vid.tileram_r",
+          "write": "segaic16vid.tileram_w"
+        },
+        {
+          "start": 4259840,
+          "end": 4263935,
+          "kind": "handler",
+          "mirror": 12120064,
+          "share": "textram",
+          "read": "segaic16vid.textram_r",
+          "write": "segaic16vid.textram_w"
+        },
+        {
+          "start": 4456448,
+          "end": 4458495,
+          "kind": "ram",
+          "mirror": 3930112,
+          "share": "sprites"
+        },
+        {
+          "start": 8650752,
+          "end": 8654847,
+          "kind": "ram",
+          "mirror": 3928064,
+          "share": "paletteram",
+          "write": "segas16a_state.paletteram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 12845056,
+          "end": 12861439,
+          "kind": "handler",
+          "mirror": 3784704,
+          "read": "segas16a_state.misc_io_r",
+          "write": "segas16a_state.misc_io_w"
+        },
+        {
+          "start": 12976128,
+          "end": 13041663,
+          "kind": "handler",
+          "read": "watchdog.reset16_r"
+        },
+        {
+          "start": 13041664,
+          "end": 13058047,
+          "kind": "ram",
+          "mirror": 3719168,
+          "share": "nvram"
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "z80",
+      "clock": 4000000,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 59392,
+          "end": 59392,
+          "kind": "handler",
+          "read": "segas16a_state.sound_data_r"
+        },
+        {
+          "start": 63488,
+          "end": 65535,
+          "kind": "ram"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 1,
+            "kind": "handler",
+            "mirror": 62,
+            "read": "ymsnd.read",
+            "write": "ymsnd.write"
+          },
+          {
+            "start": 128,
+            "end": 128,
+            "kind": "handler",
+            "mirror": 63,
+            "write": "segas16a_state.upd7751_command_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 192,
+            "end": 192,
+            "kind": "handler",
+            "mirror": 63,
+            "read": "segas16a_state.sound_data_r"
+          }
+        ],
+        "globalMask": 255
+      }
+    }
+  ],
+  "sound": {
+    "kind": "ym2151",
+    "clock": 4000000,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.43,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.43,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.43,
+        "target": "speaker"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "DAC_8BIT_R2R",
+        "deviceTag": "dac",
+        "clock": 0,
+        "gain": 0.4,
+        "target": "speaker",
+        "writeMethods": [
+          "data_w",
+          "write"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 320,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60,
+    "htotal": 342,
+    "vtotal": 262,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "epr-12010.43",
+          "offset": 0,
+          "size": 65536,
+          "crc": "7df7f4a2",
+          "alt": [
+            {
+              "file": "epr-11262.42",
+              "crc": "d4b8df12"
+            },
+            {
+              "file": "b3",
+              "crc": "38e59646"
+            },
+            {
+              "file": "4.3k",
+              "crc": "c178a39c"
+            },
+            {
+              "file": "bootleg_epr-11262.42",
+              "crc": "9a54a498"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "epr-12008.26",
+          "offset": 1,
+          "size": 65536,
+          "crc": "f5ae64cd",
+          "alt": [
+            {
+              "file": "epr-11260.27",
+              "crc": "2835c95d"
+            },
+            {
+              "file": "b1",
+              "crc": "8529d192"
+            },
+            {
+              "file": "2.3n",
+              "crc": "5ad8ebf2"
+            },
+            {
+              "file": "bootleg_epr-11260.27",
+              "crc": "8f571c5f"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "epr-12011.42",
+          "offset": 131072,
+          "size": 65536,
+          "crc": "9d46e707",
+          "alt": [
+            {
+              "file": "epr-11263.43",
+              "crc": "a2a620bd"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "epr-12009.25",
+          "offset": 131073,
+          "size": 65536,
+          "crc": "7961d07e",
+          "alt": [
+            {
+              "file": "epr-11261.25",
+              "crc": "a3ceda52"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 196608,
+      "loads": [
+        {
+          "file": "epr-11264.95",
+          "offset": 0,
+          "size": 65536,
+          "crc": "46627e7d"
+        },
+        {
+          "file": "epr-11265.94",
+          "offset": 65536,
+          "size": 65536,
+          "crc": "87d0f321"
+        },
+        {
+          "file": "epr-11266.93",
+          "offset": 131072,
+          "size": 65536,
+          "crc": "efb4af87"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 524288,
+      "loads": [
+        {
+          "file": "epr-11290.10",
+          "offset": 1,
+          "size": 32768,
+          "crc": "611f413a",
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 262145,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        },
+        {
+          "file": "epr-11294.11",
+          "offset": 0,
+          "size": 32768,
+          "crc": "5eb00fc1",
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 262144,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        },
+        {
+          "file": "epr-11291.17",
+          "offset": 65537,
+          "size": 32768,
+          "crc": "3c0797c0",
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 327681,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        },
+        {
+          "file": "epr-11295.18",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "25307ef8",
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 327680,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        },
+        {
+          "file": "epr-11292.23",
+          "offset": 131073,
+          "size": 32768,
+          "crc": "c29ac34e",
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 393217,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        },
+        {
+          "file": "epr-11296.24",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "04a437f8",
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 393216,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        },
+        {
+          "file": "epr-11293.29",
+          "offset": 196609,
+          "size": 32768,
+          "crc": "41f41063",
+          "alt": [
+            {
+              "file": "b13",
+              "crc": "7e98bd36"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 458753,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        },
+        {
+          "file": "epr-11297.30",
+          "offset": 196608,
+          "size": 32768,
+          "crc": "b6e1fd72",
+          "alt": [
+            {
+              "file": "b17",
+              "crc": "0315cf42"
+            }
+          ],
+          "skip": 1,
+          "continueSegments": [
+            {
+              "offset": 458752,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "epr-11267.12",
+          "offset": 0,
+          "size": 32768,
+          "crc": "dd50b745"
+        }
+      ]
+    },
+    {
+      "region": "upd7751",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "7751.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "6a9534fc"
+        }
+      ]
+    },
+    {
+      "region": "upd7751data",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "epr-11268.1",
+          "offset": 0,
+          "size": 32768,
+          "crc": "6d7966da"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SERVICE",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SERVICE",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SERVICE",
+      "mask": 8,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SERVICE",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SERVICE",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SERVICE",
+      "mask": 4,
+      "value": 4,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 2,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW2",
+      "mask": 12,
+      "value": 12,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 48,
+      "value": 48,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Enemy's Bullet Speed"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Language"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 297,
+    "contributors": 37,
+    "topAuthors": [
+      "Aaron Giles",
+      "Vas Crabb",
+      "Miodrag Milanovic",
+      "AJR",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 99,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 25,
+        "firstCommit": "2015-11-02",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 22,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-11-06"
+      },
+      {
+        "name": "AJR",
+        "commits": 17,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2022-01-26"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 15,
+        "firstCommit": "2016-06-09",
+        "lastCommit": "2024-09-03"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 12,
+        "firstCommit": "2008-04-16",
+        "lastCommit": "2020-08-13"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 12,
+        "firstCommit": "2013-06-25",
+        "lastCommit": "2021-04-21"
+      },
+      {
+        "name": "braintro",
+        "commits": 10,
+        "firstCommit": "2018-10-22",
+        "lastCommit": "2019-10-11"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 8,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "hap",
+        "commits": 7,
+        "firstCommit": "2019-02-19",
+        "lastCommit": "2026-01-30"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 7,
+        "firstCommit": "2015-11-20",
+        "lastCommit": "2018-12-09"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 6,
+        "firstCommit": "2009-03-13",
+        "lastCommit": "2014-02-08"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 5,
+        "firstCommit": "2009-05-01",
+        "lastCommit": "2014-04-17"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-18",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 4,
+        "firstCommit": "2010-07-11",
+        "lastCommit": "2011-10-23"
+      },
+      {
+        "name": "cam900",
+        "commits": 4,
+        "firstCommit": "2019-03-30",
+        "lastCommit": "2019-11-29"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 4,
+        "firstCommit": "2010-05-17",
+        "lastCommit": "2014-05-27"
+      },
+      {
+        "name": "smf-",
+        "commits": 4,
+        "firstCommit": "2008-03-30",
+        "lastCommit": "2018-09-23"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 3,
+        "firstCommit": "2018-12-31",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-10-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 2,
+        "firstCommit": "2008-10-20",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 2,
+        "firstCommit": "2008-08-09",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 2,
+        "firstCommit": "2008-01-04",
+        "lastCommit": "2010-07-05"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2010-05-15",
+        "lastCommit": "2010-05-16"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 2,
+        "firstCommit": "2018-05-20",
+        "lastCommit": "2018-05-26"
+      },
+      {
+        "name": "0kmg",
+        "commits": 1,
+        "firstCommit": "2022-08-27",
+        "lastCommit": "2022-08-27"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "DavidHaywood",
+        "commits": 1,
+        "firstCommit": "2019-01-24",
+        "lastCommit": "2019-01-24"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2012-10-03",
+        "lastCommit": "2012-10-03"
+      },
+      {
+        "name": "Osso",
+        "commits": 1,
+        "firstCommit": "2014-12-19",
+        "lastCommit": "2014-12-19"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2018-01-13",
+        "lastCommit": "2018-01-13"
+      },
+      {
+        "name": "Steven Coomber",
+        "commits": 1,
+        "firstCommit": "2021-06-13",
+        "lastCommit": "2021-06-13"
+      },
+      {
+        "name": "TheLostNinja",
+        "commits": 1,
+        "firstCommit": "2026-01-30",
+        "lastCommit": "2026-01-30"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2008-04-19",
+        "lastCommit": "2008-04-19"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 39 years ago:\n\nShinobi (c) 1987 Sega Enterprises, Limited.\n\nShinobi is a scrolling platform beat-em-up in which the player takes on the role of Joe Musashi, a Shinobi Ninja, who must fight his way through 5 tough missions - each made up of between 3 to 5 stages - in his quest to rescue the kidnapped Ninja children of the Iga clan; now hostages of an evil Ninja syndicate called \"Zeed\". To complete a mission, the player must rescue all of the kidnapped children on each level, with the number of hostages remaining displayed on a meter in the bottom left corner of the screen.\n\nThe Shinobi Ninja begins each level armed with either 'shuriken' throwing stars or a gun for long-range attacks; and a Samurai sword for close-range combat. In addition, the Ninja also has one 'Magic Attack' per level; a smart bomb which kills or damages all on-screen enemies. A points bonus is awarded whenever a level is completed without the Magic Attack being used. An end-of-level guardian awaits the player at the end of each mission, and each takes several hits before it is killed. Once a boss is defeated, the player is taken to a bonus stage in which a large number of Ninjas will try to 'jump' from the back of the screen to the front to attack the player. A bonus life is awarded if the player manages to kill all of the Ninjas without being attacked.\n\nShinobi was a huge success for Sega, and deservedly so. Its perfectly realized blend of platform and fighting action and is as fine an exponent of the 'easy to get into, difficult to master' gameplay ethic as video games have seen.\n\n- TECHNICAL -\n\nRuns on the Sega \"System 16B\" hardware.\nGame ID : 317-0049\n\nPlayers : 2\nControl : 8-Way Joystick\nButtons : 3 \n=> Attack, Jump, Magic\n\n- TRIVIA -\n\nShinobi was released in November 1987 in Japan.\n\nRe-Editions:\n\"Shinobi [Model 317-0050]\" (16A)\n\"Shinobi [Model 317-0054]\"\n\nShinobi was one of the many names given to the ninja in feudal Japan. Its literal translation is 'stealer-in'; a reference to what Ninjas specialized in above all else. By employing any number of tricks such as stealth walking and staying upwind of any guard animals, the Shinobi went undetected about his mission. On a more devious level, the Shinobi was also a master of disguise, and would often 'steal in' to village communities disguised as a local, or into enemy palaces disguised as a wandering priest.\n\nMarilyn Monroe's face appears on several posters in the Mission 1 second stage.\n\nA Shinobi cabinet can be seen in the Nickelodeon show All That (from 1997 to 2000). however it used a fictional marquee which was made for the show.\n\n- SCORING -\n\nScoring in this game is very easy. Each enemy is worth 100 points with the exception of the Purple Guard and the Sword Throwing Guard which are worth 500 points. The bosses are 5,000 points apiece. NOTE : The Purple Guards and Sword Throwing Guards are the ones that guard the hostages.\n\nIn addition to getting points from killing enemies, you can also score points for time left on the clock after you complete a level. You get 30 points per second of remaining time.\n\nYou can also receive special bonuses at the end of each level for certain actions :\n1) If you don't use your ninja magic, you get a 5,000 point bonus.\n2) If you only use your Ninja-to sword (no Shurikens or gunfire), you get a 20,000 point bonus.\n\n- TIPS AND TRICKS -\n\n* Unless you are continuing, each game begins at 'Mission 1' and will have everything you need to complete each mission. Each level must be completed within 3 minutes, and all hostages must be rescued before you can exit the level. If you are killed, all hostages rescued prior to your death will still be recorded as rescued. In addition to melee attacks, you will also be able to use a specific Ninja Magic attack once per level. These magical attacks kill everything that is on the screen but you will be awarded a point bonus if you manage to complete a level WITHOUT using your Ninja Magic. The three Ninja Magic attacks are :\n1) Multiple-Attack Magic : Allows you to gain lightning-fast speed to attack up to 12 times at once.\n2) Tornado Magic : Brings about a magical tornado to blow your enemies away.\n3) Lightning Magic : Causes the air to crackle with electricity and destroys your enemies.\n\n* Some general gameplay guidelines :\n1) Joe is strictly a one-hit, one-kill character, so you must avoid all enemy attacks or risk losing a life.\n2) As you become more practiced at moving around, you won't have to rely on your distance weapons (throwing stars etc.) and can use your ninja sword for close-up kills; the advantage of this is that you can gain the 20,000 point bonus. This also applies to the use of Ninja Magic.\n3) Many of the enemies in the later missions will swarm Joe and attack in numbers, it's vitally important to learn to attack-and-jump as quickly as possible otherwise you will be quickly overrun.\n4) Your main goal is, of course, to rescue all the hostages to exit the level; and although three minute time limit initially seems quite generous, should you delay too long with the enemies, the time will quickly run out.\n5) It's important to become good at the Challenge Levels, since this is the only way to gain extra lives. The Challenge levels will require you to take out around thirty ninjas who are trying to get to your position. There is no real hard and fast strategy other then take them down before they reach the second platform. Challenge Levels occur at the end of every mission.\n6) Ninja Magic is a great thing. You must remember, though, that you can only use it once per level. This means you should only use it when you are totally surrounded by enemies and have no other means of escape.\n7) All bosses take eight hits to defeat. Of course, you will have to hit them in the right place for that hit to register.\n\n* Stop Gunners : In levels with Bazooka-toting enemies (Rounds 3-2), push one of them against a wall about ten times (always pushing on his direction, never stopping), you'll see then that all Bazooka men and Gun men are no longer able to use their weapons against you.\n\n* Extra lives from hostages : In game are special hostage, you can get 1UP instead points from them. These hostages are : 2nd hostage on stage 2-2, 1st hostage on 2-3, 2nd hostage on 3-1, 5th hostage on 3-2. What you must do to get 1UP instead points? When you get hostage you must have 3 identical digits at end of your score (don't count last digit which is always 0). Example : 70,000, 100,000, 109,990, 68,880, 141110. 1UP icon will appear instead points icon over hostage.\n\n- STAFF -\n\nDesigned by : Noriyoshi Ohba\nStaff : Sugachan 26, Wagamama Kenchi, Topi, Gyofunori, Hanachan, Super Haggar, Fanta Jijii, Yamiagari, Shinjuku Otoko\n\n- PORTS -\n\n* CONSOLES:\n[EU] Sega Master System (1988) \"Shinobi [Model MK-7009-50]\" \n[US] Sega Master System (1988) \"Shinobi [Model 7009]\" \n[JP] Sega Master System (june.19, 1988) \"Shinobi [Model G-1353]\" \n[JP] NEC PC-Engine (dec.8, 1989) \"Shinobi [Model AS01001]\" \n[US] Nintendo NES (1989)\n[BR] Sega Master System (1995) \"Sapo Xule - O Mestre do Kung Fu [Model 023.500]\" \n[US] Microsoft XBOX 360 (feb.10, 2009) \"Sonic's Ultimate Genesis Collection [Model 68034]\" : as an unlockable extra\n[KO] Sony PlayStation 3 (feb.10, 2009) \"Sonic's Ultimate Genesis Collection\" by SCEI : as an unlockable extra\n[US] Sony PlayStation 3 (feb.10, 2009) \"Sonic's Ultimate Genesis Collection [Model BLUS-30259]\" : as an unlockable extra\n[EU] Microsoft XBOX 360 (feb.20, 2009) \"SEGA Mega Drive Ultimate Collection [Model 384-40210]\" : as an unlockable extra\n[EU] [AU] Sony PlayStation 3 (feb.20, 2009) \"SEGA Mega Drive Ultimate Collection [Model BLES-00475]\" : as an unlockable extra\n[AU] Microsoft XBOX 360 (feb.26, 2009) \"Sega Mega Drive Ultimate Collection\" : as an unlockable extra\n[US] [JP] Microsoft XBOX 360 [XBLA] (june.19, 2009) \n[JP] Nintendo Wii [Virtual Console Arcade] (jul.14, 2009) \n[JP] Nintendo Wii [Virtual Console Arcade] (oct.23, 2009) \n[JP] Nintendo Wii [Virtual Console Arcade] (dec.7, 2009) \n\n* COMPUTERS:\n[EU] Sinclair ZX Spectrum (1989) \"Shinobi [Model 010443]\"\n[US] [EU] Commodore C64 (1989)\n[EU] Atari ST (1989)\n[EU] Commodore Amiga (1989)\n[EU] Amstrad CPC (1989) \"Shinobi [Model 090186]\"\n[EU] Amstrad CPC (1989): 128 Ko Disk version.\n[EU] MSX (1989)\n[US] PC [MS-DOS, 5.25\"] (1989)\n[EU] Amstrad CPC (1991) \"Shinobi [Model 810658]\t\"\n[EU] Sinclair ZX Spectrum (1991) \"Shinobi [Model 210816]\"\n\n* OTHERS:\n[US] Tiger Handheld LCD Game (1988)\n\n- SERIES -\n\n1. Shinobi [Model 317-0049] (1987, Arcade)\n2. Shadow Dancer - Kage no Mai (1989, Arcade)\n3. The Revenge of Shinobi (1989, Mega Drive)\n4. The Cyber Shinobi - Shinobi Part 2 (1990, Master System)\n5. The GG Shinobi [Model G-3302] (1991, Game Gear)\n6. The GG Shinobi II [Model G-3315] (1992, Game Gear)\n7. Shinobi III - Return of the Ninja Master (1993, Mega Drive)\n8. Shinobi X (1995, Saturn)\n9. The Revenge of Shinobi (2002, Game Boy Advance)\n10. Shinobi (2002, PS2)\n11. Nightshade (2004, PS2)\n12. Shinobi 3D (2011, 3DS)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2416/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,4050 @@
+{
+    "schemaVersion": 4,
+    "game": "qix",
+    "family": "qix",
+    "driverFile": "src/mame/taito/qix.cpp",
+    "callbacks": [
+        {
+            "id": "device:qix_state.qix_base/pia0/callback:pia0:0",
+            "ownerTag": "pia0",
+            "signal": "readpa_handler",
+            "operation": "set_ioport",
+            "targetTag": "P1",
+            "targetPort": "P1",
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 648,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia0/callback:pia0:1",
+            "ownerTag": "pia0",
+            "signal": "readpb_handler",
+            "operation": "set_ioport",
+            "targetTag": "COIN",
+            "targetPort": "COIN",
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 650,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia1/callback:pia1:0",
+            "ownerTag": "pia1",
+            "signal": "readpa_handler",
+            "operation": "set_ioport",
+            "targetTag": "SPARE",
+            "targetPort": "SPARE",
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 653,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia1/callback:pia1:1",
+            "ownerTag": "pia1",
+            "signal": "readpb_handler",
+            "operation": "set_ioport",
+            "targetTag": "IN0",
+            "targetPort": "IN0",
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 655,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia2/callback:pia2:0",
+            "ownerTag": "pia2",
+            "signal": "readpa_handler",
+            "operation": "set_ioport",
+            "targetTag": "P2",
+            "targetPort": "P2",
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 658,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia2/callback:pia2:1",
+            "ownerTag": "pia2",
+            "signal": "writepb_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "coinctr_w",
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 660,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/vid_u18/callback:vid_u18:0",
+            "ownerTag": "vid_u18",
+            "signal": "set_begin_update_callback",
+            "operation": "set_begin_update_callback",
+            "delegate": true,
+            "targetClass": "qix_state",
+            "targetMethod": "crtc_begin_update",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 378,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/vid_u18/callback:vid_u18:1",
+            "ownerTag": "vid_u18",
+            "signal": "set_update_row_callback",
+            "operation": "set_update_row_callback",
+            "delegate": true,
+            "targetClass": "qix_state",
+            "targetMethod": "crtc_update_row",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 379,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/vid_u18/callback:vid_u18:2",
+            "ownerTag": "vid_u18",
+            "signal": "out_de_callback",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "display_enable_changed",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 380,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/vid_u18/callback:vid_u18:3",
+            "ownerTag": "vid_u18",
+            "signal": "out_vsync_callback",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "vsync_changed",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 381,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetTag": "vid_u18",
+            "targetClass": "mc6845_device",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 385,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/dint/callback:dint:0",
+            "ownerTag": "dint",
+            "signal": "output_handler",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "M6809_IRQ_LINE",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 151,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sint/callback:sint:0",
+            "ownerTag": "sint",
+            "signal": "output_handler",
+            "operation": "set_inputline",
+            "targetTag": "audiocpu",
+            "inputLine": "M6802_IRQ_LINE",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 154,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:0",
+            "ownerTag": "sndpia0",
+            "signal": "writepa_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "sync_sndpia1_porta_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 157,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:1",
+            "ownerTag": "sndpia0",
+            "signal": "writepb_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "vol_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 158,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:2",
+            "ownerTag": "sndpia0",
+            "signal": "ca2_handler",
+            "operation": "set",
+            "targetTag": "sndpia1",
+            "targetClass": "pia6821_device",
+            "targetMethod": "ca1_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 160,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:3",
+            "ownerTag": "sndpia0",
+            "signal": "cb2_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "flip_screen_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 161,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:4",
+            "ownerTag": "sndpia0",
+            "signal": "irqa_handler",
+            "operation": "set",
+            "targetTag": "dint",
+            "targetClass": "input_merger_device",
+            "targetMethod": "in_w_0",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 162,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:5",
+            "ownerTag": "sndpia0",
+            "signal": "irqb_handler",
+            "operation": "set",
+            "targetTag": "dint",
+            "targetClass": "input_merger_device",
+            "targetMethod": "in_w_1",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 163,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:0",
+            "ownerTag": "sndpia1",
+            "signal": "writepa_handler",
+            "operation": "set",
+            "targetTag": "sndpia0",
+            "targetClass": "pia6821_device",
+            "targetMethod": "porta_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 166,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:1",
+            "ownerTag": "sndpia1",
+            "signal": "writepb_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "dac_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 167,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:2",
+            "ownerTag": "sndpia1",
+            "signal": "ca2_handler",
+            "operation": "set",
+            "targetTag": "sndpia0",
+            "targetClass": "pia6821_device",
+            "targetMethod": "ca1_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 169,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:3",
+            "ownerTag": "sndpia1",
+            "signal": "irqa_handler",
+            "operation": "set",
+            "targetTag": "sint",
+            "targetClass": "input_merger_device",
+            "targetMethod": "in_w_0",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 170,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:4",
+            "ownerTag": "sndpia1",
+            "signal": "irqb_handler",
+            "operation": "set",
+            "targetTag": "sint",
+            "targetClass": "input_merger_device",
+            "targetMethod": "in_w_1",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 171,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:0",
+            "ownerTag": "sndpia2",
+            "signal": "writepa_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "sndpia_2_warning_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 174,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:1",
+            "ownerTag": "sndpia2",
+            "signal": "writepb_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "sndpia_2_warning_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 175,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:2",
+            "ownerTag": "sndpia2",
+            "signal": "ca2_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "sndpia_2_warning_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 176,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:3",
+            "ownerTag": "sndpia2",
+            "signal": "cb2_handler",
+            "operation": "set",
+            "targetClass": "qix_state",
+            "targetMethod": "sndpia_2_warning_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 177,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:qix_state.qix_base/pia0/callback:pia0:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "P1"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 648,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_base/pia0/callback:pia0:1",
+            "effect": {
+                "kind": "port-read",
+                "port": "COIN"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 650,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_base/pia1/callback:pia1:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "SPARE"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 653,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_base/pia1/callback:pia1:1",
+            "effect": {
+                "kind": "port-read",
+                "port": "IN0"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 655,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_base/pia2/callback:pia2:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "P2"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 658,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_base/pia2/callback:pia2:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.coinctr_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 660,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_video/vid_u18/callback:vid_u18:2",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.display_enable_changed"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 380,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_video/vid_u18/callback:vid_u18:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.vsync_changed"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 381,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/dint/callback:dint:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "irq",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 151,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sint/callback:sint:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "audiocpu",
+                "line": "irq",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 154,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.sync_sndpia1_porta_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 157,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.vol_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 158,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:2",
+            "effect": {
+                "kind": "device-method",
+                "tag": "sndpia1",
+                "method": "ca1_w",
+                "ownerClass": "pia6821_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 160,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.flip_screen_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 161,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:4",
+            "effect": {
+                "kind": "device-method",
+                "tag": "dint",
+                "method": "in_w_0",
+                "ownerClass": "input_merger_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 162,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia0/callback:sndpia0:5",
+            "effect": {
+                "kind": "device-method",
+                "tag": "dint",
+                "method": "in_w_1",
+                "ownerClass": "input_merger_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 163,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:0",
+            "effect": {
+                "kind": "device-method",
+                "tag": "sndpia0",
+                "method": "porta_w",
+                "ownerClass": "pia6821_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 166,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.dac_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 167,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:2",
+            "effect": {
+                "kind": "device-method",
+                "tag": "sndpia0",
+                "method": "ca1_w",
+                "ownerClass": "pia6821_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 169,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:3",
+            "effect": {
+                "kind": "device-method",
+                "tag": "sint",
+                "method": "in_w_0",
+                "ownerClass": "input_merger_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 170,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia1/callback:sndpia1:4",
+            "effect": {
+                "kind": "device-method",
+                "tag": "sint",
+                "method": "in_w_1",
+                "ownerClass": "input_merger_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 171,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.sndpia_2_warning_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 174,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.sndpia_2_warning_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 175,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:2",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.sndpia_2_warning_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 176,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:qix_state.qix_audio/sndpia2/callback:sndpia2:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "qix_state.sndpia_2_warning_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 177,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "mc6809e",
+                "clock": 1250000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 32768,
+                        "end": 33791,
+                        "kind": "ram",
+                        "share": "sharedram"
+                    },
+                    {
+                        "start": 33792,
+                        "end": 34815,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 34816,
+                        "end": 35839,
+                        "kind": "nop",
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 35840,
+                        "end": 35840,
+                        "kind": "handler",
+                        "mirror": 1022,
+                        "read": "qix_state.video_firq_r",
+                        "write": "qix_state.video_firq_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 35841,
+                        "end": 35841,
+                        "kind": "handler",
+                        "mirror": 1022,
+                        "read": "qix_state.data_firq_ack_r",
+                        "write": "qix_state.data_firq_ack_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 36864,
+                        "end": 37887,
+                        "kind": "handler",
+                        "read": "sndpia0.read",
+                        "write": "sndpia0.write"
+                    },
+                    {
+                        "start": 37888,
+                        "end": 38911,
+                        "kind": "handler",
+                        "read": "pia0.read",
+                        "write": "qix_state.pia_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 38912,
+                        "end": 39935,
+                        "kind": "handler",
+                        "read": "pia1.read",
+                        "write": "pia1.write"
+                    },
+                    {
+                        "start": 39936,
+                        "end": 40959,
+                        "kind": "handler",
+                        "read": "pia2.read",
+                        "write": "pia2.write"
+                    },
+                    {
+                        "start": 40960,
+                        "end": 65535,
+                        "kind": "rom"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 1250000,
+                "source": {
+                    "file": "src/mame/taito/qix.cpp",
+                    "line": 638,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "videocpu",
+                "type": "mc6809e",
+                "clock": 1250000,
+                "region": "videocpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 32767,
+                        "kind": "handler",
+                        "read": "qix_state.videoram_r",
+                        "write": "qix_state.videoram_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 32768,
+                        "end": 33791,
+                        "kind": "ram",
+                        "share": "sharedram"
+                    },
+                    {
+                        "start": 33792,
+                        "end": 34815,
+                        "kind": "ram",
+                        "share": "nvram"
+                    },
+                    {
+                        "start": 34816,
+                        "end": 34816,
+                        "kind": "handler",
+                        "mirror": 1023,
+                        "write": "qix_state.palettebank_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 35840,
+                        "end": 35840,
+                        "kind": "handler",
+                        "mirror": 1022,
+                        "read": "qix_state.data_firq_r",
+                        "write": "qix_state.data_firq_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 35841,
+                        "end": 35841,
+                        "kind": "handler",
+                        "mirror": 1022,
+                        "read": "qix_state.video_firq_ack_r",
+                        "write": "qix_state.video_firq_ack_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 36864,
+                        "end": 37887,
+                        "kind": "ram",
+                        "share": "palette",
+                        "write": "qix_state.paletteram_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 37888,
+                        "end": 37888,
+                        "kind": "handler",
+                        "mirror": 1020,
+                        "read": "qix_state.addresslatch_r",
+                        "write": "qix_state.addresslatch_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 37890,
+                        "end": 37891,
+                        "kind": "ram",
+                        "mirror": 1020,
+                        "share": "videoram_address",
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 38912,
+                        "end": 38912,
+                        "kind": "ram",
+                        "mirror": 1023,
+                        "share": "scanline_latch",
+                        "readOnly": true
+                    },
+                    {
+                        "start": 39936,
+                        "end": 39936,
+                        "kind": "handler",
+                        "mirror": 1022,
+                        "write": "vid_u18.address_w"
+                    },
+                    {
+                        "start": 39937,
+                        "end": 39937,
+                        "kind": "handler",
+                        "mirror": 1022,
+                        "read": "vid_u18.register_r",
+                        "write": "vid_u18.register_w"
+                    },
+                    {
+                        "start": 40960,
+                        "end": 65535,
+                        "kind": "rom"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "videocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 1250000,
+                "source": {
+                    "file": "src/mame/taito/qix_v.cpp",
+                    "line": 371,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "type": "m6802",
+                "clock": 3686400,
+                "region": "audiocpu",
+                "ranges": [
+                    {
+                        "start": 8192,
+                        "end": 8195,
+                        "kind": "handler",
+                        "mirror": 24572,
+                        "read": "sndpia2.read",
+                        "write": "sndpia2.write"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 16387,
+                        "kind": "handler",
+                        "mirror": 16380,
+                        "read": "sndpia1.read",
+                        "write": "sndpia1.write"
+                    },
+                    {
+                        "start": 53248,
+                        "end": 65535,
+                        "kind": "rom"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 921600,
+                "source": {
+                    "file": "src/mame/taito/qix_a.cpp",
+                    "line": 147,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 1250000,
+                "cycleClock": 1250000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            },
+            {
+                "tag": "videocpu",
+                "kind": "cpu",
+                "clock": 1250000,
+                "cycleClock": 1250000,
+                "space": {
+                    "ownerTag": "videocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "kind": "cpu",
+                "clock": 3686400,
+                "cycleClock": 921600,
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "startHandlers": [
+            "qix_state.video_start"
+        ],
+        "perfectQuantum": true,
+        "screen": {
+            "width": 256,
+            "height": 256,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 55.83847047261681,
+            "htotal": 328,
+            "vtotal": 273,
+            "vbstart": 256,
+            "vbend": 0,
+            "updateMode": "partial",
+            "rotate": 270,
+            "ownerTag": "vid_u18",
+            "ownerKind": "device",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 383,
+                "column": 2
+            }
+        },
+        "frameEvents": [],
+        "screenUpdate": {
+            "handler": "mc6845_device.screen_update",
+            "deviceTag": "vid_u18",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 385,
+                "column": 2
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:qix_state.qix_base/maincpu",
+            "tag": "maincpu",
+            "type": "MC6809E",
+            "member": "m_maincpu",
+            "clock": 1250000,
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 638,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/nvram",
+            "tag": "nvram",
+            "type": "NVRAM",
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 645,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia0",
+            "tag": "pia0",
+            "type": "PIA6821",
+            "member": "m_pia[0]",
+            "configuration": [
+                {
+                    "method": "set_port_a_input_overrides_output_mask",
+                    "args": [
+                        255
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 647,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia1",
+            "tag": "pia1",
+            "type": "PIA6821",
+            "member": "m_pia[1]",
+            "configuration": [
+                {
+                    "method": "set_port_a_input_overrides_output_mask",
+                    "args": [
+                        255
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 652,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_base/pia2",
+            "tag": "pia2",
+            "type": "PIA6821",
+            "member": "m_pia[2]",
+            "configuration": [
+                {
+                    "method": "set_port_a_input_overrides_output_mask",
+                    "args": [
+                        255
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 657,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/videocpu",
+            "tag": "videocpu",
+            "type": "MC6809E",
+            "member": "m_videocpu",
+            "clock": 1250000,
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 371,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/vid_u18",
+            "tag": "vid_u18",
+            "type": "MC6845",
+            "member": "m_crtc",
+            "clock": 625000,
+            "configuration": [
+                {
+                    "method": "set_char_width",
+                    "args": [
+                        8
+                    ]
+                },
+                {
+                    "method": "set_show_border_area",
+                    "args": [
+                        0
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 374,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        5000000,
+                        328,
+                        0,
+                        256,
+                        273,
+                        0,
+                        256
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 383,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_video/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 387,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/audiocpu",
+            "tag": "audiocpu",
+            "type": "M6802",
+            "member": "m_audiocpu",
+            "clock": 3686400,
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 147,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/dint",
+            "tag": "dint",
+            "type": "INPUT_MERGER_ANY_HIGH",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 151,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sint",
+            "tag": "sint",
+            "type": "INPUT_MERGER_ANY_HIGH",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 154,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia0",
+            "tag": "sndpia0",
+            "type": "PIA6821",
+            "member": "m_sndpia[0]",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 156,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia1",
+            "tag": "sndpia1",
+            "type": "PIA6821",
+            "member": "m_sndpia[1]",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 165,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/sndpia2",
+            "tag": "sndpia2",
+            "type": "PIA6821",
+            "member": "m_sndpia[2]",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 173,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER",
+            "clock": 2,
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 179,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:qix_state.qix_audio/discrete",
+            "tag": "discrete",
+            "type": "DISCRETE",
+            "member": "m_discrete",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 181,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:qix_state.video_firq_r",
+            "ownerClass": "qix_state",
+            "method": "video_firq_r",
+            "parameters": "address_space &space",
+            "body": "if (!machine().side_effects_disabled())\n\t\tm_videocpu->set_input_line(M6809_FIRQ_LINE, ASSERT_LINE);\n\treturn space.unmap();",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "side_effects_disabled"
+                                },
+                                "args": []
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_videocpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "M6809_FIRQ_LINE"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ASSERT_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "space"
+                                },
+                                "property": "unmap"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 145,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.video_firq_w",
+            "ownerClass": "qix_state",
+            "method": "video_firq_w",
+            "parameters": "uint8_t data",
+            "body": "m_videocpu->set_input_line(M6809_FIRQ_LINE, ASSERT_LINE);",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videocpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "M6809_FIRQ_LINE"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASSERT_LINE"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 133,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.data_firq_ack_r",
+            "ownerClass": "qix_state",
+            "method": "data_firq_ack_r",
+            "parameters": "address_space &space",
+            "body": "if (!machine().side_effects_disabled())\n\t\tm_maincpu->set_input_line(M6809_FIRQ_LINE, CLEAR_LINE);\n\treturn space.unmap();",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "side_effects_disabled"
+                                },
+                                "args": []
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "M6809_FIRQ_LINE"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "space"
+                                },
+                                "property": "unmap"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 118,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.data_firq_ack_w",
+            "ownerClass": "qix_state",
+            "method": "data_firq_ack_w",
+            "parameters": "uint8_t data",
+            "body": "m_maincpu->set_input_line(M6809_FIRQ_LINE, CLEAR_LINE);",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "M6809_FIRQ_LINE"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "CLEAR_LINE"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 104,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:pia6821_device.read",
+            "ownerClass": "pia6821_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 131,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:pia6821_device.write",
+            "ownerClass": "pia6821_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 131,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:qix_state.pia_w",
+            "ownerClass": "qix_state",
+            "method": "pia_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "// make all the CPUs synchronize, and only AFTER that write the command to the PIA\n\t// otherwise the 68705 will miss commands\n\tmachine().scheduler().synchronize(timer_expired_delegate(FUNC(qix_state::pia_w_callback), this), data | (offset << 8));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "scheduler"
+                                    },
+                                    "args": []
+                                },
+                                "property": "synchronize"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "timer_expired_delegate"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "FUNC"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "qix_state::pia_w_callback"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "this"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 260,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.pia_w_callback",
+            "ownerClass": "qix_state",
+            "method": "pia_w_callback",
+            "parameters": "int param",
+            "body": "m_pia[0]->write(param >> 8, param & 0xff);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_pia"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "param"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 8
+                                    }
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "param"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 255
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 254,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.videoram_r",
+            "ownerClass": "qix_state",
+            "method": "videoram_r",
+            "parameters": "offs_t offset",
+            "body": "/* add in the upper bit of the address latch */\n\toffset += (m_videoram_address[0] & 0x80) << 8;\n\treturn m_videoram[offset];",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "offset"
+                        },
+                        "operator": "+=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram_address"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 128
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 8
+                            }
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 79,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.videoram_w",
+            "ownerClass": "qix_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "/* update the screen in case the game is writing \"behind\" the beam -\n\t   Zookeeper likes to do this */\n//  m_screen->update_now();\n\tm_screen->update_partial(m_screen->vpos());\n\n\t/* add in the upper bit of the address latch */\n\toffset += (m_videoram_address[0] & 0x80) << 8;\n\n\t/* write the data */\n\tm_videoram[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "update_partial"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "vpos"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "offset"
+                        },
+                        "operator": "+=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram_address"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 128
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 8
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 87,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.palettebank_w",
+            "ownerClass": "qix_state",
+            "method": "palettebank_w",
+            "parameters": "uint8_t data",
+            "body": "/* set the bank value */\n\tif (m_palette_bank != (data & 3))\n\t{\n\t\t//m_screen->update_now();\n\t\tm_screen->update_partial(m_screen->vpos());\n\t\tm_palette_bank = data & 3;\n\t}\n\n\t/* LEDs are in the upper 6 bits */\n\tm_leds = ~data & 0xfc;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_palette_bank"
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "update_partial"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_screen"
+                                                },
+                                                "property": "vpos"
+                                            },
+                                            "args": []
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_palette_bank"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_leds"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 252
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 194,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.data_firq_r",
+            "ownerClass": "qix_state",
+            "method": "data_firq_r",
+            "parameters": "address_space &space",
+            "body": "if (!machine().side_effects_disabled())\n\t\tm_maincpu->set_input_line(M6809_FIRQ_LINE, ASSERT_LINE);\n\treturn space.unmap();",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "side_effects_disabled"
+                                },
+                                "args": []
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "M6809_FIRQ_LINE"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ASSERT_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "space"
+                                },
+                                "property": "unmap"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 110,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.data_firq_w",
+            "ownerClass": "qix_state",
+            "method": "data_firq_w",
+            "parameters": "uint8_t data",
+            "body": "m_maincpu->set_input_line(M6809_FIRQ_LINE, ASSERT_LINE);",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "M6809_FIRQ_LINE"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASSERT_LINE"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 98,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.video_firq_ack_r",
+            "ownerClass": "qix_state",
+            "method": "video_firq_ack_r",
+            "parameters": "address_space &space",
+            "body": "if (!machine().side_effects_disabled())\n\t\tm_videocpu->set_input_line(M6809_FIRQ_LINE, CLEAR_LINE);\n\treturn space.unmap();",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "side_effects_disabled"
+                                },
+                                "args": []
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_videocpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "M6809_FIRQ_LINE"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "space"
+                                },
+                                "property": "unmap"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 153,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.video_firq_ack_w",
+            "ownerClass": "qix_state",
+            "method": "video_firq_ack_w",
+            "parameters": "uint8_t data",
+            "body": "m_videocpu->set_input_line(M6809_FIRQ_LINE, CLEAR_LINE);",
+            "constants": {
+                "M6809_FIRQ_LINE": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videocpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "M6809_FIRQ_LINE"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "CLEAR_LINE"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 139,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.paletteram_w",
+            "ownerClass": "qix_state",
+            "method": "paletteram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "uint8_t const old_data = m_palette->read8(offset);\n\n\t/* trigger an update if a currently visible pen has changed */\n\tif (((offset >> 8) == m_palette_bank) &&\n\t\t(old_data != data))\n\t{\n\t//  m_screen->update_now();\n\t\tm_screen->update_partial(m_screen->vpos());\n\t}\n\n\t/* set the palette RAM value */\n\tm_palette->write8(offset, data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "old_data",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_palette"
+                                },
+                                "property": "read8"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 8
+                                    }
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "m_palette_bank"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "!=",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "old_data"
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "update_partial"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_screen"
+                                                },
+                                                "property": "vpos"
+                                            },
+                                            "args": []
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_palette"
+                                },
+                                "property": "write8"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 177,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.addresslatch_r",
+            "ownerClass": "qix_state",
+            "method": "addresslatch_r",
+            "body": "/* compute the value at the address latch */\n\toffs_t const offset = (m_videoram_address[0] << 8) | m_videoram_address[1];\n\treturn m_videoram[offset];",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "offset",
+                        "valueType": "offs_t",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram_address"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            },
+                            "right": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_address"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 133,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.addresslatch_w",
+            "ownerClass": "qix_state",
+            "method": "addresslatch_w",
+            "parameters": "uint8_t data",
+            "body": "/* update the screen in case the game is writing \"behind\" the beam */\n//  m_screen->update_now();\n\tm_screen->update_partial(m_screen->vpos());\n\n\t/* compute the value at the address latch */\n\toffs_t const offset = (m_videoram_address[0] << 8) | m_videoram_address[1];\n\n\t/* write the data */\n\tm_videoram[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "update_partial"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "vpos"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "offset",
+                        "valueType": "offs_t",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram_address"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            },
+                            "right": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_address"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 141,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mc6845_device.address_w",
+            "ownerClass": "mc6845_device",
+            "method": "address_w",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 354,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mc6845_device.register_r",
+            "ownerClass": "mc6845_device",
+            "method": "register_r",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 355,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mc6845_device.register_w",
+            "ownerClass": "mc6845_device",
+            "method": "register_w",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 355,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:qix_state.video_start",
+            "ownerClass": "qix_state",
+            "method": "video_start",
+            "body": "/* set up save states */\n\tsave_item(NAME(m_flip));\n\tsave_item(NAME(m_palette_bank));\n\tsave_item(NAME(m_leds));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_flip"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_palette_bank"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_leds"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 20,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.coinctr_w",
+            "ownerClass": "qix_state",
+            "method": "coinctr_w",
+            "parameters": "uint8_t data",
+            "body": "machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));\n\tmachine().bookkeeping().coin_counter_w(0, BIT(data, 1));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_lockout_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 275,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.crtc_begin_update",
+            "ownerClass": "qix_state",
+            "method": "crtc_begin_update",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 378,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:qix_state.crtc_update_row",
+            "ownerClass": "qix_state",
+            "method": "crtc_update_row",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 379,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:qix_state.display_enable_changed",
+            "ownerClass": "qix_state",
+            "method": "display_enable_changed",
+            "parameters": "int state",
+            "body": "/* on the rising edge, latch the scanline */\n\tif (state)\n\t{\n\t\tuint16_t const ma = m_crtc->get_ma();\n\t\tuint8_t const ra = m_crtc->get_ra();\n\n\t\t/* RA0-RA2 goes to D0-D2 and MA5-MA9 goes to D3-D7 */\n\t\t*m_scanline_latch = ((ma >> 2) & 0xf8) | (ra & 0x07);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "state"
+                        },
+                        "then": [
+                            {
+                                "op": "declare",
+                                "name": "ma",
+                                "valueType": "uint16_t",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_crtc"
+                                        },
+                                        "property": "get_ma"
+                                    },
+                                    "args": []
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "ra",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_crtc"
+                                        },
+                                        "property": "get_ra"
+                                    },
+                                    "args": []
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "unary",
+                                    "operator": "*",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "m_scanline_latch"
+                                    }
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "ma"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 248
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "ra"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 36,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.vsync_changed",
+            "ownerClass": "qix_state",
+            "method": "vsync_changed",
+            "parameters": "int state",
+            "body": "m_sndpia[0]->cb1_w(state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_sndpia"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "property": "cb1_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_m.cpp",
+                "line": 70,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mc6845_device.screen_update",
+            "ownerClass": "mc6845_device",
+            "method": "screen_update",
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 385,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:qix_state.sync_sndpia1_porta_w",
+            "ownerClass": "qix_state",
+            "method": "sync_sndpia1_porta_w",
+            "parameters": "uint8_t data",
+            "body": "/* we need to synchronize this so the sound CPU doesn't drop anything important */\n\tmachine().scheduler().synchronize(timer_expired_delegate(FUNC(qix_state::deferred_sndpia1_porta_w), this), data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "scheduler"
+                                    },
+                                    "args": []
+                                },
+                                "property": "synchronize"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "timer_expired_delegate"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "FUNC"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "qix_state::deferred_sndpia1_porta_w"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "this"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 114,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.deferred_sndpia1_porta_w",
+            "ownerClass": "qix_state",
+            "method": "deferred_sndpia1_porta_w",
+            "parameters": "int param",
+            "body": "m_sndpia[1]->porta_w(param);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_sndpia"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "property": "porta_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "param"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 108,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.vol_w",
+            "ownerClass": "qix_state",
+            "method": "vol_w",
+            "parameters": "uint8_t data",
+            "body": "m_discrete->write(QIX_VOL_DATA, data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "QIX_VOL_DATA"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 38,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:pia6821_device.ca1_w",
+            "ownerClass": "pia6821_device",
+            "method": "ca1_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 169,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:qix_state.flip_screen_w",
+            "ownerClass": "qix_state",
+            "method": "flip_screen_w",
+            "parameters": "int state",
+            "body": "m_flip = state;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_flip"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "state"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 57,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:input_merger_device.in_w_0",
+            "ownerClass": "input_merger_device",
+            "method": "in_w_0",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 196,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:input_merger_device.in_w_1",
+            "ownerClass": "input_merger_device",
+            "method": "in_w_1",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 197,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:pia6821_device.porta_w",
+            "ownerClass": "pia6821_device",
+            "method": "porta_w",
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 166,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:qix_state.dac_w",
+            "ownerClass": "qix_state",
+            "method": "dac_w",
+            "parameters": "uint8_t data",
+            "body": "m_discrete->write(QIX_DAC_DATA, data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "QIX_DAC_DATA"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 33,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:qix_state.sndpia_2_warning_w",
+            "ownerClass": "qix_state",
+            "method": "sndpia_2_warning_w",
+            "parameters": "uint8_t data",
+            "body": "// this PIA is supposedly unused\n\tif (machine().phase() > machine_phase::RESET)\n\t\tlogerror(\"PIA 5 write!!\\n\");",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "phase"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "machine_phase::RESET"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "TRACE_NOOP"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 100,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:qix_state.qix_main_map",
+            "className": "qix_state",
+            "name": "qix_main_map",
+            "ranges": [
+                {
+                    "id": "map:qix_state.qix_main_map/range0",
+                    "start": 32768,
+                    "end": 33791,
+                    "raw": "map(0x8000, 0x83ff).ram().share(\"sharedram\")",
+                    "props": {
+                        "start": 32768,
+                        "end": 33791,
+                        "raw": "map(0x8000, 0x83ff).ram().share(\"sharedram\")",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 281,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 281,
+                        "ram": true,
+                        "share": "sharedram"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 281,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range1",
+                    "start": 33792,
+                    "end": 34815,
+                    "raw": "map(0x8400, 0x87ff).ram()",
+                    "props": {
+                        "start": 33792,
+                        "end": 34815,
+                        "raw": "map(0x8400, 0x87ff).ram()",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 282,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 282,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 282,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range2",
+                    "start": 34816,
+                    "end": 35839,
+                    "raw": "map(0x8800, 0x8bff).nopr()",
+                    "props": {
+                        "start": 34816,
+                        "end": 35839,
+                        "raw": "map(0x8800, 0x8bff).nopr()",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 283,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 283,
+                        "nopr": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 283,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range3",
+                    "start": 35840,
+                    "end": 35840,
+                    "raw": "map(0x8c00, 0x8c00).mirror(0x3fe).rw(FUNC(qix_state::video_firq_r), FUNC(qix_state::video_firq_w))",
+                    "read": "qix_state.video_firq_r",
+                    "write": "qix_state.video_firq_w",
+                    "props": {
+                        "start": 35840,
+                        "end": 35840,
+                        "raw": "map(0x8c00, 0x8c00).mirror(0x3fe).rw(FUNC(qix_state::video_firq_r), FUNC(qix_state::video_firq_w))",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 284,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 284,
+                        "mirror": 1022
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 284,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range4",
+                    "start": 35841,
+                    "end": 35841,
+                    "raw": "map(0x8c01, 0x8c01).mirror(0x3fe).rw(FUNC(qix_state::data_firq_ack_r), FUNC(qix_state::data_firq_ack_w))",
+                    "read": "qix_state.data_firq_ack_r",
+                    "write": "qix_state.data_firq_ack_w",
+                    "props": {
+                        "start": 35841,
+                        "end": 35841,
+                        "raw": "map(0x8c01, 0x8c01).mirror(0x3fe).rw(FUNC(qix_state::data_firq_ack_r), FUNC(qix_state::data_firq_ack_w))",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 285,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 285,
+                        "mirror": 1022
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 285,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range5",
+                    "start": 36864,
+                    "end": 37887,
+                    "raw": "map(0x9000, 0x93ff).rw(m_sndpia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "sndpia0.read",
+                    "write": "sndpia0.write",
+                    "props": {
+                        "start": 36864,
+                        "end": 37887,
+                        "raw": "map(0x9000, 0x93ff).rw(m_sndpia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 286,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 286
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 286,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range6",
+                    "start": 37888,
+                    "end": 38911,
+                    "raw": "map(0x9400, 0x97ff).r(m_pia[0], FUNC(pia6821_device::read)).w(FUNC(qix_state::pia_w))",
+                    "read": "pia0.read",
+                    "write": "qix_state.pia_w",
+                    "props": {
+                        "start": 37888,
+                        "end": 38911,
+                        "raw": "map(0x9400, 0x97ff).r(m_pia[0], FUNC(pia6821_device::read)).w(FUNC(qix_state::pia_w))",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 287,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 287
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 287,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range7",
+                    "start": 38912,
+                    "end": 39935,
+                    "raw": "map(0x9800, 0x9bff).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia1.read",
+                    "write": "pia1.write",
+                    "props": {
+                        "start": 38912,
+                        "end": 39935,
+                        "raw": "map(0x9800, 0x9bff).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 288,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 288
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 288,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range8",
+                    "start": 39936,
+                    "end": 40959,
+                    "raw": "map(0x9c00, 0x9fff).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia2.read",
+                    "write": "pia2.write",
+                    "props": {
+                        "start": 39936,
+                        "end": 40959,
+                        "raw": "map(0x9c00, 0x9fff).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 289,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 289
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 289,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_main_map/range9",
+                    "start": 40960,
+                    "end": 65535,
+                    "raw": "map(0xa000, 0xffff).rom()",
+                    "props": {
+                        "start": 40960,
+                        "end": 65535,
+                        "raw": "map(0xa000, 0xffff).rom()",
+                        "sourceFile": "src/mame/taito/qix.cpp",
+                        "sourceLine": 290,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 290,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix.cpp",
+                        "line": 290,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix.cpp",
+                "line": 279,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:qix_state.qix_video_map",
+            "className": "qix_state",
+            "name": "qix_video_map",
+            "ranges": [
+                {
+                    "id": "map:qix_state.qix_video_map/range0",
+                    "start": 0,
+                    "end": 32767,
+                    "raw": "map(0x0000, 0x7fff).rw(FUNC(qix_state::videoram_r), FUNC(qix_state::videoram_w))",
+                    "read": "qix_state.videoram_r",
+                    "write": "qix_state.videoram_w",
+                    "props": {
+                        "start": 0,
+                        "end": 32767,
+                        "raw": "map(0x0000, 0x7fff).rw(FUNC(qix_state::videoram_r), FUNC(qix_state::videoram_w))",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 287,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 287
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 287,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range1",
+                    "start": 32768,
+                    "end": 33791,
+                    "raw": "map(0x8000, 0x83ff).ram().share(\"sharedram\")",
+                    "props": {
+                        "start": 32768,
+                        "end": 33791,
+                        "raw": "map(0x8000, 0x83ff).ram().share(\"sharedram\")",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 288,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 288,
+                        "ram": true,
+                        "share": "sharedram"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 288,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range2",
+                    "start": 33792,
+                    "end": 34815,
+                    "raw": "map(0x8400, 0x87ff).ram().share(\"nvram\")",
+                    "props": {
+                        "start": 33792,
+                        "end": 34815,
+                        "raw": "map(0x8400, 0x87ff).ram().share(\"nvram\")",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 289,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 289,
+                        "ram": true,
+                        "share": "nvram"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 289,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range3",
+                    "start": 34816,
+                    "end": 34816,
+                    "raw": "map(0x8800, 0x8800).mirror(0x03ff).w(FUNC(qix_state::palettebank_w))",
+                    "write": "qix_state.palettebank_w",
+                    "props": {
+                        "start": 34816,
+                        "end": 34816,
+                        "raw": "map(0x8800, 0x8800).mirror(0x03ff).w(FUNC(qix_state::palettebank_w))",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 290,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 290,
+                        "mirror": 1023
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 290,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range4",
+                    "start": 35840,
+                    "end": 35840,
+                    "raw": "map(0x8c00, 0x8c00).mirror(0x03fe).rw(FUNC(qix_state::data_firq_r), FUNC(qix_state::data_firq_w))",
+                    "read": "qix_state.data_firq_r",
+                    "write": "qix_state.data_firq_w",
+                    "props": {
+                        "start": 35840,
+                        "end": 35840,
+                        "raw": "map(0x8c00, 0x8c00).mirror(0x03fe).rw(FUNC(qix_state::data_firq_r), FUNC(qix_state::data_firq_w))",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 291,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 291,
+                        "mirror": 1022
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 291,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range5",
+                    "start": 35841,
+                    "end": 35841,
+                    "raw": "map(0x8c01, 0x8c01).mirror(0x03fe).rw(FUNC(qix_state::video_firq_ack_r), FUNC(qix_state::video_firq_ack_w))",
+                    "read": "qix_state.video_firq_ack_r",
+                    "write": "qix_state.video_firq_ack_w",
+                    "props": {
+                        "start": 35841,
+                        "end": 35841,
+                        "raw": "map(0x8c01, 0x8c01).mirror(0x03fe).rw(FUNC(qix_state::video_firq_ack_r), FUNC(qix_state::video_firq_ack_w))",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 292,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 292,
+                        "mirror": 1022
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 292,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range6",
+                    "start": 36864,
+                    "end": 37887,
+                    "raw": "map(0x9000, 0x93ff).ram().w(FUNC(qix_state::paletteram_w)).share(\"palette\")",
+                    "write": "qix_state.paletteram_w",
+                    "props": {
+                        "start": 36864,
+                        "end": 37887,
+                        "raw": "map(0x9000, 0x93ff).ram().w(FUNC(qix_state::paletteram_w)).share(\"palette\")",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 293,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 293,
+                        "ram": true,
+                        "share": "palette"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 293,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range7",
+                    "start": 37888,
+                    "end": 37888,
+                    "raw": "map(0x9400, 0x9400).mirror(0x03fc).rw(FUNC(qix_state::addresslatch_r), FUNC(qix_state::addresslatch_w))",
+                    "read": "qix_state.addresslatch_r",
+                    "write": "qix_state.addresslatch_w",
+                    "props": {
+                        "start": 37888,
+                        "end": 37888,
+                        "raw": "map(0x9400, 0x9400).mirror(0x03fc).rw(FUNC(qix_state::addresslatch_r), FUNC(qix_state::addresslatch_w))",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 294,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 294,
+                        "mirror": 1020
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 294,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range8",
+                    "start": 37890,
+                    "end": 37891,
+                    "raw": "map(0x9402, 0x9403).mirror(0x03fc).writeonly().share(m_videoram_address)",
+                    "props": {
+                        "start": 37890,
+                        "end": 37891,
+                        "raw": "map(0x9402, 0x9403).mirror(0x03fc).writeonly().share(m_videoram_address)",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 295,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 295,
+                        "mirror": 1020,
+                        "writeonly": true,
+                        "share": "videoram_address"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 295,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range9",
+                    "start": 38912,
+                    "end": 38912,
+                    "raw": "map(0x9800, 0x9800).mirror(0x03ff).readonly().share(m_scanline_latch)",
+                    "props": {
+                        "start": 38912,
+                        "end": 38912,
+                        "raw": "map(0x9800, 0x9800).mirror(0x03ff).readonly().share(m_scanline_latch)",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 296,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 296,
+                        "mirror": 1023,
+                        "readonly": true,
+                        "share": "scanline_latch"
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 296,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range10",
+                    "start": 39936,
+                    "end": 39936,
+                    "raw": "map(0x9c00, 0x9c00).mirror(0x03fe).w(m_crtc, FUNC(mc6845_device::address_w))",
+                    "write": "vid_u18.address_w",
+                    "props": {
+                        "start": 39936,
+                        "end": 39936,
+                        "raw": "map(0x9c00, 0x9c00).mirror(0x03fe).w(m_crtc, FUNC(mc6845_device::address_w))",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 297,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 297,
+                        "mirror": 1022
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 297,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range11",
+                    "start": 39937,
+                    "end": 39937,
+                    "raw": "map(0x9c01, 0x9c01).mirror(0x03fe).rw(m_crtc, FUNC(mc6845_device::register_r), FUNC(mc6845_device::register_w))",
+                    "read": "vid_u18.register_r",
+                    "write": "vid_u18.register_w",
+                    "props": {
+                        "start": 39937,
+                        "end": 39937,
+                        "raw": "map(0x9c01, 0x9c01).mirror(0x03fe).rw(m_crtc, FUNC(mc6845_device::register_r), FUNC(mc6845_device::register_w))",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 298,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 298,
+                        "mirror": 1022
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 298,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.qix_video_map/range12",
+                    "start": 40960,
+                    "end": 65535,
+                    "raw": "map(0xa000, 0xffff).rom()",
+                    "props": {
+                        "start": 40960,
+                        "end": 65535,
+                        "raw": "map(0xa000, 0xffff).rom()",
+                        "sourceFile": "src/mame/taito/qix_v.cpp",
+                        "sourceLine": 299,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 299,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_v.cpp",
+                        "line": 299,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 285,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:qix_state.audio_map",
+            "className": "qix_state",
+            "name": "audio_map",
+            "ranges": [
+                {
+                    "id": "map:qix_state.audio_map/range0",
+                    "start": 8192,
+                    "end": 8195,
+                    "raw": "map(0x2000, 0x2003).mirror(0x5ffc).rw(m_sndpia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "sndpia2.read",
+                    "write": "sndpia2.write",
+                    "props": {
+                        "start": 8192,
+                        "end": 8195,
+                        "raw": "map(0x2000, 0x2003).mirror(0x5ffc).rw(m_sndpia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/taito/qix_a.cpp",
+                        "sourceLine": 130,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 130,
+                        "mirror": 24572
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_a.cpp",
+                        "line": 130,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.audio_map/range1",
+                    "start": 16384,
+                    "end": 16387,
+                    "raw": "map(0x4000, 0x4003).mirror(0x3ffc).rw(m_sndpia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "sndpia1.read",
+                    "write": "sndpia1.write",
+                    "props": {
+                        "start": 16384,
+                        "end": 16387,
+                        "raw": "map(0x4000, 0x4003).mirror(0x3ffc).rw(m_sndpia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/taito/qix_a.cpp",
+                        "sourceLine": 131,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 131,
+                        "mirror": 16380
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_a.cpp",
+                        "line": 131,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:qix_state.audio_map/range2",
+                    "start": 53248,
+                    "end": 65535,
+                    "raw": "map(0xd000, 0xffff).rom()",
+                    "props": {
+                        "start": 53248,
+                        "end": 65535,
+                        "raw": "map(0xd000, 0xffff).rom()",
+                        "sourceFile": "src/mame/taito/qix_a.cpp",
+                        "sourceLine": 132,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 132,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/taito/qix_a.cpp",
+                        "line": 132,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/taito/qix_a.cpp",
+                "line": 128,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_flip",
+            "bits": 1
+        },
+        {
+            "name": "m_palette_bank",
+            "bits": 8
+        },
+        {
+            "name": "m_leds",
+            "bits": 8
+        }
+    ],
+    "video": {
+        "gfx": [],
+        "tilemaps": [],
+        "initialState": {
+            "m_flip": 0,
+            "m_palette_bank": 0,
+            "m_leds": 0,
+            "m_68705_porta_out": 0,
+            "m_coinctrl": 0
+        },
+        "bitmap": {
+            "member": "m_videoram",
+            "rowStart": 0,
+            "rows": 256,
+            "bytesPerRow": 256,
+            "xOffset": 0,
+            "lsbFirst": true,
+            "bitsPerPixel": 8,
+            "paletteRam": {
+                "member": "m_palette",
+                "entries": 1024,
+                "min": 0,
+                "max": 255,
+                "scaler": 1,
+                "channels": [],
+                "lookup": {
+                    "values": [
+                        0,
+                        18,
+                        36,
+                        73,
+                        18,
+                        36,
+                        73,
+                        146,
+                        91,
+                        109,
+                        146,
+                        219,
+                        127,
+                        145,
+                        182,
+                        255
+                    ],
+                    "intensityShift": 0,
+                    "intensityMask": 3,
+                    "channels": [
+                        {
+                            "channel": "r",
+                            "valueShift": 6,
+                            "valueMask": 3,
+                            "valueTableShift": 2
+                        },
+                        {
+                            "channel": "g",
+                            "valueShift": 4,
+                            "valueMask": 3,
+                            "valueTableShift": 2
+                        },
+                        {
+                            "channel": "b",
+                            "valueShift": 2,
+                            "valueMask": 3,
+                            "valueTableShift": 2
+                        }
+                    ]
+                }
+            },
+            "paletteBankMember": "m_palette_bank",
+            "flipXMember": "m_flip",
+            "flipYMember": "m_flip",
+            "black": 4278190080,
+            "white": 4294967295,
+            "source": {
+                "file": "src/mame/taito/qix_v.cpp",
+                "line": 374,
+                "column": 1
+            }
+        },
+        "source": {
+            "file": "src/mame/taito/qix_v.cpp",
+            "line": 374,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "discrete",
+        "deviceTag": "discrete",
+        "deviceType": "DISCRETE",
+        "writeMethods": [
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "writeOffsets": {
+            "QIX_DAC_DATA": 1,
+            "QIX_VOL_DATA": 2
+        }
+    }
+}

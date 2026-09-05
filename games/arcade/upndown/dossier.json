@@ -1,0 +1,875 @@
+{
+  "game": "upndown",
+  "title": "Up'n Down (315-5030) (Sega, 1983)",
+  "fullname": "Up'n Down (315-5030)",
+  "year": "1983",
+  "company": "Sega",
+  "family": "system1",
+  "driverFile": "src/mame/sega/system1.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Jarek Parchanski, Nicola Salmoria, Mirko Buffoni",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "sega_315_5098",
+      "clock": 4000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.bank1",
+          "bank": "bank1"
+        },
+        {
+          "start": 49152,
+          "end": 53247,
+          "kind": "ram",
+          "share": "ram"
+        },
+        {
+          "start": 53248,
+          "end": 55295,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 55296,
+          "end": 57343,
+          "kind": "ram",
+          "share": "paletteram",
+          "write": "system1_state.paletteram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "handler",
+          "read": "system1_state.videoram_r",
+          "write": "system1_state.videoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61440,
+          "end": 62463,
+          "kind": "handler",
+          "read": "system1_state.mixer_collision_r",
+          "write": "system1_state.mixer_collision_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 62464,
+          "end": 63487,
+          "kind": "handler",
+          "write": "system1_state.mixer_collision_reset_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 63488,
+          "end": 64511,
+          "kind": "handler",
+          "read": "system1_state.sprite_collision_r",
+          "write": "system1_state.sprite_collision_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 64512,
+          "end": 65535,
+          "kind": "handler",
+          "write": "system1_state.sprite_collision_reset_w",
+          "handlerWidth": 8
+        }
+      ],
+      "opcode": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom",
+            "share": "decrypted_opcodes"
+          },
+          {
+            "start": 32768,
+            "end": 49151,
+            "kind": "handler",
+            "read": "bank.bank1",
+            "bank": "bank1"
+          },
+          {
+            "start": 49152,
+            "end": 53247,
+            "kind": "ram",
+            "share": "ram"
+          },
+          {
+            "start": 53248,
+            "end": 55295,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 55296,
+            "end": 57343,
+            "kind": "ram",
+            "share": "paletteram",
+            "write": "system1_state.paletteram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          }
+        ],
+        "region": "decrypted_opcodes"
+      },
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.P1"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.P2"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "kind": "handler",
+            "mirror": 2,
+            "read": "port.SWA"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "kind": "handler",
+            "mirror": 2,
+            "read": "port.SWB"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "kind": "handler",
+            "mirror": 3,
+            "read": "port.SWB"
+          },
+          {
+            "start": 20,
+            "end": 23,
+            "kind": "handler",
+            "read": "ppi8255.read",
+            "write": "ppi8255.write"
+          }
+        ],
+        "globalMask": 31
+      }
+    },
+    {
+      "tag": "soundcpu",
+      "type": "z80",
+      "clock": 2500000,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram",
+          "mirror": 6144
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "mirror": 8191,
+          "write": "sn1.write"
+        },
+        {
+          "start": 49152,
+          "end": 49152,
+          "kind": "handler",
+          "mirror": 8191,
+          "write": "sn2.write"
+        },
+        {
+          "start": 57344,
+          "end": 57344,
+          "kind": "handler",
+          "mirror": 8191,
+          "read": "system1_state.sound_data_r"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 2500000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489A",
+      "SN76489A"
+    ],
+    "clocks": [
+      2500000,
+      2500000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 512,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.09615384615385,
+    "htotal": 640,
+    "vtotal": 260,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr5516a.129",
+          "offset": 0,
+          "size": 8192,
+          "crc": "038c82da",
+          "alt": [
+            {
+              "file": "epr-5679.129",
+              "crc": "c4f2f9c2"
+            }
+          ]
+        },
+        {
+          "file": "epr5517a.130",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "6930e1de",
+          "alt": [
+            {
+              "file": "epr-5680.130",
+              "crc": "837f021c"
+            }
+          ]
+        },
+        {
+          "file": "epr-5518.131",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "2a370c99",
+          "alt": [
+            {
+              "file": "epr-5681.131",
+              "crc": "e1c7ff7e"
+            }
+          ]
+        },
+        {
+          "file": "epr-5519.132",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "9d664a58",
+          "alt": [
+            {
+              "file": "epr-5682.132",
+              "crc": "4a5edc1e"
+            }
+          ]
+        },
+        {
+          "file": "epr-5520.133",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "208dfbdf"
+        },
+        {
+          "file": "epr-5521.134",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "e7b8d87a",
+          "alt": [
+            {
+              "file": "epr-5684.133",
+              "crc": "32fa95da"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-5535.3",
+          "offset": 0,
+          "size": 8192,
+          "crc": "cf4e4c45",
+          "alt": [
+            {
+              "file": "epr-5528.3",
+              "crc": "00cd44ab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "epr-5527.82",
+          "offset": 0,
+          "size": 8192,
+          "crc": "b2d616f1"
+        },
+        {
+          "file": "epr-5526.65",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "8a8b33c2"
+        },
+        {
+          "file": "epr-5525.81",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "e749c5ef"
+        },
+        {
+          "file": "epr-5524.64",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "8b886952"
+        },
+        {
+          "file": "epr-5523.80",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "dede35d9"
+        },
+        {
+          "file": "epr-5522.63",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "5e6d9dff"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "epr-5514.86",
+          "offset": 0,
+          "size": 16384,
+          "crc": "fcc0a88b"
+        },
+        {
+          "file": "epr-5515.93",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "60908838"
+        }
+      ]
+    },
+    {
+      "region": "lookup_proms",
+      "size": 256,
+      "loads": [
+        {
+          "file": "pr-5317.106",
+          "offset": 0,
+          "size": 256,
+          "crc": "648350b8"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "value": 4,
+      "name": "Service Mode"
+    },
+    {
+      "port": "SWA",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "SWA",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "SWB",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "SWB",
+      "mask": 6,
+      "value": 6,
+      "name": "Lives"
+    },
+    {
+      "port": "SWB",
+      "mask": 56,
+      "value": 56,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "SWB",
+      "mask": 192,
+      "value": 192,
+      "name": "Difficulty"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 361,
+    "contributors": 43,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "hap",
+      "Michaël Banaan Ananas"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 105,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 40,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 28,
+        "firstCommit": "2013-11-21",
+        "lastCommit": "2024-11-21"
+      },
+      {
+        "name": "hap",
+        "commits": 24,
+        "firstCommit": "2018-08-29",
+        "lastCommit": "2026-05-11"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 23,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-26"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 22,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 19,
+        "firstCommit": "2013-01-15",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 13,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "braintro",
+        "commits": 9,
+        "firstCommit": "2018-06-13",
+        "lastCommit": "2019-10-05"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 9,
+        "firstCommit": "2011-10-27",
+        "lastCommit": "2018-07-22"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-16",
+        "lastCommit": "2022-06-28"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 5,
+        "firstCommit": "2009-05-01",
+        "lastCommit": "2014-04-29"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 4,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2010-07-05"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 3,
+        "firstCommit": "2009-02-11",
+        "lastCommit": "2012-03-25"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2013-01-13",
+        "lastCommit": "2021-03-01"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2020-01-10"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 3,
+        "firstCommit": "2009-12-02",
+        "lastCommit": "2012-03-24"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 3,
+        "firstCommit": "2016-06-17",
+        "lastCommit": "2021-04-04"
+      },
+      {
+        "name": "0kmg",
+        "commits": 2,
+        "firstCommit": "2022-05-02",
+        "lastCommit": "2022-05-21"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 2,
+        "firstCommit": "2010-02-17",
+        "lastCommit": "2010-02-18"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2009-01-25",
+        "lastCommit": "2009-05-12"
+      },
+      {
+        "name": "holub",
+        "commits": 2,
+        "firstCommit": "2022-04-25",
+        "lastCommit": "2023-08-30"
+      },
+      {
+        "name": "MetalliC",
+        "commits": 2,
+        "firstCommit": "2016-12-17",
+        "lastCommit": "2019-07-27"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-09-03",
+        "lastCommit": "2018-12-09"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-09-12",
+        "lastCommit": "2008-09-12"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-06-24",
+        "lastCommit": "2008-06-24"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2015-08-12",
+        "lastCommit": "2015-08-12"
+      },
+      {
+        "name": "f205v",
+        "commits": 1,
+        "firstCommit": "2021-01-23",
+        "lastCommit": "2021-01-23"
+      },
+      {
+        "name": "Guru",
+        "commits": 1,
+        "firstCommit": "2015-04-19",
+        "lastCommit": "2015-04-19"
+      },
+      {
+        "name": "Jackson",
+        "commits": 1,
+        "firstCommit": "2018-04-07",
+        "lastCommit": "2018-04-07"
+      },
+      {
+        "name": "negunma",
+        "commits": 1,
+        "firstCommit": "2023-03-12",
+        "lastCommit": "2023-03-12"
+      },
+      {
+        "name": "Nekoziman",
+        "commits": 1,
+        "firstCommit": "2023-09-18",
+        "lastCommit": "2023-09-18"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2013-08-20",
+        "lastCommit": "2013-08-20"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "sjy555525",
+        "commits": 1,
+        "firstCommit": "2025-08-23",
+        "lastCommit": "2025-08-23"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-02-07",
+        "lastCommit": "2008-02-07"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 1,
+        "firstCommit": "2023-04-30",
+        "lastCommit": "2023-04-30"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nUp'n Down (c) 1983 Sega.\n\nUp'n Down is an abstract racing game viewed in a forced third-person perspective. \n\nThe goal of the game is to collect coloured flags, while avoiding the enemy vehicles and obstacles that litter each course. The flags needed are displayed at the top of the screen and are coloured as follows: Light green, blue, red, olive, dark green, magenta, yellow and black. If the flags are collected quickly enough, bonus points are awarded. Collected flags remain visible on the track but are changed to white in colour.\n\nIn addition to the enemy vehicles, other hazards to be negotiated include potholes, broken bridges, steep hills and sharp corners. The player's vehicle can jump over both obstacles and vehicles, and if players land their vehicle on an enemy vehicle, the enemy is destroyed. Jumping at the wrong time, however, can send the player's vehicle into the path of an enemy, or off the track completely, resulting in the loss of a life. Players can also control the speed of their vehicle and even move in reverse.\n\nEach round is progressively more difficult than the last, with more obstacles and enemy vehicles littering the courses.\n\n- TECHNICAL -\n\nRuns on the Sega \"System 1\" hardware.\n\nPlayers: 2\nControl: 4-way joystick\nButtons: 1 (JUMP)\n\n- TRIVIA -\n\nReleased during September 1983. By this time, Sega was starting to make a name for itself in the arcade industry. With solid hits such as \"Star Trek\", \"Zaxxon\", and \"Pengo\" under its belt, Sega started to venture into other areas. Sega had partnered up with Gremlin to create \"Head-On\" and \"Head-On 2\" arcade games. Later on, Sega released \"Turbo\". Using the same three-quarter perspective that was used in \"Zaxxon\", Sega created another racing game with a twist. Up'n Down came out during a time when the arcade market was basically saturated with space shooters.\n\nExport releases:\n[US] \"Up'n Down [No. 0A64]\"\n[US] \"Up'n Down [No. 0A74]\"\n\n- SCORING -\n\nJumping on a truck : 1000 points\nJumping on a race care : 2000 points\n\nYou also get bonus points depending on how quickly you finished the course. The times and points are :\n0 - 19 seconds : 20000 points\n20 - 29 seconds : 10000 points\n30 - 39 seconds : 5000 points\n40 - 49 seconds : 3000 points\n50 - 59 seconds : 1000 points\n60 seconds and above : 0 points\n\n- TIPS AND TRICKS -\n\n* You will start the game with your car on the track. There may be other vehicles also on the track. You goal is to collect all the colored flags in the least amount of time. You must first learn how the joystick works. Putting more pressure on it in one direction causes your vehicle to accelerate. Letting off the pressure causes your vehicle to eventually stop. This will become critical to know as you move into the later rounds.\n\n* When you jump, make sure you have somewhere to jump to. The jump itself takes up about the distance of the length of your car. If there isn't enough room to land, your car will crash. This also happens if you jump off the road anywhere. If you want to jump on another car, then start preparing for it early :\n1)  Make sure the road ahead is somewhat straight. Sometimes you can jump off a right diagonal road onto a left diagonal road and hit the car that way.\n2) Another way is when you are one car length behind your intended victim, and the road is straight, then go ahead and jump on them.\n\n* Sometimes you may have to jump over a car to avoid being hit. Again, make sure you have enough road to land on. It is very easy to try to quickly jump a car only to find yourself wrapped up in the pine trees alongside the road.\n\n* Of course, the object of the game is to collect flags. If, for some reason, you cannot get a flag, there are a couple of ways to remedy this situation.\n1) If it is safe (only works on the lower rounds), you can backtrack to where the flag is. You cannot, though, go past the bottom edge of the screen.\n2) If you go through three screens, the course will ''wrap'' around and you can get the flag on the return. The only disadvantage to this is that it is time consuming.\n\n* Do not make blind jumps. If you can't see where you are jumping to, go up a little further to see your destination. If you don't, you may end up jumping into something such as a destroyed bridge, abrupt road ending, or the road curves and you jump off the road.\n\n* Make sure you know where the hills are. If your car doesn't have enough speed, it will only go halfway up the hill before it rolls back down again. While it is rolling, you lose control over it.  This can be dangerous when other cars are coming up behind you.\n\n* In the later rounds, other cars will be coming at you both from the front and rear. Some of them travel faster then others sometimes creating a situation where you will be in between two cars traveling opposite directions and heading straight for your car. Again, make sure you know how to accelerate and decelerate.\n\n* Whenever you jump from one road to another, your car will automatically face toward the top of the screen in the direction of the road. You don't have to wait to move again. This can be especially handy when trying to avoid other cars or trying to get flags.\n\n* I'll state the obvious of not getting a flag if there is too much congestion around it. Since the timer is not displayed, you probably don't know how much time you have taken to get the flags. Just go around the course and try again. Better to save a car then sacrifice it for points then realize you took too long and don't get any bonus.\n\n* Keep on the lookout for what cars do what. Such as trucks usually follow along the road at a leisurely pace while race cars can go fast or slow and with or against the flow of traffic.\n\n* As you progress in each round, the course becomes harder because more hazards are added to it.\n\n* \"Pengo\" : Pengo makes a guest appearance in this game if you manage to pass the first four rounds in under a minute each. The penguin will appear in the water of round five riding a surf-board.\n\n- STAFF -\n\nStaff : Yoji Ishii (ICI), T.N, SHO, R.T, H.N, TAK, H.K, STO, KIP\nSecurity by : Masatoshi Mizunaga (MI.)\n\n- PORTS -\n\n* CONSOLES:\nAtari 2600 (1983) \"Up'n Down [Model 009-01]\"\nColecovision (1984) \"Up'n Down [Model 009-21]\"\nAtari XEGS\n[JP] Sega Saturn (Feb. 28, 1997) \"Sega Memorial Selection Vol.1 [Model GS-9135]\"\n\n* COMPUTERS:\nAtari 800 (1984) \"Up'n Down [Model 009-18]\"\nApple II (1984)\nCommodore C64 (1985) \"Up'n Down [Model 009-05]\"\nZX Spectrum: Planned and advertised but never released.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/3033/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

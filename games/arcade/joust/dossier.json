@@ -1,0 +1,725 @@
+{
+  "game": "joust",
+  "title": "Joust (Green label) (Williams, 1982)",
+  "fullname": "Joust (Green label)",
+  "year": "1982",
+  "company": "Williams",
+  "family": "williams",
+  "driverFile": "src/mame/williams/williams.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "mc6809e",
+      "clock": 1000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 49151,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 0,
+          "end": 36863,
+          "kind": "nop"
+        },
+        {
+          "start": 0,
+          "end": 36863,
+          "kind": "rom",
+          "romOffset": 0,
+          "viewTag": "m_rom_view",
+          "viewEntry": 0
+        },
+        {
+          "start": 49152,
+          "end": 49167,
+          "kind": "ram",
+          "mirror": 1008,
+          "share": "paletteram",
+          "writeOnly": true
+        },
+        {
+          "start": 51204,
+          "end": 51207,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "pia_0.read",
+          "write": "pia_0.write"
+        },
+        {
+          "start": 51212,
+          "end": 51215,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "pia_1.read",
+          "write": "pia_1.write"
+        },
+        {
+          "start": 51456,
+          "end": 51711,
+          "kind": "handler",
+          "write": "williams_state.vram_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 51968,
+          "end": 52223,
+          "kind": "handler",
+          "read": "williams_state.video_counter_r"
+        },
+        {
+          "start": 52223,
+          "end": 52223,
+          "kind": "handler",
+          "write": "williams_state.watchdog_reset_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 52224,
+          "end": 53247,
+          "kind": "ram",
+          "share": "nvram",
+          "write": "williams_state.cmos_4bit_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 51712,
+          "end": 51719,
+          "kind": "handler",
+          "mirror": 248,
+          "write": "blitter.register_write"
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "m6808",
+      "clock": 3579545,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 127,
+          "kind": "ram"
+        },
+        {
+          "start": 128,
+          "end": 255,
+          "kind": "ram"
+        },
+        {
+          "start": 1024,
+          "end": 1027,
+          "kind": "handler",
+          "mirror": 32768,
+          "read": "pia_2.read",
+          "write": "pia_2.write"
+        },
+        {
+          "start": 45056,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "dac",
+    "clock": 3579545,
+    "chips": 1,
+    "deviceTypes": [
+      "MC1408"
+    ],
+    "dacs": [
+      {
+        "deviceTag": "dac",
+        "bits": 8,
+        "mapper": "unsigned",
+        "gain": 1
+      }
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "speaker"
+      }
+    ],
+    "masterGain": 0.5,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 292,
+    "height": 240,
+    "xOffset": 6,
+    "yOffset": 7,
+    "refresh": 60.09615384615385,
+    "htotal": 512,
+    "vtotal": 260,
+    "vbstart": 247,
+    "vbend": 7,
+    "updateMode": "scanline",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "joust_rom_1b_3006-13.e4",
+          "offset": 0,
+          "size": 4096,
+          "crc": "fe41b2af"
+        },
+        {
+          "file": "joust_rom_2b_3006-14.c4",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "501c143c"
+        },
+        {
+          "file": "joust_rom_3b_3006-15.a4",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "43f7161d"
+        },
+        {
+          "file": "joust_rom_4b_3006-16.e5",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "db5571b6",
+          "alt": [
+            {
+              "file": "joust_rom_4a_3006-31.e5",
+              "crc": "ab347170"
+            }
+          ]
+        },
+        {
+          "file": "joust_rom_5b_3006-17.c5",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "c686bb6b"
+        },
+        {
+          "file": "joust_rom_6b_3006-18.a5",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "fac5f2cf",
+          "alt": [
+            {
+              "file": "joust_rom_6a_3006-33.a5",
+              "crc": "3d9a6fac"
+            }
+          ]
+        },
+        {
+          "file": "joust_rom_7b_3006-19.e6",
+          "offset": 24576,
+          "size": 4096,
+          "crc": "81418240",
+          "alt": [
+            {
+              "file": "joust_rom_7a_3006-34.e6",
+              "crc": "0a70b3d1"
+            },
+            {
+              "file": "joust_rom_7a_3006-7.e6",
+              "crc": "e6f439c4"
+            }
+          ]
+        },
+        {
+          "file": "joust_rom_8b_3006-20.c6",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "ba5359ba",
+          "alt": [
+            {
+              "file": "joust_rom_8a_3006-35.c6",
+              "crc": "a7f01504"
+            }
+          ]
+        },
+        {
+          "file": "joust_rom_9b_3006-21.a6",
+          "offset": 32768,
+          "size": 4096,
+          "crc": "39643147",
+          "alt": [
+            {
+              "file": "joust_rom_9a_3006-36.a6",
+              "crc": "978687ad"
+            }
+          ]
+        },
+        {
+          "file": "joust_rom_10b_3006-22.a7",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "3f1c4f89",
+          "alt": [
+            {
+              "file": "joust_rom_10a_3006-37.a7",
+              "crc": "c0c6e52a"
+            },
+            {
+              "file": "joust_rom_10a_3006-10.a7",
+              "crc": "2039014a"
+            }
+          ]
+        },
+        {
+          "file": "joust_rom_11b_3006-23.c7",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "ea48b359",
+          "alt": [
+            {
+              "file": "joust_rom_11a_3006-38.c7",
+              "crc": "ab11bcf9"
+            }
+          ]
+        },
+        {
+          "file": "joust_rom_12b_3006-24.e7",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "c710717b",
+          "alt": [
+            {
+              "file": "joust_rom_12a_3006-39.e7",
+              "crc": "ea14574b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "video_sound_rom_4_std_780.ic12",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "f1835bdd"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "decoder_rom_4.3g",
+          "offset": 0,
+          "size": 512,
+          "crc": "e6631c23"
+        },
+        {
+          "file": "decoder_rom_6.3c",
+          "offset": 512,
+          "size": 512,
+          "crc": "83faf25e"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Auto Up / Manual Down",
+      "activeLow": false,
+      "toggle": true
+    },
+    {
+      "port": "IN2",
+      "mask": 2,
+      "keys": [
+        "F2"
+      ],
+      "label": "Advance",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "keys": [
+        "F3"
+      ],
+      "label": "High Score Reset",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "INP1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "INP1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "INP1",
+      "mask": 4,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-18",
+    "commits": 291,
+    "contributors": 42,
+    "topAuthors": [
+      "Aaron Giles",
+      "Vas Crabb",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 73,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-18"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 36,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-06-18"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 30,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 19,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2025-05-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 13,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "hap",
+        "commits": 13,
+        "firstCommit": "2017-05-29",
+        "lastCommit": "2025-06-06"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 13,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2014-09-03"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 13,
+        "firstCommit": "2016-05-13",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 6,
+        "firstCommit": "2014-06-01",
+        "lastCommit": "2020-09-07"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 6,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2016-01-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 5,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-05-04"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 5,
+        "firstCommit": "2018-11-02",
+        "lastCommit": "2025-05-14"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 5,
+        "firstCommit": "2008-06-20",
+        "lastCommit": "2008-06-21"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 5,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2019-12-24"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2018-06-16",
+        "lastCommit": "2024-04-15"
+      },
+      {
+        "name": "couriersud",
+        "commits": 3,
+        "firstCommit": "2020-03-05",
+        "lastCommit": "2020-05-08"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2013-06-01",
+        "lastCommit": "2016-03-24"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 3,
+        "firstCommit": "2017-05-04",
+        "lastCommit": "2020-11-19"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2024-11-30"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2014-08-09"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-08"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MajorHavocOnKLOV",
+        "commits": 2,
+        "firstCommit": "2025-12-24",
+        "lastCommit": "2025-12-26"
+      },
+      {
+        "name": "MASH",
+        "commits": 2,
+        "firstCommit": "2016-08-24",
+        "lastCommit": "2018-08-31"
+      },
+      {
+        "name": "0kmg",
+        "commits": 1,
+        "firstCommit": "2022-06-24",
+        "lastCommit": "2022-06-24"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2020-08-05",
+        "lastCommit": "2020-08-05"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2010-03-07",
+        "lastCommit": "2010-03-07"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-04-28"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 1,
+        "firstCommit": "2020-10-09",
+        "lastCommit": "2020-10-09"
+      },
+      {
+        "name": "Michael.S.G",
+        "commits": 1,
+        "firstCommit": "2018-06-25",
+        "lastCommit": "2018-06-25"
+      },
+      {
+        "name": "Nathan Woods",
+        "commits": 1,
+        "firstCommit": "2009-01-11",
+        "lastCommit": "2009-01-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2018-01-13",
+        "lastCommit": "2018-01-13"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2018-05-21",
+        "lastCommit": "2018-05-21"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      },
+      {
+        "name": "SynaMax",
+        "commits": 1,
+        "firstCommit": "2026-06-10",
+        "lastCommit": "2026-06-10"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Zoë Blade",
+        "commits": 1,
+        "firstCommit": "2014-12-01",
+        "lastCommit": "2014-12-01"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-01-20",
+        "lastCommit": "2008-01-20"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nJoust (c) 1982 Williams.\n\nJoust is a platform-based action combat game for one or two-players (with the two-player game offering either team-up OR head-to-head combat; the first time arcade gamers were given this choice) in which each player controls a knight riding on the back of a flying ostrich. \n\nThe object of the game is to progress through platform-based levels by defeating groups of buzzard-riding enemy knights. This is achieved by 'jousting'; both enemy and player knights carry a lance and must fly around the level (actioned by repeatedly hitting the 'Flap' button) trying to oust rival knights from their steeds by ramming them with the lance. This can only be achieved if the attacking rider is above the enemy knight when the lance connects. A collision of equal elevations results in the two knights bouncing off each other, but if a player is lower than their enemy at the instant of contact, they themselves will be knocked from their steed and lose a life. \n\nA defeated enemy will turn into an egg that falls to the bottom of the screen. This must be quickly collected by players as if the egg lands on a platform and isn't retrieved in time, it will eventually hatch into another enemy knight that must be defeated again. \n\nJoust features three different types of enemy knights - Bounder, Hunter, and Shadow Lord - with each earning players different points values when defeated. A pterodactyl will appear after a predetermined time to hunt the players. \n\nAccurately navigating the player Knights can be initially quite difficult as control is strongly affected by both gravity and inertia. Players can lose a life by either being knocked from their steed by an enemy knight, or by falling into the lava pit at the bottom of each level.\n\n- TECHNICAL -\n\n* The upright version of Joust was a dedicated cabinet. It is similar in shape to other Williams games from that era, but it is not identical to them. The cabinet is largely black with no painted art on the front of the machine. But it does have sideart, in this case a four-color painted rendering of a knight riding a large bird, while carrying a lance. This design is fairly simple when compared to the sideart on other games, and can be repainted by hand, as long as you are careful. The control panel, monitor bezel, and marquee are all filled with the expected graphics. The marquee especially is a stunning rendition of the Joust logo, and two riders inside the Joust world. Your Joust machine will come with either 2-way leaf switch joysticks, or 2-way optical ones. The early cabinets had the optical ones, while the later ones used the leaf stick ones. \n\n* The cocktail version (a cocktail game is a sit down table version), is notable because it was one of the most popular cocktail cabinets for conversion to newer titles. You see most cocktail tables originally held games that had monitors in a vertical orientation, and had a set of player controls on each end of the table. By 1985 no one was really making many vertical games, especially not ones that were one player at a time, and could flip the screen for the second player. But the Joust table was different. It had a horizontal monitor, and the players sat side by side, instead of at opposite ends of the table. This allowed the Joust cocktail cabinet to be used for all sorts of newer games. Electronically the cocktail version of Joust was identical to the upright version. The cocktail cabinet did not feature a lot of art, and was mostly black.\n\nThe Joust PCBs are functionally identical to those used in \"Defender\", \"Robotron - 2084\", \"Bubbles\", \"Sinistar\", and \"Stargate\", only the ROM chips are different.\n\nMain CPU : Motorola M6809 (@ 1 Mhz)\nSound CPU : M6808 (@ 894.75 Khz)\nSound Chips : DAC\n\nPlayers : 2\nControl : 2-way joystick (LEFT and RIGHT)\nButtons : 1 (FLAP)\n\n- TRIVIA -\n\nJoust was released in September 1982 in the USA.\n\nThe name of this game is a reference for 'Jousting'. Jousting is a competition between two knights on horse-back, wherein each knight tries to knock the other off his mount. Jousting was popular in medieval times. \n\nJoust shares some sounds from \"Defender\" and \"Stargate\". \n\nJames Vollandt holds the official record for this game on 'Marathon' settings with 107,216,700 points. \nDon Morlan holds the official record for this game on 'Tournament' settings with 1,002,500 points. \n\nA Joust unit appears in the 1983 movie 'Joysticks'. \n\nA Joust unit appears (multiple times) in a 'Columbo' tv movie episode : (Murder, Smoke and Shadows) directed by James Frawley.\n\n- UPDATES -\n\nRed version has a default high score of 107,212 points, Green and Yellow versions have 109,102 points as the default high score. Also, the Green version fixes a well known bug that allowed you to endlessly kill Pterodactyls on certain levels, thus achieving incredible scores.\n\n- SCORING -\n\nKilling enemies : \nBounder (Red) : 500 points. \nHunter (Silver/Gray) : 750 points. \nShadow Lord (Blue) : 1,000 points. \nPterodactyl : 1,000 points. \n\nGetting killed : 50 points. \n\nPicking up eggs or hatchlings : 250, 500, 750, or 1,000 points (progressive). The progression starts again when the player is killed or starts the next wave. \n\nPicking up an egg before it touches the ground : 500 points. \n\nNot dying during a Survival Wave : 3,000 points. \n\nIf neither player kills the other during a Team Wave (2-player game only) : 3,000 points for each player. \n\nThe first player who kills the other player during a Gladiator Wave (2-player game only) : 3,000 points.\n\n- TIPS AND TRICKS -\n\n* When you start the game, your man will be at the entry point at the bottom of the playing field. From the other entry points, enemy riders will appear. It will then be up to you to successfully defeat them. Learning to flap your ostrich's wings is the most vital aspect of this game. How fast or slow you flap the wings determines speed and maneuverability. Once you get good, you will be able to glide around and only flap for either altitude or to hit an enemy rider.\n\n* The name of the game is height. Whoever is the higher rider during a joust is the winner. If you and an enemy collide on the same level, the impact will knock you both backwards a little and turn you both around. This can prove to be dangerous if more then one enemy is coming for you since the first one turns you around and the second knocks you off your mount.\n\n* You need to pay particular attention to the screen setup on each wave. Different platforms may collapse forcing you to readjust your strategy accordingly. Using the 20-wave example from Chapter 6.4, I will give you some basic strategies...\na) During the non-pterodactyl waves and platform one is intact, your best bet is to hang out under the right side of platform one. The enemy riders have to drop to get to you.  Just a quick press of the flap button should give you altitude over them and the easy kill.\nb) If you lose platform one, the next best place is platform five. This forces the enemy riders to rise up to you. If you hover over the left or right edge, you can drop on enemy riders trying to rise up from the areas of platforms two and three. Of course, if any make it to your level, just sit on that entry point. When an enemy rider gets near, rapidly climb and move over toward the enemy to knock them off their mount.\nc) When you only have platforms two and three, you will use a modified strategy from the one above. You will hover around the area that platform five was at. This forces the enemy riders to rise up to you, thereby exposing themselves to you dropping down on them.\nd) If any of the above have Shadow Lords in them, you will have to be prepared to move around quickly since Shadow Lords are very fast and they tend to bounce off the top of the game screen.\n\n* There are a couple of ways to kill off the pterodactyl during the pterodactyl waves :\n1) First of all, you must be facing the pterodactyl in order to kill it.\n2) If platform one still exists, then just wait for the pterodactyl and be ready for it to choke itself on your lance. If there are multiple pterodactyls, they usually come from opposite sides so the first one will have you turned around to meet the second one.\n3) If platform one is gone, they use platform two to do your prehistoric hunting. If there are multiple pterodactyls, then you will have to move around until the second and subsequent pterodactyls are coming at your rider head on while you sit atop platform two.\n4) If you are real good, you can kill the pterodactyls off in the air. You just have to make sure that your lance is evenly aligned with the pterodactyls mouth.\n5) Pterodactyls also show up if you take too long on a wave. These can't be killed using the platform method. The only way is either in the air or to lose a man.\n6) Some players take out all the enemy riders but one. Then they lead this rider toward the lave so the Lava Troll can grab them. The player then sits and hunts pterodactyls. This is a long process that is definitely loaded with peril.\n7) If you get killed before killing the pterodactyl, it is very hard to get in position to kill the pterodactyl since it does involve a sort of rhythm. Also keep in mind that the enemy riders will still be trying to dismount you as you are hunting.\n\n* The Pterodactyl Trick : Classic trick! Doesn't work on upgraded Joust machines, or on \"Joust 2\". Trick the last jouster on the stage to fly to the lava and get trapped by the lava troll. Then wait in the center of the middle platform. When a pterodactyl comes out, it'll fly right into your lance. The next part takes a fair amount of practice : When the pterodactyl has hit you, your character will be knocked back. Jiggle the joystick so that your mount is back in the middle of the ledge again. Keep doing this. Eventually there'll be a steady stream of pterodactyls and you'll be killing 'em about two per second, for 1,000 points each. When you make a mistake and get killed, the trapped jouster will escape. On the last board in which this works (47), the jouster will not escape.\n\n* The Lava Troll hazard isn't too major unless you fly too close to the surface of the lava. If you do happen to get grabbed, flap rapidly to escape.  It is also easy to hit enemies immobilized by the troll.\n\n* After you hit an enemy rider, they become an egg. After a few seconds, the egg will hatch to the next hardest enemy rider. For example, a Bounder becomes a Hunter; a Hunter becomes a Shadow Lord. After that, it will always be a Shadow Lord. Some players leave one egg and then hover over it. When the enemy buzzard comes to pick up the rider, you knock him off the saddle again and collect the points. Again, the pterodactyl will show up soon to end this fun.\n\n* Make sure you don't knock too many enemy riders off at once or there will be eggs scattered all over the place. This makes it hard to keep the enemy population down to a dull roar.\n\n* Whenever your rider gets killed, he will appear at the entrance point all shimmery. If you let the sequence go, it will take up to five seconds for your rider to appear. During that time, he is immune to all attacks. Your rider will enter at the point there is the least amount of enemies. This is usually the very bottom platform. Keep in mind, the enemies also enter at these points.\n\n* The game does reach a point where there are so many enemy riders running around, they are constantly bumping into one another. This, in effect, creates a wall which is very difficult and hazardous to navigate through. This means you have to split up the enemy\n\n* If you die during a wave, try quickly to get your bearings so that you can get in position to continue depleting the enemy forces.\n\n* The above tips are as valid for the two-player game as they are for the one-player game. In the two-player game, though, you and the other player can cover each other to make it more difficult for the enemy to knock you off your mounts.\n\n* Phantom Energizer : In a two-player game (on a screen just before the middle ledge disappears) clear all opponents except one. Kill him, leaving the egg in the middle of the bottom platform. Player 1 stands on the bottom energizer while player 2 jumps in the lava. If player 2 appears on the top energizer, then the trick will work. Player 1 then gets the egg. The 'phantom' ledge should remain.\n\n- STAFF -\n\nDesigned by: John Newcomer (JRN)\nProgrammed by: Bill Pfutzenreuter (PFZ)\nGame art by: Jan Hendricks (JAN)\nCabinet art by: Python Vladimir Anghelo\nOthers: (KFL), (CWK), Mike Stroll (MRS)\n\n- PORTS -\n\n* CONSOLES: \n[US] [JP] Atari 2600 (1983) \"Joust [Model CX2691]\" \n[US] Colecovision : Unreleased prototype\n[US] Atari 5200 (1983) \"Joust [Model CX5240]\" \nAtari XEGS \n[US] Atari 7800 (1986) \"Joust [Model CX7806]\" \n[JP] Nintendo Famicom (oct.30, 1987) \"Joust [Model HAL-JU]\" \n[US] Nintendo NES (oct.1988) \"Joust [Model NES-JU-USA]\" \n[US] Sega Genesis (1996) \"Williams Arcade's Greatest Hits\" \n[EU] Sega Mega Drive (1996) \"Arcade's Greatest Hits [Model T-97126-50]\" \n[US] Sega Saturn (1996) \"Arcade's Greatest Hits [Model T-9703H]\" \n[US] Sony PlayStation (apr.10, 1996) \"Williams Arcade's Greatest Hits [Model SLUS-00201]\" \n[EU] Sony PlayStation (sept.1, 1996) \"Williams Arcade's Greatest Hits [Model SLES-00323]\" \n[US] Nintendo SNES (oct.1996) \"Williams Arcade's Greatest Hits [Model SNS-AW8E-USA]\" \n[EU] Nintendo SNES (jan.8, 1997) \"Williams Arcade's Greatest Hits [Model SNSP-AW8P-EUR]\" \n[US] Sega Dreamcast (june.27, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9713N]\" \n[EU] Sega Dreamcast (jul.28, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9710D-50]\" \n[US] Nintendo 64 (nov.14, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]\" \n[US] Sony PS2 (nov.18, 2003) \"Midway Arcade Treasures [Model SLUS-20801]\" \n[US] Microsoft XBOX (nov.24, 2003) \"Midway Arcade Treasures\" \n[US] Nintendo GameCube (dec.18, 2003) \"Midway Arcade Treasures [Model DOL-GAKE-USA]\" \n[EU] Microsoft XBOX (feb.6, 2004) \"Midway Arcade Treasures\" \n[EU] Sony PS2 (feb.6, 2004) \"Midway Arcade Treasures [Model SLES-51927]\" \n[US] Microsoft XBOX 360 [XBLA] (nov.22, 2005) : retired in 2010\n[EU] Microsoft XBOX 360 [XBLA] (dec.2, 2005) : retired in 2010\n[JP] Microsoft XBOX 360 [XBLA] (dec.10, 2005) : retired in 2010\n[US] Sony Playstation 3 [PSN] (may.24, 2007) \n[EU] Sony Playstation 3 [PSN] (june.15, 2007)\n[US] Microsoft XBOX 360 (nov.6, 2012) \"Midway Arcade Origins\" \n[US] Sony PlayStation 3 (nov.6, 2012) \"Midway Arcade Origins [Model BLUS-31083]\" \n[EU] Microsoft XBOX 360 (nov.15, 2012) \"Midway Arcade Origins\" \n[EU] Sony PlayStation 3 (nov.15, 2012) \"Midway Arcade Origins [Model BLES-01768]\" \n\n* HANDHELDS: \n[US] Atari Lynx (1992) \"Joust [Model PT5005]\" \n[EU] Nintendo Game Boy (1995) \"Arcade Classic No. 4 - Defender & Joust [Model DMG-ADJP-UKV]\" \n[US] Nintendo Game Boy (oct.1995) \"Arcade Classic No. 4 - Defender & Joust [Model DMG-ADJE-USA]\" \n[US] Nintendo Game Boy Color (mar.1999) \"Arcade Hits - Joust & Defender [Model DMG-AADE-USA]\" \n[EU] Nintendo Game Boy Color (apr.1999) \"Arcade Hits - Joust & Defender [Model DMG-AADP-EUR]\" \n[US] Nintendo GBA (nov.22, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3E-USA]\" \n[EU] Nintendo GBA (nov.30, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3P-EUR]\" \n[US] Sony PSP (dec.13, 2005) \"Midway Arcade Treasures Extended Play [Model ULUS-10059]\" \n[EU] Sony PSP (feb.24, 2006) \"Midway Arcade Treasures Extended Play [Model ULES-00180]\" \n\n* COMPUTERS: \n[US] PC [Booter] (1983) \n[US] Atari 800 (1983) \"Joust [Model RX8044]\" \nZX Spectrum (1983) : unofficial port\nApple IIE (1983) \"Jouster\" : unofficial port\nVic-20 (1983) \"Space Joust\" : unofficial port\n[US] [EU] Commodore C64 (1984) \"Jouste\" \nBBC Micro by Atarisoft : Unreleased\nCommodore 64 by Atarisoft : Unreleased\nVic-20 by Atarisoft : Unreleased\nTI99/4A by Atarisoft : Unreleased\nSinclair QL (1985) \"Knight Flight\" : unofficial port\n[EU] Atari ST (1986) \n[EU] Amstrad CPC (1986) \n[US] Apple MacIntosh (1994) \n[US] PC [MS Windows 3.1/DOS, CD-ROM] (1995) \"Williams Arcade Classics\" \n[US] PC [MS Windows 95/DOS, CD-ROM] (1996) \"Williams Arcade Classics\" \n[US] PC [MS Windows, CD-ROM] (aug.27, 2004) \"Midway Arcade Treasures\" \n[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) \"Midway Arcade Treasures\" \n\n* OTHERS: \n[US] Palm OS (aug.2001) \"Midway Arcade Classic\" \n[US] Tiger Game.com (1997) \"Williams Arcade Classics [Model 71-722]\" \n[US] Mobile Phones (nov.1, 2004) \n[US] Apple iPhone/iPod (feb.23, 2012) \"Midway Arcade [Model 476467441]\"\n\n- SERIES -\n\n1. Joust (1982)\n2. Joust 2 - Survival of the Fittest (1986)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1228/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

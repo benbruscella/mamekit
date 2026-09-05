@@ -1,0 +1,2967 @@
+{
+  "game": "mslug",
+  "title": "Metal Slug - Super Vehicle-001 (Nazca, 1996)",
+  "family": "neogeo",
+  "dataPath": "games/arcade/mslug",
+  "board": {
+    "family": "neogeo",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "m68000",
+        "clock": 12000000,
+        "region": "mainbios",
+        "ranges": [
+          {
+            "start": 128,
+            "end": 1048575,
+            "kind": "rom",
+            "region": "cslot1:maincpu",
+            "romOffset": 128
+          },
+          {
+            "start": 2097152,
+            "end": 3145727,
+            "kind": "rom",
+            "region": "cslot1:maincpu",
+            "romOffset": 1048576
+          },
+          {
+            "start": 3276800,
+            "end": 3276800,
+            "kind": "handler",
+            "mirror": 131070,
+            "write": "neogeo_base_state.audio_command_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 3538944,
+            "end": 3670015,
+            "kind": "handler",
+            "read": "neogeo_base_state.unmapped_r"
+          },
+          {
+            "start": 3670016,
+            "end": 3670271,
+            "kind": "handler",
+            "mirror": 130816,
+            "umask": 255,
+            "write": "neogeo_base_state.io_control_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 3801088,
+            "end": 3801119,
+            "kind": "handler",
+            "mirror": 131040,
+            "read": "neogeo_base_state.unmapped_r"
+          },
+          {
+            "start": 3801088,
+            "end": 3801119,
+            "kind": "handler",
+            "mirror": 131040,
+            "umask": 255,
+            "write": "systemlatch.write_a3"
+          },
+          {
+            "start": 3932160,
+            "end": 3932167,
+            "kind": "handler",
+            "mirror": 131064,
+            "read": "neogeo_base_state.video_register_r"
+          },
+          {
+            "start": 3932160,
+            "end": 3932175,
+            "kind": "handler",
+            "mirror": 131056,
+            "write": "neogeo_base_state.video_register_w"
+          },
+          {
+            "start": 4063232,
+            "end": 4194303,
+            "kind": "handler",
+            "read": "neogeo_base_state.unmapped_r"
+          },
+          {
+            "start": 4194304,
+            "end": 4202495,
+            "kind": "handler",
+            "mirror": 4186112,
+            "read": "neogeo_base_state.paletteram_r",
+            "write": "neogeo_base_state.paletteram_w"
+          },
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "handler",
+            "read": "ngarcade_base_state.banked_vectors_r"
+          },
+          {
+            "start": 1048576,
+            "end": 1114111,
+            "kind": "ram",
+            "mirror": 983040
+          },
+          {
+            "start": 3145729,
+            "end": 3145729,
+            "kind": "handler",
+            "mirror": 131070,
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 3145856,
+            "end": 3145857,
+            "kind": "handler",
+            "mirror": 130942,
+            "read": "port.TEST"
+          },
+          {
+            "start": 3276800,
+            "end": 3276801,
+            "kind": "handler",
+            "mirror": 131070,
+            "read": "port.AUDIO_COIN"
+          },
+          {
+            "start": 3670016,
+            "end": 3670017,
+            "kind": "handler",
+            "mirror": 131070,
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 8388608,
+            "end": 8392703,
+            "kind": "handler",
+            "read": "ngarcade_base_state.unmapped_r"
+          },
+          {
+            "start": 12582912,
+            "end": 12713983,
+            "kind": "rom",
+            "mirror": 917504,
+            "romOffset": 0
+          },
+          {
+            "start": 13631488,
+            "end": 13697023,
+            "kind": "ram",
+            "mirror": 983040,
+            "share": "saveram",
+            "write": "ngarcade_base_state.save_ram_w"
+          },
+          {
+            "start": 14680064,
+            "end": 16777215,
+            "kind": "handler",
+            "read": "ngarcade_base_state.unmapped_r"
+          },
+          {
+            "start": 3145728,
+            "end": 3145729,
+            "kind": "handler",
+            "mirror": 130942,
+            "read": "ngarcade_base_state.in0_edge_joy_r"
+          },
+          {
+            "start": 3145728,
+            "end": 3145729,
+            "kind": "handler",
+            "mirror": 130942,
+            "read": "ngarcade_base_state.in0_edge_r"
+          },
+          {
+            "start": 3407872,
+            "end": 3407873,
+            "kind": "handler",
+            "mirror": 131070,
+            "read": "ngarcade_base_state.in1_edge_joy_r"
+          },
+          {
+            "start": 3407872,
+            "end": 3407873,
+            "kind": "handler",
+            "mirror": 131070,
+            "read": "ngarcade_base_state.in1_edge_r"
+          },
+          {
+            "start": 8388608,
+            "end": 12582911,
+            "kind": "handler",
+            "read": "ngarcade_base_state.memcard_r"
+          },
+          {
+            "start": 8388608,
+            "end": 12582911,
+            "kind": "handler",
+            "write": "ngarcade_base_state.memcard_w"
+          },
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "rom",
+            "region": "mainbios",
+            "romOffset": 0
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "z80",
+        "clock": 4000000,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "handler",
+            "read": "bank.audio_main",
+            "bank": "audio_main"
+          },
+          {
+            "start": 32768,
+            "end": 49151,
+            "kind": "handler",
+            "read": "bank.audio_8000",
+            "bank": "audio_8000"
+          },
+          {
+            "start": 49152,
+            "end": 57343,
+            "kind": "handler",
+            "read": "bank.audio_c000",
+            "bank": "audio_c000"
+          },
+          {
+            "start": 57344,
+            "end": 61439,
+            "kind": "handler",
+            "read": "bank.audio_e000",
+            "bank": "audio_e000"
+          },
+          {
+            "start": 61440,
+            "end": 63487,
+            "kind": "handler",
+            "read": "bank.audio_f000",
+            "bank": "audio_f000"
+          },
+          {
+            "start": 63488,
+            "end": 65535,
+            "kind": "ram"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "mirror": 65280,
+              "read": "soundlatch.read",
+              "write": "soundlatch.clear_w"
+            },
+            {
+              "start": 4,
+              "end": 7,
+              "kind": "handler",
+              "mirror": 65280,
+              "read": "ymsnd.read",
+              "write": "ymsnd.write"
+            },
+            {
+              "start": 8,
+              "end": 8,
+              "kind": "handler",
+              "mirror": 65280,
+              "select": 16,
+              "write": "neogeo_base_state.audio_cpu_enable_nmi_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 8,
+              "end": 11,
+              "kind": "handler",
+              "mirror": 240,
+              "select": 65280,
+              "read": "neogeo_base_state.audio_cpu_bank_select_r"
+            },
+            {
+              "start": 12,
+              "end": 12,
+              "kind": "handler",
+              "mirror": 65280,
+              "write": "soundlatch2.write"
+            }
+          ]
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 128,
+        "end": 1048575,
+        "kind": "rom",
+        "region": "cslot1:maincpu",
+        "romOffset": 128
+      },
+      {
+        "start": 2097152,
+        "end": 3145727,
+        "kind": "rom",
+        "region": "cslot1:maincpu",
+        "romOffset": 1048576
+      },
+      {
+        "start": 3276800,
+        "end": 3276800,
+        "kind": "handler",
+        "mirror": 131070,
+        "write": "neogeo_base_state.audio_command_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 3538944,
+        "end": 3670015,
+        "kind": "handler",
+        "read": "neogeo_base_state.unmapped_r"
+      },
+      {
+        "start": 3670016,
+        "end": 3670271,
+        "kind": "handler",
+        "mirror": 130816,
+        "umask": 255,
+        "write": "neogeo_base_state.io_control_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 3801088,
+        "end": 3801119,
+        "kind": "handler",
+        "mirror": 131040,
+        "read": "neogeo_base_state.unmapped_r"
+      },
+      {
+        "start": 3801088,
+        "end": 3801119,
+        "kind": "handler",
+        "mirror": 131040,
+        "umask": 255,
+        "write": "systemlatch.write_a3"
+      },
+      {
+        "start": 3932160,
+        "end": 3932167,
+        "kind": "handler",
+        "mirror": 131064,
+        "read": "neogeo_base_state.video_register_r"
+      },
+      {
+        "start": 3932160,
+        "end": 3932175,
+        "kind": "handler",
+        "mirror": 131056,
+        "write": "neogeo_base_state.video_register_w"
+      },
+      {
+        "start": 4063232,
+        "end": 4194303,
+        "kind": "handler",
+        "read": "neogeo_base_state.unmapped_r"
+      },
+      {
+        "start": 4194304,
+        "end": 4202495,
+        "kind": "handler",
+        "mirror": 4186112,
+        "read": "neogeo_base_state.paletteram_r",
+        "write": "neogeo_base_state.paletteram_w"
+      },
+      {
+        "start": 0,
+        "end": 127,
+        "kind": "handler",
+        "read": "ngarcade_base_state.banked_vectors_r"
+      },
+      {
+        "start": 1048576,
+        "end": 1114111,
+        "kind": "ram",
+        "mirror": 983040
+      },
+      {
+        "start": 3145729,
+        "end": 3145729,
+        "kind": "handler",
+        "mirror": 131070,
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 3145856,
+        "end": 3145857,
+        "kind": "handler",
+        "mirror": 130942,
+        "read": "port.TEST"
+      },
+      {
+        "start": 3276800,
+        "end": 3276801,
+        "kind": "handler",
+        "mirror": 131070,
+        "read": "port.AUDIO_COIN"
+      },
+      {
+        "start": 3670016,
+        "end": 3670017,
+        "kind": "handler",
+        "mirror": 131070,
+        "read": "port.SYSTEM"
+      },
+      {
+        "start": 8388608,
+        "end": 8392703,
+        "kind": "handler",
+        "read": "ngarcade_base_state.unmapped_r"
+      },
+      {
+        "start": 12582912,
+        "end": 12713983,
+        "kind": "rom",
+        "mirror": 917504,
+        "romOffset": 0
+      },
+      {
+        "start": 13631488,
+        "end": 13697023,
+        "kind": "ram",
+        "mirror": 983040,
+        "share": "saveram",
+        "write": "ngarcade_base_state.save_ram_w"
+      },
+      {
+        "start": 14680064,
+        "end": 16777215,
+        "kind": "handler",
+        "read": "ngarcade_base_state.unmapped_r"
+      },
+      {
+        "start": 3145728,
+        "end": 3145729,
+        "kind": "handler",
+        "mirror": 130942,
+        "read": "ngarcade_base_state.in0_edge_joy_r"
+      },
+      {
+        "start": 3145728,
+        "end": 3145729,
+        "kind": "handler",
+        "mirror": 130942,
+        "read": "ngarcade_base_state.in0_edge_r"
+      },
+      {
+        "start": 3407872,
+        "end": 3407873,
+        "kind": "handler",
+        "mirror": 131070,
+        "read": "ngarcade_base_state.in1_edge_joy_r"
+      },
+      {
+        "start": 3407872,
+        "end": 3407873,
+        "kind": "handler",
+        "mirror": 131070,
+        "read": "ngarcade_base_state.in1_edge_r"
+      },
+      {
+        "start": 8388608,
+        "end": 12582911,
+        "kind": "handler",
+        "read": "ngarcade_base_state.memcard_r"
+      },
+      {
+        "start": 8388608,
+        "end": 12582911,
+        "kind": "handler",
+        "write": "ngarcade_base_state.memcard_w"
+      },
+      {
+        "start": 0,
+        "end": 127,
+        "kind": "rom",
+        "region": "mainbios",
+        "romOffset": 0
+      }
+    ],
+    "customs": [
+      {
+        "port": "SYSTEM",
+        "mask": 3840,
+        "member": "startsel_edge_joy_r",
+        "handler": "ngarcade_base_state.startsel_edge_joy_r",
+        "activeLow": false
+      },
+      {
+        "port": "SYSTEM",
+        "mask": 28672,
+        "member": "get_memcard_status",
+        "handler": "neogeo_base_state.get_memcard_status",
+        "activeLow": false
+      },
+      {
+        "port": "AUDIO_COIN",
+        "mask": 64,
+        "member": "tp_r",
+        "source": "rtc-tp",
+        "activeLow": false
+      },
+      {
+        "port": "AUDIO_COIN",
+        "mask": 128,
+        "member": "data_out_r",
+        "source": "rtc-data",
+        "activeLow": false
+      },
+      {
+        "port": "AUDIO_COIN",
+        "mask": 65280,
+        "member": "get_audio_result",
+        "handler": "neogeo_base_state.get_audio_result",
+        "activeLow": false
+      }
+    ],
+    "screen": {
+      "width": 320,
+      "height": 224,
+      "xOffset": 28,
+      "yOffset": 16,
+      "refresh": 59.18560606060606,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ym2203",
+    "clock": 8000000,
+    "chips": 1,
+    "deviceType": "YM2610",
+    "sampleRegion": "cslot1:ymsnd:adpcma",
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "cslot1:maincpu",
+      "size": 2097152,
+      "loads": [
+        {
+          "file": "201-p1.p1",
+          "offset": 1048576,
+          "size": 1048576,
+          "crc": "08d8daa5",
+          "alt": [
+            {
+              "file": "045-pg2.sp2",
+              "crc": "46745b94"
+            },
+            {
+              "file": "046-p2.sp2",
+              "crc": "f182cb3e"
+            },
+            {
+              "file": "055-p1.p1",
+              "crc": "f10a2042"
+            },
+            {
+              "file": "059-p1.p1",
+              "crc": "01d4e9c0"
+            },
+            {
+              "file": "063-p1.p1",
+              "crc": "22368892"
+            },
+            {
+              "file": "081-p1.p1",
+              "crc": "6bc27a3d"
+            },
+            {
+              "file": "084-p1.p1",
+              "crc": "2cba2716"
+            },
+            {
+              "file": "215-p1.p1",
+              "crc": "519b4ba3"
+            },
+            {
+              "file": "216-p1.p1",
+              "crc": "75d2b3de"
+            },
+            {
+              "file": "236-p1.p1",
+              "crc": "4c2ff660"
+            },
+            {
+              "file": "244-p1.p1",
+              "crc": "f8fdb7a5"
+            },
+            {
+              "file": "261-ph1.p1",
+              "crc": "e0d4bc0a"
+            },
+            {
+              "file": "057-p1.p1",
+              "crc": "65a891d9"
+            },
+            {
+              "file": "064-p1.p1",
+              "crc": "385a2e86"
+            },
+            {
+              "file": "074-p1.p1",
+              "crc": "62369553"
+            },
+            {
+              "file": "090-p1.p1",
+              "crc": "afaa4702"
+            },
+            {
+              "file": "212-p1.p1",
+              "crc": "16c063a9"
+            },
+            {
+              "file": "224-p1.p1",
+              "crc": "7697e445"
+            },
+            {
+              "file": "054-p1.p1",
+              "crc": "64836147"
+            },
+            {
+              "file": "062-p2.sp2",
+              "crc": "f025ab77"
+            },
+            {
+              "file": "092-p1.p1",
+              "crc": "28ec9b77"
+            },
+            {
+              "file": "200-p1.p1",
+              "crc": "28c83048"
+            },
+            {
+              "file": "088-p1.p1",
+              "crc": "bd5814f6"
+            },
+            {
+              "file": "218-p1.p1",
+              "crc": "ca372303"
+            },
+            {
+              "file": "219-p1.p1",
+              "crc": "6af0e574"
+            },
+            {
+              "file": "proto_220-p1.p1",
+              "crc": "62a942c6"
+            },
+            {
+              "file": "227-p1.p1",
+              "crc": "daf101d2"
+            },
+            {
+              "file": "078-p1.p1",
+              "crc": "45906309"
+            },
+            {
+              "file": "082-p1.p1",
+              "crc": "34ab832a"
+            },
+            {
+              "file": "094-p1.p1",
+              "crc": "33019545"
+            },
+            {
+              "file": "208-p1.p1",
+              "crc": "127f3d32"
+            },
+            {
+              "file": "075-p1.p1",
+              "crc": "92871738"
+            },
+            {
+              "file": "097-p1.p1",
+              "crc": "0547121d"
+            },
+            {
+              "file": "209-p1.p1",
+              "crc": "2a019a79"
+            },
+            {
+              "file": "213-p1.p1",
+              "crc": "e397d798"
+            },
+            {
+              "file": "230-p1.p1",
+              "crc": "ed24a6e6"
+            },
+            {
+              "file": "245-p1.p1",
+              "crc": "c828876d"
+            },
+            {
+              "file": "249-p1.p1",
+              "crc": "c9386118"
+            },
+            {
+              "file": "252-p1.p1",
+              "crc": "4b8ac4fb"
+            },
+            {
+              "file": "259-p1.p1",
+              "crc": "88a37f8b"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true,
+          "continueSegments": [
+            {
+              "offset": 0,
+              "size": 1048576,
+              "fileOffset": 1048576
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "cslot1:fixed",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "201-s1.s1",
+          "offset": 0,
+          "size": 131072,
+          "crc": "2f55958d",
+          "alt": [
+            {
+              "file": "001-s1.s1",
+              "crc": "7988ba51"
+            },
+            {
+              "file": "002-s1.s1",
+              "crc": "1a7fd0c6"
+            },
+            {
+              "file": "003-s1.s1",
+              "crc": "7b3eb9b1"
+            },
+            {
+              "file": "004-s1.s1",
+              "crc": "2bd05a06"
+            },
+            {
+              "file": "006-s1.s1",
+              "crc": "eb5189f0"
+            },
+            {
+              "file": "007-s1.s1",
+              "crc": "85ec9acf"
+            },
+            {
+              "file": "010-s1.s1",
+              "crc": "79a35264"
+            },
+            {
+              "file": "011-s1.s1",
+              "crc": "ec5fdb96"
+            },
+            {
+              "file": "014-s1.s1",
+              "crc": "99419733"
+            },
+            {
+              "file": "016-s1.s1",
+              "crc": "1a2eeeb3"
+            },
+            {
+              "file": "017-s1.s1",
+              "crc": "b246204d"
+            },
+            {
+              "file": "018-s1.s1",
+              "crc": "6799ea0d"
+            },
+            {
+              "file": "019-s1.s1",
+              "crc": "5fcdc0ed"
+            },
+            {
+              "file": "020-s1.s1",
+              "crc": "a6d83d53"
+            },
+            {
+              "file": "021-s1.s1",
+              "crc": "6956d778"
+            },
+            {
+              "file": "023-s1.s1",
+              "crc": "ac31818a"
+            },
+            {
+              "file": "024-s1.s1",
+              "crc": "5cef5cc6"
+            },
+            {
+              "file": "025-s1.s1",
+              "crc": "a402202b"
+            },
+            {
+              "file": "029-s1.s1",
+              "crc": "bcd502f0"
+            },
+            {
+              "file": "030-s1.s1",
+              "crc": "7015b8fc"
+            },
+            {
+              "file": "031-s1.s1",
+              "crc": "4c117174"
+            },
+            {
+              "file": "033-s1.s1",
+              "crc": "3c3bdf8c"
+            },
+            {
+              "file": "032-s1.s1",
+              "crc": "ac0daa1b"
+            },
+            {
+              "file": "034-s1.s1",
+              "crc": "8472ed44"
+            },
+            {
+              "file": "039-s1.s1",
+              "crc": "63ee053a"
+            },
+            {
+              "file": "040-s1.s1",
+              "crc": "cd9802a3"
+            },
+            {
+              "file": "041-s1.s1",
+              "crc": "015c5c94"
+            },
+            {
+              "file": "042-s1.s1",
+              "crc": "164fd6e6"
+            },
+            {
+              "file": "043-s1.s1",
+              "crc": "c362d484"
+            },
+            {
+              "file": "044-s1.s1",
+              "crc": "89903f39"
+            },
+            {
+              "file": "045-s1.s1",
+              "crc": "9142a4d3"
+            },
+            {
+              "file": "046-s1.s1",
+              "crc": "14b01d7b"
+            },
+            {
+              "file": "047-s1.s1",
+              "crc": "d7dbbf39"
+            },
+            {
+              "file": "052-s1.s1",
+              "crc": "97689804"
+            },
+            {
+              "file": "055-s1.s1",
+              "crc": "825976c1"
+            },
+            {
+              "file": "056-s1.s1",
+              "crc": "8b02638e"
+            },
+            {
+              "file": "058-s1.s1",
+              "crc": "2df03197"
+            },
+            {
+              "file": "059-s1.s1",
+              "crc": "e08978ca"
+            },
+            {
+              "file": "061-s1.s1",
+              "crc": "226d1b68"
+            },
+            {
+              "file": "063-s1.s1",
+              "crc": "64a5cd66"
+            },
+            {
+              "file": "069-s1.s1",
+              "crc": "0b33a800"
+            },
+            {
+              "file": "081-s1.s1",
+              "crc": "7626da34"
+            },
+            {
+              "file": "084-s1.s1",
+              "crc": "de716f8a"
+            },
+            {
+              "file": "087-s1.s1",
+              "crc": "74ec7d9f"
+            },
+            {
+              "file": "095-s1.s1",
+              "crc": "b6bf5e08"
+            },
+            {
+              "file": "096-s1.s1",
+              "crc": "cc7fd344"
+            },
+            {
+              "file": "214-s1.s1",
+              "crc": "1254cbdb"
+            },
+            {
+              "file": "215-s1.s1",
+              "crc": "f0fe5c36"
+            },
+            {
+              "file": "216-s1.s1",
+              "crc": "efdc72d7"
+            },
+            {
+              "file": "222-s1.s1",
+              "crc": "8d3d3bf9"
+            },
+            {
+              "file": "223-s1.s1",
+              "crc": "7ecd6e8c"
+            },
+            {
+              "file": "232-s1.s1",
+              "crc": "8514ecf5"
+            },
+            {
+              "file": "234-s1.s1",
+              "crc": "95561412"
+            },
+            {
+              "file": "236-s1.s1",
+              "crc": "5d1ca640"
+            },
+            {
+              "file": "240-s1.s1",
+              "crc": "da3b40de"
+            },
+            {
+              "file": "241-s1.s1",
+              "crc": "f3d32f0f"
+            },
+            {
+              "file": "242-s1.s1",
+              "crc": "7f7b4805"
+            },
+            {
+              "file": "243-s1.s1",
+              "crc": "c9cd2298"
+            },
+            {
+              "file": "244-s1.s1",
+              "crc": "9bddb697"
+            },
+            {
+              "file": "250-s1.s1",
+              "crc": "fb6f441d"
+            },
+            {
+              "file": "005-s1.s1",
+              "crc": "1c5369a2"
+            },
+            {
+              "file": "009-s1.s1",
+              "crc": "d49afee8"
+            },
+            {
+              "file": "022-s1.s1",
+              "crc": "843c3624"
+            },
+            {
+              "file": "037-s1.s1",
+              "crc": "74651f27"
+            },
+            {
+              "file": "038-s1.s1",
+              "crc": "fff62ae3"
+            },
+            {
+              "file": "050-s1.s1",
+              "crc": "db8f9c8e"
+            },
+            {
+              "file": "053-s1.s1",
+              "crc": "8c2c2d6b"
+            },
+            {
+              "file": "057-s1.s1",
+              "crc": "fcaeb3a4"
+            },
+            {
+              "file": "064-s1.s1",
+              "crc": "2a03998a"
+            },
+            {
+              "file": "074-s1.s1",
+              "crc": "96148d2b"
+            },
+            {
+              "file": "090-s1.s1",
+              "crc": "174a880f"
+            },
+            {
+              "file": "203-s1.s1",
+              "crc": "bfdc8309"
+            },
+            {
+              "file": "212-s1.s1",
+              "crc": "481d3ddc"
+            },
+            {
+              "file": "217-s1.s1",
+              "crc": "8ff782f0"
+            },
+            {
+              "file": "224-s1.s1",
+              "crc": "eeed5758"
+            },
+            {
+              "file": "zin-s1.bin",
+              "crc": "a7ab0e81"
+            },
+            {
+              "file": "054-s1.s1",
+              "crc": "22e02ddd"
+            },
+            {
+              "file": "051-s1.s1",
+              "crc": "9fea5758"
+            },
+            {
+              "file": "048-s1.s1",
+              "crc": "8285b25a"
+            },
+            {
+              "file": "089-s1.s1",
+              "crc": "c79fc2c8"
+            },
+            {
+              "file": "239-s1.s1",
+              "crc": "d56cb498"
+            },
+            {
+              "file": "062-s1.s1",
+              "crc": "289e2bbe"
+            },
+            {
+              "file": "065-s1.s1",
+              "crc": "074b5723"
+            },
+            {
+              "file": "066-s1.s1",
+              "crc": "bae5d5e5"
+            },
+            {
+              "file": "079-s1.s1",
+              "crc": "3ac06665"
+            },
+            {
+              "file": "proto_228-s1.s1",
+              "crc": "83c24e81"
+            },
+            {
+              "file": "221-s1.s1",
+              "crc": "2a4063a3"
+            },
+            {
+              "file": "233-s1.s1",
+              "crc": "7399e68a"
+            },
+            {
+              "file": "067-s1.s1",
+              "crc": "b119e1eb"
+            },
+            {
+              "file": "231-s1.s1",
+              "crc": "fe0c0c53"
+            },
+            {
+              "file": "s1.s1",
+              "crc": "706477a7"
+            },
+            {
+              "file": "073-s1.s1",
+              "crc": "b876de7e"
+            },
+            {
+              "file": "092-s1.s1",
+              "crc": "a3d68ee2"
+            },
+            {
+              "file": "093-s1.s1",
+              "crc": "4b3fa119"
+            },
+            {
+              "file": "027-s1.s1",
+              "crc": "e5824baa"
+            },
+            {
+              "file": "036-s1.s1",
+              "crc": "f3ef4485"
+            },
+            {
+              "file": "200-s1.s1",
+              "crc": "9a5402b2"
+            },
+            {
+              "file": "076-s1.s1",
+              "crc": "f4c25dd5"
+            },
+            {
+              "file": "080-s1.s1",
+              "crc": "d7b86102"
+            },
+            {
+              "file": "088-s1.s1",
+              "crc": "073cb208"
+            },
+            {
+              "file": "218-s1.s1",
+              "crc": "7d402f9a"
+            },
+            {
+              "file": "219-s1.s1",
+              "crc": "002f3c88"
+            },
+            {
+              "file": "proto_220-s1.s1",
+              "crc": "372fe217"
+            },
+            {
+              "file": "227-s1.s1",
+              "crc": "2a8c4462"
+            },
+            {
+              "file": "238-s1.s1",
+              "crc": "1f95cedb"
+            },
+            {
+              "file": "246-s1.s1",
+              "crc": "2a360637"
+            },
+            {
+              "file": "078-s1.s1",
+              "crc": "72f8923e"
+            },
+            {
+              "file": "225-s1.s1",
+              "crc": "71c4b4b5"
+            },
+            {
+              "file": "d96-04.s1",
+              "crc": "9caae538"
+            },
+            {
+              "file": "248-s1.s1",
+              "crc": "0a3fee41"
+            },
+            {
+              "file": "206-s1.s1",
+              "crc": "f0b68780"
+            },
+            {
+              "file": "082-s1.s1",
+              "crc": "bef995c5"
+            },
+            {
+              "file": "094-s1.s1",
+              "crc": "2f8748a2"
+            },
+            {
+              "file": "208-s1.s1",
+              "crc": "64abd6b3"
+            },
+            {
+              "file": "086-s1.s1",
+              "crc": "6f5e2b3a"
+            },
+            {
+              "file": "060-s1.s1",
+              "crc": "d62a72e9"
+            },
+            {
+              "file": "068-sg1.s1",
+              "crc": "18082299"
+            },
+            {
+              "file": "075-s1.s1",
+              "crc": "c9eec367"
+            },
+            {
+              "file": "097-s1.s1",
+              "crc": "8dd66743"
+            },
+            {
+              "file": "237-s1.s1",
+              "crc": "b61cf595"
+            },
+            {
+              "file": "098.s1",
+              "crc": "0e6a7c73"
+            },
+            {
+              "file": "049-s1.s1",
+              "crc": "6349de5d"
+            },
+            {
+              "file": "202-s1.s1",
+              "crc": "cd19264f"
+            },
+            {
+              "file": "207-s1.s1",
+              "crc": "6aebafce"
+            },
+            {
+              "file": "209-s1.s1",
+              "crc": "c0eaad86"
+            },
+            {
+              "file": "213-s1.s1",
+              "crc": "b76b61bc"
+            },
+            {
+              "file": "230-s1.s1",
+              "crc": "076fb64c"
+            },
+            {
+              "file": "235-s1.s1",
+              "crc": "3b13a22f"
+            },
+            {
+              "file": "245-s1.s1",
+              "crc": "e7660a5d"
+            },
+            {
+              "file": "247-s1.s1",
+              "crc": "6300185c"
+            },
+            {
+              "file": "249-s1.s1",
+              "crc": "dc9eb372"
+            },
+            {
+              "file": "071.s1",
+              "crc": "44e5f154"
+            },
+            {
+              "file": "s-1.s1",
+              "crc": "972d8c31"
+            },
+            {
+              "file": "dig-s1.bin",
+              "crc": "9b3168f0"
+            },
+            {
+              "file": "001-003-02b.u2",
+              "crc": "2fd04b2a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "fixedbios",
+      "size": 131072,
+      "romSet": "neogeo",
+      "loads": [
+        {
+          "file": "sfix.sfix",
+          "offset": 0,
+          "size": 131072,
+          "crc": "c2ea0cfd"
+        }
+      ]
+    },
+    {
+      "region": "spritegen:zoomy",
+      "size": 131072,
+      "romSet": "neogeo",
+      "loads": [
+        {
+          "file": "000-lo.lo",
+          "offset": 0,
+          "size": 131072,
+          "crc": "5a86cff2"
+        }
+      ]
+    },
+    {
+      "region": "mainbios",
+      "size": 524288,
+      "romSet": "neogeo",
+      "loads": [
+        {
+          "file": "sp-s2.sp1",
+          "offset": 0,
+          "size": 131072,
+          "crc": "9036d879",
+          "alt": [
+            {
+              "file": "236-bios.sp1",
+              "crc": "853e6b96"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true
+        }
+      ]
+    },
+    {
+      "region": "audiobios",
+      "size": 131072,
+      "romSet": "neogeo",
+      "loads": [
+        {
+          "file": "sm1.sm1",
+          "offset": 0,
+          "size": 131072,
+          "crc": "94416d67"
+        }
+      ]
+    },
+    {
+      "region": "cslot1:audiocpu",
+      "size": 196608,
+      "loads": [
+        {
+          "file": "201-m1.m1",
+          "offset": 0,
+          "size": 131072,
+          "crc": "c28b3253",
+          "alt": [
+            {
+              "file": "003-m1.m1",
+              "crc": "4cc545e6"
+            },
+            {
+              "file": "004-m1.m1",
+              "crc": "c71fbb3b"
+            },
+            {
+              "file": "007-m1.m1",
+              "crc": "28dfe2cd"
+            },
+            {
+              "file": "010-m1.m1",
+              "crc": "8be3a078"
+            },
+            {
+              "file": "014-m1.m1",
+              "crc": "b6683092"
+            },
+            {
+              "file": "016-m1.m1",
+              "crc": "9da9ca10"
+            },
+            {
+              "file": "017-m1.m1",
+              "crc": "9b4f34c6"
+            },
+            {
+              "file": "018-m1.m1",
+              "crc": "0c939ee2"
+            },
+            {
+              "file": "019-m1.m1",
+              "crc": "d568c17d"
+            },
+            {
+              "file": "020-m1.m1",
+              "crc": "48409377"
+            },
+            {
+              "file": "023-m1.m1",
+              "crc": "2a2105e0"
+            },
+            {
+              "file": "024-m1.m1",
+              "crc": "cec19742"
+            },
+            {
+              "file": "025-m1.m1",
+              "crc": "9927034c"
+            },
+            {
+              "file": "029-m1.m1",
+              "crc": "6f2843f0"
+            },
+            {
+              "file": "030-m1.m1",
+              "crc": "4cf466ec"
+            },
+            {
+              "file": "031-m1.m1",
+              "crc": "cb37427c"
+            },
+            {
+              "file": "033-m1.m1",
+              "crc": "5be10ffd"
+            },
+            {
+              "file": "032-m1.m1",
+              "crc": "35ec952d"
+            },
+            {
+              "file": "034-m1.m1",
+              "crc": "f41b16b8"
+            },
+            {
+              "file": "039-m1.m1",
+              "crc": "0c5b2ad5"
+            },
+            {
+              "file": "040-m1.m1",
+              "crc": "d4de4bca"
+            },
+            {
+              "file": "041-m1.m1",
+              "crc": "15c177a6"
+            },
+            {
+              "file": "042-m1.m1",
+              "crc": "bb19995d"
+            },
+            {
+              "file": "043-m1.m1",
+              "crc": "7eab59cb"
+            },
+            {
+              "file": "044-m1.m1",
+              "crc": "0987e4bb"
+            },
+            {
+              "file": "045-m1.m1",
+              "crc": "95170640"
+            },
+            {
+              "file": "046-m1.m1",
+              "crc": "3f84bb9f"
+            },
+            {
+              "file": "047-m1.m1",
+              "crc": "820b0ba7"
+            },
+            {
+              "file": "052-m1.m1",
+              "crc": "49f17d2d"
+            },
+            {
+              "file": "055-m1.m1",
+              "crc": "f6e77cf5"
+            },
+            {
+              "file": "056-m1.m1",
+              "crc": "f27e9d52"
+            },
+            {
+              "file": "058-m1.m1",
+              "crc": "ccc5186e"
+            },
+            {
+              "file": "059-m1.m1",
+              "crc": "29992eba"
+            },
+            {
+              "file": "061-m1.m1",
+              "crc": "156f6951"
+            },
+            {
+              "file": "063-m1.m1",
+              "crc": "56675098"
+            },
+            {
+              "file": "069-m1.m1",
+              "crc": "fce72926"
+            },
+            {
+              "file": "081-m1.m1",
+              "crc": "82fcd863"
+            },
+            {
+              "file": "084-m1.m1",
+              "crc": "6f2d7429"
+            },
+            {
+              "file": "087-m1.m1",
+              "crc": "8e6440eb"
+            },
+            {
+              "file": "095-m1.m1",
+              "crc": "653492a7"
+            },
+            {
+              "file": "096-m1.m1",
+              "crc": "cb07b659"
+            },
+            {
+              "file": "214-m1.m1",
+              "crc": "dabc427c"
+            },
+            {
+              "file": "215-m1.m1",
+              "crc": "a932081d"
+            },
+            {
+              "file": "216-m1.m1",
+              "crc": "1b096820"
+            },
+            {
+              "file": "222-m1.m1",
+              "crc": "7615bc1b"
+            },
+            {
+              "file": "223-m1.m1",
+              "crc": "3fee46bf"
+            },
+            {
+              "file": "232-m1.m1",
+              "crc": "45348747"
+            },
+            {
+              "file": "234-m1.m1",
+              "crc": "087628ea"
+            },
+            {
+              "file": "236-m1.m1",
+              "crc": "880a1abd"
+            },
+            {
+              "file": "241-m1.m1",
+              "crc": "94520ebd"
+            },
+            {
+              "file": "243-m1.m1",
+              "crc": "acf12d10"
+            },
+            {
+              "file": "244-m1.m1",
+              "crc": "a701b276"
+            },
+            {
+              "file": "250-m1.m1",
+              "crc": "fd42a842"
+            },
+            {
+              "file": "251-m1.m1",
+              "crc": "5e74539c"
+            },
+            {
+              "file": "070-epr.m1",
+              "crc": "5a3b3191"
+            },
+            {
+              "file": "009-m1.m1",
+              "crc": "b5819863"
+            },
+            {
+              "file": "022-m1.m1",
+              "crc": "8e1d4ab6"
+            },
+            {
+              "file": "037-m1.m1",
+              "crc": "9504b2c6"
+            },
+            {
+              "file": "038-m1.m1",
+              "crc": "0908707e"
+            },
+            {
+              "file": "050-m1.m1",
+              "crc": "6fcf07d3"
+            },
+            {
+              "file": "053-m1.m1",
+              "crc": "1bd9d04b"
+            },
+            {
+              "file": "057-m1.m1",
+              "crc": "8fa3bc77"
+            },
+            {
+              "file": "064-m1.m1",
+              "crc": "d2eec9d3"
+            },
+            {
+              "file": "074-m1.m1",
+              "crc": "5a52a9d1"
+            },
+            {
+              "file": "090-m1.m1",
+              "crc": "28065668"
+            },
+            {
+              "file": "203-m1.m1",
+              "crc": "a602c2c2"
+            },
+            {
+              "file": "212-m1.m1",
+              "crc": "fcab6191"
+            },
+            {
+              "file": "217-m1.m1",
+              "crc": "d00fb2af"
+            },
+            {
+              "file": "224-m1.m1",
+              "crc": "364d6f96"
+            },
+            {
+              "file": "zin-m1.bin",
+              "crc": "fd9627ca"
+            },
+            {
+              "file": "054-m1.m1",
+              "crc": "63e28343"
+            },
+            {
+              "file": "051-m1.m1",
+              "crc": "8e69f29a"
+            },
+            {
+              "file": "048-m1.m1",
+              "crc": "310467c7"
+            },
+            {
+              "file": "089-m1.m1",
+              "crc": "ff3df7c7"
+            },
+            {
+              "file": "239-m1.m1",
+              "crc": "d31a3aea"
+            },
+            {
+              "file": "255-m1.m1",
+              "crc": "8efd4014"
+            },
+            {
+              "file": "062-m1.m1",
+              "crc": "76108b2f"
+            },
+            {
+              "file": "065-m1.m1",
+              "crc": "52c23cfc"
+            },
+            {
+              "file": "066-m1.m1",
+              "crc": "030beae4"
+            },
+            {
+              "file": "079-m1.m1",
+              "crc": "bee3455a"
+            },
+            {
+              "file": "proto_228-m1.m1",
+              "crc": "fd833b33"
+            },
+            {
+              "file": "221-m1.m1",
+              "crc": "bddae628"
+            },
+            {
+              "file": "233-m1.m1",
+              "crc": "5beaf34e"
+            },
+            {
+              "file": "067-m1.m1",
+              "crc": "9e3c6328"
+            },
+            {
+              "file": "231-m1.m1",
+              "crc": "de41301b"
+            },
+            {
+              "file": "073-m1.m1",
+              "crc": "3cdf5d88"
+            },
+            {
+              "file": "092-m1.m1",
+              "crc": "91957ef6"
+            },
+            {
+              "file": "093-m1.m1",
+              "crc": "e81e780b"
+            },
+            {
+              "file": "027-m1.m1",
+              "crc": "add5a226"
+            },
+            {
+              "file": "036-m1.m1",
+              "crc": "f1385b96"
+            },
+            {
+              "file": "200-m1.m1",
+              "crc": "9994ac00"
+            },
+            {
+              "file": "076-m1.m1",
+              "crc": "7b5f3d0a"
+            },
+            {
+              "file": "254-m1.m1",
+              "crc": "994b4487"
+            },
+            {
+              "file": "080-m1.m1",
+              "crc": "f5f44172"
+            },
+            {
+              "file": "088-m1.m1",
+              "crc": "2fe1f499"
+            },
+            {
+              "file": "218-m1.m1",
+              "crc": "17028bcf"
+            },
+            {
+              "file": "219-m1.m1",
+              "crc": "958efdc8"
+            },
+            {
+              "file": "proto_220-m1.m1",
+              "crc": "3a08bb63"
+            },
+            {
+              "file": "227-m1.m1",
+              "crc": "c8e5e0f9"
+            },
+            {
+              "file": "238-m1.m1",
+              "crc": "075b9518"
+            },
+            {
+              "file": "246-m1.m1",
+              "crc": "d0604ad1"
+            },
+            {
+              "file": "078-m1.m1",
+              "crc": "8e9e3b10"
+            },
+            {
+              "file": "225-m1.m1",
+              "crc": "0634bba6"
+            },
+            {
+              "file": "d96-06.m1",
+              "crc": "f424368a"
+            },
+            {
+              "file": "248-m1.m1",
+              "crc": "883097a9"
+            },
+            {
+              "file": "206-m1.m1",
+              "crc": "0e22902e"
+            },
+            {
+              "file": "082-m1.m1",
+              "crc": "10b144de"
+            },
+            {
+              "file": "094-m1.m1",
+              "crc": "78c851cb"
+            },
+            {
+              "file": "208-m1.m1",
+              "crc": "0a5f3325"
+            },
+            {
+              "file": "086-m1.m1",
+              "crc": "cb82bc5d"
+            },
+            {
+              "file": "060-m1.m1",
+              "crc": "0b7c4e65"
+            },
+            {
+              "file": "068-mg1.m1",
+              "crc": "b1c7911e"
+            },
+            {
+              "file": "075-m1.m1",
+              "crc": "bb828df1"
+            },
+            {
+              "file": "097-m1.m1",
+              "crc": "b20e4291"
+            },
+            {
+              "file": "237-m1.m1",
+              "crc": "d4c946dd"
+            },
+            {
+              "file": "098.m1",
+              "crc": "da4878cf"
+            },
+            {
+              "file": "049-m1.m1",
+              "crc": "edd2acf4"
+            },
+            {
+              "file": "202-m1.m1",
+              "crc": "9c0291ea"
+            },
+            {
+              "file": "207-m1.m1",
+              "crc": "b5b74a95"
+            },
+            {
+              "file": "209-m1.m1",
+              "crc": "cd758325"
+            },
+            {
+              "file": "213-m1.m1",
+              "crc": "200045f1"
+            },
+            {
+              "file": "230-m1.m1",
+              "crc": "3951a1c1"
+            },
+            {
+              "file": "245-m1.m1",
+              "crc": "00f31c66"
+            },
+            {
+              "file": "247-m1.m1",
+              "crc": "a9fe0144"
+            },
+            {
+              "file": "249-m1.m1",
+              "crc": "80328a47"
+            },
+            {
+              "file": "252-m1.m1",
+              "crc": "30cc4099"
+            },
+            {
+              "file": "259-m1.m1",
+              "crc": "85668ee9"
+            },
+            {
+              "file": "071.m1",
+              "crc": "6da739ad"
+            },
+            {
+              "file": "dig-m1.bin",
+              "crc": "e777a234"
+            },
+            {
+              "file": "ngdt-300-m1.bin",
+              "crc": "113c870f"
+            }
+          ],
+          "reloadOffsets": [
+            65536
+          ]
+        }
+      ]
+    },
+    {
+      "region": "cslot1:ymsnd:adpcma",
+      "size": 8388608,
+      "loads": [
+        {
+          "file": "201-v1.v1",
+          "offset": 0,
+          "size": 4194304,
+          "crc": "23d22ed1",
+          "alt": [
+            {
+              "file": "069-v1.v1",
+              "crc": "2bdbd4db"
+            },
+            {
+              "file": "084-v1.v1",
+              "crc": "84861b56"
+            },
+            {
+              "file": "087-v1.v1",
+              "crc": "84bdd9a0"
+            },
+            {
+              "file": "214-v1.v1",
+              "crc": "63f7b045"
+            },
+            {
+              "file": "215-v1.v1",
+              "crc": "877d1409"
+            },
+            {
+              "file": "222-v1.v1",
+              "crc": "7d6ba95f"
+            },
+            {
+              "file": "223-v1.v1",
+              "crc": "76673869"
+            },
+            {
+              "file": "232-v1.v1",
+              "crc": "22a2b5b5"
+            },
+            {
+              "file": "234-v1.v1",
+              "crc": "ed66b76f"
+            },
+            {
+              "file": "240-v1.v1",
+              "crc": "f796265a"
+            },
+            {
+              "file": "241-v1.v1",
+              "crc": "99ec20e8"
+            },
+            {
+              "file": "242-v1.v1",
+              "crc": "b9ea8051"
+            },
+            {
+              "file": "243-v1.v1",
+              "crc": "f7ee6fbb"
+            },
+            {
+              "file": "244-v1.v1",
+              "crc": "79def46d"
+            },
+            {
+              "file": "250-v1.v1",
+              "crc": "c79ede73"
+            },
+            {
+              "file": "251-v1.v1",
+              "crc": "ef2eecc8"
+            },
+            {
+              "file": "253-v1.v1",
+              "crc": "263e388c"
+            },
+            {
+              "file": "256-v1.v1",
+              "crc": "f2690241"
+            },
+            {
+              "file": "257-v1.v1",
+              "crc": "17cde847"
+            },
+            {
+              "file": "261-v1.v1",
+              "crc": "64c30081"
+            },
+            {
+              "file": "262-v1-08-e0.v1",
+              "crc": "83d49ecf"
+            },
+            {
+              "file": "212-v1.v1",
+              "crc": "013d4ef9"
+            },
+            {
+              "file": "217-v1.v1",
+              "crc": "1c34e013"
+            },
+            {
+              "file": "224-v1.v1",
+              "crc": "ff57f088"
+            },
+            {
+              "file": "089-v1.v1",
+              "crc": "6f726ecb"
+            },
+            {
+              "file": "239-v1.v1",
+              "crc": "1b8d5bf7"
+            },
+            {
+              "file": "255-v1.v1",
+              "crc": "5a14543d"
+            },
+            {
+              "file": "233-v1.v1",
+              "crc": "58839298"
+            },
+            {
+              "file": "260-v1.v1",
+              "crc": "24b0480c"
+            },
+            {
+              "file": "231-v1.v1",
+              "crc": "113fb898"
+            },
+            {
+              "file": "093-v1.v1",
+              "crc": "02abd4b0"
+            },
+            {
+              "file": "254-v1.v1",
+              "crc": "844f58fb"
+            },
+            {
+              "file": "218-v1.v1",
+              "crc": "61eee7f4"
+            },
+            {
+              "file": "219-v1.v1",
+              "crc": "d0ae33d9"
+            },
+            {
+              "file": "proto_220-v1.v1",
+              "crc": "8f30a215"
+            },
+            {
+              "file": "227-v1.v1",
+              "crc": "b8f24181"
+            },
+            {
+              "file": "238-v1.v1",
+              "crc": "260c0bef"
+            },
+            {
+              "file": "246-v1.v1",
+              "crc": "16986fc6"
+            },
+            {
+              "file": "225-v1.v1",
+              "crc": "6195c6b4"
+            },
+            {
+              "file": "248-v1.v1",
+              "crc": "57fde1fa"
+            },
+            {
+              "file": "267-v1.v1",
+              "crc": "e2e8e917"
+            },
+            {
+              "file": "208-v1.v1",
+              "crc": "e7899a24"
+            },
+            {
+              "file": "097-v1.v1",
+              "crc": "6f885152"
+            },
+            {
+              "file": "230-v1.v1",
+              "crc": "7f9ed279"
+            },
+            {
+              "file": "245-v1.v1",
+              "crc": "e255446c"
+            },
+            {
+              "file": "249-v1.v1",
+              "crc": "de7c8f27"
+            },
+            {
+              "file": "252-v1.v1",
+              "crc": "e5946733"
+            },
+            {
+              "file": "259-v1.v1",
+              "crc": "088eb8ab"
+            },
+            {
+              "file": "001-003-12a.u12",
+              "crc": "c96723b9"
+            }
+          ]
+        },
+        {
+          "file": "201-v2.v2",
+          "offset": 4194304,
+          "size": 4194304,
+          "crc": "472cf9db",
+          "alt": [
+            {
+              "file": "069-v2.v2",
+              "crc": "a698a487"
+            },
+            {
+              "file": "214-v2.v2",
+              "crc": "25929059"
+            },
+            {
+              "file": "222-v2.v2",
+              "crc": "6c33bb5d"
+            },
+            {
+              "file": "223-v2.v2",
+              "crc": "7a275acd"
+            },
+            {
+              "file": "232-v2.v2",
+              "crc": "2304e744"
+            },
+            {
+              "file": "234-v2.v2",
+              "crc": "a0e7f6e2"
+            },
+            {
+              "file": "240-v2.v2",
+              "crc": "2cb3f3bb"
+            },
+            {
+              "file": "241-v2.v2",
+              "crc": "ecb16799"
+            },
+            {
+              "file": "242-v2.v2",
+              "crc": "cc11106e"
+            },
+            {
+              "file": "243-v2.v2",
+              "crc": "aa9e4df6"
+            },
+            {
+              "file": "250-v2.v2",
+              "crc": "ea9aabe1"
+            },
+            {
+              "file": "251-v2.v2",
+              "crc": "73e211ca"
+            },
+            {
+              "file": "253-v2.v2",
+              "crc": "2c6bc7be"
+            },
+            {
+              "file": "256-v2.v2",
+              "crc": "7e2a10bd"
+            },
+            {
+              "file": "257-v2.v2",
+              "crc": "1afb20ff"
+            },
+            {
+              "file": "261-v2.v2",
+              "crc": "392a9c47"
+            },
+            {
+              "file": "262-v2-08-e0.v2",
+              "crc": "003f1843"
+            },
+            {
+              "file": "089-v2.v2",
+              "crc": "9d2db551"
+            },
+            {
+              "file": "239-v2.v2",
+              "crc": "74cf0a70"
+            },
+            {
+              "file": "254-v2.v2",
+              "crc": "d9a248f0"
+            },
+            {
+              "file": "218-v2.v2",
+              "crc": "6104e20b"
+            },
+            {
+              "file": "227-v2.v2",
+              "crc": "ee39e260"
+            },
+            {
+              "file": "246-v2.v2",
+              "crc": "ada41e83"
+            },
+            {
+              "file": "225-v2.v2",
+              "crc": "6159c5fe"
+            },
+            {
+              "file": "248-v2.v2",
+              "crc": "4b966ef3"
+            },
+            {
+              "file": "230-v2.v2",
+              "crc": "1d43e420"
+            },
+            {
+              "file": "245-v2.v2",
+              "crc": "9068198a"
+            },
+            {
+              "file": "001-003-13a.u13",
+              "crc": "08c339a5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "cslot1:sprites",
+      "size": 16777216,
+      "loads": [
+        {
+          "file": "201-c1.c1",
+          "offset": 0,
+          "size": 4194304,
+          "crc": "72813676",
+          "alt": [
+            {
+              "file": "069-c1.c1",
+              "crc": "e302f93c"
+            },
+            {
+              "file": "084-c1.c1",
+              "crc": "fe087e32"
+            },
+            {
+              "file": "087-c1.c1",
+              "crc": "07a233bc"
+            },
+            {
+              "file": "096-c1.c1",
+              "crc": "f17b8d89"
+            },
+            {
+              "file": "214-c1.c1",
+              "crc": "7ecf4aa2"
+            },
+            {
+              "file": "215-c1.c1",
+              "crc": "8ff444f5"
+            },
+            {
+              "file": "222-c1.c1",
+              "crc": "68f2ed95"
+            },
+            {
+              "file": "223-c1.c1",
+              "crc": "ebab05e2"
+            },
+            {
+              "file": "236-c1.c1",
+              "crc": "c1d47902"
+            },
+            {
+              "file": "090-c1.c1",
+              "crc": "cd30ed9b"
+            },
+            {
+              "file": "212-c1.c1",
+              "crc": "50f43087"
+            },
+            {
+              "file": "217-c1.c1",
+              "crc": "5fe97bc4"
+            },
+            {
+              "file": "224-c1.c1",
+              "crc": "f7da64ab"
+            },
+            {
+              "file": "054-c1.c1",
+              "crc": "8221b712"
+            },
+            {
+              "file": "089-c1.c1",
+              "crc": "f4e97332"
+            },
+            {
+              "file": "239-c1.c1",
+              "crc": "84f6d584"
+            },
+            {
+              "file": "proto_228-c1.c1",
+              "crc": "bfc99efe"
+            },
+            {
+              "file": "221-c1.c1",
+              "crc": "1f862a14"
+            },
+            {
+              "file": "233-c1.c1",
+              "crc": "65e3f4c4"
+            },
+            {
+              "file": "092-c1.c1",
+              "crc": "2a9fab01"
+            },
+            {
+              "file": "093-c1.c1",
+              "crc": "d1f328f8"
+            },
+            {
+              "file": "200-c1.c1",
+              "crc": "8e7bf41a"
+            },
+            {
+              "file": "218-c1.c1",
+              "crc": "c31500a4"
+            },
+            {
+              "file": "219-c1.c1",
+              "crc": "67fec4dc"
+            },
+            {
+              "file": "proto_220-c1.c1",
+              "crc": "9aa2b7dc"
+            },
+            {
+              "file": "227-c1.c1",
+              "crc": "7d6c2af4"
+            },
+            {
+              "file": "238-c1.c1",
+              "crc": "90c6a181"
+            },
+            {
+              "file": "225-c1.c1",
+              "crc": "ee4fea54"
+            },
+            {
+              "file": "248-c1.c1",
+              "crc": "d9115327"
+            },
+            {
+              "file": "206-c1.c1",
+              "crc": "846e4e8e"
+            },
+            {
+              "file": "208-c1.c1",
+              "crc": "93d8619b"
+            },
+            {
+              "file": "086-c1.c1",
+              "crc": "2611bc2a"
+            },
+            {
+              "file": "097-c1.c1",
+              "crc": "33d0d589"
+            },
+            {
+              "file": "098.c1",
+              "crc": "29148bf7"
+            },
+            {
+              "file": "209-c1.c1",
+              "crc": "b49d980e"
+            },
+            {
+              "file": "213-c1.c1",
+              "crc": "3edc8bd3"
+            },
+            {
+              "file": "230-c1.c1",
+              "crc": "68d4ae76"
+            },
+            {
+              "file": "249-c1.c1",
+              "crc": "041fb8ee"
+            },
+            {
+              "file": "ngdt-300-c1.bin",
+              "crc": "53ef41b5"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "201-c2.c2",
+          "offset": 1,
+          "size": 4194304,
+          "crc": "96f62574",
+          "alt": [
+            {
+              "file": "069-c2.c2",
+              "crc": "1053a455"
+            },
+            {
+              "file": "084-c2.c2",
+              "crc": "07864e09"
+            },
+            {
+              "file": "087-c2.c2",
+              "crc": "7a413592"
+            },
+            {
+              "file": "096-c2.c2",
+              "crc": "3840c508"
+            },
+            {
+              "file": "214-c2.c2",
+              "crc": "05b54f37"
+            },
+            {
+              "file": "215-c2.c2",
+              "crc": "5b155037"
+            },
+            {
+              "file": "222-c2.c2",
+              "crc": "a6e9aff0"
+            },
+            {
+              "file": "223-c2.c2",
+              "crc": "641868c3"
+            },
+            {
+              "file": "236-c2.c2",
+              "crc": "e15f972e"
+            },
+            {
+              "file": "090-c2.c2",
+              "crc": "10eed5ee"
+            },
+            {
+              "file": "212-c2.c2",
+              "crc": "a5b39807"
+            },
+            {
+              "file": "217-c2.c2",
+              "crc": "886e0d66"
+            },
+            {
+              "file": "224-c2.c2",
+              "crc": "4c09bbfb"
+            },
+            {
+              "file": "054-c2.c2",
+              "crc": "d6c6183d"
+            },
+            {
+              "file": "089-c2.c2",
+              "crc": "836d14da"
+            },
+            {
+              "file": "239-c2.c2",
+              "crc": "05a0cb22"
+            },
+            {
+              "file": "proto_228-c2.c2",
+              "crc": "69788082"
+            },
+            {
+              "file": "221-c2.c2",
+              "crc": "14b90536"
+            },
+            {
+              "file": "233-c2.c2",
+              "crc": "35dea6c9"
+            },
+            {
+              "file": "092-c2.c2",
+              "crc": "6d2bac02"
+            },
+            {
+              "file": "093-c2.c2",
+              "crc": "82c49540"
+            },
+            {
+              "file": "200-c2.c2",
+              "crc": "5a65a8ce"
+            },
+            {
+              "file": "218-c2.c2",
+              "crc": "98aba1f9"
+            },
+            {
+              "file": "219-c2.c2",
+              "crc": "86ed01f2"
+            },
+            {
+              "file": "proto_220-c2.c2",
+              "crc": "8a2ad708"
+            },
+            {
+              "file": "227-c2.c2",
+              "crc": "7e402d39"
+            },
+            {
+              "file": "238-c2.c2",
+              "crc": "888720f0"
+            },
+            {
+              "file": "225-c2.c2",
+              "crc": "0c549e2d"
+            },
+            {
+              "file": "248-c2.c2",
+              "crc": "77f9fdac"
+            },
+            {
+              "file": "206-c2.c2",
+              "crc": "1cba876d"
+            },
+            {
+              "file": "208-c2.c2",
+              "crc": "1c737bb6"
+            },
+            {
+              "file": "086-c2.c2",
+              "crc": "6b0d6827"
+            },
+            {
+              "file": "097-c2.c2",
+              "crc": "186f8b43"
+            },
+            {
+              "file": "098.c2",
+              "crc": "226b1263"
+            },
+            {
+              "file": "209-c2.c2",
+              "crc": "5649b015"
+            },
+            {
+              "file": "213-c2.c2",
+              "crc": "46ae5f16"
+            },
+            {
+              "file": "230-c2.c2",
+              "crc": "fdee05cd"
+            },
+            {
+              "file": "249-c2.c2",
+              "crc": "74f3cdf4"
+            },
+            {
+              "file": "ngdt-300-c2.bin",
+              "crc": "f9b15ab3"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "201-c3.c3",
+          "offset": 8388608,
+          "size": 4194304,
+          "crc": "5121456a",
+          "alt": [
+            {
+              "file": "069-c3.c3",
+              "crc": "1c0fde2f"
+            },
+            {
+              "file": "084-c3.c3",
+              "crc": "a4e65d1b"
+            },
+            {
+              "file": "087-c3.c3",
+              "crc": "8b793796"
+            },
+            {
+              "file": "096-c3.c3",
+              "crc": "55f9ee1e"
+            },
+            {
+              "file": "214-c3.c3",
+              "crc": "64989a65"
+            },
+            {
+              "file": "215-c3.c3",
+              "crc": "456a073a"
+            },
+            {
+              "file": "216-c3.c3",
+              "crc": "665c9f16"
+            },
+            {
+              "file": "222-c3.c3",
+              "crc": "c91b40f4"
+            },
+            {
+              "file": "223-c3.c3",
+              "crc": "ca00191f"
+            },
+            {
+              "file": "212-c3.c3",
+              "crc": "9252ea02"
+            },
+            {
+              "file": "217-c3.c3",
+              "crc": "59e8525f"
+            },
+            {
+              "file": "089-c3.c3",
+              "crc": "913611c4"
+            },
+            {
+              "file": "239-c3.c3",
+              "crc": "5fb69c9e"
+            },
+            {
+              "file": "233-c3.c3",
+              "crc": "0ba2c502"
+            },
+            {
+              "file": "092-c3.c3",
+              "crc": "5da735d6"
+            },
+            {
+              "file": "218-c3.c3",
+              "crc": "833c163a"
+            },
+            {
+              "file": "proto_220-c3.c3",
+              "crc": "d67fb15a"
+            },
+            {
+              "file": "238-c3.c3",
+              "crc": "2c393aa3"
+            },
+            {
+              "file": "225-c3.c3",
+              "crc": "af0897c0"
+            },
+            {
+              "file": "230-c3.c3",
+              "crc": "645077f3"
+            },
+            {
+              "file": "ngdt-300-c3.bin",
+              "crc": "50cc21cf"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "201-c4.c4",
+          "offset": 8388609,
+          "size": 4194304,
+          "crc": "f4ad59a3",
+          "alt": [
+            {
+              "file": "069-c4.c4",
+              "crc": "a25fc3d0"
+            },
+            {
+              "file": "084-c4.c4",
+              "crc": "c1ace468"
+            },
+            {
+              "file": "087-c4.c4",
+              "crc": "728fbf11"
+            },
+            {
+              "file": "096-c4.c4",
+              "crc": "585b7e47"
+            },
+            {
+              "file": "214-c4.c4",
+              "crc": "afbea515"
+            },
+            {
+              "file": "215-c4.c4",
+              "crc": "43c182e1"
+            },
+            {
+              "file": "216-c4.c4",
+              "crc": "7f5d03db"
+            },
+            {
+              "file": "222-c4.c4",
+              "crc": "359510a4"
+            },
+            {
+              "file": "223-c4.c4",
+              "crc": "1f23d860"
+            },
+            {
+              "file": "212-c4.c4",
+              "crc": "5f41a699"
+            },
+            {
+              "file": "217-c4.c4",
+              "crc": "8521add2"
+            },
+            {
+              "file": "089-c4.c4",
+              "crc": "44cef0e3"
+            },
+            {
+              "file": "239-c4.c4",
+              "crc": "0be028c4"
+            },
+            {
+              "file": "233-c4.c4",
+              "crc": "70dbbd6d"
+            },
+            {
+              "file": "092-c4.c4",
+              "crc": "de07f997"
+            },
+            {
+              "file": "218-c4.c4",
+              "crc": "c1a30f69"
+            },
+            {
+              "file": "proto_220-c4.c4",
+              "crc": "e73ea38b"
+            },
+            {
+              "file": "238-c4.c4",
+              "crc": "b9e909eb"
+            },
+            {
+              "file": "225-c4.c4",
+              "crc": "4c66527a"
+            },
+            {
+              "file": "230-c4.c4",
+              "crc": "63aeb74c"
+            },
+            {
+              "file": "ngdt-300-c4.bin",
+              "crc": "8486ad9e"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 327680,
+      "romSet": "neogeo",
+      "loads": [
+        {
+          "file": "sm1.sm1",
+          "offset": 0,
+          "size": 131072,
+          "crc": "94416d67"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "AUDIO_COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "AUDIO_COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "AUDIO_COIN",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "edge:JOY1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "edge:JOY1",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "edge:JOY1",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "edge:JOY1",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "edge:JOY1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "A",
+      "activeLow": true
+    },
+    {
+      "port": "edge:JOY1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "B",
+      "activeLow": true
+    },
+    {
+      "port": "edge:JOY1",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "C",
+      "activeLow": true
+    },
+    {
+      "port": "edge:START",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "edge:START",
+      "mask": 4,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW",
+      "mask": 1,
+      "value": 1,
+      "name": "Setting Mode"
+    },
+    {
+      "port": "DSW",
+      "mask": 2,
+      "value": 2,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW",
+      "mask": 4,
+      "value": 4,
+      "name": "Controller"
+    },
+    {
+      "port": "DSW",
+      "mask": 24,
+      "value": 24,
+      "name": "COMM Setting (Cabinet No.)"
+    },
+    {
+      "port": "DSW",
+      "mask": 32,
+      "value": 32,
+      "name": "COMM Setting (Link Enable)"
+    },
+    {
+      "port": "DSW",
+      "mask": 64,
+      "value": 64,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSW",
+      "mask": 128,
+      "value": 128,
+      "name": "Freeze"
+    },
+    {
+      "port": "TEST",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "DSW",
+      "init": 255
+    },
+    {
+      "tag": "SYSTEM",
+      "init": 33023
+    },
+    {
+      "tag": "AUDIO_COIN",
+      "init": 31
+    },
+    {
+      "tag": "TEST",
+      "init": 65408
+    },
+    {
+      "tag": "edge:JOY1",
+      "init": 255
+    },
+    {
+      "tag": "edge:JOY2",
+      "init": 255
+    },
+    {
+      "tag": "edge:START",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

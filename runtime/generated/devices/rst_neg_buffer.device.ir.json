@@ -1,0 +1,726 @@
+{
+  "schemaVersion": 1,
+  "type": "RST_NEG_BUFFER",
+  "className": "rst_neg_buffer_device",
+  "hierarchy": [
+    "rst_buffer_device",
+    "rst_neg_buffer_device"
+  ],
+  "sourceFiles": [
+    "src/devices/machine/rstbuf.cpp",
+    "src/devices/machine/rstbuf.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3
+  },
+  "members": [
+    {
+      "name": "m_input_buffer",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 0
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "int_callback",
+      "member": "m_int_cb",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_input_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.cpp",
+        "line": 106,
+        "column": 1
+      }
+    },
+    {
+      "name": "sync_input",
+      "parameters": "bool state, u8 mask",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "rst_pos_buffer_device::sync_set_input"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mask"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "rst_pos_buffer_device::sync_clear_input"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mask"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.cpp",
+        "line": 151,
+        "column": 1
+      }
+    },
+    {
+      "name": "sync_set_input",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_input_buffer"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_input_buffer"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_int_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_input_buffer"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.cpp",
+        "line": 117,
+        "column": 1
+      }
+    },
+    {
+      "name": "sync_clear_input",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_input_buffer"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "param"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_input_buffer"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_int_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_input_buffer"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "param"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.cpp",
+        "line": 134,
+        "column": 1
+      }
+    },
+    {
+      "name": "inta_cb",
+      "parameters": "int irqline",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_vector"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.cpp",
+        "line": 165,
+        "column": 1
+      }
+    },
+    {
+      "name": "int_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_int_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 20,
+        "column": 1
+      }
+    },
+    {
+      "name": "rst_buffer_device::int_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_int_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 21,
+        "column": 1
+      }
+    },
+    {
+      "name": "rst30_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sync_input"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 78,
+        "column": 1
+      }
+    },
+    {
+      "name": "rst28_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sync_input"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                {
+                  "kind": "number",
+                  "value": 16
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 81,
+        "column": 1
+      }
+    },
+    {
+      "name": "rst18_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sync_input"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                {
+                  "kind": "number",
+                  "value": 32
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 84,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_vector",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "number",
+                "value": 255
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_input_buffer"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 87,
+        "column": 1
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::rst30_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sync_input"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 78,
+        "column": 103
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::rst28_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sync_input"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                {
+                  "kind": "number",
+                  "value": 16
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 82,
+        "column": 1
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::rst18_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sync_input"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                {
+                  "kind": "number",
+                  "value": 32
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 85,
+        "column": 1
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::get_vector",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "number",
+                "value": 255
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_input_buffer"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rstbuf.h",
+        "line": 88,
+        "column": 1
+      }
+    }
+  ],
+  "hotMethods": [
+    "sync_set_input",
+    "sync_clear_input"
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 15,
+    "compiledMethods": 15,
+    "diagnostics": 0
+  }
+}

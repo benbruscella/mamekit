@@ -1,0 +1,4041 @@
+{
+    "schemaVersion": 4,
+    "game": "rampage",
+    "family": "mcr3",
+    "driverFile": "src/mame/bally/mcr3.cpp",
+    "callbacks": [
+        {
+            "id": "device:mcr3_state.mcrmono/scantimer/callback:scantimer:0",
+            "ownerTag": "scantimer",
+            "signal": "configure_scanline",
+            "operation": "configure_scanline",
+            "targetClass": "mcr3_state",
+            "targetMethod": "mcr_interrupt",
+            "scanlineStart": 0,
+            "scanlineIncrement": 1,
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1091,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/ctc/callback:ctc:0",
+            "ownerTag": "ctc",
+            "signal": "intr_callback",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "INPUT_LINE_IRQ0",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1094,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/ctc/callback:ctc:1",
+            "ownerTag": "ctc",
+            "signal": "zc_callback",
+            "operation": "set",
+            "slot": 0,
+            "targetTag": "ctc",
+            "targetClass": "z80ctc_device",
+            "targetMethod": "trg1",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1095,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "mcr3_state",
+            "targetMethod": "screen_update_mcr3",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1111,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:0",
+            "ownerTag": "sg:pia",
+            "signal": "writepa_handler",
+            "operation": "set",
+            "targetClass": "midway_sounds_good_device",
+            "targetMethod": "porta_w",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 611,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:1",
+            "ownerTag": "sg:pia",
+            "signal": "writepb_handler",
+            "operation": "set",
+            "targetClass": "midway_sounds_good_device",
+            "targetMethod": "portb_w",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 612,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:2",
+            "ownerTag": "sg:pia",
+            "signal": "irqa_handler",
+            "operation": "set",
+            "targetClass": "midway_sounds_good_device",
+            "targetMethod": "irq_w",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 613,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:3",
+            "ownerTag": "sg:pia",
+            "signal": "irqb_handler",
+            "operation": "set",
+            "targetClass": "midway_sounds_good_device",
+            "targetMethod": "irq_w",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 614,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:mcr3_state.mcrmono/scantimer/callback:scantimer:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "mcr3_state.mcr_interrupt"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1091,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mcr3_state.mcrmono/ctc/callback:ctc:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "irq",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1094,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mcr3_state.mcrmono/ctc/callback:ctc:1",
+            "effect": {
+                "kind": "device-method",
+                "tag": "ctc",
+                "method": "trg1",
+                "ownerClass": "z80ctc_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1095,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "midway_sounds_good_device.porta_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 611,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "midway_sounds_good_device.portb_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 612,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:2",
+            "effect": {
+                "kind": "handler",
+                "handler": "midway_sounds_good_device.irq_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 613,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "midway_sounds_good_device.irq_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 614,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 5000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 57343,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 57344,
+                        "end": 59391,
+                        "kind": "ram",
+                        "share": "nvram"
+                    },
+                    {
+                        "start": 59392,
+                        "end": 59903,
+                        "kind": "ram",
+                        "share": "spriteram"
+                    },
+                    {
+                        "start": 59904,
+                        "end": 60415,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 60416,
+                        "end": 60543,
+                        "kind": "handler",
+                        "mirror": 896,
+                        "share": "paletteram",
+                        "write": "mcr3_state.mcr_paletteram9_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 61440,
+                        "end": 63487,
+                        "kind": "ram",
+                        "share": "videoram",
+                        "write": "mcr3_state.mcr3_videoram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 63488,
+                        "end": 65535,
+                        "kind": "rom"
+                    }
+                ],
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 0,
+                            "end": 0,
+                            "kind": "handler",
+                            "mirror": 120,
+                            "read": "port.MONO.IP0"
+                        },
+                        {
+                            "start": 1,
+                            "end": 1,
+                            "kind": "handler",
+                            "mirror": 120,
+                            "read": "port.MONO.IP1"
+                        },
+                        {
+                            "start": 2,
+                            "end": 2,
+                            "kind": "handler",
+                            "mirror": 120,
+                            "read": "port.MONO.IP2"
+                        },
+                        {
+                            "start": 3,
+                            "end": 3,
+                            "kind": "handler",
+                            "mirror": 120,
+                            "read": "port.MONO.IP3"
+                        },
+                        {
+                            "start": 4,
+                            "end": 4,
+                            "kind": "handler",
+                            "mirror": 120,
+                            "read": "port.MONO.IP4"
+                        },
+                        {
+                            "start": 5,
+                            "end": 5,
+                            "kind": "handler",
+                            "mirror": 120,
+                            "write": "mcr3_state.mcrmono_control_port_w",
+                            "handlerWidth": 8
+                        },
+                        {
+                            "start": 7,
+                            "end": 7,
+                            "kind": "handler",
+                            "mirror": 120,
+                            "write": "watchdog.reset_w"
+                        },
+                        {
+                            "start": 240,
+                            "end": 243,
+                            "kind": "handler",
+                            "mirror": 12,
+                            "read": "ctc.read",
+                            "write": "ctc.write"
+                        },
+                        {
+                            "start": 4,
+                            "end": 4,
+                            "kind": "handler",
+                            "read": "mcr3_state.rampage_ip4_r"
+                        },
+                        {
+                            "start": 6,
+                            "end": 6,
+                            "kind": "handler",
+                            "write": "mcr3_state.rampage_op6_w"
+                        }
+                    ],
+                    "globalMask": 255,
+                    "space": {
+                        "ownerTag": "maincpu",
+                        "name": "io",
+                        "dataWidth": 8,
+                        "addressShift": 0,
+                        "endianness": "big"
+                    }
+                },
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 5000000,
+                "source": {
+                    "file": "src/mame/bally/mcr3.cpp",
+                    "line": 1086,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "sg:cpu",
+                "type": "m68000",
+                "clock": 8000000,
+                "region": "sg:cpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 262143,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 393216,
+                        "end": 393223,
+                        "kind": "handler",
+                        "mirror": 65520,
+                        "umask": 65280,
+                        "read": "sg:pia.read_alt",
+                        "write": "sg:pia.write_alt"
+                    },
+                    {
+                        "start": 458752,
+                        "end": 462847,
+                        "kind": "ram",
+                        "mirror": 61440
+                    }
+                ],
+                "mask": 524287,
+                "space": {
+                    "ownerTag": "sg:cpu",
+                    "name": "program",
+                    "dataWidth": 16,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 8000000,
+                "source": {
+                    "file": "src/mame/bally/midway_sound.cpp",
+                    "line": 607,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 5000000,
+                "cycleClock": 5000000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            },
+            {
+                "tag": "sg:cpu",
+                "kind": "cpu",
+                "clock": 8000000,
+                "cycleClock": 8000000,
+                "space": {
+                    "ownerTag": "sg:cpu",
+                    "name": "program",
+                    "dataWidth": 16,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "paletteram",
+                "member": "m_paletteram"
+            },
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            }
+        ],
+        "startHandlers": [
+            "mcr3_state.video_start"
+        ],
+        "resetHandlers": [
+            "mcr_state.machine_reset"
+        ],
+        "screen": {
+            "width": 512,
+            "height": 480,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 30,
+            "htotal": 512,
+            "vtotal": 480,
+            "vbstart": 480,
+            "vbend": 0,
+            "updateMode": "frame",
+            "rotate": 0,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "scanlineCallback": "mcr_interrupt",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1105,
+                "column": 2
+            }
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:mcr3_state.mcrmono/scantimer/callback:scantimer:0",
+                "ownerTag": "scantimer",
+                "signal": "configure_scanline",
+                "line": 0,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/bally/mcr3.cpp",
+                    "line": 1091,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:mcr3_state.mcrmono/scantimer/callback:scantimer:0",
+                "ownerTag": "scantimer",
+                "signal": "configure_scanline",
+                "line": 240,
+                "state": 240,
+                "source": {
+                    "file": "src/mame/bally/mcr3.cpp",
+                    "line": 1091,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "mcr3_state.screen_update_mcr3",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/bally/mcr3_v.cpp",
+                "line": 241,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:mcr3_state.mcrmono/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 5000000,
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1086,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/scantimer",
+            "tag": "scantimer",
+            "type": "TIMER",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1091,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/ctc",
+            "tag": "ctc",
+            "type": "Z80CTC",
+            "member": "m_ctc",
+            "clock": 5000000
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1097,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/nvram",
+            "tag": "nvram",
+            "type": "NVRAM",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1099,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER",
+            "clock": 2,
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1102,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_refresh_hz",
+                    "args": [
+                        30
+                    ]
+                },
+                {
+                    "method": "set_size",
+                    "args": [
+                        512,
+                        480
+                    ]
+                },
+                {
+                    "method": "set_visarea",
+                    "args": [
+                        0,
+                        511,
+                        0,
+                        479
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1105,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1114,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mcrmono/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1115,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mcr3_state.mono_sg/sg",
+            "tag": "sg",
+            "type": "MIDWAY_SOUNDS_GOOD",
+            "className": "midway_sounds_good_device",
+            "classHierarchy": [
+                "midway_sounds_good_device"
+            ],
+            "member": "m_sounds_good",
+            "clock": 16000000,
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 1151,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/cpu",
+            "tag": "sg:cpu",
+            "type": "M68000",
+            "hostTag": "sg",
+            "member": "m_cpu",
+            "clock": 8000000,
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 607,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/pia",
+            "tag": "sg:pia",
+            "type": "PIA6821",
+            "hostTag": "sg",
+            "member": "m_pia",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 610,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/dac",
+            "tag": "sg:dac",
+            "type": "AD7533",
+            "hostTag": "sg",
+            "member": "m_dac",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 616,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/dac_filter2",
+            "tag": "sg:dac_filter2",
+            "type": "FILTER_BIQUAD",
+            "hostTag": "sg",
+            "member": "m_dac_filter[2]",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 620,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/dac_filter1",
+            "tag": "sg:dac_filter1",
+            "type": "FILTER_BIQUAD",
+            "hostTag": "sg",
+            "member": "m_dac_filter[1]",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 623,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:midway_sounds_good_device.device_add_mconfig/dac_filter0",
+            "tag": "sg:dac_filter0",
+            "type": "FILTER_BIQUAD",
+            "hostTag": "sg",
+            "member": "m_dac_filter[0]",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 626,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:mcr3_state.mcrmono_control_port_w",
+            "ownerClass": "mcr3_state",
+            "method": "mcrmono_control_port_w",
+            "parameters": "uint8_t data",
+            "body": "/*\n\t    Bit layout is as follows:\n\t        D7 = n/c\n\t        D6 = cocktail flip\n\t        D5 = n/c\n\t        D4 = n/c\n\t        D3 = n/c\n\t        D2 = n/c\n\t        D1 = n/c\n\t        D0 = coin meter 1\n\t*/\n\n\tmachine().bookkeeping().coin_counter_w(0, (data >> 0) & 1);\n\tm_mcr_cocktail_flip = (data >> 6) & 1;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_mcr_cocktail_flip"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 6
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 122,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mcr3_state.rampage_ip4_r",
+            "ownerClass": "mcr3_state",
+            "method": "rampage_ip4_r",
+            "body": "return ioport(\"MONO.IP4\")->read() | (m_sounds_good->read() << 7);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "ioport"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "string",
+                                                "value": "MONO.IP4"
+                                            }
+                                        ]
+                                    },
+                                    "property": "read"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_sounds_good"
+                                        },
+                                        "property": "read"
+                                    },
+                                    "args": []
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 7
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 281,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mcr3_state.rampage_op6_w",
+            "ownerClass": "mcr3_state",
+            "method": "rampage_op6_w",
+            "parameters": "uint8_t data",
+            "body": "/* bit 5 controls reset of the Sounds Good board */\n\tm_sounds_good->reset_write((~data >> 5) & 1);\n\n\t/* low 5 bits go directly to the Sounds Good board */\n\tm_sounds_good->write(data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_sounds_good"
+                                },
+                                "property": "reset_write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_sounds_good"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 287,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mcr3_state.mcr_paletteram9_w",
+            "ownerClass": "mcr3_state",
+            "method": "mcr_paletteram9_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "// palette RAM is actually 9 bit (a 93419 SRAM)\n\t// however, there is no way for the CPU to read back\n\t// the high bit, because D8 of the SRAM is connected\n\t// to A0 of the bus rather than to a data line\n\tm_paletteram[offset] = data;\n\tmcr_set_color(offset / 2, data | ((offset & 1) << 8));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_paletteram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "mcr_set_color"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "/",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offset"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr_v.cpp",
+                "line": 162,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mcr_state.mcr_set_color",
+            "ownerClass": "mcr_state",
+            "method": "mcr_set_color",
+            "parameters": "int index, int data",
+            "body": "m_palette->set_pen_color(index, pal3bit(data >> 6), pal3bit(data >> 0), pal3bit(data >> 3));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_palette"
+                                },
+                                "property": "set_pen_color"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "index"
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal3bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 6
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal3bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal3bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr_v.cpp",
+                "line": 127,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mcr3_state.mcr3_videoram_w",
+            "ownerClass": "mcr3_state",
+            "method": "mcr3_videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset / 2);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "/",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3_v.cpp",
+                "line": 119,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_w",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_w",
+            "source": {
+                "file": "src/mame/bally/mcr.cpp",
+                "line": 790,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:z80ctc_device.read",
+            "ownerClass": "z80ctc_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/bally/mcr.cpp",
+                "line": 818,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:z80ctc_device.write",
+            "ownerClass": "z80ctc_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/bally/mcr.cpp",
+                "line": 818,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:pia6821_device.read_alt",
+            "ownerClass": "pia6821_device",
+            "method": "read_alt",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 763,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:pia6821_device.write_alt",
+            "ownerClass": "pia6821_device",
+            "method": "write_alt",
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 763,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mcr_state.machine_reset",
+            "ownerClass": "mcr_state",
+            "method": "machine_reset",
+            "body": "/* reset cocktail flip */\n\tm_mcr_cocktail_flip = 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_mcr_cocktail_flip"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr_m.cpp",
+                "line": 93,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mcr3_state.video_start",
+            "ownerClass": "mcr3_state",
+            "method": "video_start",
+            "body": "// initialize the background tilemap\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(mcr3_state::mcrmono_get_bg_tile_info)), TILEMAP_SCAN_ROWS, 16,16, 32,30);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "mcr3_state::mcrmono_get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 16
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 16
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 30
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3_v.cpp",
+                "line": 86,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mcr3_state.mcrmono_get_bg_tile_info",
+            "ownerClass": "mcr3_state",
+            "method": "mcrmono_get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int data = m_videoram[tile_index * 2] | (m_videoram[tile_index * 2 + 1] << 8);\n\tint code = (data & 0x3ff) | ((data >> 4) & 0x400);\n\tint color = ((data >> 12) & 3) ^ 3;\n\ttileinfo.set(0, code, color, TILE_FLIPYX(data >> 10));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "data",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram"
+                                },
+                                "index": {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "tile_index"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "*",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "tile_index"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1023
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1024
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "^",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 12
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 3
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "TILE_FLIPYX"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 10
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3_v.cpp",
+                "line": 29,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:mcr3_state.mcr_interrupt",
+            "ownerClass": "mcr3_state",
+            "method": "mcr_interrupt",
+            "parameters": "int param",
+            "body": "int scanline = param;\n\n\t/* CTC line 2 is connected to VBLANK, which is once every 1/2 frame */\n\t/* for the 30Hz interlaced display */\n\tif(scanline == 0 || scanline == 240)\n\t{\n\t\tm_ctc->trg2(1);\n\t\tm_ctc->trg2(0);\n\t}\n\n\t/* CTC line 3 is connected to 493, which is signalled once every */\n\t/* frame at 30Hz */\n\tif (scanline == 0)\n\t{\n\t\tm_ctc->trg3(1);\n\t\tm_ctc->trg3(0);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "scanline",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "param"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "||",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "scanline"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "scanline"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 240
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_ctc"
+                                        },
+                                        "property": "trg2"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_ctc"
+                                        },
+                                        "property": "trg2"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "scanline"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_ctc"
+                                        },
+                                        "property": "trg3"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_ctc"
+                                        },
+                                        "property": "trg3"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr_m.cpp",
+                "line": 107,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:z80ctc_device.trg1",
+            "ownerClass": "z80ctc_device",
+            "method": "trg1",
+            "source": {
+                "file": "src/mame/bally/mcr.cpp",
+                "line": 1784,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mcr3_state.screen_update_mcr3",
+            "ownerClass": "mcr3_state",
+            "method": "screen_update_mcr3",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "/* update the flip state */\n\tm_bg_tilemap->set_flip(m_mcr_cocktail_flip ? (TILEMAP_FLIPX | TILEMAP_FLIPY) : 0);\n\n\t/* draw the background */\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\t/* draw the sprites */\n\tmcr3_update_sprites(screen, bitmap, cliprect, 0x03, 0, 0, 0, 1);\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_flip"
+                            },
+                            "args": [
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "m_mcr_cocktail_flip"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "TILEMAP_FLIPX"
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "TILEMAP_FLIPY"
+                                        }
+                                    },
+                                    "whenFalse": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "mcr3_update_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 3
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3_v.cpp",
+                "line": 241,
+                "column": 1
+            },
+            "constants": {
+                "TILEMAP_FLIPX": 1,
+                "TILEMAP_FLIPY": 2
+            }
+        },
+        {
+            "id": "handler:mcr3_state.mcr3_update_sprites",
+            "ownerClass": "mcr3_state",
+            "method": "mcr3_update_sprites",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int color_mask, int code_xor, int dx, int dy, int interlaced",
+            "body": "m_screen->priority().fill(1, cliprect);\n\n\t/* loop over sprite RAM */\n\tfor (int offs = m_spriteram.bytes() - 4; offs >= 0; offs -= 4)\n\t{\n\t\t/* skip if zero */\n\t\tif (m_spriteram[offs] == 0)\n\t\t\tcontinue;\n\n/*\n    monoboard:\n        flags.d0 -> ICG0~ -> PCG0~/PCG2~/PCG4~/PCG6~ -> bit 4 of linebuffer\n        flags.d1 -> ICG1~ -> PCG1~/PCG3~/PCG5~/PCG7~ -> bit 5 of linebuffer\n        flags.d2 -> IPPR  -> PPR0 /PPR1 /PPR2 /PPR3  -> bit 6 of linebuffer\n        flags.d3 -> IRA15 ----------------------------> address line 15 of FG ROMs\n        flags.d4 -> HFLIP\n        flags.d5 -> VFLIP\n\n*/\n\n\t\t/* extract the bits of information */\n\t\tint flags = m_spriteram[offs + 1];\n\t\tint code = m_spriteram[offs + 2] + 256 * ((flags >> 3) & 0x01);\n\t\tint color = ~flags & color_mask;\n\t\tint flipx = flags & 0x10;\n\t\tint flipy = flags & 0x20;\n\t\tint sx = (m_spriteram[offs + 3] - 3) * 2;\n\t\tint sy = (241 - m_spriteram[offs]);\n\n\t\tif (interlaced == 1) sy *= 2;\n\n\t\tcode ^= code_xor;\n\n\t\tsx += dx;\n\t\tsy += dy;\n\n\t\t/* sprites use color 0 for background pen and 8 for the 'under tile' pen.\n\t\t    The color 8 is used to cover over other sprites. */\n\t\tif (!m_mcr_cocktail_flip)\n\t\t{\n\t\t\t/* first draw the sprite, visible */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, flipx, flipy, sx, sy,\n\t\t\t\t\tscreen.priority(), 0x00, 0x0101);\n\n\t\t\t/* then draw the mask, behind the background but obscuring following sprites */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, flipx, flipy, sx, sy,\n\t\t\t\t\tscreen.priority(), 0x02, 0xfeff);\n\t\t}\n\t\telse\n\t\t{\n\t\t\t/* first draw the sprite, visible */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, !flipx, !flipy, 480 - sx, 452 - sy,\n\t\t\t\t\tscreen.priority(), 0x00, 0x0101);\n\n\t\t\t/* then draw the mask, behind the background but obscuring following sprites */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, !flipx, !flipy, 480 - sx, 452 - sy,\n\t\t\t\t\tscreen.priority(), 0x02, 0xfeff);\n\t\t}\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "priority"
+                                    },
+                                    "args": []
+                                },
+                                "property": "fill"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "property": "bytes"
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "-=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "continue"
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "declare",
+                                "name": "flags",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "code",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "*",
+                                        "left": {
+                                            "kind": "number",
+                                            "value": 256
+                                        },
+                                        "right": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "flags"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "color",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "unary",
+                                        "operator": "~",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "flags"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "color_mask"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "flipx",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "flags"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "flipy",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "flags"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "sx",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "-",
+                                        "left": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "sy",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 241
+                                    },
+                                    "right": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "interlaced"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "sy"
+                                        },
+                                        "operator": "*=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                "operator": "^=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "code_xor"
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "sx"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "dx"
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "sy"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "dy"
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "m_mcr_cocktail_flip"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gfxdecode"
+                                                        },
+                                                        "property": "gfx"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "prio_transmask"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipy"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sy"
+                                                },
+                                                {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "screen"
+                                                        },
+                                                        "property": "priority"
+                                                    },
+                                                    "args": []
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 257
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gfxdecode"
+                                                        },
+                                                        "property": "gfx"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "prio_transmask"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipy"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sy"
+                                                },
+                                                {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "screen"
+                                                        },
+                                                        "property": "priority"
+                                                    },
+                                                    "args": []
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 65279
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gfxdecode"
+                                                        },
+                                                        "property": "gfx"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "prio_transmask"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipx"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipy"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "number",
+                                                        "value": 480
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "sx"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "number",
+                                                        "value": 452
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "sy"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "screen"
+                                                        },
+                                                        "property": "priority"
+                                                    },
+                                                    "args": []
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 257
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gfxdecode"
+                                                        },
+                                                        "property": "gfx"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "prio_transmask"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipx"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipy"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "number",
+                                                        "value": 480
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "sx"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "number",
+                                                        "value": 452
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "sy"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "screen"
+                                                        },
+                                                        "property": "priority"
+                                                    },
+                                                    "args": []
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 65279
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/mcr3_v.cpp",
+                "line": 170,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:midway_sounds_good_device.porta_w",
+            "ownerClass": "midway_sounds_good_device",
+            "method": "porta_w",
+            "parameters": "uint8_t data",
+            "body": "m_dacval = (data << 2) | (m_dacval & 3);\n\tm_dac->write(m_dacval);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_dacval"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_dacval"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dac"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_dacval"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 530,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:midway_sounds_good_device.write",
+            "ownerClass": "midway_sounds_good_device",
+            "method": "write",
+            "parameters": "uint8_t data",
+            "body": "machine().scheduler().synchronize(timer_expired_delegate(FUNC(midway_sounds_good_device::synced_write), this), data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "scheduler"
+                                    },
+                                    "args": []
+                                },
+                                "property": "synchronize"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "timer_expired_delegate"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "FUNC"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "midway_sounds_good_device::synced_write"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "this"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 509,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:midway_sounds_good_device.synced_write",
+            "ownerClass": "midway_sounds_good_device",
+            "method": "synced_write",
+            "parameters": "int param",
+            "body": "m_pia->portb_w((param >> 1) & 0x0f);\n\tm_pia->ca1_w(~param & 0x01);\n\n\t// oftentimes games will write one nibble at a time; the sync on this is very\n\t// important, so we boost the interleave briefly while this happens\n\tmachine().scheduler().perfect_quantum(attotime::from_usec(250));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_pia"
+                                },
+                                "property": "portb_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "param"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_pia"
+                                },
+                                "property": "ca1_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "unary",
+                                        "operator": "~",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "param"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "scheduler"
+                                    },
+                                    "args": []
+                                },
+                                "property": "perfect_quantum"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "attotime::from_usec"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 250
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 656,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:midway_sounds_good_device.portb_w",
+            "ownerClass": "midway_sounds_good_device",
+            "method": "portb_w",
+            "parameters": "uint8_t data",
+            "body": "uint8_t z_mask = m_pia->port_b_z_mask();\n\n\tm_dacval = (m_dacval & ~3) | (data >> 6);\n\tm_dac->write(m_dacval);\n\n\tif (~z_mask & 0x10)  m_status = (m_status & ~1) | ((data >> 4) & 1);\n\tif (~z_mask & 0x20)  m_status = (m_status & ~2) | ((data >> 4) & 2);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "z_mask",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_pia"
+                                },
+                                "property": "port_b_z_mask"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_dacval"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_dacval"
+                                },
+                                "right": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 6
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dac"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_dacval"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "z_mask"
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 16
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_status"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "m_status"
+                                        },
+                                        "right": {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "z_mask"
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_status"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "m_status"
+                                        },
+                                        "right": {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 541,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:midway_sounds_good_device.irq_w",
+            "ownerClass": "midway_sounds_good_device",
+            "method": "irq_w",
+            "parameters": "int state",
+            "body": "int combined_state = m_pia->irq_a_state() | m_pia->irq_b_state();\n\tm_cpu->set_input_line(4, combined_state ? ASSERT_LINE : CLEAR_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "combined_state",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_pia"
+                                    },
+                                    "property": "irq_a_state"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_pia"
+                                    },
+                                    "property": "irq_b_state"
+                                },
+                                "args": []
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_cpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 4
+                                },
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "combined_state"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "ASSERT_LINE"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 557,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:mcr3_state.mcrmono_map",
+            "className": "mcr3_state",
+            "name": "mcrmono_map",
+            "ranges": [
+                {
+                    "id": "map:mcr3_state.mcrmono_map/range0",
+                    "start": 0,
+                    "end": 57343,
+                    "raw": "map(0x0000, 0xdfff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 57343,
+                        "raw": "map(0x0000, 0xdfff).rom()",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 482,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 482,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 482,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_map/range1",
+                    "start": 57344,
+                    "end": 59391,
+                    "raw": "map(0xe000, 0xe7ff).ram().share(\"nvram\")",
+                    "props": {
+                        "start": 57344,
+                        "end": 59391,
+                        "raw": "map(0xe000, 0xe7ff).ram().share(\"nvram\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 483,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 483,
+                        "ram": true,
+                        "share": "nvram"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 483,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_map/range2",
+                    "start": 59392,
+                    "end": 59903,
+                    "raw": "map(0xe800, 0xe9ff).ram().share(\"spriteram\")",
+                    "props": {
+                        "start": 59392,
+                        "end": 59903,
+                        "raw": "map(0xe800, 0xe9ff).ram().share(\"spriteram\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 484,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 484,
+                        "ram": true,
+                        "share": "spriteram"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 484,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_map/range3",
+                    "start": 59904,
+                    "end": 60415,
+                    "raw": "map(0xea00, 0xebff).ram()",
+                    "props": {
+                        "start": 59904,
+                        "end": 60415,
+                        "raw": "map(0xea00, 0xebff).ram()",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 485,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 485,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 485,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_map/range4",
+                    "start": 60416,
+                    "end": 60543,
+                    "raw": "map(0xec00, 0xec7f).mirror(0x0380).w(FUNC(mcr3_state::mcr_paletteram9_w)).share(\"paletteram\")",
+                    "write": "mcr3_state.mcr_paletteram9_w",
+                    "props": {
+                        "start": 60416,
+                        "end": 60543,
+                        "raw": "map(0xec00, 0xec7f).mirror(0x0380).w(FUNC(mcr3_state::mcr_paletteram9_w)).share(\"paletteram\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 486,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 486,
+                        "mirror": 896,
+                        "share": "paletteram"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 486,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_map/range5",
+                    "start": 61440,
+                    "end": 63487,
+                    "raw": "map(0xf000, 0xf7ff).ram().w(FUNC(mcr3_state::mcr3_videoram_w)).share(\"videoram\")",
+                    "write": "mcr3_state.mcr3_videoram_w",
+                    "props": {
+                        "start": 61440,
+                        "end": 63487,
+                        "raw": "map(0xf000, 0xf7ff).ram().w(FUNC(mcr3_state::mcr3_videoram_w)).share(\"videoram\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 487,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 487,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 487,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_map/range6",
+                    "start": 63488,
+                    "end": 65535,
+                    "raw": "map(0xf800, 0xffff).rom()",
+                    "props": {
+                        "start": 63488,
+                        "end": 65535,
+                        "raw": "map(0xf800, 0xffff).rom()",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 488,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 488,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 488,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 479,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:mcr3_state.mcrmono_portmap",
+            "className": "mcr3_state",
+            "name": "mcrmono_portmap",
+            "ranges": [
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range0",
+                    "start": 0,
+                    "end": 0,
+                    "raw": "map(0x00, 0x00).mirror(0x78).portr(\"MONO.IP0\")",
+                    "props": {
+                        "start": 0,
+                        "end": 0,
+                        "raw": "map(0x00, 0x00).mirror(0x78).portr(\"MONO.IP0\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 496,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 496,
+                        "mirror": 120,
+                        "portRead": "MONO.IP0"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 496,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range1",
+                    "start": 1,
+                    "end": 1,
+                    "raw": "map(0x01, 0x01).mirror(0x78).portr(\"MONO.IP1\")",
+                    "props": {
+                        "start": 1,
+                        "end": 1,
+                        "raw": "map(0x01, 0x01).mirror(0x78).portr(\"MONO.IP1\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 497,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 497,
+                        "mirror": 120,
+                        "portRead": "MONO.IP1"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 497,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range2",
+                    "start": 2,
+                    "end": 2,
+                    "raw": "map(0x02, 0x02).mirror(0x78).portr(\"MONO.IP2\")",
+                    "props": {
+                        "start": 2,
+                        "end": 2,
+                        "raw": "map(0x02, 0x02).mirror(0x78).portr(\"MONO.IP2\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 498,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 498,
+                        "mirror": 120,
+                        "portRead": "MONO.IP2"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 498,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range3",
+                    "start": 3,
+                    "end": 3,
+                    "raw": "map(0x03, 0x03).mirror(0x78).portr(\"MONO.IP3\")",
+                    "props": {
+                        "start": 3,
+                        "end": 3,
+                        "raw": "map(0x03, 0x03).mirror(0x78).portr(\"MONO.IP3\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 499,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 499,
+                        "mirror": 120,
+                        "portRead": "MONO.IP3"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 499,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range4",
+                    "start": 4,
+                    "end": 4,
+                    "raw": "map(0x04, 0x04).mirror(0x78).portr(\"MONO.IP4\")",
+                    "props": {
+                        "start": 4,
+                        "end": 4,
+                        "raw": "map(0x04, 0x04).mirror(0x78).portr(\"MONO.IP4\")",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 500,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 500,
+                        "mirror": 120,
+                        "portRead": "MONO.IP4"
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 500,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range5",
+                    "start": 5,
+                    "end": 5,
+                    "raw": "map(0x05, 0x05).mirror(0x78).w(FUNC(mcr3_state::mcrmono_control_port_w))",
+                    "write": "mcr3_state.mcrmono_control_port_w",
+                    "props": {
+                        "start": 5,
+                        "end": 5,
+                        "raw": "map(0x05, 0x05).mirror(0x78).w(FUNC(mcr3_state::mcrmono_control_port_w))",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 501,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 501,
+                        "mirror": 120
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 501,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range6",
+                    "start": 7,
+                    "end": 7,
+                    "raw": "map(0x07, 0x07).mirror(0x78).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                    "write": "watchdog.reset_w",
+                    "props": {
+                        "start": 7,
+                        "end": 7,
+                        "raw": "map(0x07, 0x07).mirror(0x78).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 502,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 502,
+                        "mirror": 120
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 502,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mcr3_state.mcrmono_portmap/range7",
+                    "start": 240,
+                    "end": 243,
+                    "raw": "map(0xf0, 0xf3).mirror(0x0c).rw(m_ctc, FUNC(z80ctc_device::read), FUNC(z80ctc_device::write))",
+                    "read": "ctc.read",
+                    "write": "ctc.write",
+                    "props": {
+                        "start": 240,
+                        "end": 243,
+                        "raw": "map(0xf0, 0xf3).mirror(0x0c).rw(m_ctc, FUNC(z80ctc_device::read), FUNC(z80ctc_device::write))",
+                        "sourceFile": "src/mame/bally/mcr3.cpp",
+                        "sourceLine": 503,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 503,
+                        "mirror": 12
+                    },
+                    "source": {
+                        "file": "src/mame/bally/mcr3.cpp",
+                        "line": 503,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/bally/mcr3.cpp",
+                "line": 492,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:midway_sounds_good_device.soundsgood_map",
+            "className": "midway_sounds_good_device",
+            "name": "soundsgood_map",
+            "ranges": [
+                {
+                    "id": "map:midway_sounds_good_device.soundsgood_map/range0",
+                    "start": 0,
+                    "end": 262143,
+                    "raw": "map(0x000000, 0x03ffff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 262143,
+                        "raw": "map(0x000000, 0x03ffff).rom()",
+                        "sourceFile": "src/mame/bally/midway_sound.cpp",
+                        "sourceLine": 595,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 595,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/bally/midway_sound.cpp",
+                        "line": 595,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:midway_sounds_good_device.soundsgood_map/range1",
+                    "start": 393216,
+                    "end": 393223,
+                    "raw": "map(0x060000, 0x060007).mirror(0x00fff0).rw(m_pia, FUNC(pia6821_device::read_alt), FUNC(pia6821_device::write_alt)).umask16(0xff00)",
+                    "read": "sg:pia.read_alt",
+                    "write": "sg:pia.write_alt",
+                    "props": {
+                        "start": 393216,
+                        "end": 393223,
+                        "raw": "map(0x060000, 0x060007).mirror(0x00fff0).rw(m_pia, FUNC(pia6821_device::read_alt), FUNC(pia6821_device::write_alt)).umask16(0xff00)",
+                        "sourceFile": "src/mame/bally/midway_sound.cpp",
+                        "sourceLine": 596,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 596,
+                        "mirror": 65520,
+                        "umask": 65280
+                    },
+                    "source": {
+                        "file": "src/mame/bally/midway_sound.cpp",
+                        "line": 596,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:midway_sounds_good_device.soundsgood_map/range2",
+                    "start": 458752,
+                    "end": 462847,
+                    "raw": "map(0x070000, 0x070fff).mirror(0x00f000).ram()",
+                    "props": {
+                        "start": 458752,
+                        "end": 462847,
+                        "raw": "map(0x070000, 0x070fff).mirror(0x00f000).ram()",
+                        "sourceFile": "src/mame/bally/midway_sound.cpp",
+                        "sourceLine": 597,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 597,
+                        "mirror": 61440,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/bally/midway_sound.cpp",
+                        "line": 597,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/bally/midway_sound.cpp",
+                "line": 591,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_mcr12_sprite_xoffs_flip",
+            "bits": 8,
+            "signed": true
+        },
+        {
+            "name": "m_input_mux",
+            "bits": 8
+        },
+        {
+            "name": "m_last_op4",
+            "bits": 8
+        },
+        {
+            "name": "m_mcr_cocktail_flip",
+            "bits": 8
+        },
+        {
+            "name": "m_mcr_cpu_board",
+            "bits": 32
+        },
+        {
+            "name": "m_mcr_sprite_board",
+            "bits": 32
+        },
+        {
+            "name": "m_mcr12_sprite_xoffs",
+            "bits": 8,
+            "signed": true
+        },
+        {
+            "name": "m_latched_input",
+            "bits": 8
+        },
+        {
+            "name": "m_spyhunt_sprite_color_mask",
+            "bits": 8
+        },
+        {
+            "name": "m_spyhunt_scroll_offset",
+            "bits": 16,
+            "signed": true
+        },
+        {
+            "name": "m_spyhunt_scrollx",
+            "bits": 16,
+            "signed": true
+        },
+        {
+            "name": "m_spyhunt_scrolly",
+            "bits": 16,
+            "signed": true
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "gfx1",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 4,
+                "xscale": 2,
+                "yscale": 2,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": "RGN_FRAC(1,2)",
+                    "planes": 4,
+                    "planeOffsets": [
+                        "RGN_FRAC(1,2)",
+                        "RGN_FRAC(1,2)+1",
+                        "RGN_FRAC(0,2)",
+                        "RGN_FRAC(0,2)+1"
+                    ],
+                    "xOffsets": [
+                        0,
+                        2,
+                        4,
+                        6,
+                        8,
+                        10,
+                        12,
+                        14
+                    ],
+                    "yOffsets": [
+                        0,
+                        16,
+                        32,
+                        48,
+                        64,
+                        80,
+                        96,
+                        112
+                    ],
+                    "charIncrement": 128
+                }
+            },
+            {
+                "region": "gfx2",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 4,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 32,
+                    "height": 32,
+                    "total": "RGN_FRAC(1,4)",
+                    "planes": 4,
+                    "planeOffsets": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "xOffsets": [
+                        "RGN_FRAC(0,4)+0",
+                        "RGN_FRAC(0,4)+0+4",
+                        "RGN_FRAC(1,4)+0",
+                        "RGN_FRAC(1,4)+0+4",
+                        "RGN_FRAC(2,4)+0",
+                        "RGN_FRAC(2,4)+0+4",
+                        "RGN_FRAC(3,4)+0",
+                        "RGN_FRAC(3,4)+0+4",
+                        "RGN_FRAC(0,4)+8",
+                        "RGN_FRAC(0,4)+8+4",
+                        "RGN_FRAC(1,4)+8",
+                        "RGN_FRAC(1,4)+8+4",
+                        "RGN_FRAC(2,4)+8",
+                        "RGN_FRAC(2,4)+8+4",
+                        "RGN_FRAC(3,4)+8",
+                        "RGN_FRAC(3,4)+8+4",
+                        "RGN_FRAC(0,4)+16",
+                        "RGN_FRAC(0,4)+16+4",
+                        "RGN_FRAC(1,4)+16",
+                        "RGN_FRAC(1,4)+16+4",
+                        "RGN_FRAC(2,4)+16",
+                        "RGN_FRAC(2,4)+16+4",
+                        "RGN_FRAC(3,4)+16",
+                        "RGN_FRAC(3,4)+16+4",
+                        "RGN_FRAC(0,4)+24",
+                        "RGN_FRAC(0,4)+24+4",
+                        "RGN_FRAC(1,4)+24",
+                        "RGN_FRAC(1,4)+24+4",
+                        "RGN_FRAC(2,4)+24",
+                        "RGN_FRAC(2,4)+24+4",
+                        "RGN_FRAC(3,4)+24",
+                        "RGN_FRAC(3,4)+24+4"
+                    ],
+                    "yOffsets": [
+                        0,
+                        32,
+                        64,
+                        96,
+                        128,
+                        160,
+                        192,
+                        224,
+                        256,
+                        288,
+                        320,
+                        352,
+                        384,
+                        416,
+                        448,
+                        480,
+                        512,
+                        544,
+                        576,
+                        608,
+                        640,
+                        672,
+                        704,
+                        736,
+                        768,
+                        800,
+                        832,
+                        864,
+                        896,
+                        928,
+                        960,
+                        992
+                    ],
+                    "charIncrement": 1024
+                }
+            }
+        ],
+        "ramPalette": {
+            "tag": "paletteram",
+            "entries": 64,
+            "bytesPerEntry": 1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": 3,
+                    "shift": 6
+                },
+                {
+                    "channel": "g",
+                    "bits": 3,
+                    "shift": 0
+                },
+                {
+                    "channel": "b",
+                    "bits": 3,
+                    "shift": 3
+                }
+            ],
+            "source": {
+                "file": "src/mame/bally/mcr_v.cpp",
+                "line": 127,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 16,
+                "tileHeight": 16,
+                "columns": 32,
+                "rows": 30,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "mcr3_state.mcrmono_get_bg_tile_info",
+                "source": {
+                    "file": "src/mame/bally/mcr3_v.cpp",
+                    "line": 86,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {
+            "m_custom_input_mask": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "m_custom_output_mask": [
+                0,
+                0
+            ]
+        },
+        "source": {
+            "file": "src/mame/bally/mcr3_v.cpp",
+            "line": 86,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "dac",
+        "deviceTag": "sg:dac",
+        "deviceTags": [
+            "sg:dac"
+        ],
+        "deviceType": "AD7533",
+        "deviceTypes": [
+            "AD7533"
+        ],
+        "dacs": [
+            {
+                "deviceTag": "sg:dac",
+                "bits": 10,
+                "mapper": "unsigned",
+                "gain": 1
+            }
+        ],
+        "writeMethods": [
+            "data_w",
+            "write"
+        ],
+        "filterChain": [
+            {
+                "deviceTag": "dac_filter0",
+                "type": "lowpass1p",
+                "frequency": 4912.189601601708,
+                "q": 0.7071067811865476,
+                "gain": -1,
+                "source": {
+                    "file": "src/mame/bally/midway_sound.cpp",
+                    "line": 626
+                }
+            },
+            {
+                "deviceTag": "dac_filter1",
+                "type": "lowpass",
+                "frequency": 5310.690763135862,
+                "q": 1.608630368175259,
+                "gain": -1,
+                "source": {
+                    "file": "src/mame/bally/midway_sound.cpp",
+                    "line": 623
+                }
+            },
+            {
+                "deviceTag": "dac_filter2",
+                "type": "lowpass",
+                "frequency": 5404.717733317558,
+                "q": 0.6252104193641369,
+                "gain": -1,
+                "source": {
+                    "file": "src/mame/bally/midway_sound.cpp",
+                    "line": 620
+                }
+            }
+        ],
+        "enableMethods": [],
+        "controlOffset": -1
+    }
+}

@@ -1,0 +1,220 @@
+{
+  "game": "junglek",
+  "title": "Jungle King (Japan) (Taito, 1982)",
+  "fullname": "Jungle King (Japan)",
+  "year": "1982",
+  "manufacturer": "Taito",
+  "family": "taitosj",
+  "driverFile": "src/mame/taito/taitosj.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-14",
+    "commits": 218,
+    "contributors": 32,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 66,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 34,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-11-06"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 26,
+        "firstCommit": "2016-09-26",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 18,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2023-05-08"
+      },
+      {
+        "name": "hap",
+        "commits": 11,
+        "firstCommit": "2016-01-24",
+        "lastCommit": "2026-04-08"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 8,
+        "firstCommit": "2016-01-19",
+        "lastCommit": "2017-09-01"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 6,
+        "firstCommit": "2008-01-11",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 5,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-07-15"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "angelosa",
+        "commits": 3,
+        "firstCommit": "2016-09-16",
+        "lastCommit": "2018-06-08"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-05-07"
+      },
+      {
+        "name": "braintro",
+        "commits": 2,
+        "firstCommit": "2020-04-15",
+        "lastCommit": "2020-04-15"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2023-01-03"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2012-09-17",
+        "lastCommit": "2012-10-25"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2011-09-22",
+        "lastCommit": "2016-11-30"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 2,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-03",
+        "lastCommit": "2008-08-03"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2010-11-22",
+        "lastCommit": "2010-11-22"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2010-07-11",
+        "lastCommit": "2010-07-11"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "davidhay",
+        "commits": 1,
+        "firstCommit": "2008-11-20",
+        "lastCommit": "2008-11-20"
+      },
+      {
+        "name": "fipppi",
+        "commits": 1,
+        "firstCommit": "2026-04-07",
+        "lastCommit": "2026-04-07"
+      },
+      {
+        "name": "James Charles Taylor",
+        "commits": 1,
+        "firstCommit": "2026-07-14",
+        "lastCommit": "2026-07-14"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 1,
+        "firstCommit": "2008-04-04",
+        "lastCommit": "2008-04-04"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-01-12",
+        "lastCommit": "2008-01-12"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2013-01-01",
+        "lastCommit": "2013-01-01"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

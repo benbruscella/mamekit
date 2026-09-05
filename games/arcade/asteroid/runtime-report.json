@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "asteroid",
+  "family": "asteroid",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 90,
+    "total": 116,
+    "percent": 77.6
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "dsw_sel:TTL153",
+        "status": "executable",
+        "source": "src/devices/machine/74153.cpp:19"
+      },
+      {
+        "name": "outlatch:OUTPUT_LATCH",
+        "status": "executable",
+        "source": "src/devices/machine/output_latch.cpp:6"
+      },
+      {
+        "name": "vector:VECTOR",
+        "status": "executable",
+        "source": "src/devices/video/vector.cpp:53"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "dvg:DVG",
+        "status": "executable",
+        "source": "src/devices/video/avgdvg.cpp:1498"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "discrete:DISCRETE",
+        "status": "declarative-host",
+        "source": "src/devices/sound/discrete.cpp:50"
+      },
+      {
+        "name": "audiolatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "asteroid_state.asteroid_DSW1_r",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_m.cpp:91"
+      },
+      {
+        "name": "asteroid_state.asteroid_IN0_r",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_m.cpp:45"
+      },
+      {
+        "name": "asteroid_state.asteroid_IN1_r",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_m.cpp:77"
+      },
+      {
+        "name": "asteroid_state.asteroid_explode_w",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:284"
+      },
+      {
+        "name": "asteroid_state.asteroid_noise_reset_w",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:312"
+      },
+      {
+        "name": "asteroid_state.asteroid_thump_w",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:306"
+      },
+      {
+        "name": "audiolatch.write_d7",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "bank.ram1",
+        "status": "generated"
+      },
+      {
+        "name": "bank.ram2",
+        "status": "generated"
+      },
+      {
+        "name": "dvg.go_w",
+        "status": "executable",
+        "source": "src/devices/video/avgdvg.cpp:1498"
+      },
+      {
+        "name": "outlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/output_latch.cpp:6"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_periodic_int -> asteroid_state.asteroid_interrupt",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid.cpp:839"
+      },
+      {
+        "name": "outlatch.bit_handler<2> -> asteroid_state.cocktail_inv_w",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid.cpp:850"
+      },
+      {
+        "name": "outlatch.bit_handler<3> -> asteroid_state.coin_counter_left_w",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid.cpp:851"
+      },
+      {
+        "name": "outlatch.bit_handler<4> -> asteroid_state.coin_counter_center_w",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid.cpp:852"
+      },
+      {
+        "name": "outlatch.bit_handler<5> -> asteroid_state.coin_counter_right_w",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid.cpp:853"
+      },
+      {
+        "name": "screen.set_screen_update -> vector.screen_update",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid.cpp:861"
+      },
+      {
+        "name": "audiolatch.q_out_cb<0> -> discrete.write_line_ASTEROID_SAUCER_SND_EN",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:325"
+      },
+      {
+        "name": "audiolatch.q_out_cb<1> -> discrete.write_line_ASTEROID_SAUCER_FIRE_EN",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:326"
+      },
+      {
+        "name": "audiolatch.q_out_cb<2> -> discrete.write_line_ASTEROID_SAUCER_SEL",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:327"
+      },
+      {
+        "name": "audiolatch.q_out_cb<3> -> discrete.write_line_ASTEROID_THRUST_EN",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:328"
+      },
+      {
+        "name": "audiolatch.q_out_cb<4> -> discrete.write_line_ASTEROID_SHIP_FIRE_EN",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:329"
+      },
+      {
+        "name": "audiolatch.q_out_cb<5> -> discrete.write_line_ASTEROID_LIFE_EN",
+        "status": "generated",
+        "source": "src/mame/atari/asteroid_a.cpp:330"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/asteroid/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 14,
+    "compiledMethods": 14,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 6,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 1,
+    "screenUpdate": "vector_device.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 9,
+    "generated": 22,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

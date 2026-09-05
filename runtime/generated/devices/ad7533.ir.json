@@ -1,0 +1,30 @@
+{
+  "type": "AD7533",
+  "uses": [
+    {
+      "game": "rampage",
+      "tags": [
+        "dac"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "AD7533",
+    "className": "ad7533_device",
+    "description": "AD7533 DAC",
+    "shortName": "ad7533",
+    "sourceFile": "src/devices/sound/dac.h",
+    "sourceLine": 203,
+    "sourceColumn": 1,
+    "macro": "DAC_GENERATOR(AD7533,    ad7533_device,    dac_word_device_base, dac_mapper_unsigned, 10, dac_gain_r2r, \"AD7533 DAC\",    \"ad7533\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/dac.h"
+  ],
+  "declaredBy": [
+    "midway_sounds_good_device"
+  ]
+}

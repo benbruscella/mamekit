@@ -1,0 +1,3449 @@
+{
+    "schemaVersion": 4,
+    "game": "gameboy",
+    "family": "gameboy",
+    "driverFile": "src/mame/nintendo/gb.cpp",
+    "callbacks": [
+        {
+            "id": "device:gb_state.gameboy/maincpu/callback:maincpu:0",
+            "ownerTag": "maincpu",
+            "signal": "timer_cb",
+            "operation": "set",
+            "targetClass": "gb_state",
+            "targetMethod": "gb_timer_callback",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1047,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetTag": "ppu",
+            "targetClass": "dmg_ppu_device",
+            "targetMethod": "screen_update",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1053,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/palette/callback:palette_init",
+            "ownerTag": "palette",
+            "signal": "palette_init",
+            "operation": "palette_init",
+            "targetClass": "gb_state",
+            "targetMethod": "gb_palette",
+            "entries": 4,
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1057
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:gb_state.gameboy/maincpu/callback:maincpu:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "gb_state.gb_timer_callback"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1047,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "regionBindings": {
+            "m_region_boot": "maincpu"
+        },
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "lr35902",
+                "clock": 4194304,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 32768,
+                        "end": 40959,
+                        "kind": "handler",
+                        "read": "ppu.vram_r",
+                        "write": "ppu.vram_w"
+                    },
+                    {
+                        "start": 49152,
+                        "end": 57343,
+                        "kind": "ram",
+                        "mirror": 8192
+                    },
+                    {
+                        "start": 65024,
+                        "end": 65279,
+                        "kind": "handler",
+                        "read": "ppu.oam_r",
+                        "write": "ppu.oam_w"
+                    },
+                    {
+                        "start": 65280,
+                        "end": 65295,
+                        "kind": "handler",
+                        "read": "gb_state.gb_io_r",
+                        "write": "gb_state.gb_io_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 65296,
+                        "end": 65318,
+                        "kind": "handler",
+                        "read": "apu.sound_r",
+                        "write": "apu.sound_w"
+                    },
+                    {
+                        "start": 65319,
+                        "end": 65327,
+                        "kind": "nop"
+                    },
+                    {
+                        "start": 65328,
+                        "end": 65343,
+                        "kind": "handler",
+                        "read": "apu.wave_r",
+                        "write": "apu.wave_w"
+                    },
+                    {
+                        "start": 65344,
+                        "end": 65407,
+                        "kind": "handler",
+                        "read": "ppu.video_r",
+                        "write": "gb_state.gb_io2_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 65408,
+                        "end": 65534,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 65535,
+                        "end": 65535,
+                        "kind": "handler",
+                        "read": "gb_state.gb_ie_r",
+                        "write": "gb_state.gb_ie_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 0,
+                        "end": 255,
+                        "kind": "handler",
+                        "viewTag": "m_boot_view",
+                        "viewEntry": 0,
+                        "read": "gb_state.boot_r"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 4194304,
+                "source": {
+                    "file": "src/mame/nintendo/gb.cpp",
+                    "line": 1045,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 4194304,
+                "cycleClock": 4194304,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "resetHandlers": [
+            "base_state.machine_reset",
+            "gb_state.machine_reset"
+        ],
+        "screen": {
+            "width": 160,
+            "height": 144,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 59.72750056960583,
+            "htotal": 456,
+            "vtotal": 154,
+            "vbstart": 144,
+            "vbend": 0,
+            "updateMode": "frame",
+            "rotate": 0,
+            "ownerTag": "ppu",
+            "ownerKind": "device",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1051,
+                "column": 2
+            }
+        },
+        "inputMembers": [
+            {
+                "member": "m_inputs",
+                "tags": [
+                    "INPUTS"
+                ]
+            },
+            {
+                "member": "m_bios_hack",
+                "tags": [
+                    "SKIP_CHECK"
+                ]
+            }
+        ],
+        "frameEvents": [],
+        "screenUpdate": {
+            "handler": "dmg_ppu_device.screen_update",
+            "deviceTag": "ppu",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1188,
+                "column": 2
+            }
+        },
+        "paletteInit": {
+            "handler": "gb_state.gb_palette",
+            "entries": 4,
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1011,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:gb_state.gameboy/maincpu",
+            "tag": "maincpu",
+            "type": "LR35902",
+            "member": "m_maincpu",
+            "clock": 4194304,
+            "configuration": [
+                {
+                    "method": "set_halt_bug",
+                    "args": [
+                        1
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1045,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        4194304,
+                        456,
+                        0,
+                        160,
+                        154,
+                        0,
+                        144
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1051,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1056,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1057,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/ppu",
+            "tag": "ppu",
+            "type": "DMG_PPU",
+            "member": "m_ppu",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1059,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER",
+            "clock": 2,
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1062,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/apu",
+            "tag": "apu",
+            "type": "DMG_APU",
+            "member": "m_apu",
+            "clock": 4194304,
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1064,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:gb_state.gameboy/cartslot",
+            "tag": "cartslot",
+            "type": "GB_CART_SLOT",
+            "member": "m_cartslot",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1069,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:dmg_ppu_device.vram_r",
+            "ownerClass": "dmg_ppu_device",
+            "method": "vram_r",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 948,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:dmg_ppu_device.vram_w",
+            "ownerClass": "dmg_ppu_device",
+            "method": "vram_w",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 948,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:dmg_ppu_device.oam_r",
+            "ownerClass": "dmg_ppu_device",
+            "method": "oam_r",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 950,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:dmg_ppu_device.oam_w",
+            "ownerClass": "dmg_ppu_device",
+            "method": "oam_w",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 950,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gb_state.gb_io_r",
+            "ownerClass": "gb_state",
+            "method": "gb_io_r",
+            "parameters": "offs_t offset",
+            "body": "switch(offset)\n\t{\n\t\tcase 0x04:\n\t\t\tLOG(\"read DIV, divcount = %04x\\n\", m_divcount);\n\t\t\treturn (m_divcount >> 8) & 0xFF;\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\tcase 0x02:\n\t\tcase 0x03:\n\t\tcase 0x05:\n\t\tcase 0x06:\n\t\tcase 0x07:\n\t\t\treturn m_gb_io[offset];\n\t\tcase 0x0F:\n\t\t\t/* Make sure the internal states are up to date */\n\t\t\tm_ppu->update_state();\n\t\t\tLOG(\"read if\\n\");\nlogerror(\"IF read, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\t\treturn 0xE0 | m_maincpu->get_if();\n\t\tdefault:\n\t\t\t/* Unsupported registers return 0xFF */\n\t\t\treturn 0xFF;\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "switch",
+                        "expression": {
+                            "kind": "identifier",
+                            "name": "offset"
+                        },
+                        "cases": [
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TRACE_NOOP"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "m_divcount"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 8
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 255
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 0
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 1
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 2
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 3
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 5
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 6
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 7
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_gb_io"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "offset"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_ppu"
+                                                },
+                                                "property": "update_state"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TRACE_NOOP"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TRACE_NOOP"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 224
+                                            },
+                                            "right": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_maincpu"
+                                                    },
+                                                    "property": "get_if"
+                                                },
+                                                "args": []
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "body": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 255
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 617,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gb_state.gb_io_w",
+            "ownerClass": "gb_state",
+            "method": "gb_io_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "switch (offset)\n\t{\n\tcase 0x00:                      /* JOYP - Joypad */\n\t\tm_gb_io[0x00] = 0xCF | data;\n\t\tif (!(data & 0x20))\n\t\t\tm_gb_io[0x00] &= (m_inputs->read() >> 4) | 0xF0;\n\t\tif (!(data & 0x10))\n\t\t\tm_gb_io[0x00] &= m_inputs->read() | 0xF0;\n\t\treturn;\n\tcase 0x01:                      /* SB - Serial transfer data */\n\t\tbreak;\n\tcase 0x02:                      /* SC - SIO control */\n\t\tswitch (data & 0x81)\n\t\t{\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\t\tm_sio_count = 0;\n\t\t\tbreak;\n\t\tcase 0x80:              /* enabled & external clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\tcase 0x81:              /* enabled & internal clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\t}\nlogerror(\"m_gb_io[0x02] write, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\tdata |= 0x7E; // unused bits stay high\n\t\tbreak;\n\tcase 0x03:\n\t\treturn;\n\tcase 0x04:                      /* DIV - Divider register */\n\t\t/* Force increment of m_gb_io[0x05] register when the 'highest' bit is set */\n\t\tif ((m_divcount >> (m_shift - 1)) & 1)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t}\n\t\tLOG(\"DIV write\\n\");\n\t\tm_divcount = 0;\n\t\treturn;\n\tcase 0x05:                      /* TIMA - Timer counter */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tdata = m_gb_io[0x06];\n\t\t}\n\t\tbreak;\n\tcase 0x06:                      /* TMA - Timer module */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tm_gb_io[0x05] = data;\n\t\t}\n\t\tbreak;\n\tcase 0x07:                      /* TAC - Timer control */\n\t\tdata |= 0xF8;\n\t\t/* Check if timer is just disabled or the timer frequency is changing */\n\t\tif ((!(data & 0x04) && (m_gb_io[0x07] & 0x04)) || ((data & 0x04) && (m_gb_io[0x07] & 0x04) && (data & 0x03) != (m_gb_io[0x07] & 0x03)))\n\t\t{\n\t\t\t/* Check if m_gb_io[0x05] should be incremented */\n\t\t\tif ((m_divcount & (m_shift_cycles - 1)) >= (m_shift_cycles >> 1))\n\t\t\t{\n\t\t\t\tgb_timer_increment();\n\t\t\t}\n\t\t}\n\t\tm_shift = TABLE(data & 0x03, 10, 4, 6, 8);\n\t\tm_shift_cycles = 1 << m_shift;\n\t\tbreak;\n\tcase 0x0F:                      /* IF - Interrupt flag */\n\t\tm_ppu->update_state();\n\t\tLOG(\"write if\\n\");\n\t\tdata &= 0x1F;\n\t\tm_maincpu->set_if(data);\n\t\tbreak;\n\t}\n\n\tm_gb_io[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "switch",
+                        "expression": {
+                            "kind": "identifier",
+                            "name": "offset"
+                        },
+                        "cases": [
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_gb_io"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 207
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "unary",
+                                            "operator": "!",
+                                            "operand": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 32
+                                                }
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_gb_io"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                "operator": "&=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "|",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": ">>",
+                                                        "left": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_inputs"
+                                                                },
+                                                                "property": "read"
+                                                            },
+                                                            "args": []
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 4
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 240
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "unary",
+                                            "operator": "!",
+                                            "operand": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 16
+                                                }
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_gb_io"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                "operator": "&=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "|",
+                                                    "left": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_inputs"
+                                                            },
+                                                            "property": "read"
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 240
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "return"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "switch",
+                                        "expression": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 129
+                                            }
+                                        },
+                                        "cases": [
+                                            {
+                                                "values": [
+                                                    {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    },
+                                                    {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                ],
+                                                "body": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_sio_count"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    },
+                                                    {
+                                                        "op": "break"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "values": [
+                                                    {
+                                                        "kind": "number",
+                                                        "value": 128
+                                                    }
+                                                ],
+                                                "body": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_sio_count"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 16
+                                                        }
+                                                    },
+                                                    {
+                                                        "op": "break"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "values": [
+                                                    {
+                                                        "kind": "number",
+                                                        "value": 129
+                                                    }
+                                                ],
+                                                "body": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_sio_count"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 16
+                                                        }
+                                                    },
+                                                    {
+                                                        "op": "break"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TRACE_NOOP"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "|=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 126
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "return"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "m_divcount"
+                                                },
+                                                "right": {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "m_shift"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "gb_timer_increment"
+                                                    },
+                                                    "args": []
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TRACE_NOOP"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_divcount"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "op": "return"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 5
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&&",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gb_io"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 7
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 4
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "binary",
+                                                    "operator": "==",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gb_io"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 5
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gb_io"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 6
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "==",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "m_divcount"
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": "-",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "m_shift_cycles"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                }
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_gb_io"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 6
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 6
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&&",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gb_io"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 7
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 4
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "binary",
+                                                    "operator": "==",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gb_io"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 5
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gb_io"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 6
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "==",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "m_divcount"
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": "-",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "m_shift_cycles"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                }
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_gb_io"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 5
+                                                    }
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 7
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "|=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 248
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "||",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&&",
+                                                "left": {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 4
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gb_io"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 7
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 4
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "&&",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&&",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 4
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_gb_io"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 7
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 4
+                                                        }
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "binary",
+                                                    "operator": "!=",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 3
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_gb_io"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 7
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 3
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": ">=",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "m_divcount"
+                                                        },
+                                                        "right": {
+                                                            "kind": "binary",
+                                                            "operator": "-",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "m_shift_cycles"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 1
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": ">>",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "m_shift_cycles"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "identifier",
+                                                                "name": "gb_timer_increment"
+                                                            },
+                                                            "args": []
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_shift"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TABLE"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "data"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 3
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 10
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 6
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 8
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_shift_cycles"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "<<",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 1
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "m_shift"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_ppu"
+                                                },
+                                                "property": "update_state"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TRACE_NOOP"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 31
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "set_if"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_gb_io"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 349,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:base_state.gb_timer_increment",
+            "ownerClass": "base_state",
+            "method": "gb_timer_increment",
+            "body": "gb_timer_check_irq();\n\n\tLOG(\"increment timer\\n\");\n\tm_gb_io[0x05] += 1;\n\tif (m_gb_io[0x05] == 0)\n\t{\n\t\tm_triggering_irq = 1;\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "gb_timer_check_irq"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "TRACE_NOOP"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_gb_io"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 5
+                            }
+                        },
+                        "operator": "+=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_gb_io"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 5
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_triggering_irq"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 688,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:base_state.gb_timer_check_irq",
+            "ownerClass": "base_state",
+            "method": "gb_timer_check_irq",
+            "body": "m_reloading = 0;\n\tif (m_triggering_irq)\n\t{\n\t\tm_triggering_irq = 0;\n\t\tif (m_gb_io[0x05] == 0)\n\t\t{\n\t\t\tm_gb_io[0x05] = m_gb_io[0x06];\n\t\t\tm_maincpu->set_input_line(lr35902_cpu_device::TIM_INT, ASSERT_LINE);\n\t\t\t// Make sure the state is updated during the current timeslice in case it is read.\n\t\t\tm_maincpu->execute_set_input(lr35902_cpu_device::TIM_INT, ASSERT_LINE);\n\t\t\tm_reloading = 1;\n\t\t}\n\t}",
+            "constants": {
+                "TIM_INT": 2
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_reloading"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_triggering_irq"
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_triggering_irq"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_gb_io"
+                                        },
+                                        "index": {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_gb_io"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 5
+                                            }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_gb_io"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "set_input_line"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "lr35902_cpu_device::TIM_INT"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "ASSERT_LINE"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "execute_set_input"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "lr35902_cpu_device::TIM_INT"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "ASSERT_LINE"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_reloading"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 671,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gameboy_sound_device.sound_r",
+            "ownerClass": "gameboy_sound_device",
+            "method": "sound_r",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 937,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gameboy_sound_device.sound_w",
+            "ownerClass": "gameboy_sound_device",
+            "method": "sound_w",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 937,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gameboy_sound_device.wave_r",
+            "ownerClass": "gameboy_sound_device",
+            "method": "wave_r",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 954,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gameboy_sound_device.wave_w",
+            "ownerClass": "gameboy_sound_device",
+            "method": "wave_w",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 954,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:dmg_ppu_device.video_r",
+            "ownerClass": "dmg_ppu_device",
+            "method": "video_r",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 909,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gb_state.gb_io2_w",
+            "ownerClass": "gb_state",
+            "method": "gb_io2_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "if (offset == 0x10)\n\t\tdisable_boot(); // disable boot ROM\n\telse\n\t\tm_ppu->video_w(offset, data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 16
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "disable_boot"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_ppu"
+                                        },
+                                        "property": "video_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 431,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gb_state.disable_boot",
+            "ownerClass": "gb_state",
+            "method": "disable_boot",
+            "body": "m_boot_view.disable();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_boot_view"
+                                },
+                                "property": "disable"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 343,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gb_state.gb_ie_r",
+            "ownerClass": "gb_state",
+            "method": "gb_ie_r",
+            "body": "return m_maincpu->get_ie();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "get_ie"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 606,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gb_state.gb_ie_w",
+            "ownerClass": "gb_state",
+            "method": "gb_ie_w",
+            "parameters": "uint8_t data",
+            "body": "m_maincpu->set_ie(data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "set_ie"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 611,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:base_state.machine_reset",
+            "ownerClass": "base_state",
+            "method": "machine_reset",
+            "body": "m_apu->sound_w(0x16, 0x00); // Initialize sound hardware\n\n\tm_divcount = 8;\n\tm_internal_serial_clock = 0;\n\tm_internal_serial_frequency = 512 / 2;\n\tm_triggering_irq = 0;\n\tm_shift = 10; // slowest timer?\n\tm_shift_cycles = 1 << m_shift;\n\n\t// Set registers to default/startup values\n\tm_gb_io[0x00] = 0xcf;\n\tm_gb_io[0x01] = 0x00;\n\tm_gb_io[0x02] = 0x7e;\n\tm_gb_io[0x03] = 0xff;\n\tm_gb_io[0x07] = 0xf8;       // Upper bits of m_gb_io[0x07] register are set to 1",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_apu"
+                                },
+                                "property": "sound_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 22
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_divcount"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 8
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_internal_serial_clock"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_internal_serial_frequency"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                                "kind": "number",
+                                "value": 512
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_triggering_irq"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_shift"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 10
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_shift_cycles"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "m_shift"
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_gb_io"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 207
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_gb_io"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_gb_io"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 126
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_gb_io"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 3
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 255
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_gb_io"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 7
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 248
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 300,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gb_state.machine_reset",
+            "ownerClass": "gb_state",
+            "method": "machine_reset",
+            "body": "base_state::machine_reset();\n\n\tm_boot_view.select(0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "base_state::machine_reset"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_boot_view"
+                                },
+                                "property": "select"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 319,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gb_state.boot_r",
+            "ownerClass": "gb_state",
+            "method": "boot_r",
+            "parameters": "offs_t offset",
+            "body": "if (m_bios_hack->read())\n\t{\n\t\t// patch out logo and checksum checks\n\t\t// useful to run some pirate carts until properly emulated, or to test homebrew\n\t\tif (offset == 0xe9 || offset == 0xea)\n\t\t\treturn 0x00;\n\t\tif (offset == 0xfa || offset == 0xfb)\n\t\t\treturn 0x00;\n\t}\n\treturn m_region_boot[offset];",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bios_hack"
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "||",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 233
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 234
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "||",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 250
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 251
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_region_boot"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 439,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:gb_state.gb_timer_callback",
+            "ownerClass": "gb_state",
+            "method": "gb_timer_callback",
+            "parameters": "uint8_t data",
+            "body": "uint16_t old_gb_divcount = m_divcount;\n\tuint16_t old_internal_serial_clock = m_internal_serial_clock;\n\tm_divcount += data;\n\tm_internal_serial_clock += data;\n\n\tif ((old_gb_divcount >> 8) != (m_divcount >> 8))\n\t{\n\t\t//LOG(\"DIV became %02x\\n\", m_divcount >> 8);\n\t}\n\tgb_timer_check_irq();\n\n\tif (m_gb_io[0x07] & 0x04)\n\t{\n\t\tuint16_t old_count = old_gb_divcount >> m_shift;\n\t\tuint16_t new_count = m_divcount >> m_shift;\n\t\tif (data > m_shift_cycles)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\told_count++;\n\t\t}\n\t\tif (new_count != old_count)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\tif (new_count << m_shift < m_divcount)\n\t\t\t{\n\t\t\t\tgb_timer_check_irq();\n\t\t\t}\n\t\t}\n\t}\n\n\tif (((m_internal_serial_clock ^ old_internal_serial_clock) & m_internal_serial_frequency) && (m_gb_io[0x02] & SIO_INTERNAL_CLOCK))\n\t{\n\t\tgb_serial_timer_tick();\n\t}",
+            "constants": {
+                "SIO_INTERNAL_CLOCK": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "old_gb_divcount",
+                        "valueType": "uint16_t",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "m_divcount"
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "old_internal_serial_clock",
+                        "valueType": "uint16_t",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "m_internal_serial_clock"
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_divcount"
+                        },
+                        "operator": "+=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_internal_serial_clock"
+                        },
+                        "operator": "+=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "old_gb_divcount"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_divcount"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            }
+                        },
+                        "then": []
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "gb_timer_check_irq"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_gb_io"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 7
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 4
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "declare",
+                                "name": "old_count",
+                                "valueType": "uint16_t",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "old_gb_divcount"
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "m_shift"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "new_count",
+                                "valueType": "uint16_t",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_divcount"
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "m_shift"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": ">",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "m_shift_cycles"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "gb_timer_increment"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "old_count"
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "new_count"
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "old_count"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "gb_timer_increment"
+                                            },
+                                            "args": []
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "<",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "<<",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "new_count"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "m_shift"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "m_divcount"
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "gb_timer_check_irq"
+                                                    },
+                                                    "args": []
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "^",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_internal_serial_clock"
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "old_internal_serial_clock"
+                                    }
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "m_internal_serial_frequency"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_gb_io"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "SIO_INTERNAL_CLOCK"
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "gb_serial_timer_tick"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 701,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:base_state.gb_serial_timer_tick",
+            "ownerClass": "base_state",
+            "method": "gb_serial_timer_tick",
+            "body": "if (m_gb_io[0x02] & SIO_ENABLED)\n\t{\n\t\tif (m_sio_count & 1)\n\t\t{\n\t\t\t/* Shift in a received bit */\n\t\t\tm_gb_io[0x01] = (m_gb_io[0x01] << 1) | 0x01;\n\t\t}\n\t\t/* Decrement number of handled bits */\n\t\tm_sio_count--;\n\n\t\tLOG(\"%04x - gb_serial_timer_proc: m_gb_io[0x01] = %02x, sio_count = %u\\n\", m_maincpu->pc(), m_gb_io[0x01], m_sio_count);\n\t\t/* If all bits done, stop timer and trigger interrupt */\n\t\tif (m_sio_count == 0)\n\t\t{\n\t\t\tm_gb_io[0x02] &= ~SIO_ENABLED;\n\t\t\tm_maincpu->set_input_line(lr35902_cpu_device::SIO_INT, ASSERT_LINE);\n\t\t\t// Make sure the state is updated during the current timeslice in case it is read.\n\t\t\tm_maincpu->execute_set_input(lr35902_cpu_device::SIO_INT, ASSERT_LINE);\n\t\t}\n\t}",
+            "constants": {
+                "SIO_INT": 3,
+                "SIO_ENABLED": 128
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_gb_io"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "SIO_ENABLED"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_sio_count"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_gb_io"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "<<",
+                                                "left": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_gb_io"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_sio_count"
+                                },
+                                "operator": "-=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "TRACE_NOOP"
+                                    },
+                                    "args": []
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_sio_count"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_gb_io"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "SIO_ENABLED"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "set_input_line"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "lr35902_cpu_device::SIO_INT"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "ASSERT_LINE"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "execute_set_input"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "lr35902_cpu_device::SIO_INT"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "ASSERT_LINE"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 646,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:dmg_ppu_device.screen_update",
+            "ownerClass": "dmg_ppu_device",
+            "method": "screen_update",
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1188,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:gb_state.gb_palette",
+            "ownerClass": "gb_state",
+            "method": "gb_palette",
+            "parameters": "palette_device &palette",
+            "body": "for (int i = 0; i < 4; i++)\n\t\tpalette.set_pen_color(i, TABLE(i, 4287101951, 4283346609, 4283334788, 4283321934, 4288794564, 4285371787, 4283659115, 4282466625));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 4
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_color"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "TABLE"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4287101951
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4283346609
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4283334788
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4283321934
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4288794564
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4285371787
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4283659115
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 4282466625
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 1011,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:gb_state.gameboy_map",
+            "className": "gb_state",
+            "name": "gameboy_map",
+            "ranges": [
+                {
+                    "id": "map:gb_state.gameboy_map/range0",
+                    "start": 32768,
+                    "end": 40959,
+                    "raw": "map(0x8000, 0x9fff).rw(m_ppu, FUNC(dmg_ppu_device::vram_r), FUNC(dmg_ppu_device::vram_w))",
+                    "read": "ppu.vram_r",
+                    "write": "ppu.vram_w",
+                    "props": {
+                        "start": 32768,
+                        "end": 40959,
+                        "raw": "map(0x8000, 0x9fff).rw(m_ppu, FUNC(dmg_ppu_device::vram_r), FUNC(dmg_ppu_device::vram_w))",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 902,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 902
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 902,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range1",
+                    "start": 49152,
+                    "end": 57343,
+                    "raw": "map(0xc000, 0xdfff).mirror(0x2000).ram()",
+                    "props": {
+                        "start": 49152,
+                        "end": 57343,
+                        "raw": "map(0xc000, 0xdfff).mirror(0x2000).ram()",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 903,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 903,
+                        "mirror": 8192,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 903,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range2",
+                    "start": 65024,
+                    "end": 65279,
+                    "raw": "map(0xfe00, 0xfeff).rw(m_ppu, FUNC(dmg_ppu_device::oam_r), FUNC(dmg_ppu_device::oam_w))",
+                    "read": "ppu.oam_r",
+                    "write": "ppu.oam_w",
+                    "props": {
+                        "start": 65024,
+                        "end": 65279,
+                        "raw": "map(0xfe00, 0xfeff).rw(m_ppu, FUNC(dmg_ppu_device::oam_r), FUNC(dmg_ppu_device::oam_w))",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 904,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 904
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 904,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range3",
+                    "start": 65280,
+                    "end": 65295,
+                    "raw": "map(0xff00, 0xff0f).rw(FUNC(gb_state::gb_io_r), FUNC(gb_state::gb_io_w))",
+                    "read": "gb_state.gb_io_r",
+                    "write": "gb_state.gb_io_w",
+                    "props": {
+                        "start": 65280,
+                        "end": 65295,
+                        "raw": "map(0xff00, 0xff0f).rw(FUNC(gb_state::gb_io_r), FUNC(gb_state::gb_io_w))",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 905,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 905
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 905,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range4",
+                    "start": 65296,
+                    "end": 65318,
+                    "raw": "map(0xff10, 0xff26).rw(m_apu, FUNC(gameboy_sound_device::sound_r), FUNC(gameboy_sound_device::sound_w))",
+                    "read": "apu.sound_r",
+                    "write": "apu.sound_w",
+                    "props": {
+                        "start": 65296,
+                        "end": 65318,
+                        "raw": "map(0xff10, 0xff26).rw(m_apu, FUNC(gameboy_sound_device::sound_r), FUNC(gameboy_sound_device::sound_w))",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 906,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 906
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 906,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range5",
+                    "start": 65319,
+                    "end": 65327,
+                    "raw": "map(0xff27, 0xff2f).noprw()",
+                    "props": {
+                        "start": 65319,
+                        "end": 65327,
+                        "raw": "map(0xff27, 0xff2f).noprw()",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 907,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 907
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 907,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range6",
+                    "start": 65328,
+                    "end": 65343,
+                    "raw": "map(0xff30, 0xff3f).rw(m_apu, FUNC(gameboy_sound_device::wave_r), FUNC(gameboy_sound_device::wave_w))",
+                    "read": "apu.wave_r",
+                    "write": "apu.wave_w",
+                    "props": {
+                        "start": 65328,
+                        "end": 65343,
+                        "raw": "map(0xff30, 0xff3f).rw(m_apu, FUNC(gameboy_sound_device::wave_r), FUNC(gameboy_sound_device::wave_w))",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 908,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 908
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 908,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range7",
+                    "start": 65344,
+                    "end": 65407,
+                    "raw": "map(0xff40, 0xff7f).r(m_ppu, FUNC(dmg_ppu_device::video_r)).w(FUNC(gb_state::gb_io2_w))",
+                    "read": "ppu.video_r",
+                    "write": "gb_state.gb_io2_w",
+                    "props": {
+                        "start": 65344,
+                        "end": 65407,
+                        "raw": "map(0xff40, 0xff7f).r(m_ppu, FUNC(dmg_ppu_device::video_r)).w(FUNC(gb_state::gb_io2_w))",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 909,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 909
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 909,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range8",
+                    "start": 65408,
+                    "end": 65534,
+                    "raw": "map(0xff80, 0xfffe).ram()",
+                    "props": {
+                        "start": 65408,
+                        "end": 65534,
+                        "raw": "map(0xff80, 0xfffe).ram()",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 910,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 910,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 910,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:gb_state.gameboy_map/range9",
+                    "start": 65535,
+                    "end": 65535,
+                    "raw": "map(0xffff, 0xffff).rw(FUNC(gb_state::gb_ie_r), FUNC(gb_state::gb_ie_w))",
+                    "read": "gb_state.gb_ie_r",
+                    "write": "gb_state.gb_ie_w",
+                    "props": {
+                        "start": 65535,
+                        "end": 65535,
+                        "raw": "map(0xffff, 0xffff).rw(FUNC(gb_state::gb_ie_r), FUNC(gb_state::gb_ie_w))",
+                        "sourceFile": "src/mame/nintendo/gb.cpp",
+                        "sourceLine": 911,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 911
+                    },
+                    "source": {
+                        "file": "src/mame/nintendo/gb.cpp",
+                        "line": 911,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nintendo/gb.cpp",
+                "line": 899,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_gb_io",
+            "bits": 8,
+            "arrayLength": 16
+        },
+        {
+            "name": "m_divcount",
+            "bits": 16
+        },
+        {
+            "name": "m_shift",
+            "bits": 8
+        },
+        {
+            "name": "m_shift_cycles",
+            "bits": 16
+        },
+        {
+            "name": "m_triggering_irq",
+            "bits": 8
+        },
+        {
+            "name": "m_reloading",
+            "bits": 8
+        },
+        {
+            "name": "m_internal_serial_clock",
+            "bits": 16
+        },
+        {
+            "name": "m_internal_serial_frequency",
+            "bits": 16
+        },
+        {
+            "name": "m_sio_count",
+            "bits": 32
+        }
+    ],
+    "sound": {
+        "kind": "gameboy",
+        "deviceTag": "apu",
+        "deviceType": "DMG_APU",
+        "writeMethods": [],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.5,
+                "target": "speaker",
+                "targetInput": 0
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.5,
+                "target": "speaker",
+                "targetInput": 1
+            }
+        ]
+    }
+}

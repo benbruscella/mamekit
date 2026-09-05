@@ -1,0 +1,28 @@
+{
+  "type": "UPD4990A",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "upd4990a"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "UPD4990A",
+    "className": "upd4990a_device",
+    "shortName": "upd4990a",
+    "description": "uPD4990A RTC",
+    "sourceFile": "src/devices/machine/upd1990a.cpp",
+    "sourceLine": 31,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(UPD4990A, upd4990a_device, \"upd4990a\", \"uPD4990A RTC\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/upd1990a.cpp",
+    "src/devices/machine/upd1990a.h"
+  ]
+}

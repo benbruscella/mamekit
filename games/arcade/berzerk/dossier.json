@@ -1,0 +1,858 @@
+{
+  "game": "berzerk",
+  "title": "Berzerk (revision RC31A) (Stern Electronics, 1980)",
+  "fullname": "Berzerk (revision RC31A)",
+  "year": "1980",
+  "company": "Stern Electronics",
+  "family": "berzerk",
+  "driverFile": "src/mame/stern/berzerk.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Zsolt Vasvari, Aaron Giles, R. Belmont, Jonathan Gevaryahu",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 2500000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 2047,
+          "kind": "rom"
+        },
+        {
+          "start": 2048,
+          "end": 3071,
+          "kind": "ram",
+          "mirror": 1024,
+          "share": "nvram"
+        },
+        {
+          "start": 4096,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 24575,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 24576,
+          "end": 32767,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "berzerk_state.magicram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram",
+          "mirror": 14336,
+          "share": "colorram"
+        },
+        {
+          "start": 49152,
+          "end": 65535,
+          "kind": "nop"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 63,
+            "kind": "nop"
+          },
+          {
+            "start": 64,
+            "end": 71,
+            "kind": "handler",
+            "read": "berzerk_state.audio_r",
+            "write": "berzerk_state.audio_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 72,
+            "end": 72,
+            "kind": "handler",
+            "readOnly": true,
+            "read": "port.P1"
+          },
+          {
+            "start": 73,
+            "end": 73,
+            "kind": "handler",
+            "readOnly": true,
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 74,
+            "end": 74,
+            "kind": "handler",
+            "readOnly": true,
+            "read": "port.P2"
+          },
+          {
+            "start": 75,
+            "end": 75,
+            "kind": "handler",
+            "writeOnly": true,
+            "write": "berzerk_state.magicram_control_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 76,
+            "end": 76,
+            "kind": "handler",
+            "read": "berzerk_state.nmi_enable_r",
+            "write": "berzerk_state.nmi_enable_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 77,
+            "end": 77,
+            "kind": "handler",
+            "read": "berzerk_state.nmi_disable_r",
+            "write": "berzerk_state.nmi_disable_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 78,
+            "end": 78,
+            "kind": "handler",
+            "readOnly": true,
+            "read": "berzerk_state.intercept_v256_r"
+          },
+          {
+            "start": 79,
+            "end": 79,
+            "kind": "handler",
+            "writeOnly": true,
+            "write": "berzerk_state.irq_enable_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 80,
+            "end": 87,
+            "kind": "nop"
+          },
+          {
+            "start": 88,
+            "end": 95,
+            "kind": "nop"
+          },
+          {
+            "start": 96,
+            "end": 96,
+            "kind": "handler",
+            "mirror": 24,
+            "readOnly": true,
+            "read": "port.F3"
+          },
+          {
+            "start": 97,
+            "end": 97,
+            "kind": "handler",
+            "mirror": 24,
+            "readOnly": true,
+            "read": "port.F2"
+          },
+          {
+            "start": 98,
+            "end": 98,
+            "kind": "handler",
+            "mirror": 24,
+            "readOnly": true,
+            "read": "port.F6"
+          },
+          {
+            "start": 99,
+            "end": 99,
+            "kind": "handler",
+            "mirror": 24,
+            "readOnly": true,
+            "read": "port.F5"
+          },
+          {
+            "start": 100,
+            "end": 100,
+            "kind": "handler",
+            "mirror": 24,
+            "readOnly": true,
+            "read": "port.F4"
+          },
+          {
+            "start": 101,
+            "end": 101,
+            "kind": "handler",
+            "mirror": 24,
+            "readOnly": true,
+            "read": "port.SW2"
+          },
+          {
+            "start": 102,
+            "end": 102,
+            "kind": "handler",
+            "mirror": 24,
+            "read": "berzerk_state.led_off_r",
+            "write": "berzerk_state.led_off_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 103,
+            "end": 103,
+            "kind": "handler",
+            "mirror": 24,
+            "read": "berzerk_state.led_on_r",
+            "write": "berzerk_state.led_on_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 128,
+            "end": 255,
+            "kind": "nop"
+          }
+        ],
+        "globalMask": 255
+      }
+    }
+  ],
+  "sound": {
+    "kind": "berzerk",
+    "deviceType": "EXIDY",
+    "clock": 2500000,
+    "worklet": "berzerk-sound",
+    "sampleRegion": "speech",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 32,
+    "refresh": 59.63740458015267,
+    "htotal": 320,
+    "vtotal": 262,
+    "vbstart": 256,
+    "vbend": 32,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "fills": [
+        {
+          "offset": 14336,
+          "size": 2048,
+          "value": 255
+        }
+      ],
+      "loads": [
+        {
+          "file": "berzerk_rc31_1c.rom0.1c",
+          "offset": 0,
+          "size": 2048,
+          "crc": "ca566dbc",
+          "alt": [
+            {
+              "file": "berzerk_rc28_1c.rom0.1c",
+              "crc": "5b7eb77d"
+            },
+            {
+              "file": "berzerk_rc31f_1c.rom0.1c",
+              "crc": "3ba6e56e"
+            },
+            {
+              "file": "berzerk_rc32_1c.rom0.1c",
+              "crc": "77923a9e"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_1d.rom1.1d",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "7ba69fde",
+          "alt": [
+            {
+              "file": "berzerk_rc28_1d.rom1.1d",
+              "crc": "e58c8678"
+            },
+            {
+              "file": "berzerk_rc31f_1d.rom1.1d",
+              "crc": "a1de2a3e"
+            },
+            {
+              "file": "berzerk_rc32_1d.rom1.1d",
+              "crc": "19bb3aac"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_3d.rom2.3d",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "a1d5248b",
+          "alt": [
+            {
+              "file": "berzerk_rc28_3d.rom2.3d",
+              "crc": "705bb339"
+            },
+            {
+              "file": "berzerk_rc31f_3d.rom2.3d",
+              "crc": "bc31c478"
+            },
+            {
+              "file": "berzerk_rc32g_3d.rom2.3d",
+              "crc": "b0888ff7"
+            },
+            {
+              "file": "berzerk_rc32_3d.rom2.3d",
+              "crc": "5423ea87"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_5d.rom3.5d",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "fcaefa95",
+          "alt": [
+            {
+              "file": "berzerk_rc28_5d.rom3.5d",
+              "crc": "6a1936b4"
+            },
+            {
+              "file": "berzerk_rc31f_5d.rom3.5d",
+              "crc": "316192b5"
+            },
+            {
+              "file": "berzerk_rc32_5d.rom3.5d",
+              "crc": "e23239a9"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_6d.rom4.6d",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "1e35b9a0",
+          "alt": [
+            {
+              "file": "berzerk_rc28_6d.rom4.6d",
+              "crc": "fa5dce40"
+            },
+            {
+              "file": "berzerk_rc31f_6d.rom4.6d",
+              "crc": "cd51238c"
+            },
+            {
+              "file": "berzerk_rc32g_6d.rom4.6d",
+              "crc": "651b31b7"
+            },
+            {
+              "file": "berzerk_rc32_6d.rom4.6d",
+              "crc": "959efd86"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31a_5c.rom5.5c",
+          "offset": 12288,
+          "size": 2048,
+          "crc": "e0fab8f5",
+          "alt": [
+            {
+              "file": "berzerk_rc31_5c.rom5.5c",
+              "crc": "c8c665e5"
+            },
+            {
+              "file": "berzerk_rc28_5c.rom5.5c",
+              "crc": "2579b9f4"
+            },
+            {
+              "file": "berzerk_rc31f_5c.rom5.5c",
+              "crc": "563b13b6"
+            },
+            {
+              "file": "berzerk_rc32g_5c.rom5.5c",
+              "crc": "8a403bba"
+            },
+            {
+              "file": "berzerk_rc32s_5c.rom5.5c",
+              "crc": "9ad80e4e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "speech",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "berzerk_r_vo_1c.1c",
+          "offset": 0,
+          "size": 2048,
+          "crc": "2cfe825d",
+          "alt": [
+            {
+              "file": "berzerk_rvof_1c.1c",
+              "crc": "d7bfaca2"
+            },
+            {
+              "file": "berzerk_rvog_1c.1c",
+              "crc": "fc1da15f"
+            },
+            {
+              "file": "berzerk_rvos_1c.1c",
+              "crc": "0b51409c"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_r_vo_2c.2c",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "d2b6324e",
+          "alt": [
+            {
+              "file": "berzerk_rvof_2c.2c",
+              "crc": "7bdc3573"
+            },
+            {
+              "file": "berzerk_rvog_2c.2c",
+              "crc": "7f6808fb"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 128,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SW2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Free Game (not logged in bookkeeping)",
+      "activeLow": false
+    },
+    {
+      "port": "SW2",
+      "mask": 128,
+      "keys": [
+        "Digit8"
+      ],
+      "label": "Bookkeeping",
+      "activeLow": false
+    },
+    {
+      "port": "F2",
+      "mask": 3,
+      "keys": [
+        "F5"
+      ],
+      "label": "Color Test",
+      "activeLow": true,
+      "activeValue": 3,
+      "toggle": true
+    },
+    {
+      "port": "F3",
+      "mask": 1,
+      "keys": [
+        "F2"
+      ],
+      "label": "Input Test Mode",
+      "activeLow": true,
+      "activeValue": 1,
+      "toggle": true
+    },
+    {
+      "port": "F3",
+      "mask": 2,
+      "keys": [
+        "F4"
+      ],
+      "label": "Crosshair Pattern",
+      "activeLow": true,
+      "activeValue": 2,
+      "toggle": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "P2",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "MONITOR_TYPE",
+      "mask": 1,
+      "value": 0,
+      "name": "Monitor Type"
+    },
+    {
+      "port": "F2",
+      "mask": 3,
+      "value": 0,
+      "name": "Color Test"
+    },
+    {
+      "port": "F2",
+      "mask": 192,
+      "value": 192,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "F3",
+      "mask": 1,
+      "value": 0,
+      "name": "Input Test Mode"
+    },
+    {
+      "port": "F3",
+      "mask": 2,
+      "value": 0,
+      "name": "Crosshair Pattern"
+    },
+    {
+      "port": "F3",
+      "mask": 192,
+      "value": 0,
+      "name": "Language"
+    },
+    {
+      "port": "F4",
+      "mask": 15,
+      "value": 0,
+      "name": "\"Coin \"#1"
+    },
+    {
+      "port": "F5",
+      "mask": 15,
+      "value": 0,
+      "name": "\"Coin \"#2"
+    },
+    {
+      "port": "F6",
+      "mask": 15,
+      "value": 0,
+      "name": "\"Coin \"#3"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-29",
+    "commits": 209,
+    "contributors": 33,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Jonathan Gevaryahu",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 66,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2014-02-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 38,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 16,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 14,
+        "firstCommit": "2010-03-17",
+        "lastCommit": "2010-06-07"
+      },
+      {
+        "name": "hap",
+        "commits": 10,
+        "firstCommit": "2016-01-18",
+        "lastCommit": "2025-07-07"
+      },
+      {
+        "name": "braintro",
+        "commits": 9,
+        "firstCommit": "2019-02-10",
+        "lastCommit": "2019-11-09"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2013-10-28",
+        "lastCommit": "2022-06-25"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 6,
+        "firstCommit": "2008-01-13",
+        "lastCommit": "2008-03-09"
+      },
+      {
+        "name": "briantro",
+        "commits": 3,
+        "firstCommit": "2015-04-04",
+        "lastCommit": "2015-04-23"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 3,
+        "firstCommit": "2013-08-01",
+        "lastCommit": "2018-12-21"
+      },
+      {
+        "name": "AJR",
+        "commits": 2,
+        "firstCommit": "2016-10-23",
+        "lastCommit": "2018-05-18"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2010-03-15",
+        "lastCommit": "2012-04-22"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2023-05-06"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 2,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 2,
+        "firstCommit": "2013-08-07",
+        "lastCommit": "2018-05-15"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2022-06-04"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2008-11-15",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2026-06-29",
+        "lastCommit": "2026-06-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2011-10-27",
+        "lastCommit": "2011-10-27"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-11-14",
+        "lastCommit": "2008-11-14"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2009-04-27",
+        "lastCommit": "2009-04-27"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 1,
+        "firstCommit": "2010-05-24",
+        "lastCommit": "2010-05-24"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-24",
+        "lastCommit": "2018-08-24"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2013-07-15",
+        "lastCommit": "2013-07-15"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2010-12-04",
+        "lastCommit": "2010-12-04"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2022-03-25",
+        "lastCommit": "2022-03-25"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2009-05-25",
+        "lastCommit": "2009-05-25"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nBerzerk (c) 1980 Stern Electronics.\n\nThe player controls the 'Humanoid' and must navigate a number of robot-filled rooms; each with up to as many as eleven, laser-firing enemy robots. The Humanoid can be killed either by a single shot from a robot, by running into a robot, by running into a wall of the maze, or by being touched by the player's nemesis, 'Evil Otto'.\n\nTo advance through the game, players must fight their way through each room to an opening at one of the far walls. Each robot destroyed is worth 50 points and while it's possible to progress without killing every robot in each room, destroying all of them will earn the player a per-maze bonus (worth ten points per robot). The game has an impressive 64,000 mazes, with each level designed to be more difficult than the last.\n\n- TECHNICAL -\n\nThe Berzerk cabinet was the first in a series of cabinets from Stern that had a patented pull out drawer that allowed access to the games circuit boards from the front of the cabinet. This title features rather primitive painted side-art that only uses two colors, but it makes up for it with the awesome comic book style art on the control panel and monitor bezel. The marquee is only a 'Berzerk' logo, and it kind of looks like something that someone might have done in their high school airbrush class.\n\nBerzerk is technically a monochrome game. It uses a special 'color overlay' circuit board to add color to the games graphics before they go to the monitor. A side effect of this is that walking very close to a wall will cause that section of the wall to change to your color.\n\nBerzerk, in common with other machines commonly thought to have used samples (such as Atari's \"Star Wars\", \"Paperboy\" and \"Gauntlet\") used LPC encoded speech and a dedicated speech synthesizer. So the speech is technically encoded data for this speech synth, rather than the now far simpler, digitized audio 'samples' for play back via a DAC.\n\nHere is all of the robots' speech in the game:\n\nDuring certain in-game events:\n\"Coin detected in pocket!\" - heard randomly during attract mode, especially while showing the high score list.\n\"Intruder alert! Intruder alert!\" - when Evil Otto appears.\n\"The Humanoid must not escape!\" OR \"The intruder must not escape!\" - when the Humanoid escapes the room after destroying every robot.\n\"Chicken! Fight like a robot!\" - when the Humanoid escapes the room without destroying every robot first.\n\"Got the Humanoid! Got the intruder!\" - when the Humanoid is killed. (\"Got the intruder!\" is a minor third higher in pitch than \"Got the Humanoid!\")\n\nRandom chatter during gameplay:\n\"Charge...\", \"Attack...\", \"Shoot...\", \"Kill...\", \"Destroy...\", OR \"Get...\", followed by \"the Humanoid\", \"the intruder\", \"it\", or \"the chicken\".\nNOTE: In this case, you'll only hear \"the chicken\" if you escaped the previous maze without first destroying every robot, resulting in the \"Chicken! Fight like a robot!\" message.\n\nThe speed and pitch of some of the phrases vary from deep and slow to high and fast.\n\nMain CPU : Zilog Z80\nSound Chips : Custom tone generator, custom LPC speech synthesis chip\n\nControl : 8-way joystick\nButtons : 1 (FIRE)\n\n- TRIVIA -\n\nBerzerk was released on November 12, 1980 (Wednesday) in the USA.\n\nAlan McNeil, an employee of Universal Research Laboratories (a division of Stern Electronics), had a dream one night involving a black-and-white video game in which he had to fight robots. This dream, with heavy borrowing from the BASIC game 'Robots' ('Daleks' in the UK), was the basis for Berzerk. The idea for a black-and-white game was abandoned when the color game \"Defender\" was released earlier the same year to significant success. At that point Stern decided to use a color overlay board for Berzerk. A quick conversion was made, and all but the earliest versions of the game shipped with a color CRT display. The game was test-marketed successfully at a Chicago singles bar before general release.\n\nThe title of the game comes from the series of books called 'The Berzerker Stories' by Fred Saberhagen. It's a novel about robots which go Berzerk and kill everybody.\n\nBerzerk is the first robot killing game but the big selling point of Berzerk was speech.\nFrom Tony Miller : \"The speech was done using LPC coding that I believe was invented by T.I., although I remember we used a National Speech chip in it.  This was when speech and memory was expensive, so we didn't just digitize sounds and dump them out through a DAC. I remember it cost something like $1,000 per word to have the compression done, so we tried to come up with a limited vocabulary which could be rearranged and reused as much as possible. There was some guy up in Silicon Gulch who did this stuff for a living - so it is possible to make money while talking in a monotone.\".\n\nThe Artist Richard D. James, using his alter ego Caustic Window, has the sample : 'Humanoid must not escape' from this game in his song with the same name as the sample. It's from the album 'Caustic Window Compilation'.\n\nBerzerk was also the first game to attempt a bit of on-screen comedy. Your robot opponents often fell foul of slapstick misfortune, shooting each other in the head or walking into walls and exploding in their attempts to kill you. And if you legged it out of a room without killing them all, the survivors would taunt you in their Speak & Spell voices : \"Chicken! Fight like a robot!\". Okay, it's not hilarious, but even Bob Monkhouse had to start somewhere. Sometimes when you escape as above, it will just utter \"Chicken\".\n\n'Evil Otto' was named for 'Dave Otto', who worked for Dave Nutting's Arcade Engineering group as R & D director at the time Alan McNeil did. 'Evil Otto' can be considered one of the most intimidating video game villains of all time. He is, and even travels through walls, preventing a player from loafing in the room. He resembles a bouncing smiley face, and has been called a 'Malicious basketball' by some.\n\nBerzerk was Stern's first major video game success. It was made in both upright (approx. 37,500 units) and cocktail (approx. 1,200 units) models. Berzerk suffered a bit in sales due to frequent breakdowns of it's original giant sized optical 8-way joystick. Approximately 4,200 orders were canceled by distributors and operators whose machines were frequently down from the opto-stick. Stern issued free WICO leaf switch sticks to operators after they had so much trouble with the optical stick, but this still hurt sales.\n\nBerzerk shares a rather chilling distinction of being the first known game to be blamed for an actual player's death. In January 1981, Jeff Dailey was the first person to die playing a video game, a 19-year old Berzerk player, died of a massive heart attack right after playing his favorite game. His score was 16,660 (a very respectable score but disturbing for obvious reasons). On an equally distressing note, in October 1982 at the 'Friar Tuck Game Room' in Calumet City, Illinois : 18-year old Peter Burkowski, a physically healthy person who was alcohol-free and drug-free, inscribed his initials in Berzerk's top ten list twice in a matter of only 15 minutes. A few seconds after that, he collapsed and died of a heart attack.\nIn Retrogamer Issue #47, Alan McNeil addressed these legends, and has a different perspective: \"...one player did die while playing the game (Alan refutes reports that claim two died). The unfortunate fellow was obese and had run upstairs to play the game\", Alan explains: \"The legend is he set a high score and died, but the owner of the arcade said he didn’t finish the game – he was out of breath from the moment he arrived until he dropped. The legend is way better than reality: the excitement of playing a game killing a player after setting a high score...\"\n\nSteve Wagner holds the official record for this game on the 'Fast Bullets' setting with 350,340 points on March 12, 2009.\nPhil Younger holds the official record for this game on the 'Slow Bullets' setting with 304,570 points on August 12, 2007.\n\nA Berzerk unit appears in the 1982 movie 'Tron' and in the 1983 movie 'Joysticks'.\n\nA Berzerk unit appears in the ZZ Top music video 'Legs'.\n\nA Berzerk unit appears in April Wine's concert video 'Live in London (1981)'\n\nMilton Bradley (MB) released a board game based on this video game (same name) in 1983. 'Can You Survive the Frenzied Attack of the Robot Army?' In this board game version, two players face off. One player controls the Humanoid and the other player controls Evil Otto and the robots. Players alternate sides for a maximum of three rounds or until both have been zapped three times and destroyed as the Humanoid. Humanoid lives are represented by chips placed in front of the player. Each time a player's Humanoid is zapped, the player surrenders one chip. Once a player loses all three chips, that player's Humanoid is destroyed, and therefore he/she cannot control the Humanoid for the rest of the game. The object of the game is to zap more robots while controlling the Humanoid than your opponent.\n\nBerzerk inspired a catchy hit song by Buckner and Garcia called 'Goin' Berzerk' released on the 'Pac-Man Fever' album, here are the full lyrics! :\n\nVerse 1: (Humanoid - This is me.)\nI can move in eight directions.\nOnce I start I'm never done.\nI can go from room to room,\nI can crawl or I can run.\nI can wander through the maze.\nIt's a wonderland at night,\nI can stop and aim my gun when,\nthere's a robot in my sight.\nI can wander through the maze.\nIt's a wonderland at night,\nI can stop and aim my gun when,\nthere's a robot in my sight.\n\nChorus: (Robots - The various colored robots.)\nI think I'm going berzerk.\nI think I'm losing my mind.\nI'm getting lost in the shuffle.\nIt happens every time.\nI think I'm going berzerk.\nWould you like to come to?\nI can't stop now - I'm addicted!\nI'm berzerk over you.\n\nVerse 2: (Evil Otto - The bouncing smiley face.)\nIf we fight this thing together,\nthere's a chance that we might win.\nNow here comes Evil Otto,\npush the fire buttons in.\nI'm sure he's crazy too because, \nhe's bouncing off the floor.\nThere's no way to destroy him,\nlet him bounce right out the door.\nNow here comes Evil Otto,\npush the fire buttons in.\nIf we fight this thing together,\nthere's a chance that we might win.\n\n(Repeat chorus)\n\nBerzerk, berzerk, berzerk over you (3x),\nBerzerk, berzerk over you.\n\n(Repeat and fade)\n\nThe speech, 'Humanoid' and 'Intruder Alert!' featured heavily in 1988's seminal UK Acid track, 'Stakker Humanoid' by later Future Sound of London member Brian Dougans. His use of distortion and slightly lower pitch, leaves the game sounding quite tame by comparison...\n\n- UPDATES -\n\nTwo different versions of the game were released. As a player's score increases, the colors of the enemy robots change, and the robots can have more bullets on the screen at the same time (once they reach the limit, they cannot fire again until one or more of their bullets detonates; the limit applies to the robots as a group, not as individuals). In the original version, the sequence goes :\n* Yellow robots that don't fire\n* Red robots that can fire one bullet\n* Light blue robots that can fire two bullets\nAfter 5,000 points Evil Otto doubles his speed, moving as fast as the player while robots remain in the maze, and twice as fast as the player after all the robots are destroyed.\n\nThe revised version, which had the much larger production run of the two, features a longer color sequence that also included green, purple, gray, and white robots. In this version, the robot sequence went up to five normal speed bullets, then they began firing fast bullets, starting with one fast bullet, and eventually going as high as five bullets, both normal speed and fast speed, at once. After 19,000 points the robots stay light blue and may have up to five bullets on screen for the remainder of play. To balance the greatly increased threat from the robots in this version, Evil Otto's pursuit speed remains at its normal (half or equal the player's speed) level throughout.\n\n- SCORING -\n\nYou get 50 points per robot destroyed. It doesn't matter whether you destroy them or they get destroyed some other way.\n\nYou get a bonus of 10 times the number of robots in a maze if you clear it For example, if you destroyed all 7 robots in a maze, then your bonus would be 10 X 7 or 70 points.\n\n- TIPS AND TRICKS -\n\n* Here is how the rounds progress in the revised version :\n(Points - Robot Color - Shots fired )\n0-260 - Yellow - 0\n260-1,200 - Red - 1\n1,200-3,000 - Light Blue - 2\n3,000-4,500 - Green - 3\n4,500-6,000 - Purple - 4\n6,000-8,000 - Yellow - 5\n8,000-10,000 - White - One fast shot (2x speed)\n10,000-11,000 - Light Blue - Two fast shots\n11,000-13,000 - Purple - Three shots, both normal and fast\n13,000-15,000 - Gray - Four shots, both normal and fast\n15,000-17,000 - Yellow - Five shots, both normal and fast\n17,000-19,000 - Red - Five shots, both normal and fast\n19,000+ - Light Blue - Five shots, both normal and fast\n\nStarting at about 10,000 points, Berzerk becomes largely a game of luck. If you get an open maze with a lot of robots, there is not much you can do.\n\n* In a 1-player game, the Humanoid is always colored green.\n\n* In a 2-player game, the players alternate turns. The Humanoid's color indicates whose turn it is - green for player 1, purple for player 2.\n\n* When you start the game, the Humanoid will be put at the left entrance. (In a 2-player game, player 2's Humanoid will be put at the right entrance.) You will face anywhere from 1 to 11 robots. Quickly assess where the Humanoid is at and destroy the closest robots. The first 3 sets of robots are pretty easy. It's when they start firing those 3+ shots at you or the supershots things can get bad.\n\n* Remember, the Humanoid is longer then he is wide; use this to your advantage. Always try to exit the maze from the left or right exit so that the Humanoid presents a small profile for the next maze. If the Humanoid enters from the top or bottom, you presents a bigger target. Of course, there is no defense against being put right next to a robot.\n\n* There is a 1-2 second delay after you enter a maze before the robots come after you; use that to your advantage. \n\n* You cannot run and shoot at the same time in this game. You have to stop and shoot. Use the joystick to aim and press the FIRE button. The Humanoid may move a little in that direction so don't try to shoot robots point-blank or you will destroy the robot while the robot vaporizes you.\n\n* When you get into the later rounds, luck will be as much a factor as skill. This is especially true when the robots are firing supershots at you (these shots travel twice the speed of normal shots). \n\n* Evil Otto (the bouncing happy face) will appear from where the Humanoid entered the maze. Evil Otto's appearance is directly related to how many robots you start with. The lower the number, the sooner Evil Otto appears. Evil Otto cannot be destroyed.\n\n* Because the robots are attracted to you 'as the crow flies', they will tend to clump together and smash into each other. The best way to kill robots is to stand safely behind a wall and let them shoot and smash each other. The ball (Evil Otto) will also kill them. You can ignore some robots in the maze and let Otto kill them for you. Otto follows your position like the robots, so as he comes across the screen, lead him up and down into any remaining robots before you exit.\n\n* If the robot cannot hit you with laser fire, they will still try to kill the Humanoid by attempting to run him over. \n\n* The walls in the maze are deadly. If the Humanoid or a robot runs into a wall, he is vaporized. (You score the points if a robot is destroyed by running into a wall). The wall will light up if the Humanoid is too close to it. \n\n* If you and a robot are in line and firing at each other, your shots will negate themselves out. In the later levels, this could prove deadly since they can keep up with your firepower. \n\n* An Interesting Quirk : There is a one pixel space between the Humanoid's head and shoulders. The game doesn't register it as existing so if a robot's shot goes through that space, the Humanoid doesn't die. \n\n* The robots always walk toward you unless you're in their line of fire; then they will pause to shoot. There are eight directions you and they can shoot. The only way to survive the higher levels (10,000 points +) is to learn the blind spots of the robots. If you are in a robot's blind spot he poses no threat, and you can concentrate on blasting the others. The angle shots are almost never necessary. It is very difficult to hit a robot with an angle shot. When you shoot, the Humanoid stops moving, when you can't move, you are vulnerable. Make your shots count and don't bother wasting your time with angles unless you are on an early level and need the practice. \n\n* Because the robots are shorter than you, try to avoid robots at the bottom edge of the screen. By the time you move low enough to get a shot they will have already fired. In contrast, if you come 'up' on robots from the bottom, you can shoot their feet and duck back down before their shot reaches you. \n\n* Because the Humanoid is a lot taller than he is wide, it is very easy to avoid shots from above and below. Take out the robots to the sides of you first. \n\n* If you poke your head above a wall just far enough to shoot above it, the robots on the other side of it can't shoot you. They will only hit the wall. ALWAYS use this tactic to kill most of the robots in a maze. When you are in the right position, just hold down the fire button. This will make the Humanoid stand still. You can inch your way very close to the deadly walls without fear of running into them. When shooting up or down, that trick doesn't work. If there is a wall between you and a robot above you, run to the right and start shooting up just past the wall. If you are lucky, the robot will walk into your fire before he gets a shot off. By design, if a robot is above you, he will lock into position directly in-line with your shots, and you will shoot each other's bullets. In early rounds you can overpower a robot and outgun him, but later the robots can keep up with you and you will be in a deadlock. To defeat him, shoot up and immediately walk to the right and he will walk into your bullet. \n\n* The robots are programmed to avoid colliding into the sides of the deadly walls, but they can't detect the start or end of a wall. If a robot is below the end of a wall, you can move up and direct him into the wall end. \n\n* In later rounds, all of the real action takes place in the first two or three seconds of a round. If you survive the initial shots from the robots, you are as good as done with the maze. When a new maze comes on screen, you are very vulnerable. Often you are in the line of fire of five robots. As the new maze slides on-screen, you can see it before the robots appear. Use this time to decide which way to run. Assume that there will be a robot in each 'room' or 'nook'. Shoot the robot right in front of you first, and then run toward his position. By running ahead, you will exit the line of fire of any robots above/below you and also the dreaded angle shots. Once you are out of their line of fire, you can re-enter their line of fire selectively and shoot them. Get to a safe barrier as soon as possible and wait for the robots to move into easy positions.\n\n- STAFF -\n\nDesigned & programmed by: Alan McNeil\n\n- PORTS -\n\n* CONSOLES:\n[US] GCE Vectrex (1982) \"Berzerk [Model HS-4020]\" \n[US] Atari 2600 (1982) \"Berzerk [Model CX2650]\" \n[JP] Atari 2600 (1983) \n[US] Atari 5200 (1983) \"Berzerk [Model CX5221]\" \n[BR] DynaVision (198?) \"Berzerk\"\n[US] Emerson Arcadia (1982) \"Escape [Model 1015]\" \n\n* COMPUTERS:\n[US] Tandy Color Computer (1981) \"Berserk\"\n[US] Tandy Color Computer (1981) \"Robot Battle\" \n[US] Tandy Color Computer (1982) \"Android Attack\" \n[US] Tandy Color Computer (1982) \"Haywire\" \n[US] Tandy Color Computer (198?) \"Monster Maze\" \n[US] PC [Booter] (1983) \"Robot War\" : A part of the \"Friendlyware PC Arcade\" suite.\n[EU] Tangerine Microtan 65 (1984)\n\n* OTHERS:\n[US] VFD handheld game (1982) by Coleco: Unfortunately, this game was never released.\n\n- SERIES -\n\n1. Berzerk (1980)\n2. Frenzy (1982)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/236/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

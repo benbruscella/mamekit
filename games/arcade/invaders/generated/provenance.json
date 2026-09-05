@@ -1,0 +1,341 @@
+{
+  "generatedFrom": "src/mame/midw8080/mw8080bw.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 334,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 335,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2693,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 334,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 335,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 332,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 338,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/midw8080/mw8080bw_v.cpp",
+      "line": 356,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 332,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 338,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2690,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2696,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/midw8080/mw8080bw_a.cpp",
+      "line": 3281,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/midw8080/mw8080bw_a.cpp",
+      "line": 3283,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/midw8080/mw8080bw_a.cpp",
+      "line": 3299,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 188,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 203,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2819,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2824,
+      "column": 2
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2822,
+      "column": 2
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2826,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/midw8080/mw8080bw_a.cpp",
+      "line": 3251,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/midw8080/mw8080bw_a.cpp",
+      "line": 3266,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 282,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 255,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 249,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/midw8080/mw8080bw_v.cpp",
+      "line": 356,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2544,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2595,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2568,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2556,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2580,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2586,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 316,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 317,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 318,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 313,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2604,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2605,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2606,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2608,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2609,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2610,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2611,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2601,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2618,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2620,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2621,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/midw8080/mw8080bw.cpp",
+      "line": 2614,
+      "column": 1
+    },
+    {
+      "path": "/video/bitmap/source",
+      "file": "src/mame/midw8080/mw8080bw_v.cpp",
+      "line": 356,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/midw8080/mw8080bw_v.cpp",
+      "line": 356,
+      "column": 1
+    }
+  ]
+}

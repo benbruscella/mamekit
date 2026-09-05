@@ -1,0 +1,756 @@
+{
+  "game": "pengo",
+  "title": "Pengo (World, not encrypted, rev A) (Sega, 1982)",
+  "family": "pengo",
+  "dataPath": "games/arcade/pengo",
+  "board": {
+    "family": "pengo",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "pengo_state.pacman_videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "share": "colorram",
+            "write": "pengo_state.pacman_colorram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 34816,
+            "end": 36847,
+            "kind": "ram",
+            "share": "mainram"
+          },
+          {
+            "start": 36848,
+            "end": 36863,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 36864,
+            "end": 36895,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 36896,
+            "end": 36911,
+            "kind": "ram",
+            "share": "spriteram2",
+            "writeOnly": true
+          },
+          {
+            "start": 36864,
+            "end": 36927,
+            "kind": "handler",
+            "read": "port.DSW2"
+          },
+          {
+            "start": 36928,
+            "end": 36991,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 36928,
+            "end": 36935,
+            "kind": "handler",
+            "write": "mainlatch.write_d0"
+          },
+          {
+            "start": 36976,
+            "end": 36976,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 36992,
+            "end": 37055,
+            "kind": "handler",
+            "read": "port.IN1"
+          },
+          {
+            "start": 37056,
+            "end": 37119,
+            "kind": "handler",
+            "read": "port.IN0"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 32767,
+        "kind": "rom"
+      },
+      {
+        "start": 32768,
+        "end": 33791,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "pengo_state.pacman_videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 33792,
+        "end": 34815,
+        "kind": "ram",
+        "share": "colorram",
+        "write": "pengo_state.pacman_colorram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 34816,
+        "end": 36847,
+        "kind": "ram",
+        "share": "mainram"
+      },
+      {
+        "start": 36848,
+        "end": 36863,
+        "kind": "ram",
+        "share": "spriteram"
+      },
+      {
+        "start": 36864,
+        "end": 36895,
+        "kind": "handler",
+        "write": "namco.pacman_sound_w"
+      },
+      {
+        "start": 36896,
+        "end": 36911,
+        "kind": "ram",
+        "share": "spriteram2",
+        "writeOnly": true
+      },
+      {
+        "start": 36864,
+        "end": 36927,
+        "kind": "handler",
+        "read": "port.DSW2"
+      },
+      {
+        "start": 36928,
+        "end": 36991,
+        "kind": "handler",
+        "read": "port.DSW1"
+      },
+      {
+        "start": 36928,
+        "end": 36935,
+        "kind": "handler",
+        "write": "mainlatch.write_d0"
+      },
+      {
+        "start": 36976,
+        "end": 36976,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 36992,
+        "end": 37055,
+        "kind": "handler",
+        "read": "port.IN1"
+      },
+      {
+        "start": 37056,
+        "end": 37119,
+        "kind": "handler",
+        "read": "port.IN0"
+      }
+    ],
+    "screen": {
+      "width": 288,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 60.60606060606061,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 224,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-5128.ic8",
+          "offset": 0,
+          "size": 4096,
+          "crc": "3dfeb20e",
+          "alt": [
+            {
+              "file": "ic8.2",
+              "crc": "e4924b7b"
+            },
+            {
+              "file": "0_oct6-82.ic8",
+              "crc": "43e45441"
+            },
+            {
+              "file": "epr-1738.ic8",
+              "crc": "68ba25ea"
+            },
+            {
+              "file": "epr-5120.ic8",
+              "crc": "f01afb60"
+            },
+            {
+              "file": "epr-1689c.ic8",
+              "crc": "f37066a8"
+            },
+            {
+              "file": "epr-1701a.ic8",
+              "crc": "6ad6b227"
+            },
+            {
+              "file": "008_pn01.bin",
+              "crc": "22f328df"
+            },
+            {
+              "file": "pg0_2732.bin",
+              "crc": "1a79436c"
+            }
+          ]
+        },
+        {
+          "file": "epr-5129.ic7",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "1db341bd",
+          "alt": [
+            {
+              "file": "ic7.2",
+              "crc": "72e7775d"
+            },
+            {
+              "file": "1_oct11-82.ic7",
+              "crc": "30a52a90"
+            },
+            {
+              "file": "epr-1739.ic7",
+              "crc": "41e7b5b3"
+            },
+            {
+              "file": "epr-5121.ic7",
+              "crc": "2eb38353"
+            },
+            {
+              "file": "epr-1690b.ic7",
+              "crc": "baf48143"
+            },
+            {
+              "file": "epr-1702.ic7",
+              "crc": "cea1e8d1"
+            },
+            {
+              "file": "007_pn05.bin",
+              "crc": "15bbc7d3"
+            }
+          ]
+        },
+        {
+          "file": "epr-5130.ic15",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "7c2842d5",
+          "alt": [
+            {
+              "file": "ic15.2",
+              "crc": "7410ef1e"
+            },
+            {
+              "file": "2_oct11-82.ic15",
+              "crc": "09783cc2"
+            },
+            {
+              "file": "epr-1740.ic15",
+              "crc": "27f05f59"
+            },
+            {
+              "file": "epr-5122.ic15",
+              "crc": "c33400d7"
+            },
+            {
+              "file": "epr-1691b.ic15",
+              "crc": "adf0eba0"
+            },
+            {
+              "file": "epr-1703.ic15",
+              "crc": "bc1cd590"
+            },
+            {
+              "file": "015_pn02.bin",
+              "crc": "de82b74a"
+            }
+          ]
+        },
+        {
+          "file": "epr-5131a.ic14",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "6e3c1f2f",
+          "alt": [
+            {
+              "file": "ic14.2",
+              "crc": "55b3f379"
+            },
+            {
+              "file": "3_oct6-82.ic14",
+              "crc": "452c80c9"
+            },
+            {
+              "file": "epr-1741.ic14",
+              "crc": "27d93ec1"
+            },
+            {
+              "file": "epr-5123.ic14",
+              "crc": "6a85c6a2"
+            },
+            {
+              "file": "epr-1692b.ic14",
+              "crc": "a086d60f"
+            },
+            {
+              "file": "epr-1704.ic14",
+              "crc": "160f3836"
+            }
+          ]
+        },
+        {
+          "file": "epr-5132.ic21",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "95f354ff",
+          "alt": [
+            {
+              "file": "epr-1693b.ic21",
+              "crc": "b72084ec"
+            },
+            {
+              "file": "epr-1705.ic21",
+              "crc": "7824e3ef"
+            },
+            {
+              "file": "pengo1.bin",
+              "crc": "1519d59b"
+            },
+            {
+              "file": "pg4_2732.bin",
+              "crc": "6210c06f"
+            }
+          ]
+        },
+        {
+          "file": "epr-5133.ic20",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "0fdb04b8",
+          "alt": [
+            {
+              "file": "ic20.2",
+              "crc": "770570cf"
+            },
+            {
+              "file": "epr-5125.ic20",
+              "crc": "1a42310f"
+            },
+            {
+              "file": "epr-1694b.ic20",
+              "crc": "94194a89"
+            },
+            {
+              "file": "epr-1706.ic20",
+              "crc": "377b9663"
+            },
+            {
+              "file": "pengo2.bin",
+              "crc": "1b90c32c"
+            },
+            {
+              "file": "pengomc_03.a3",
+              "crc": "0ac08ae4"
+            },
+            {
+              "file": "pg5_2732.bin",
+              "crc": "7c83d678"
+            }
+          ]
+        },
+        {
+          "file": "epr-5134.ic32",
+          "offset": 24576,
+          "size": 4096,
+          "crc": "e5920728",
+          "alt": [
+            {
+              "file": "epr-5118b.ic32",
+              "crc": "af7b12c4"
+            },
+            {
+              "file": "epr-1707.ic32",
+              "crc": "bfde44c1"
+            },
+            {
+              "file": "pengo3.bin",
+              "crc": "aff4fba1"
+            },
+            {
+              "file": "pengomc_04.a2",
+              "crc": "1717a7d9"
+            },
+            {
+              "file": "pg6_2732.bin",
+              "crc": "ae646d36"
+            }
+          ]
+        },
+        {
+          "file": "epr-5135a.ic31",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "13de47ed",
+          "alt": [
+            {
+              "file": "ic31.2",
+              "crc": "669555c1"
+            },
+            {
+              "file": "7_oct11-82.ic31",
+              "crc": "1350ca0e"
+            },
+            {
+              "file": "epr-1745.ic31",
+              "crc": "507e18b9"
+            },
+            {
+              "file": "epr-5127.ic31",
+              "crc": "a7d3d1d6"
+            },
+            {
+              "file": "epr-5119c.ic31",
+              "crc": "933950fe"
+            },
+            {
+              "file": "epr-1708a.ic31",
+              "crc": "64e8c30d"
+            },
+            {
+              "file": "pengo4.bin",
+              "crc": "1628eb6d"
+            },
+            {
+              "file": "pengomc_05.a1",
+              "crc": "cb6eb19c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "epr-1640.ic92",
+          "offset": 0,
+          "size": 4096,
+          "crc": "d7eec6cd",
+          "alt": [
+            {
+              "file": "5",
+              "crc": "1232437b"
+            },
+            {
+              "file": "092_pn09.bin",
+              "crc": "6afeba9d"
+            }
+          ],
+          "continueSegments": [
+            {
+              "offset": 8192,
+              "size": 4096,
+              "fileOffset": 4096
+            }
+          ]
+        },
+        {
+          "file": "epr-1695.ic105",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "5bfd26e9",
+          "continueSegments": [
+            {
+              "offset": 12288,
+              "size": 4096,
+              "fileOffset": 4096
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1056,
+      "loads": [
+        {
+          "file": "pr1633.ic78",
+          "offset": 0,
+          "size": 32,
+          "crc": "3a5844ec"
+        },
+        {
+          "file": "pr1634.ic88",
+          "offset": 32,
+          "size": 1024,
+          "crc": "766b139b"
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "pr1635.ic51",
+          "offset": 0,
+          "size": 256,
+          "crc": "c29dea27",
+          "alt": [
+            {
+              "file": "82s126.1m",
+              "crc": "a9cc86bf"
+            },
+            {
+              "file": "82s129.1m",
+              "crc": "3cb61034"
+            }
+          ]
+        },
+        {
+          "file": "pr1636.ic70",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66",
+          "alt": [
+            {
+              "file": "82s129.3m",
+              "crc": "822fe878"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW1",
+      "mask": 1,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 2,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 24,
+      "value": 16,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 32,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 128,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 15,
+      "value": 12,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW2",
+      "mask": 240,
+      "value": 192,
+      "name": "Coin B"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 176
+    },
+    {
+      "tag": "DSW2",
+      "init": 204
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

@@ -1,0 +1,625 @@
+{
+  "schemaVersion": 1,
+  "type": "COLECO_EXPANSION",
+  "className": "coleco_expansion_device",
+  "hierarchy": [
+    "coleco_expansion_device"
+  ],
+  "sourceFiles": [
+    "src/devices/bus/coleco/expansion/expansion.cpp",
+    "src/devices/bus/coleco/expansion/expansion.h",
+    "src/devices/bus/coleco/expansion/cards.h",
+    "src/devices/bus/coleco/expansion/cards.cpp"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3
+  },
+  "members": [
+    {
+      "name": "m_program",
+      "valueType": "required_address_space"
+    },
+    {
+      "name": "m_io",
+      "valueType": "required_address_space"
+    },
+    {
+      "name": "m_card",
+      "valueType": "device_coleco_expansion_interface*",
+      "initial": 0
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "int_handler",
+      "member": "m_int_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "nmi_handler",
+      "member": "m_nmi_handler",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.cpp",
+        "line": 43,
+        "column": 1
+      }
+    },
+    {
+      "name": "coleco_expansion_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_default_option"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 62,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_program_space",
+      "parameters": "auto &&tag, int spacenum",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spacenum"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 72,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_io_space",
+      "parameters": "auto &&tag, int spacenum",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_io"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spacenum"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 74,
+        "column": 1
+      }
+    },
+    {
+      "name": "int_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_int_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "nmi_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_nmi_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 78,
+        "column": 1
+      }
+    },
+    {
+      "name": "int_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_int_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 79,
+        "column": 1
+      }
+    },
+    {
+      "name": "nmi_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_nmi_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 82,
+        "column": 1
+      }
+    },
+    {
+      "name": "coleco_expansion_device::coleco_expansion_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_default_option"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "coleco_expansion_device::set_program_space",
+      "parameters": "auto &&tag, int spacenum",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spacenum"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 72,
+        "column": 36
+      }
+    },
+    {
+      "name": "coleco_expansion_device::set_io_space",
+      "parameters": "auto &&tag, int spacenum",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_io"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spacenum"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "coleco_expansion_device::int_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_int_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 76,
+        "column": 1
+      }
+    },
+    {
+      "name": "coleco_expansion_device::nmi_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_nmi_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 79,
+        "column": 1
+      }
+    },
+    {
+      "name": "coleco_expansion_device::int_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_int_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 80,
+        "column": 1
+      }
+    },
+    {
+      "name": "coleco_expansion_device::nmi_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_nmi_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "mem_space",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_program"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "io_space",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_io"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/coleco/expansion/expansion.h",
+        "line": 85,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 17,
+    "compiledMethods": 17,
+    "diagnostics": 0
+  }
+}

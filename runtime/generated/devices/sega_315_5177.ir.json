@@ -1,0 +1,28 @@
+{
+  "type": "SEGA_315_5177",
+  "uses": [
+    {
+      "game": "wboy",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SEGA_315_5177",
+    "className": "sega_315_5177_device",
+    "shortName": "sega_315_5177",
+    "description": "Sega 315-5177",
+    "sourceFile": "src/devices/machine/segacrp2_device.cpp",
+    "sourceLine": 86,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SEGA_315_5177, sega_315_5177_device, \"sega_315_5177\", \"Sega 315-5177\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/segacrp2_device.cpp",
+    "src/devices/machine/segacrp2_device.h"
+  ]
+}

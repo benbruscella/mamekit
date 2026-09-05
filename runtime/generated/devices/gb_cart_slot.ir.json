@@ -1,0 +1,2870 @@
+{
+  "type": "GB_CART_SLOT",
+  "uses": [
+    {
+      "game": "gameboy",
+      "tags": [
+        "cartslot"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "GB_CART_SLOT",
+    "className": "gb_cart_slot_device",
+    "shortName": "gb_cart_slot",
+    "description": "Game Boy Cartridge Slot",
+    "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+    "sourceLine": 1360,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(GB_CART_SLOT, gb_cart_slot_device, \"gb_cart_slot\", \"Game Boy Cartridge Slot\")"
+  },
+  "methods": [
+    {
+      "name": "is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_software_list_loader",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rom_software_list_loader::instance"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "romimage"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "rom"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/gameboy/slot.cpp",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "gb_cart_slot_device_base::is_reset_on_load",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/gameboy/slot.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cart_space",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/gameboy/slot.h",
+      "sourceLine": 51,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_space"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset_after_children",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 1050,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "gb_cart_slot_device_base::device_reset_after_children"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "header",
+            "valueType": "u8",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ALLOC"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "suppressor",
+            "valueType": "auto",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "machine"
+                  },
+                  "args": []
+                },
+                "property": "disable_side_effects"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "unsigned",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "std::size"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "header"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "i"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "header"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "cart_space"
+                      },
+                      "args": []
+                    },
+                    "property": "read_byte"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "number",
+                        "value": 256
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "cgb",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cartheader::OFFSET_CGB"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "type",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cartheader::OFFSET_TYPE"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "romsize",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cartheader::OFFSET_ROM_SIZE"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ramsize",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cartheader::OFFSET_RAM_SIZE"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "region",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cartheader::OFFSET_REGION"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "headerchecksum",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cartheader::OFFSET_CHECKSUM_HEADER"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "romchecksum",
+            "valueType": "u16",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "cast",
+                  "valueType": "u16",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "header"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "cartheader::OFFSET_CHECKSUM_ROM"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "header"
+                },
+                "index": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "cartheader::OFFSET_CHECKSUM_ROM"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 256
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "headercalc",
+            "valueType": "u8",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "cartheader::checksum"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "header"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "cartheader::OFFSET_TITLE"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "header"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "cartheader::OFFSET_CHECKSUM_HEADER"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "romcalc",
+            "valueType": "u16",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "romchecksum"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "romchecksum"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "romregion",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memregion"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "rom"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "romregion"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "data",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "romregion"
+                      },
+                      "property": "as_u8"
+                    },
+                    "args": []
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "romcalc"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::accumulate"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "index": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "romregion"
+                            },
+                            "property": "bytes"
+                          },
+                          "args": []
+                        }
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "romcalc"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "gb_cart_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "gb_cart_slot_device::gb_cart_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cart_cgb_support_description",
+      "parameters": "u8 const flags",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "flags"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 7
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "string",
+                  "value": "unsupported"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "flags"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "PGB mode"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "flags"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 6
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "string",
+                          "value": "required"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "string",
+                          "value": "enhanced"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cart_sgb_support_description",
+      "parameters": "u8 const *header",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 145,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "number",
+                "value": 51
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "header"
+                },
+                "index": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "cartheader::OFFSET_LICENSEE"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 256
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "string",
+                  "value": "unaware"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "number",
+                    "value": 3
+                  },
+                  "right": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "header"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "cartheader::OFFSET_SGB"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "unsupported"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "enhanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cart_type_description",
+      "parameters": "u8 type",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 156,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "type"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_ROM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "flat ROM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC1"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC1"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC1_RAM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC1 with RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC1_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC1 with battery-backed RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC2"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC2"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC2_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC2 with backup battery"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_ROM_RAM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "flat ROM with RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_ROM_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "flat ROM with battery-backed RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MMM01"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MMM01"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MMM01_RAM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MMM01 with RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MMM01_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MMM01 with battery-backed RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RTC_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC3 with backup battery and real-time clock crystal"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RTC_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC3 with battery-backed RAM and real-time clock crystal"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC3"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RAM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC3 with RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC3 with battery-backed RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC5"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RAM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC5 with RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC5 with battery-backed RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RUMBLE"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC5 with vibration motor"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RUMBLE_RAM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC5 with RAM and vibration motor"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RUMBLE_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC5 with battery-backed RAM and vibration motor"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC6"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC6 with Flash memory and battery-backed RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC7_ACCEL_EEPROM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo MBC7 with EEPROM and two-axis accelerometer"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_UNLICENSED_YONGYONG"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Yong Yong pirate"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_CAMERA"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Nintendo Game Boy Camera with battery-backed RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_TAMA5"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Bandai TAMA5 with battery-backed TAMA6 and real-time clock"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_HUC3"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Hudson Soft HuC-3 with battery-baked RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_HUC1_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Hudson Soft HuC-1 with battery-baked RAM"
+                    }
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "unknown"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cart_ram_size_description",
+      "parameters": "u8 size",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 262,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "size"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::RAM_SIZE_0K"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "none"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::RAM_SIZE_2K"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::RAM_SIZE_8K"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::RAM_SIZE_32K"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::RAM_SIZE_128K"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "util::string_format"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "%u KiB"
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "number",
+                            "value": 2
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "size"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "cartheader::RAM_SIZE_2K"
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::RAM_SIZE_64K"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "64 KiB"
+                    }
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "unknown"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cart_region_description",
+      "parameters": "u8 region",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 281,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "region"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "Japan"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "export"
+                    }
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "string",
+                      "value": "unknown"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "guess_image_format",
+      "parameters": "std::string_view tag, util::random_read &file, u64 &length, u64 &offset",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 787,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "gbxoption",
+            "valueType": "std::optional",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "probe_gbx_footer"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "tag"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "length"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "gbxoption"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "gbxoption"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "number",
+                  "value": 16384
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "length"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "length"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16383
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 512
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_verbose"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "[%s] Assuming 0x%06X-byte cartridge file contains 0x0200-byte header\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "length"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 8192
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 512
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "osd_printf_verbose"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "[%s] Assuming 0x%06X-byte cartridge file is a plain ROM image\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "tag"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "length"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "guess_cart_type",
+      "parameters": "std::string_view tag, util::random_read &file, u64 length, u64 offset, u8 const *header",
+      "sourceFile": "src/devices/bus/gameboy/gbslot.cpp",
+      "sourceLine": 872,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "carttype",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cartheader::OFFSET_TYPE"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              }
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "carttype"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_ROM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_wisdom_tree"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "tag"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "length"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "offset"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "header"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "slotoptions::GB_WISDOM"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_STD"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC1"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC1_RAM"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC1_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC1"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC2"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC2_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC2"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_ROM_RAM"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_ROM_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_STD"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MMM01"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MMM01_RAM"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MMM01_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MMM01"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RTC_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_mbc30"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "tag"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "length"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "offset"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "header"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "slotoptions::GB_MBC30"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC3"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RTC_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_m161"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "tag"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "length"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "offset"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "header"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "slotoptions::GB_M161"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "is_mbc30"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "tag"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "file"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "length"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "offset"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "header"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "return",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "slotoptions::GB_MBC30"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC3"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RAM"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC3_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_mbc30"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "tag"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "length"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "offset"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "header"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "slotoptions::GB_MBC30"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC3"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RAM"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RAM_BATT"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RUMBLE"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RUMBLE_RAM"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC5_RUMBLE_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC5"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC6"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC6"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_MBC7_ACCEL_EEPROM"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "guess_mbc7_type"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "tag"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "length"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "offset"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "header"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_UNLICENSED_YONGYONG"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_YONG"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_CAMERA"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_CAMERA"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_TAMA5"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_TAMA5"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_HUC3"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_HUC3"
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "cartheader::TYPE_HUC1_RAM_BATT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_HUC1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "number",
+                "value": 32768
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "length"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "[%s] Unknown cartridge type 0x%02X - defaulting to flat ROM for 0x%04X-byte cartridge\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "carttype"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "slotoptions::GB_STD"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "u32",
+                      "operand": {
+                        "kind": "number",
+                        "value": 16384
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "length"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_warning"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "[%s] Unknown cartridge type 0x%02X - defaulting to MBC1 for 0x%06X-byte cartridge\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "tag"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "carttype"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "length"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC1"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_warning"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "[%s] Unknown cartridge type 0x%02X - defaulting to MBC5 for 0x%06X-byte cartridge\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "tag"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "carttype"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "length"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "slotoptions::GB_MBC5"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/gameboy/gbslot.cpp",
+    "src/devices/bus/gameboy/gbslot.h",
+    "src/devices/bus/gameboy/slot.h",
+    "src/devices/imagedev/cartrom.h",
+    "src/devices/imagedev/cartrom.cpp",
+    "src/devices/bus/gameboy/slot.cpp"
+  ]
+}

@@ -1,0 +1,258 @@
+# Joust (Green label)
+
+**Williams · 1982** — transpiled from the MAME driver `src/mame/williams/williams.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/joust.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/joust.webp) | ![cabinet](/artwork/media/cabinets/joust.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | MC6809E | 1.000 MHz | 12 |
+| `soundcpu` | M6808 | 3.580 MHz | 4 |
+
+- **Sound:** dac × 1 @ 3.580 MHz
+- **Screen:** 292×240 @ 60.10 Hz
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `joust_rom_1b_3006-13.e4` | 0x0 | 0x1000 | `fe41b2af` |
+| `maincpu` | `joust_rom_2b_3006-14.c4` | 0x1000 | 0x1000 | `501c143c` |
+| `maincpu` | `joust_rom_3b_3006-15.a4` | 0x2000 | 0x1000 | `43f7161d` |
+| `maincpu` | `joust_rom_4b_3006-16.e5` | 0x3000 | 0x1000 | `db5571b6` |
+| `maincpu` | `joust_rom_5b_3006-17.c5` | 0x4000 | 0x1000 | `c686bb6b` |
+| `maincpu` | `joust_rom_6b_3006-18.a5` | 0x5000 | 0x1000 | `fac5f2cf` |
+| `maincpu` | `joust_rom_7b_3006-19.e6` | 0x6000 | 0x1000 | `81418240` |
+| `maincpu` | `joust_rom_8b_3006-20.c6` | 0x7000 | 0x1000 | `ba5359ba` |
+| `maincpu` | `joust_rom_9b_3006-21.a6` | 0x8000 | 0x1000 | `39643147` |
+| `maincpu` | `joust_rom_10b_3006-22.a7` | 0xd000 | 0x1000 | `3f1c4f89` |
+| `maincpu` | `joust_rom_11b_3006-23.c7` | 0xe000 | 0x1000 | `ea48b359` |
+| `maincpu` | `joust_rom_12b_3006-24.e7` | 0xf000 | 0x1000 | `c710717b` |
+| `soundcpu` | `video_sound_rom_4_std_780.ic12` | 0xf000 | 0x1000 | `f1835bdd` |
+| `proms` | `decoder_rom_4.3g` | 0x0 | 0x200 | `e6631c23` |
+| `proms` | `decoder_rom_6.3c` | 0x200 | 0x200 | `83faf25e` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| 2 | start2 | `IN0` | 0x10 |
+| 1 | start1 | `IN0` | 0x20 |
+| 9 | auto up / manual down | `IN2` | 0x1 |
+| F2 | advance | `IN2` | 0x2 |
+| F3 | high score reset | `IN2` | 0x8 |
+| 5 | coin1 | `IN2` | 0x10 |
+| 6 | coin2 | `IN2` | 0x20 |
+| Left | joystick left | `INP1` | 0x1 |
+| Right | joystick right | `INP1` | 0x2 |
+| Space / X | button1 | `INP1` | 0x4 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/williams/williams.cpp`
+- **Written by:** Aaron Giles
+- **License:** BSD-3-Clause
+- **Development:** 291 commits by 42 contributors, 2007–2026
+- **Top contributors:** Aaron Giles, Vas Crabb, Miodrag Milanovic, Ivan Vangelista, AJR
+
+## The story
+
+Arcade Video game published 44 years ago:
+
+Joust (c) 1982 Williams.
+
+Joust is a platform-based action combat game for one or two-players (with the two-player game offering either team-up OR head-to-head combat; the first time arcade gamers were given this choice) in which each player controls a knight riding on the back of a flying ostrich. 
+
+The object of the game is to progress through platform-based levels by defeating groups of buzzard-riding enemy knights. This is achieved by 'jousting'; both enemy and player knights carry a lance and must fly around the level (actioned by repeatedly hitting the 'Flap' button) trying to oust rival knights from their steeds by ramming them with the lance. This can only be achieved if the attacking rider is above the enemy knight when the lance connects. A collision of equal elevations results in the two knights bouncing off each other, but if a player is lower than their enemy at the instant of contact, they themselves will be knocked from their steed and lose a life. 
+
+A defeated enemy will turn into an egg that falls to the bottom of the screen. This must be quickly collected by players as if the egg lands on a platform and isn't retrieved in time, it will eventually hatch into another enemy knight that must be defeated again. 
+
+Joust features three different types of enemy knights - Bounder, Hunter, and Shadow Lord - with each earning players different points values when defeated. A pterodactyl will appear after a predetermined time to hunt the players. 
+
+Accurately navigating the player Knights can be initially quite difficult as control is strongly affected by both gravity and inertia. Players can lose a life by either being knocked from their steed by an enemy knight, or by falling into the lava pit at the bottom of each level.
+
+### Technical
+* The upright version of Joust was a dedicated cabinet. It is similar in shape to other Williams games from that era, but it is not identical to them. The cabinet is largely black with no painted art on the front of the machine. But it does have sideart, in this case a four-color painted rendering of a knight riding a large bird, while carrying a lance. This design is fairly simple when compared to the sideart on other games, and can be repainted by hand, as long as you are careful. The control panel, monitor bezel, and marquee are all filled with the expected graphics. The marquee especially is a stunning rendition of the Joust logo, and two riders inside the Joust world. Your Joust machine will come with either 2-way leaf switch joysticks, or 2-way optical ones. The early cabinets had the optical ones, while the later ones used the leaf stick ones. 
+
+* The cocktail version (a cocktail game is a sit down table version), is notable because it was one of the most popular cocktail cabinets for conversion to newer titles. You see most cocktail tables originally held games that had monitors in a vertical orientation, and had a set of player controls on each end of the table. By 1985 no one was really making many vertical games, especially not ones that were one player at a time, and could flip the screen for the second player. But the Joust table was different. It had a horizontal monitor, and the players sat side by side, instead of at opposite ends of the table. This allowed the Joust cocktail cabinet to be used for all sorts of newer games. Electronically the cocktail version of Joust was identical to the upright version. The cocktail cabinet did not feature a lot of art, and was mostly black.
+
+The Joust PCBs are functionally identical to those used in "Defender", "Robotron - 2084", "Bubbles", "Sinistar", and "Stargate", only the ROM chips are different.
+
+Main CPU : Motorola M6809 (@ 1 Mhz)
+Sound CPU : M6808 (@ 894.75 Khz)
+Sound Chips : DAC
+
+Players : 2
+Control : 2-way joystick (LEFT and RIGHT)
+Buttons : 1 (FLAP)
+
+### Trivia
+Joust was released in September 1982 in the USA.
+
+The name of this game is a reference for 'Jousting'. Jousting is a competition between two knights on horse-back, wherein each knight tries to knock the other off his mount. Jousting was popular in medieval times. 
+
+Joust shares some sounds from "Defender" and "Stargate". 
+
+James Vollandt holds the official record for this game on 'Marathon' settings with 107,216,700 points. 
+Don Morlan holds the official record for this game on 'Tournament' settings with 1,002,500 points. 
+
+A Joust unit appears in the 1983 movie 'Joysticks'. 
+
+A Joust unit appears (multiple times) in a 'Columbo' tv movie episode : (Murder, Smoke and Shadows) directed by James Frawley.
+
+### Updates
+Red version has a default high score of 107,212 points, Green and Yellow versions have 109,102 points as the default high score. Also, the Green version fixes a well known bug that allowed you to endlessly kill Pterodactyls on certain levels, thus achieving incredible scores.
+
+### Scoring
+Killing enemies : 
+Bounder (Red) : 500 points. 
+Hunter (Silver/Gray) : 750 points. 
+Shadow Lord (Blue) : 1,000 points. 
+Pterodactyl : 1,000 points. 
+
+Getting killed : 50 points. 
+
+Picking up eggs or hatchlings : 250, 500, 750, or 1,000 points (progressive). The progression starts again when the player is killed or starts the next wave. 
+
+Picking up an egg before it touches the ground : 500 points. 
+
+Not dying during a Survival Wave : 3,000 points. 
+
+If neither player kills the other during a Team Wave (2-player game only) : 3,000 points for each player. 
+
+The first player who kills the other player during a Gladiator Wave (2-player game only) : 3,000 points.
+
+### Tips and tricks
+* When you start the game, your man will be at the entry point at the bottom of the playing field. From the other entry points, enemy riders will appear. It will then be up to you to successfully defeat them. Learning to flap your ostrich's wings is the most vital aspect of this game. How fast or slow you flap the wings determines speed and maneuverability. Once you get good, you will be able to glide around and only flap for either altitude or to hit an enemy rider.
+
+* The name of the game is height. Whoever is the higher rider during a joust is the winner. If you and an enemy collide on the same level, the impact will knock you both backwards a little and turn you both around. This can prove to be dangerous if more then one enemy is coming for you since the first one turns you around and the second knocks you off your mount.
+
+* You need to pay particular attention to the screen setup on each wave. Different platforms may collapse forcing you to readjust your strategy accordingly. Using the 20-wave example from Chapter 6.4, I will give you some basic strategies...
+a) During the non-pterodactyl waves and platform one is intact, your best bet is to hang out under the right side of platform one. The enemy riders have to drop to get to you.  Just a quick press of the flap button should give you altitude over them and the easy kill.
+b) If you lose platform one, the next best place is platform five. This forces the enemy riders to rise up to you. If you hover over the left or right edge, you can drop on enemy riders trying to rise up from the areas of platforms two and three. Of course, if any make it to your level, just sit on that entry point. When an enemy rider gets near, rapidly climb and move over toward the enemy to knock them off their mount.
+c) When you only have platforms two and three, you will use a modified strategy from the one above. You will hover around the area that platform five was at. This forces the enemy riders to rise up to you, thereby exposing themselves to you dropping down on them.
+d) If any of the above have Shadow Lords in them, you will have to be prepared to move around quickly since Shadow Lords are very fast and they tend to bounce off the top of the game screen.
+
+* There are a couple of ways to kill off the pterodactyl during the pterodactyl waves :
+1) First of all, you must be facing the pterodactyl in order to kill it.
+2) If platform one still exists, then just wait for the pterodactyl and be ready for it to choke itself on your lance. If there are multiple pterodactyls, they usually come from opposite sides so the first one will have you turned around to meet the second one.
+3) If platform one is gone, they use platform two to do your prehistoric hunting. If there are multiple pterodactyls, then you will have to move around until the second and subsequent pterodactyls are coming at your rider head on while you sit atop platform two.
+4) If you are real good, you can kill the pterodactyls off in the air. You just have to make sure that your lance is evenly aligned with the pterodactyls mouth.
+5) Pterodactyls also show up if you take too long on a wave. These can't be killed using the platform method. The only way is either in the air or to lose a man.
+6) Some players take out all the enemy riders but one. Then they lead this rider toward the lave so the Lava Troll can grab them. The player then sits and hunts pterodactyls. This is a long process that is definitely loaded with peril.
+7) If you get killed before killing the pterodactyl, it is very hard to get in position to kill the pterodactyl since it does involve a sort of rhythm. Also keep in mind that the enemy riders will still be trying to dismount you as you are hunting.
+
+* The Pterodactyl Trick : Classic trick! Doesn't work on upgraded Joust machines, or on "Joust 2". Trick the last jouster on the stage to fly to the lava and get trapped by the lava troll. Then wait in the center of the middle platform. When a pterodactyl comes out, it'll fly right into your lance. The next part takes a fair amount of practice : When the pterodactyl has hit you, your character will be knocked back. Jiggle the joystick so that your mount is back in the middle of the ledge again. Keep doing this. Eventually there'll be a steady stream of pterodactyls and you'll be killing 'em about two per second, for 1,000 points each. When you make a mistake and get killed, the trapped jouster will escape. On the last board in which this works (47), the jouster will not escape.
+
+* The Lava Troll hazard isn't too major unless you fly too close to the surface of the lava. If you do happen to get grabbed, flap rapidly to escape.  It is also easy to hit enemies immobilized by the troll.
+
+* After you hit an enemy rider, they become an egg. After a few seconds, the egg will hatch to the next hardest enemy rider. For example, a Bounder becomes a Hunter; a Hunter becomes a Shadow Lord. After that, it will always be a Shadow Lord. Some players leave one egg and then hover over it. When the enemy buzzard comes to pick up the rider, you knock him off the saddle again and collect the points. Again, the pterodactyl will show up soon to end this fun.
+
+* Make sure you don't knock too many enemy riders off at once or there will be eggs scattered all over the place. This makes it hard to keep the enemy population down to a dull roar.
+
+* Whenever your rider gets killed, he will appear at the entrance point all shimmery. If you let the sequence go, it will take up to five seconds for your rider to appear. During that time, he is immune to all attacks. Your rider will enter at the point there is the least amount of enemies. This is usually the very bottom platform. Keep in mind, the enemies also enter at these points.
+
+* The game does reach a point where there are so many enemy riders running around, they are constantly bumping into one another. This, in effect, creates a wall which is very difficult and hazardous to navigate through. This means you have to split up the enemy
+
+* If you die during a wave, try quickly to get your bearings so that you can get in position to continue depleting the enemy forces.
+
+* The above tips are as valid for the two-player game as they are for the one-player game. In the two-player game, though, you and the other player can cover each other to make it more difficult for the enemy to knock you off your mounts.
+
+* Phantom Energizer : In a two-player game (on a screen just before the middle ledge disappears) clear all opponents except one. Kill him, leaving the egg in the middle of the bottom platform. Player 1 stands on the bottom energizer while player 2 jumps in the lava. If player 2 appears on the top energizer, then the trick will work. Player 1 then gets the egg. The 'phantom' ledge should remain.
+
+### Staff
+Designed by: John Newcomer (JRN)
+Programmed by: Bill Pfutzenreuter (PFZ)
+Game art by: Jan Hendricks (JAN)
+Cabinet art by: Python Vladimir Anghelo
+Others: (KFL), (CWK), Mike Stroll (MRS)
+
+### Ports
+* CONSOLES: 
+[US] [JP] Atari 2600 (1983) "Joust [Model CX2691]" 
+[US] Colecovision : Unreleased prototype
+[US] Atari 5200 (1983) "Joust [Model CX5240]" 
+Atari XEGS 
+[US] Atari 7800 (1986) "Joust [Model CX7806]" 
+[JP] Nintendo Famicom (oct.30, 1987) "Joust [Model HAL-JU]" 
+[US] Nintendo NES (oct.1988) "Joust [Model NES-JU-USA]" 
+[US] Sega Genesis (1996) "Williams Arcade's Greatest Hits" 
+[EU] Sega Mega Drive (1996) "Arcade's Greatest Hits [Model T-97126-50]" 
+[US] Sega Saturn (1996) "Arcade's Greatest Hits [Model T-9703H]" 
+[US] Sony PlayStation (apr.10, 1996) "Williams Arcade's Greatest Hits [Model SLUS-00201]" 
+[EU] Sony PlayStation (sept.1, 1996) "Williams Arcade's Greatest Hits [Model SLES-00323]" 
+[US] Nintendo SNES (oct.1996) "Williams Arcade's Greatest Hits [Model SNS-AW8E-USA]" 
+[EU] Nintendo SNES (jan.8, 1997) "Williams Arcade's Greatest Hits [Model SNSP-AW8P-EUR]" 
+[US] Sega Dreamcast (june.27, 2000) "Midway's Greatest Arcade Hits Vol. 1 [Model T-9713N]" 
+[EU] Sega Dreamcast (jul.28, 2000) "Midway's Greatest Arcade Hits Vol. 1 [Model T-9710D-50]" 
+[US] Nintendo 64 (nov.14, 2000) "Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]" 
+[US] Sony PS2 (nov.18, 2003) "Midway Arcade Treasures [Model SLUS-20801]" 
+[US] Microsoft XBOX (nov.24, 2003) "Midway Arcade Treasures" 
+[US] Nintendo GameCube (dec.18, 2003) "Midway Arcade Treasures [Model DOL-GAKE-USA]" 
+[EU] Microsoft XBOX (feb.6, 2004) "Midway Arcade Treasures" 
+[EU] Sony PS2 (feb.6, 2004) "Midway Arcade Treasures [Model SLES-51927]" 
+[US] Microsoft XBOX 360 [XBLA] (nov.22, 2005) : retired in 2010
+[EU] Microsoft XBOX 360 [XBLA] (dec.2, 2005) : retired in 2010
+[JP] Microsoft XBOX 360 [XBLA] (dec.10, 2005) : retired in 2010
+[US] Sony Playstation 3 [PSN] (may.24, 2007) 
+[EU] Sony Playstation 3 [PSN] (june.15, 2007)
+[US] Microsoft XBOX 360 (nov.6, 2012) "Midway Arcade Origins" 
+[US] Sony PlayStation 3 (nov.6, 2012) "Midway Arcade Origins [Model BLUS-31083]" 
+[EU] Microsoft XBOX 360 (nov.15, 2012) "Midway Arcade Origins" 
+[EU] Sony PlayStation 3 (nov.15, 2012) "Midway Arcade Origins [Model BLES-01768]" 
+
+* HANDHELDS: 
+[US] Atari Lynx (1992) "Joust [Model PT5005]" 
+[EU] Nintendo Game Boy (1995) "Arcade Classic No. 4 - Defender & Joust [Model DMG-ADJP-UKV]" 
+[US] Nintendo Game Boy (oct.1995) "Arcade Classic No. 4 - Defender & Joust [Model DMG-ADJE-USA]" 
+[US] Nintendo Game Boy Color (mar.1999) "Arcade Hits - Joust & Defender [Model DMG-AADE-USA]" 
+[EU] Nintendo Game Boy Color (apr.1999) "Arcade Hits - Joust & Defender [Model DMG-AADP-EUR]" 
+[US] Nintendo GBA (nov.22, 2001) "Midway's Greatest Arcade Hits [Model AGB-AM3E-USA]" 
+[EU] Nintendo GBA (nov.30, 2001) "Midway's Greatest Arcade Hits [Model AGB-AM3P-EUR]" 
+[US] Sony PSP (dec.13, 2005) "Midway Arcade Treasures Extended Play [Model ULUS-10059]" 
+[EU] Sony PSP (feb.24, 2006) "Midway Arcade Treasures Extended Play [Model ULES-00180]" 
+
+* COMPUTERS: 
+[US] PC [Booter] (1983) 
+[US] Atari 800 (1983) "Joust [Model RX8044]" 
+ZX Spectrum (1983) : unofficial port
+Apple IIE (1983) "Jouster" : unofficial port
+Vic-20 (1983) "Space Joust" : unofficial port
+[US] [EU] Commodore C64 (1984) "Jouste" 
+BBC Micro by Atarisoft : Unreleased
+Commodore 64 by Atarisoft : Unreleased
+Vic-20 by Atarisoft : Unreleased
+TI99/4A by Atarisoft : Unreleased
+Sinclair QL (1985) "Knight Flight" : unofficial port
+[EU] Atari ST (1986) 
+[EU] Amstrad CPC (1986) 
+[US] Apple MacIntosh (1994) 
+[US] PC [MS Windows 3.1/DOS, CD-ROM] (1995) "Williams Arcade Classics" 
+[US] PC [MS Windows 95/DOS, CD-ROM] (1996) "Williams Arcade Classics" 
+[US] PC [MS Windows, CD-ROM] (aug.27, 2004) "Midway Arcade Treasures" 
+[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) "Midway Arcade Treasures" 
+
+* OTHERS: 
+[US] Palm OS (aug.2001) "Midway Arcade Classic" 
+[US] Tiger Game.com (1997) "Williams Arcade Classics [Model 71-722]" 
+[US] Mobile Phones (nov.1, 2004) 
+[US] Apple iPhone/iPod (feb.23, 2012) "Midway Arcade [Model 476467441]"
+
+### Series
+1. Joust (1982)
+2. Joust 2 - Survival of the Fittest (1986)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/1228/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `williams`. Play it at [../../../app/g/joust/](../../../app/g/joust/) or [explore the knowledge graph](viewer.html).*

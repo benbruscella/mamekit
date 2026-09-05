@@ -1,0 +1,15 @@
+{
+  "type": "EEPROM_ER5911_8BIT",
+  "uses": [
+    {
+      "game": "simpsons",
+      "tags": [
+        "eeprom"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

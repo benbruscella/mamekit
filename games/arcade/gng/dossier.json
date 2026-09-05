@@ -1,0 +1,992 @@
+{
+  "game": "gng",
+  "title": "Ghosts'n Goblins (World? set 1) (Capcom, 1985)",
+  "fullname": "Ghosts'n Goblins (World? set 1)",
+  "year": "1985",
+  "company": "Capcom",
+  "family": "gng",
+  "driverFile": "src/mame/capcom/gng.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Pierpaolo Prazzoli",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "mc6809",
+      "clock": 6000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 7679,
+          "kind": "ram"
+        },
+        {
+          "start": 7680,
+          "end": 8191,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 8192,
+          "end": 10239,
+          "kind": "ram",
+          "share": "fgvideoram",
+          "write": "gng_state.fgvideoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 10240,
+          "end": 12287,
+          "kind": "ram",
+          "share": "bgvideoram",
+          "write": "gng_state.bgvideoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 12288,
+          "end": 12288,
+          "kind": "handler",
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 12289,
+          "end": 12289,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 12290,
+          "end": 12290,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 12291,
+          "end": 12291,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 12292,
+          "end": 12292,
+          "kind": "handler",
+          "read": "port.DSW2"
+        },
+        {
+          "start": 14336,
+          "end": 14591,
+          "kind": "handler",
+          "share": "palette_ext",
+          "write": "palette.write8_ext"
+        },
+        {
+          "start": 14592,
+          "end": 14847,
+          "kind": "handler",
+          "share": "palette",
+          "write": "palette.write8"
+        },
+        {
+          "start": 14848,
+          "end": 14848,
+          "kind": "handler",
+          "write": "soundlatch.write"
+        },
+        {
+          "start": 15112,
+          "end": 15113,
+          "kind": "handler",
+          "write": "gng_state.bgscrollx_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 15114,
+          "end": 15115,
+          "kind": "handler",
+          "write": "gng_state.bgscrolly_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 15360,
+          "end": 15360,
+          "kind": "handler",
+          "write": "spriteram.write"
+        },
+        {
+          "start": 15616,
+          "end": 15623,
+          "kind": "handler",
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 15872,
+          "end": 15872,
+          "kind": "handler",
+          "write": "gng_state.bankswitch_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 24575,
+          "kind": "handler",
+          "read": "bank.mainbank",
+          "bank": "mainbank"
+        },
+        {
+          "start": 24576,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 3000000,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 49152,
+          "end": 51199,
+          "kind": "ram"
+        },
+        {
+          "start": 51200,
+          "end": 51200,
+          "kind": "handler",
+          "read": "soundlatch.read"
+        },
+        {
+          "start": 57344,
+          "end": 57345,
+          "kind": "handler",
+          "write": "ym1.write"
+        },
+        {
+          "start": 57346,
+          "end": 57347,
+          "kind": "handler",
+          "write": "ym2.write"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2203",
+    "clock": 1500000,
+    "chips": 2,
+    "deviceType": "YM2203",
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 3,
+        "gain": 0.2,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.4,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 3,
+        "gain": 0.2,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.63740458015267,
+    "htotal": 384,
+    "vtotal": 262,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "mm_c_04",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "4f94130f",
+          "alt": [
+            {
+              "file": "mjg_04.10n",
+              "crc": "66606beb"
+            },
+            {
+              "file": "gng.n10",
+              "crc": "60343188"
+            },
+            {
+              "file": "mmt04d.10n",
+              "crc": "652406f6"
+            },
+            {
+              "file": "gg10n.bin",
+              "crc": "5d2a2c90"
+            },
+            {
+              "file": "3",
+              "crc": "4859d068"
+            },
+            {
+              "file": "mj04g.bin",
+              "crc": "757c94d3"
+            },
+            {
+              "file": "mj04c.bin",
+              "crc": "1294edb1"
+            },
+            {
+              "file": "mj04b.10n",
+              "crc": "f8bda78f"
+            },
+            {
+              "file": "10n.rom",
+              "crc": "81e567e0"
+            }
+          ]
+        },
+        {
+          "file": "mm_c_03",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "1def138a",
+          "alt": [
+            {
+              "file": "mjg_03.8n",
+              "crc": "9e01c65e"
+            },
+            {
+              "file": "mmt03d.8n",
+              "crc": "fb040b42"
+            },
+            {
+              "file": "4-5",
+              "crc": "233a4589"
+            },
+            {
+              "file": "mj03g.bin",
+              "crc": "61b043bb"
+            },
+            {
+              "file": "mj03c.bin",
+              "crc": "d343332d"
+            },
+            {
+              "file": "mj03b.8n",
+              "crc": "0ba14114"
+            },
+            {
+              "file": "8n.rom",
+              "crc": "9612d66c"
+            }
+          ]
+        },
+        {
+          "file": "mm_c_05",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "ed28e86e",
+          "alt": [
+            {
+              "file": "mjg_05.12n",
+              "crc": "d6397b2b"
+            },
+            {
+              "file": "mmt05d.13n",
+              "crc": "8f7cff61"
+            },
+            {
+              "file": "mj05g.bin",
+              "crc": "f2fdccf5"
+            },
+            {
+              "file": "mj05c.bin",
+              "crc": "535342c2"
+            },
+            {
+              "file": "mj05b.12n",
+              "crc": "3040a574"
+            },
+            {
+              "file": "12n.rom",
+              "crc": "65a6a97b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "gg2.bin",
+          "offset": 0,
+          "size": 32768,
+          "crc": "615f5b6f",
+          "alt": [
+            {
+              "file": "gg14h.bin",
+              "crc": "55cfb196"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "gg1.bin",
+          "offset": 0,
+          "size": 16384,
+          "crc": "ecfccf07",
+          "alt": [
+            {
+              "file": "capsom_m5m23256p_p_616105_mjg_01.11e",
+              "crc": "1ab9038a"
+            },
+            {
+              "file": "gg11e.bin",
+              "crc": "ccea9365"
+            },
+            {
+              "file": "mj01.11e",
+              "crc": "178366b4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "gg11.bin",
+          "offset": 0,
+          "size": 16384,
+          "crc": "ddd56fa9",
+          "alt": [
+            {
+              "file": "gg3e.bin",
+              "crc": "68db22c8"
+            }
+          ]
+        },
+        {
+          "file": "gg10.bin",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "7302529d",
+          "alt": [
+            {
+              "file": "gg1e.bin",
+              "crc": "dad8dd2f"
+            }
+          ]
+        },
+        {
+          "file": "gg9.bin",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "20035bda",
+          "alt": [
+            {
+              "file": "gg3c.bin",
+              "crc": "7a158323"
+            }
+          ]
+        },
+        {
+          "file": "gg8.bin",
+          "offset": 49152,
+          "size": 16384,
+          "crc": "f12ba271",
+          "alt": [
+            {
+              "file": "gg1c.bin",
+              "crc": "7314d095"
+            }
+          ]
+        },
+        {
+          "file": "gg7.bin",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "e525207d",
+          "alt": [
+            {
+              "file": "gg3b.bin",
+              "crc": "03a96d9b"
+            }
+          ]
+        },
+        {
+          "file": "gg6.bin",
+          "offset": 81920,
+          "size": 16384,
+          "crc": "2d77e9b2",
+          "alt": [
+            {
+              "file": "gg1b.bin",
+              "crc": "7b9899bc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 131072,
+      "fill": 255,
+      "loads": [
+        {
+          "file": "gg17.bin",
+          "offset": 0,
+          "size": 16384,
+          "crc": "93e50a8f",
+          "alt": [
+            {
+              "file": "gg4l.bin",
+              "crc": "49cf81b4"
+            },
+            {
+              "file": "19.84472.4n",
+              "crc": "4613afdc"
+            }
+          ]
+        },
+        {
+          "file": "gg16.bin",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "06d7e5ca",
+          "alt": [
+            {
+              "file": "gg3l.bin",
+              "crc": "e61437b1"
+            }
+          ]
+        },
+        {
+          "file": "gg15.bin",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "bc1fe02d"
+        },
+        {
+          "file": "gg14.bin",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "6aaf12f9",
+          "alt": [
+            {
+              "file": "gg4n.bin",
+              "crc": "d5aff5a7"
+            },
+            {
+              "file": "16.84472.4l",
+              "crc": "608d68d5"
+            }
+          ]
+        },
+        {
+          "file": "gg13.bin",
+          "offset": 81920,
+          "size": 16384,
+          "crc": "e80c3fca",
+          "alt": [
+            {
+              "file": "gg3n.bin",
+              "crc": "d589caeb"
+            }
+          ]
+        },
+        {
+          "file": "gg12.bin",
+          "offset": 98304,
+          "size": 16384,
+          "crc": "7780a925"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 512,
+      "loads": [
+        {
+          "file": "tbp24s10.14k",
+          "offset": 0,
+          "size": 256,
+          "crc": "0eaf5158",
+          "alt": [
+            {
+              "file": "prom1",
+              "crc": ""
+            }
+          ]
+        },
+        {
+          "file": "63s141.2e",
+          "offset": 256,
+          "size": 256,
+          "crc": "4a1285a4",
+          "alt": [
+            {
+              "file": "prom2",
+              "crc": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "plds",
+      "size": 256,
+      "loads": [
+        {
+          "file": "gg-pal10l8.bin",
+          "offset": 0,
+          "size": 44,
+          "crc": "87f1b7e0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 32,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 64,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 128,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 16,
+      "value": 16,
+      "name": "Coinage affects"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 128,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 24,
+      "value": 24,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW2",
+      "mask": 96,
+      "value": 96,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-22",
+    "commits": 162,
+    "contributors": 32,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "hap",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 54,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 22,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 15,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-03-22"
+      },
+      {
+        "name": "hap",
+        "commits": 10,
+        "firstCommit": "2021-08-26",
+        "lastCommit": "2026-03-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 10,
+        "firstCommit": "2016-05-20",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2021-05-17"
+      },
+      {
+        "name": "AJR",
+        "commits": 5,
+        "firstCommit": "2017-03-10",
+        "lastCommit": "2024-12-16"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2009-08-12",
+        "lastCommit": "2013-12-23"
+      },
+      {
+        "name": "smf-",
+        "commits": 4,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2013-05-11"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 3,
+        "firstCommit": "2011-04-26",
+        "lastCommit": "2011-12-04"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 2,
+        "firstCommit": "2025-03-22",
+        "lastCommit": "2026-02-24"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2009-12-01"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2010-02-02",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 2,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "barbudreadmon",
+        "commits": 1,
+        "firstCommit": "2026-03-22",
+        "lastCommit": "2026-03-22"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2009-07-28",
+        "lastCommit": "2009-07-28"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "davidhay",
+        "commits": 1,
+        "firstCommit": "2008-03-24",
+        "lastCommit": "2008-03-24"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Jose Tejada",
+        "commits": 1,
+        "firstCommit": "2019-09-04",
+        "lastCommit": "2019-09-04"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 1,
+        "firstCommit": "2010-05-24",
+        "lastCommit": "2010-05-24"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Philip Bennett",
+        "commits": 1,
+        "firstCommit": "2023-07-22",
+        "lastCommit": "2023-07-22"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2018-02-03",
+        "lastCommit": "2018-02-03"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 1,
+        "firstCommit": "2024-11-13",
+        "lastCommit": "2024-11-13"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2009-05-02"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-02-29"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 41 years ago:\n\nGhosts'n Goblins (c) 1985 Capcom.\n\nExport release. Game developed in Japan. For more information about the game itself, please see the original Japanese version entry; \"Makaimura\".\n\n- TRIVIA -\n\nGhosts'n Goblins was released in September 1985 outside Japan.\n\nThese non-Japanese versions use a shield instead of a cross.\n\n- UPDATES -\n\nA rare prototype version of the game exists with no title logo. It seems to be harder than the final version.\n\n- PORTS -\n\nHere is a list of all ports release outside Japan and North America.\n\nTo see Japanese ports, please see the original Japanese version entry; \"Makaimura\".\n\nTo see North American ports, please see the Taito America version entry.\n\n* CONSOLES: \n[EU] Nintendo NES (mar.23, 1989) \"Ghosts'n Goblins [Model NES-GG-EUR]\" \n[EU] Sony PlayStation (sept.3, 1999) \"Capcom Generations 2 - Chronicles of Arthur [Capcom Generations Disc 2] [Model SLES-11881]\" \n[EU] Microsoft XBOX (nov.18, 2005) \"Capcom Classics Collection\" \n[EU] Sony PS2 (nov.18, 2005) \"Capcom Classics Collection [Model SLES-53661]\" \nNintendo Wii [Virtual Console Arcade] [EU] (jan.7, 2011) \nSony PlayStation 3 [PSN] [EU] (feb.20, 2013) \"Capcom Arcade Cabinet\" \nMicrosoft XBOX 360 [XBLA] [EU] (feb.20, 2013) \"Capcom Arcade Cabinet\" \nMicrosoft XBOX 360 [XBLA] [AU] (feb.21, 2013) \"Capcom Arcade Cabinet\" \n\n* HANDHELDS: \nNintendo Game Boy Color [EU] (aug.24, 2001) \"Ghosts'n Goblins [Model DMG-AG9P-EUR]\" \n[EU] Sony PSP (nov.10, 2006) \"Capcom Classics Collection Reloaded [Model ULES-00377]\" \n[AU] Sony PSP (nov.16, 2006) \"Capcom Classics Collection Reloaded\" \n\n* COMPUTERS: \nCommodore C16 [EU] (1986) \n[EU] Commodore C64 (1986) \n[EU] Sinclair ZX Spectrum (1986) \n[EU] Amstrad CPC (1986) \n[EU] Commodore Amiga (1988) \n[EU] Amstrad CPC (1989) \"12 Top Amstrad Hits\" \nPC [MS-DOS] [EU] (1990) \n[EU] Atari ST (1990)\n\n- SERIES -\n\nMAIN SERIES\n1. Ghosts'n Goblins (1985, Arcade)\n2. Ghouls'n Ghosts [B-Board 88620B-2] (1988, Arcade)\n3. Super Ghouls'n Ghosts [Model SNS-CM-USA] (1991, SNES)\n4. Makaimura Gaiden - The Demon Darkness (1993, Game Boy)\n5. Arthur to Astaroth no Nazomakaimura (1996, PlayStation, Saturn)\n6. Makaimura for WonderSwan (1999, WonderSwan)\n7. Maximo - Ghosts to Glory (2001, PS2)\n8. Choumakaimura R (2002, Game Boy Advance)\n9. Maximo vs. Army of Zin (2003, PS2)\n10. Ultimate Ghosts'n Goblins (2006, PSP)\n11. Goku Makaimura Kai (2007, PSP) \n12. Ghosts'n Goblins - Gold Knights (2009, iOS)\n13. Ghosts'n Goblins - Gold Knights II (2010, iOS)\n14. Ghosts'n Goblins Resurrection (2021, Switch, PS4, PC, Xbox One)\n\nSPIN-OFF\n1. Gargoyle's Quest (1990, Game Boy)\n2. Gargoyle's Quest II (1992, NES)\n3. Demon's Crest (1994, SNES)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/950/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

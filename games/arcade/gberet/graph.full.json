@@ -1,0 +1,5800 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/gberet.cpp",
+    "generatedAt": "2026-09-05T03:49:35.466Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/gberet.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/gberet.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:k005849.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "k005849.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/input_merger.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/input_merger.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/sn76496.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/sn76496.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/konami/konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/konamipt.h"
+      }
+    },
+    {
+      "id": "file:src/mame/konami/k005849.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/k005849.h"
+      }
+    },
+    {
+      "id": "file:src/mame/konami/k005849.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/k005849.cpp"
+      }
+    },
+    {
+      "id": "file:konami_helper.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konami_helper.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/konami/konami_helper.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/konami_helper.h"
+      }
+    },
+    {
+      "id": "file:src/mame/konami/konami_helper.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/konami_helper.cpp"
+      }
+    },
+    {
+      "id": "game:gberet",
+      "label": "Game",
+      "props": {
+        "name": "gberet",
+        "year": "1985",
+        "company": "Konami",
+        "fullname": "Green Beret",
+        "monitor": "ROT0",
+        "cls": "gberet_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 897,
+        "sourceColumn": 1,
+        "sourceEndLine": 897
+      }
+    },
+    {
+      "id": "game:rushatck",
+      "label": "Game",
+      "props": {
+        "name": "rushatck",
+        "year": "1985",
+        "company": "Konami",
+        "fullname": "Rush'n Attack (US)",
+        "monitor": "ROT0",
+        "cls": "gberet_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 898,
+        "sourceColumn": 1,
+        "sourceEndLine": 898
+      }
+    },
+    {
+      "id": "game:gberetb",
+      "label": "Game",
+      "props": {
+        "name": "gberetb",
+        "year": "1985",
+        "company": "bootleg",
+        "fullname": "Green Beret (bootleg)",
+        "monitor": "ROT0",
+        "cls": "gberetb_state",
+        "init": "empty_init",
+        "flags": "MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 899,
+        "sourceColumn": 1,
+        "sourceEndLine": 899
+      }
+    },
+    {
+      "id": "game:mrgoemon",
+      "label": "Game",
+      "props": {
+        "name": "mrgoemon",
+        "year": "1986",
+        "company": "Konami",
+        "fullname": "Mr. Goemon (Japan)",
+        "monitor": "ROT0",
+        "cls": "mrgoemon_state",
+        "init": "init_mrgoemon",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 901,
+        "sourceColumn": 1,
+        "sourceEndLine": 901
+      }
+    },
+    {
+      "id": "romset:gberet",
+      "label": "RomSet",
+      "props": {
+        "name": "gberet",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 797,
+        "sourceColumn": 1,
+        "sourceEndLine": 797
+      }
+    },
+    {
+      "id": "region:gberet/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798
+      }
+    },
+    {
+      "id": "rom:gberet/maincpu/577l03.10c",
+      "label": "Rom",
+      "props": {
+        "file": "577l03.10c",
+        "offset": 0,
+        "size": 16384,
+        "crc": "ae29e4ff",
+        "sha1": "5c66de1403c5df5b6647bb37e26070ffd33590e8",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 799,
+        "sourceColumn": 2,
+        "sourceEndLine": 799
+      }
+    },
+    {
+      "id": "rom:gberet/maincpu/577l02.8c",
+      "label": "Rom",
+      "props": {
+        "file": "577l02.8c",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "240836a5",
+        "sha1": "b76f3789f152198bf8a9a366378d664e683c6c9d",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 800,
+        "sourceColumn": 2,
+        "sourceEndLine": 800
+      }
+    },
+    {
+      "id": "rom:gberet/maincpu/577l01.7c",
+      "label": "Rom",
+      "props": {
+        "file": "577l01.7c",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "41fa3e1f",
+        "sha1": "90d1463e16b0f52c01078be044ce3672d4acebff",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 801,
+        "sourceColumn": 2,
+        "sourceEndLine": 801
+      }
+    },
+    {
+      "id": "region:gberet/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 803,
+        "sourceColumn": 2,
+        "sourceEndLine": 803
+      }
+    },
+    {
+      "id": "rom:gberet/tiles/577l07.3f",
+      "label": "Rom",
+      "props": {
+        "file": "577l07.3f",
+        "offset": 0,
+        "size": 16384,
+        "crc": "4da7bd1b",
+        "sha1": "54adba9ae086852902d78ab36039498aae50d7a9",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 804,
+        "sourceColumn": 2,
+        "sourceEndLine": 804
+      }
+    },
+    {
+      "id": "region:gberet/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 806,
+        "sourceColumn": 2,
+        "sourceEndLine": 806
+      }
+    },
+    {
+      "id": "rom:gberet/sprites/577l06.5e",
+      "label": "Rom",
+      "props": {
+        "file": "577l06.5e",
+        "offset": 0,
+        "size": 16384,
+        "crc": "0f1cb0ca",
+        "sha1": "094004e70c05df8cd486d0854c258fa766e2925d",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 807,
+        "sourceColumn": 2,
+        "sourceEndLine": 807
+      }
+    },
+    {
+      "id": "rom:gberet/sprites/577l05.4e",
+      "label": "Rom",
+      "props": {
+        "file": "577l05.4e",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "523a8b66",
+        "sha1": "5f2bcf2b702fe05f8a022b6284cb2d0a5b5f222f",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 808,
+        "sourceColumn": 2,
+        "sourceEndLine": 808
+      }
+    },
+    {
+      "id": "rom:gberet/sprites/577l08.4f",
+      "label": "Rom",
+      "props": {
+        "file": "577l08.4f",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "883933a4",
+        "sha1": "b565842edf09feeb2c4ac44ad58331757586b6aa",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 809,
+        "sourceColumn": 2,
+        "sourceEndLine": 809
+      }
+    },
+    {
+      "id": "rom:gberet/sprites/577l04.3e",
+      "label": "Rom",
+      "props": {
+        "file": "577l04.3e",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "ccecda4c",
+        "sha1": "cac053cab68cb420edd408ce032143db7abc29f5",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 810,
+        "sourceColumn": 2,
+        "sourceEndLine": 810
+      }
+    },
+    {
+      "id": "region:gberet/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 2,
+        "sourceEndLine": 812
+      }
+    },
+    {
+      "id": "rom:gberet/proms/577h09.2f",
+      "label": "Rom",
+      "props": {
+        "file": "577h09.2f",
+        "offset": 0,
+        "size": 32,
+        "crc": "c15e7c80",
+        "sha1": "c0e8a01e63ed8cf20b33456b68890313b387ad23",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 813,
+        "sourceColumn": 2,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "rom:gberet/proms/577h11.6f",
+      "label": "Rom",
+      "props": {
+        "file": "577h11.6f",
+        "offset": 32,
+        "size": 256,
+        "crc": "2a1a992b",
+        "sha1": "77cff7c9c8433f999a87776021935864cf9dccb4",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 814,
+        "sourceColumn": 2,
+        "sourceEndLine": 814
+      }
+    },
+    {
+      "id": "rom:gberet/proms/577h10.5f",
+      "label": "Rom",
+      "props": {
+        "file": "577h10.5f",
+        "offset": 288,
+        "size": 256,
+        "crc": "e9de1e53",
+        "sha1": "406b8dfe54e6176082005cc5545e79c098672547",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 815,
+        "sourceColumn": 2,
+        "sourceEndLine": 815
+      }
+    },
+    {
+      "id": "romset:rushatck",
+      "label": "RomSet",
+      "props": {
+        "name": "rushatck",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 1,
+        "sourceEndLine": 818
+      }
+    },
+    {
+      "id": "region:rushatck/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798
+      }
+    },
+    {
+      "id": "rom:rushatck/maincpu/577h03.10c",
+      "label": "Rom",
+      "props": {
+        "file": "577h03.10c",
+        "offset": 0,
+        "size": 16384,
+        "crc": "4d276b52",
+        "sha1": "ba5d61c89fd2db4b303b81deccc887561156cbe3",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 820,
+        "sourceColumn": 2,
+        "sourceEndLine": 820
+      }
+    },
+    {
+      "id": "rom:rushatck/maincpu/577h02.8c",
+      "label": "Rom",
+      "props": {
+        "file": "577h02.8c",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "b5802806",
+        "sha1": "0e4698ecfb9eda916703165ea5d55516fdef5fe4",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 821,
+        "sourceColumn": 2,
+        "sourceEndLine": 821
+      }
+    },
+    {
+      "id": "rom:rushatck/maincpu/577h01.7c",
+      "label": "Rom",
+      "props": {
+        "file": "577h01.7c",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "da7c8f3d",
+        "sha1": "eb61eedee169f67db93407ad0fe8a195089b7e3a",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 822,
+        "sourceColumn": 2,
+        "sourceEndLine": 822
+      }
+    },
+    {
+      "id": "region:rushatck/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 803,
+        "sourceColumn": 2,
+        "sourceEndLine": 803
+      }
+    },
+    {
+      "id": "rom:rushatck/tiles/577h07.3f",
+      "label": "Rom",
+      "props": {
+        "file": "577h07.3f",
+        "offset": 0,
+        "size": 16384,
+        "crc": "03f9815f",
+        "sha1": "209c76fd36d1b5672992c55e24d3cf77d4c5a0aa",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 825,
+        "sourceColumn": 2,
+        "sourceEndLine": 825
+      }
+    },
+    {
+      "id": "region:rushatck/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 806,
+        "sourceColumn": 2,
+        "sourceEndLine": 806
+      }
+    },
+    {
+      "id": "rom:rushatck/sprites/577l06.5e",
+      "label": "Rom",
+      "props": {
+        "file": "577l06.5e",
+        "offset": 0,
+        "size": 16384,
+        "crc": "0f1cb0ca",
+        "sha1": "094004e70c05df8cd486d0854c258fa766e2925d",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 807,
+        "sourceColumn": 2,
+        "sourceEndLine": 807
+      }
+    },
+    {
+      "id": "rom:rushatck/sprites/577h05.4e",
+      "label": "Rom",
+      "props": {
+        "file": "577h05.4e",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "9d028e8f",
+        "sha1": "4faa47152a6c1da0024bb03fbcf7baf0540e891e",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 2,
+        "sourceEndLine": 829
+      }
+    },
+    {
+      "id": "rom:rushatck/sprites/577l08.4f",
+      "label": "Rom",
+      "props": {
+        "file": "577l08.4f",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "883933a4",
+        "sha1": "b565842edf09feeb2c4ac44ad58331757586b6aa",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 809,
+        "sourceColumn": 2,
+        "sourceEndLine": 809
+      }
+    },
+    {
+      "id": "rom:rushatck/sprites/577l04.3e",
+      "label": "Rom",
+      "props": {
+        "file": "577l04.3e",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "ccecda4c",
+        "sha1": "cac053cab68cb420edd408ce032143db7abc29f5",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 810,
+        "sourceColumn": 2,
+        "sourceEndLine": 810
+      }
+    },
+    {
+      "id": "region:rushatck/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 2,
+        "sourceEndLine": 812
+      }
+    },
+    {
+      "id": "rom:rushatck/proms/577h09.2f",
+      "label": "Rom",
+      "props": {
+        "file": "577h09.2f",
+        "offset": 0,
+        "size": 32,
+        "crc": "c15e7c80",
+        "sha1": "c0e8a01e63ed8cf20b33456b68890313b387ad23",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 813,
+        "sourceColumn": 2,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "rom:rushatck/proms/577h11.6f",
+      "label": "Rom",
+      "props": {
+        "file": "577h11.6f",
+        "offset": 32,
+        "size": 256,
+        "crc": "2a1a992b",
+        "sha1": "77cff7c9c8433f999a87776021935864cf9dccb4",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 814,
+        "sourceColumn": 2,
+        "sourceEndLine": 814
+      }
+    },
+    {
+      "id": "rom:rushatck/proms/577h10.5f",
+      "label": "Rom",
+      "props": {
+        "file": "577h10.5f",
+        "offset": 288,
+        "size": 256,
+        "crc": "e9de1e53",
+        "sha1": "406b8dfe54e6176082005cc5545e79c098672547",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 815,
+        "sourceColumn": 2,
+        "sourceEndLine": 815
+      }
+    },
+    {
+      "id": "romset:gberetb",
+      "label": "RomSet",
+      "props": {
+        "name": "gberetb",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 839,
+        "sourceColumn": 1,
+        "sourceEndLine": 839
+      }
+    },
+    {
+      "id": "region:gberetb/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798
+      }
+    },
+    {
+      "id": "rom:gberetb/maincpu/2-ic82.10g",
+      "label": "Rom",
+      "props": {
+        "file": "2-ic82.10g",
+        "offset": 0,
+        "size": 32768,
+        "crc": "6d6fb494",
+        "sha1": "0d01c86ed7a8962ee3e1056a8d41584ad1406f0f",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 841,
+        "sourceColumn": 2,
+        "sourceEndLine": 841
+      }
+    },
+    {
+      "id": "rom:gberetb/maincpu/3-ic81.10f",
+      "label": "Rom",
+      "props": {
+        "file": "3-ic81.10f",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "f1520a0a",
+        "sha1": "227b2d2e1fc0e81ae02e663a3089e7399612e3cf",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 842,
+        "sourceColumn": 2,
+        "sourceEndLine": 842
+      }
+    },
+    {
+      "id": "region:gberetb/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 803,
+        "sourceColumn": 2,
+        "sourceEndLine": 803
+      }
+    },
+    {
+      "id": "rom:gberetb/tiles/1-ic92.12c",
+      "label": "Rom",
+      "props": {
+        "file": "1-ic92.12c",
+        "offset": 0,
+        "size": 16384,
+        "crc": "b0189c87",
+        "sha1": "29202978b07bf059b88bf206d8fafc80e0cdb6dc",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 845,
+        "sourceColumn": 2,
+        "sourceEndLine": 845
+      }
+    },
+    {
+      "id": "region:gberetb/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 806,
+        "sourceColumn": 2,
+        "sourceEndLine": 806
+      }
+    },
+    {
+      "id": "rom:gberetb/sprites/7-1c8.2b",
+      "label": "Rom",
+      "props": {
+        "file": "7-1c8.2b",
+        "offset": 0,
+        "size": 16384,
+        "crc": "86334522",
+        "sha1": "f2907d136dbfdb92cbd550524b4453755f6244b6",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 848,
+        "sourceColumn": 2,
+        "sourceEndLine": 848
+      }
+    },
+    {
+      "id": "rom:gberetb/sprites/6-ic9.2c",
+      "label": "Rom",
+      "props": {
+        "file": "6-ic9.2c",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "bda50d3e",
+        "sha1": "c6f5a15270a69464e977926d056b31dcec8b41c3",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 849,
+        "sourceColumn": 2,
+        "sourceEndLine": 849
+      }
+    },
+    {
+      "id": "rom:gberetb/sprites/5-ic10.2d",
+      "label": "Rom",
+      "props": {
+        "file": "5-ic10.2d",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "6a7b3881",
+        "sha1": "795bfb1fbc11ceac687b15e98574feb650e2f674",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 850,
+        "sourceColumn": 2,
+        "sourceEndLine": 850
+      }
+    },
+    {
+      "id": "rom:gberetb/sprites/4-ic11.2e",
+      "label": "Rom",
+      "props": {
+        "file": "4-ic11.2e",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "3fb186c9",
+        "sha1": "40ce0447014af3f5b5b88648ab7e43a955bd1274",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 851,
+        "sourceColumn": 2,
+        "sourceEndLine": 851
+      }
+    },
+    {
+      "id": "region:gberetb/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 1056,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 2,
+        "sourceEndLine": 812
+      }
+    },
+    {
+      "id": "rom:gberetb/proms/82s123-ic100.13b",
+      "label": "Rom",
+      "props": {
+        "file": "82s123-ic100.13b",
+        "offset": 0,
+        "size": 32,
+        "crc": "1bef8c7b",
+        "sha1": "f8f0ff6f674c8d28b3ac3daaad8e46328659a480",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 854,
+        "sourceColumn": 2,
+        "sourceEndLine": 854
+      }
+    },
+    {
+      "id": "rom:gberetb/proms/82s129-ic26.4g",
+      "label": "Rom",
+      "props": {
+        "file": "82s129-ic26.4g",
+        "offset": 32,
+        "size": 256,
+        "crc": "2d3ad74b",
+        "sha1": "92152fd717901b5532097a7c88916c89c054d135",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 855,
+        "sourceColumn": 2,
+        "sourceEndLine": 855
+      }
+    },
+    {
+      "id": "rom:gberetb/proms/82s129-ic34.5g",
+      "label": "Rom",
+      "props": {
+        "file": "82s129-ic34.5g",
+        "offset": 288,
+        "size": 256,
+        "crc": "a895c3e5",
+        "sha1": "e485489ec88bc058ebd8c5645cc951ef08aa778c",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 856,
+        "sourceColumn": 2,
+        "sourceEndLine": 856
+      }
+    },
+    {
+      "id": "rom:gberetb/proms/82s129-ic75.9j",
+      "label": "Rom",
+      "props": {
+        "file": "82s129-ic75.9j",
+        "offset": 544,
+        "size": 256,
+        "crc": "85e757b6",
+        "sha1": "6ec7573e14e3418ac1dcaa72326b34e3d3163ea3",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 857,
+        "sourceColumn": 2,
+        "sourceEndLine": 857
+      }
+    },
+    {
+      "id": "rom:gberetb/proms/82s129-ic90.12a",
+      "label": "Rom",
+      "props": {
+        "file": "82s129-ic90.12a",
+        "offset": 800,
+        "size": 256,
+        "crc": "dffe6b15",
+        "sha1": "fc83ef5d6b4885194a5fe00521d10aea9213e2c8",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 858,
+        "sourceColumn": 2,
+        "sourceEndLine": 858
+      }
+    },
+    {
+      "id": "region:gberetb/plds",
+      "label": "RomRegion",
+      "props": {
+        "tag": "plds",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 860,
+        "sourceColumn": 2,
+        "sourceEndLine": 860
+      }
+    },
+    {
+      "id": "rom:gberetb/plds/pal16r6_ic35.5h",
+      "label": "Rom",
+      "props": {
+        "file": "pal16r6_ic35.5h",
+        "offset": 0,
+        "size": 260,
+        "crc": "bd76fb53",
+        "sha1": "2d0634e8edb3289a103719466465e9777606086e",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 861,
+        "sourceColumn": 2,
+        "sourceEndLine": 861
+      }
+    },
+    {
+      "id": "romset:mrgoemon",
+      "label": "RomSet",
+      "props": {
+        "name": "mrgoemon",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 864,
+        "sourceColumn": 1,
+        "sourceEndLine": 864
+      }
+    },
+    {
+      "id": "region:mrgoemon/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798
+      }
+    },
+    {
+      "id": "rom:mrgoemon/maincpu/621d01.10c",
+      "label": "Rom",
+      "props": {
+        "file": "621d01.10c",
+        "offset": 0,
+        "size": 32768,
+        "crc": "b2219c56",
+        "sha1": "274160be5dabbbfa61af71d92bddffbb56eadab6",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 866,
+        "sourceColumn": 2,
+        "sourceEndLine": 866
+      }
+    },
+    {
+      "id": "rom:mrgoemon/maincpu/621d02.12c",
+      "label": "Rom",
+      "props": {
+        "file": "621d02.12c",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "c3337a97",
+        "sha1": "6fd5f365b2624a37f252c202cd97877705b4a6c2",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 867,
+        "sourceColumn": 2,
+        "sourceEndLine": 867
+      }
+    },
+    {
+      "id": "region:mrgoemon/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 803,
+        "sourceColumn": 2,
+        "sourceEndLine": 803
+      }
+    },
+    {
+      "id": "rom:mrgoemon/tiles/621a05.6d",
+      "label": "Rom",
+      "props": {
+        "file": "621a05.6d",
+        "offset": 0,
+        "size": 16384,
+        "crc": "f0a6dfc5",
+        "sha1": "395024ebfff550b0da393096483196fb1152a077",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 870,
+        "sourceColumn": 2,
+        "sourceEndLine": 870
+      }
+    },
+    {
+      "id": "region:mrgoemon/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 806,
+        "sourceColumn": 2,
+        "sourceEndLine": 806
+      }
+    },
+    {
+      "id": "rom:mrgoemon/sprites/621d03.4d",
+      "label": "Rom",
+      "props": {
+        "file": "621d03.4d",
+        "offset": 0,
+        "size": 32768,
+        "crc": "66f2b973",
+        "sha1": "7e906f258a5f4928f9615c6ea176efbca659b3a7",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 873,
+        "sourceColumn": 2,
+        "sourceEndLine": 873
+      }
+    },
+    {
+      "id": "rom:mrgoemon/sprites/621d04.5d",
+      "label": "Rom",
+      "props": {
+        "file": "621d04.5d",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "47df6301",
+        "sha1": "e675c070e46993d3453c2ddadc49ec8b84cec854",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 874,
+        "sourceColumn": 2,
+        "sourceEndLine": 874
+      }
+    },
+    {
+      "id": "region:mrgoemon/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 2,
+        "sourceEndLine": 812
+      }
+    },
+    {
+      "id": "rom:mrgoemon/proms/621a06.5f",
+      "label": "Rom",
+      "props": {
+        "file": "621a06.5f",
+        "offset": 0,
+        "size": 32,
+        "crc": "7c90de5f",
+        "sha1": "8ac5708e72e32f3d79ccde0cbaedefc34f8ac57e",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 877,
+        "sourceColumn": 2,
+        "sourceEndLine": 877
+      }
+    },
+    {
+      "id": "rom:mrgoemon/proms/621a08.7f",
+      "label": "Rom",
+      "props": {
+        "file": "621a08.7f",
+        "offset": 32,
+        "size": 256,
+        "crc": "2fb244dd",
+        "sha1": "ceb909ad96c0dabc8684e69b028f4287e227c351",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 878,
+        "sourceColumn": 2,
+        "sourceEndLine": 878
+      }
+    },
+    {
+      "id": "rom:mrgoemon/proms/621a07.6f",
+      "label": "Rom",
+      "props": {
+        "file": "621a07.6f",
+        "offset": 288,
+        "size": 256,
+        "crc": "3980acdc",
+        "sha1": "f4e0bd74bccd77b84096c38bc70cf488a42d9562",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 879,
+        "sourceColumn": 2,
+        "sourceEndLine": 879
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gberet_state",
+        "name": "prg_map",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 534,
+        "sourceColumn": 1,
+        "sourceEndLine": 551
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 49151,
+        "raw": "map(0x0000, 0xbfff).rom()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 536,
+        "sourceColumn": 2,
+        "sourceEndLine": 536,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 51199,
+        "raw": "map(0xc000, 0xc7ff).ram().w(FUNC(gberet_state::colorram_w)).share(m_colorram)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 537,
+        "sourceColumn": 2,
+        "sourceEndLine": 537,
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:gberet_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 384,
+        "sourceColumn": 1,
+        "sourceEndLine": 388,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 53247,
+        "raw": "map(0xc800, 0xcfff).ram().w(FUNC(gberet_state::videoram_w)).share(m_videoram)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 538,
+        "sourceColumn": 2,
+        "sourceEndLine": 538,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:gberet_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 1,
+        "sourceEndLine": 382,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 53503,
+        "raw": "map(0xd000, 0xd0ff).ram().share(m_spriteram2)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 539,
+        "sourceColumn": 2,
+        "sourceEndLine": 539,
+        "ram": true,
+        "share": "spriteram2"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 53504,
+        "end": 53759,
+        "raw": "map(0xd100, 0xd1ff).ram().share(m_spriteram)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 2,
+        "sourceEndLine": 540,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 53760,
+        "end": 57343,
+        "raw": "map(0xd200, 0xdfff).ram()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 541,
+        "sourceColumn": 2,
+        "sourceEndLine": 541,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57407,
+        "raw": "map(0xe000, 0xe03f).rw(m_k005849, FUNC(k005849_device::scroll_r), FUNC(k005849_device::scroll_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 542,
+        "sourceColumn": 2,
+        "sourceEndLine": 542
+      }
+    },
+    {
+      "id": "handler:k005849_device.scroll_r",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_r",
+        "ownerClass": "k005849_device",
+        "sourceFile": "src/mame/konami/k005849.h",
+        "sourceLine": 21,
+        "sourceColumn": 42,
+        "sourceEndLine": 24,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "return m_scrollram[offset & 0x3f];"
+      }
+    },
+    {
+      "id": "handler:k005849_device.scroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_w",
+        "ownerClass": "k005849_device",
+        "sourceFile": "src/mame/konami/k005849.h",
+        "sourceLine": 25,
+        "sourceColumn": 1,
+        "sourceEndLine": 25,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_scrollram[offset & 0x3f] = data;"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 57408,
+        "end": 57415,
+        "raw": "map(0xe040, 0xe047).w(m_k005849, FUNC(k005849_device::ctrl_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 543,
+        "sourceColumn": 2,
+        "sourceEndLine": 543
+      }
+    },
+    {
+      "id": "handler:k005849_device.ctrl_w",
+      "label": "Handler",
+      "props": {
+        "method": "ctrl_w",
+        "ownerClass": "k005849_device",
+        "sourceFile": "src/mame/konami/k005849.cpp",
+        "sourceLine": 86,
+        "sourceColumn": 1,
+        "sourceEndLine": 111,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "offset &= 7;\n\n\tif (offset == 4)\n\t{\n\t\t// clear interrupts\n\t\tif (BIT(~data & m_ctrlram[4], 1))\n\t\t\tm_irq_cb(CLEAR_LINE);\n\n\t\tif (BIT(~data & m_ctrlram[4], 2))\n\t\t\tm_firq_cb(CLEAR_LINE);\n\n\t\tif (BIT(~data & m_ctrlram[4], 0))\n\t\t\tm_nmi_cb(CLEAR_LINE);\n\n\t\t// flipscreen\n\t\tif (BIT(data ^ m_ctrlram[4], 3))\n\t\t{\n\t\t\tm_flipscreen = BIT(data, 3);\n\t\t\tm_flipscreen_cb(BIT(data, 3));\n\t\t}\n\t}\n\n\tm_ctrlram[offset] = data;"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 61440,
+        "raw": "map(0xf000, 0xf000).w(FUNC(gberet_state::coin_counter_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 2,
+        "sourceEndLine": 544
+      }
+    },
+    {
+      "id": "handler:gberet_state.coin_counter_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 514,
+        "sourceColumn": 1,
+        "sourceEndLine": 519,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// bits 0/1 = coin counters\n\tmachine().bookkeeping().coin_counter_w(0, data & 1);\n\tmachine().bookkeeping().coin_counter_w(1, data & 2);"
+      }
+    },
+    {
+      "id": "handler:mrgoemon_state.coin_counter_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w",
+        "ownerClass": "mrgoemon_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 521,
+        "sourceColumn": 1,
+        "sourceEndLine": 527,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "gberet_state::coin_counter_w(data);\n\n\t// bits 5-7 = ROM bank select\n\tm_mainbank->set_entry(((data & 0xe0) >> 5));"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 61952,
+        "end": 61952,
+        "raw": "map(0xf200, 0xf200).portr(\"DSW2\").writeonly().share(m_soundlatch)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 545,
+        "sourceColumn": 2,
+        "sourceEndLine": 545,
+        "writeonly": true,
+        "share": "soundlatch",
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 62464,
+        "end": 62464,
+        "raw": "map(0xf400, 0xf400).portr(\"DSW3\").w(FUNC(gberet_state::sound_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 546,
+        "sourceColumn": 2,
+        "sourceEndLine": 546,
+        "portRead": "DSW3"
+      }
+    },
+    {
+      "id": "handler:gberet_state.sound_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_w",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 529,
+        "sourceColumn": 1,
+        "sourceEndLine": 532,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_sn->write(*m_soundlatch);"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 62976,
+        "end": 62976,
+        "raw": "map(0xf600, 0xf600).portr(\"DSW1\").w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 547,
+        "sourceColumn": 2,
+        "sourceEndLine": 547,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 547,
+        "sourceColumn": 2,
+        "sourceEndLine": 547
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 62977,
+        "end": 62977,
+        "raw": "map(0xf601, 0xf601).portr(\"P2\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 548,
+        "sourceColumn": 2,
+        "sourceEndLine": 548,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 62978,
+        "end": 62978,
+        "raw": "map(0xf602, 0xf602).portr(\"P1\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 549,
+        "sourceColumn": 2,
+        "sourceEndLine": 549,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:gberet_state.prg_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 62979,
+        "end": 62979,
+        "raw": "map(0xf603, 0xf603).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 550,
+        "sourceColumn": 2,
+        "sourceEndLine": 550,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:mrgoemon_state.prg_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mrgoemon_state",
+        "name": "prg_map",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 553,
+        "sourceColumn": 1,
+        "sourceEndLine": 557,
+        "calls": [
+          "gberet_state::prg_map"
+        ]
+      }
+    },
+    {
+      "id": "map:mrgoemon_state.prg_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 63488,
+        "end": 65535,
+        "raw": "map(0xf800, 0xffff).bankr(m_mainbank)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 556,
+        "sourceColumn": 2,
+        "sourceEndLine": 556,
+        "bankRead": "mainbank"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gberetb_state",
+        "name": "prg_map",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 576,
+        "sourceColumn": 1,
+        "sourceEndLine": 596
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 49151,
+        "raw": "map(0x0000, 0xbfff).rom()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 2,
+        "sourceEndLine": 578,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 51199,
+        "raw": "map(0xc000, 0xc7ff).ram().w(FUNC(gberetb_state::colorram_w)).share(m_colorram)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 2,
+        "sourceEndLine": 579,
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:gberetb_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 384,
+        "sourceColumn": 1,
+        "sourceEndLine": 388,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 53247,
+        "raw": "map(0xc800, 0xcfff).ram().w(FUNC(gberetb_state::videoram_w)).share(m_videoram)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 580,
+        "sourceColumn": 2,
+        "sourceEndLine": 580,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:gberetb_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 1,
+        "sourceEndLine": 382,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 57343,
+        "raw": "map(0xd000, 0xdfff).ram()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57407,
+        "raw": "map(0xe000, 0xe03f).ram()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 2,
+        "sourceEndLine": 582,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 57408,
+        "end": 57411,
+        "raw": "map(0xe040, 0xe043).nopw()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 583,
+        "sourceColumn": 2,
+        "sourceEndLine": 583,
+        "nopw": true
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 57412,
+        "end": 57412,
+        "raw": "map(0xe044, 0xe044).w(FUNC(gberetb_state::flipscreen_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584
+      }
+    },
+    {
+      "id": "handler:gberetb_state.flipscreen_w",
+      "label": "Handler",
+      "props": {
+        "method": "flipscreen_w",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 560,
+        "sourceColumn": 1,
+        "sourceEndLine": 563,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "flip_screen_set(data & 8);"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 59392,
+        "end": 59647,
+        "raw": "map(0xe800, 0xe8ff).ram()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 585,
+        "sourceColumn": 2,
+        "sourceEndLine": 585,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 59648,
+        "end": 59903,
+        "raw": "map(0xe900, 0xe9ff).ram().share(m_spriteram)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 61440,
+        "raw": "map(0xf000, 0xf000).nopw()",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 587,
+        "sourceColumn": 2,
+        "sourceEndLine": 587,
+        "nopw": true
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 61952,
+        "end": 61952,
+        "raw": "map(0xf200, 0xf200).portr(\"DSW2\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 588,
+        "sourceColumn": 2,
+        "sourceEndLine": 588,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 62464,
+        "end": 62464,
+        "raw": "map(0xf400, 0xf400).w(m_sn, FUNC(sn76489a_device::write))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 2,
+        "sourceEndLine": 589
+      }
+    },
+    {
+      "id": "handler:sn76489a_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "sn76489a_device",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 2,
+        "sourceEndLine": 589
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 62976,
+        "end": 62976,
+        "raw": "map(0xf600, 0xf600).portr(\"P2\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 590,
+        "sourceColumn": 2,
+        "sourceEndLine": 590,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 62977,
+        "end": 62977,
+        "raw": "map(0xf601, 0xf601).portr(\"DSW1\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 62978,
+        "end": 62978,
+        "raw": "map(0xf602, 0xf602).portr(\"P1\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 62979,
+        "end": 62979,
+        "raw": "map(0xf603, 0xf603).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 63488,
+        "end": 63488,
+        "raw": "map(0xf800, 0xf800).rw(FUNC(gberetb_state::irq_ack_r), FUNC(gberetb_state::nmi_ack_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 2,
+        "sourceEndLine": 594
+      }
+    },
+    {
+      "id": "handler:gberetb_state.irq_ack_r",
+      "label": "Handler",
+      "props": {
+        "method": "irq_ack_r",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 565,
+        "sourceColumn": 1,
+        "sourceEndLine": 569,
+        "sourceParameters": "",
+        "sourceBody": "m_maincpu->set_input_line(0, CLEAR_LINE);\n\treturn 0xff;"
+      }
+    },
+    {
+      "id": "handler:gberetb_state.nmi_ack_w",
+      "label": "Handler",
+      "props": {
+        "method": "nmi_ack_w",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 571,
+        "sourceColumn": 1,
+        "sourceEndLine": 574,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:gberetb_state.prg_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 63744,
+        "end": 63745,
+        "raw": "map(0xf900, 0xf901).w(FUNC(gberetb_state::scroll_w))",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 595,
+        "sourceColumn": 2,
+        "sourceEndLine": 595
+      }
+    },
+    {
+      "id": "handler:gberetb_state.scroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_w",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 459,
+        "sourceColumn": 1,
+        "sourceEndLine": 468,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "int scroll = data;\n\n\tif (offset)\n\t\tscroll |= 0x100;\n\n\tfor (offset = 6; offset < 29; offset++)\n\t\tm_bg_tilemap->set_scrollx(offset, scroll + 64 - 8);"
+      }
+    },
+    {
+      "id": "machine:gberet_state.gberet",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gberet_state",
+        "name": "gberet",
+        "calls": [],
+        "startHandlers": [
+          "gberet_base_state.video_start"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 732,
+        "sourceColumn": 1,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "id": "handler:gberet_base_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "gberet_base_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 403,
+        "sourceColumn": 1,
+        "sourceEndLine": 408,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gberet_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);\n\tm_bg_tilemap->configure_groups(*m_gfxdecode->gfx(0), 0x10);\n\tm_bg_tilemap->set_scroll_rows(32);"
+      }
+    },
+    {
+      "id": "handler:gberet_base_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "gberet_base_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 390,
+        "sourceColumn": 1,
+        "sourceEndLine": 401,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int const attr = m_colorram[tile_index];\n\tint const code = m_videoram[tile_index] + ((attr & 0x40) << 2);\n\tint const color = attr & 0x0f;\n\tint const flags = TILE_FLIPYX((attr & 0x30) >> 4);\n\n\ttileinfo.group = color;\n\ttileinfo.category = (attr & 0x80) >> 7;\n\n\ttileinfo.set(0, code, color, flags);"
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_maincpu, 18.432_MHz_XTAL / 6)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &gberet_state::prg_map)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 735,
+        "sourceColumn": 2,
+        "sourceEndLine": 735
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 738,
+        "sourceColumn": 2,
+        "sourceEndLine": 738
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/k005849",
+      "label": "Device",
+      "props": {
+        "type": "K005849",
+        "tag": "k005849",
+        "clock": 0,
+        "config": [
+          "K005849(config, m_k005849)",
+          "m_k005849->set_irq_cb().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<0>))",
+          "m_k005849->set_firq_cb().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<1>))",
+          "m_k005849->set_nmi_cb().set_inputline(m_maincpu, INPUT_LINE_NMI)",
+          "m_k005849->set_flipscreen_cb().set(FUNC(gberet_state::flip_screen_set))"
+        ],
+        "cls": "k005849_device",
+        "clsHierarchy": [
+          "k005849_device"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 741,
+        "sourceColumn": 2,
+        "sourceEndLine": 741
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/k005849/callback:k005849:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_irq_cb",
+        "operation": "set",
+        "raw": "m_k005849->set_irq_cb().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<0>))",
+        "ownerTag": "k005849",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742,
+        "targetTag": "mainirq",
+        "targetClass": "input_merger_any_high_device",
+        "targetMethod": "in_w_0"
+      }
+    },
+    {
+      "id": "handler:input_merger_any_high_device.in_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_0",
+        "ownerClass": "input_merger_any_high_device",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/k005849/callback:k005849:1",
+      "label": "Callback",
+      "props": {
+        "signal": "set_firq_cb",
+        "operation": "set",
+        "raw": "m_k005849->set_firq_cb().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<1>))",
+        "ownerTag": "k005849",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 743,
+        "sourceColumn": 2,
+        "sourceEndLine": 743,
+        "targetTag": "mainirq",
+        "targetClass": "input_merger_any_high_device",
+        "targetMethod": "in_w_1"
+      }
+    },
+    {
+      "id": "handler:input_merger_any_high_device.in_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_1",
+        "ownerClass": "input_merger_any_high_device",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 743,
+        "sourceColumn": 2,
+        "sourceEndLine": 743
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/k005849/callback:k005849:2",
+      "label": "Callback",
+      "props": {
+        "signal": "set_nmi_cb",
+        "operation": "set_inputline",
+        "raw": "m_k005849->set_nmi_cb().set_inputline(m_maincpu, INPUT_LINE_NMI)",
+        "ownerTag": "k005849",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 2,
+        "sourceEndLine": 744,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/k005849/callback:k005849:3",
+      "label": "Callback",
+      "props": {
+        "signal": "set_flipscreen_cb",
+        "operation": "set",
+        "raw": "m_k005849->set_flipscreen_cb().set(FUNC(gberet_state::flip_screen_set))",
+        "ownerTag": "k005849",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 745,
+        "sourceColumn": 2,
+        "sourceEndLine": 745,
+        "targetClass": "gberet_state",
+        "targetMethod": "flip_screen_set"
+      }
+    },
+    {
+      "id": "handler:gberet_state.flip_screen_set",
+      "label": "Handler",
+      "props": {
+        "method": "flip_screen_set",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 745,
+        "sourceColumn": 2,
+        "sourceEndLine": 745
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/mainirq",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ANY_HIGH",
+        "tag": "mainirq",
+        "clock": null,
+        "config": [
+          "input_merger_device &mainirq(INPUT_MERGER_ANY_HIGH(config, \"mainirq\"))",
+          "mainirq.output_handler().set_inputline(m_maincpu, INPUT_LINE_IRQ0)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 747,
+        "sourceColumn": 2,
+        "sourceEndLine": 747
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/mainirq/callback:mainirq:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set_inputline",
+        "raw": "mainirq.output_handler().set_inputline(m_maincpu, INPUT_LINE_IRQ0)",
+        "ownerTag": "mainirq",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 2,
+        "sourceEndLine": 748,
+        "inputLine": "INPUT_LINE_IRQ0",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(18.432_MHz_XTAL / 3, 384, 0+8, 256-8, 264, 16, 240)",
+          "screen.set_screen_update(FUNC(gberet_state::screen_update))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 750,
+        "sourceColumn": 2,
+        "sourceEndLine": 750,
+        "configCalls": [
+          "set_raw(6144000,384,8,248,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6144000,
+          384,
+          8,
+          248,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "18.432_MHz_XTAL / 3",
+          "384",
+          "0+8",
+          "256-8",
+          "264",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(gberet_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 752,
+        "sourceColumn": 2,
+        "sourceEndLine": 752,
+        "targetClass": "gberet_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:gberet_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 445,
+        "sourceColumn": 1,
+        "sourceEndLine": 455,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "for (int i = 0; i < 32; i++)\n\t\tm_bg_tilemap->set_scrollx(i, m_k005849->scroll_r(i) | ((m_k005849->scroll_r(i | 0x20) & 1) << 8));\n\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE | TILEMAP_DRAW_ALL_CATEGORIES, 0);\n\tdraw_sprites(bitmap, cliprect);\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:gberet_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 410,
+        "sourceColumn": 1,
+        "sourceEndLine": 443,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "uint8_t *sr;\n\n\tif (m_k005849->ctrl_r(3) & 0x08)\n\t\tsr = m_spriteram2;\n\telse\n\t\tsr = m_spriteram;\n\n\tfor (int offs = 0; offs < 0xc0; offs += 4)\n\t{\n\t\tif (sr[offs + 3])\n\t\t{\n\t\t\tint const attr = sr[offs + 1];\n\t\t\tint const code = sr[offs + 0] + ((attr & 0x40) << 2);\n\t\t\tint const color = attr & 0x0f;\n\t\t\tint sx = sr[offs + 2] - 2 * (attr & 0x80);\n\t\t\tint sy = sr[offs + 3];\n\t\t\tint flipx = attr & 0x10;\n\t\t\tint flipy = attr & 0x20;\n\n\t\t\tif (flip_screen())\n\t\t\t{\n\t\t\t\tsx = 240 - sx;\n\t\t\t\tsy = 240 - sy;\n\t\t\t\tflipx = !flipx;\n\t\t\t\tflipy = !flipy;\n\t\t\t}\n\n\t\t\tm_gfxdecode->gfx(1)->transmask(bitmap, cliprect, code, color, flipx, flipy, sx, sy,\n\t\t\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(1), color, 0));\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:k005849_device.ctrl_r",
+      "label": "Handler",
+      "props": {
+        "method": "ctrl_r",
+        "ownerClass": "k005849_device",
+        "sourceFile": "src/mame/konami/k005849.h",
+        "sourceLine": 20,
+        "sourceColumn": 1,
+        "sourceEndLine": 20,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "return m_ctrlram[offset & 7];"
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_gberet)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 2,
+        "sourceEndLine": 755,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(gberet_state::palette), 2*16*16, 32)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 756,
+        "sourceColumn": 2,
+        "sourceEndLine": 756,
+        "clockExpr": "FUNC(gberet_state::palette)"
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 759,
+        "sourceColumn": 2,
+        "sourceEndLine": 759
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/snsnd",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "snsnd",
+        "clock": 1536000,
+        "config": [
+          "SN76489A(config, m_sn, 18.432_MHz_XTAL / 12).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 761,
+        "sourceColumn": 2,
+        "sourceEndLine": 761
+      }
+    },
+    {
+      "id": "audioroute:device:gberet_state.gberet/snsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "SN76489A(config, m_sn, 18.432_MHz_XTAL / 12).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 761,
+        "sourceColumn": 2,
+        "sourceEndLine": 761
+      }
+    },
+    {
+      "id": "machine:gberetb_state.gberetb",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gberetb_state",
+        "name": "gberetb",
+        "calls": [],
+        "startHandlers": [
+          "gberet_base_state.video_start"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 764,
+        "sourceColumn": 1,
+        "sourceEndLine": 788
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3333333.3333333335,
+        "config": [
+          "Z80(config, m_maincpu, 20_MHz_XTAL / 6)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &gberetb_state::prg_map)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(gberetb_state::irq0_line_assert))",
+          "m_maincpu->set_periodic_int(FUNC(gberetb_state::nmi_line_assert), attotime::from_hz(20_MHz_XTAL / 0x8000))"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 767,
+        "sourceColumn": 2,
+        "sourceEndLine": 767
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_vblank_int",
+        "operation": "set_vblank_int",
+        "raw": "m_maincpu->set_vblank_int(\"screen\", FUNC(gberetb_state::irq0_line_assert))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 769,
+        "sourceColumn": 2,
+        "sourceEndLine": 769,
+        "targetTag": "screen",
+        "targetClass": "gberetb_state",
+        "targetMethod": "irq0_line_assert"
+      }
+    },
+    {
+      "id": "handler:gberetb_state.irq0_line_assert",
+      "label": "Handler",
+      "props": {
+        "method": "irq0_line_assert",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 769,
+        "sourceColumn": 2,
+        "sourceEndLine": 769
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/maincpu/callback:maincpu:1",
+      "label": "Callback",
+      "props": {
+        "signal": "set_periodic_int",
+        "operation": "set_periodic_int",
+        "raw": "m_maincpu->set_periodic_int(FUNC(gberetb_state::nmi_line_assert), attotime::from_hz(20_MHz_XTAL / 0x8000))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 770,
+        "sourceColumn": 2,
+        "sourceEndLine": 770,
+        "periodHz": 610.3515625,
+        "periodExpr": "attotime::from_hz(20_MHz_XTAL / 0x8000)",
+        "targetClass": "gberetb_state",
+        "targetMethod": "nmi_line_assert"
+      }
+    },
+    {
+      "id": "handler:gberetb_state.nmi_line_assert",
+      "label": "Handler",
+      "props": {
+        "method": "nmi_line_assert",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 770,
+        "sourceColumn": 2,
+        "sourceEndLine": 770
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_refresh_hz(58.7090)",
+          "screen.set_vblank_time(ATTOSECONDS_IN_USEC(0))",
+          "screen.set_size(32*8, 32*8)",
+          "screen.set_visarea(1*8, 31*8-1, 2*8, 30*8-1)",
+          "screen.set_screen_update(FUNC(gberetb_state::screen_update))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 773,
+        "sourceColumn": 2,
+        "sourceEndLine": 773,
+        "configCalls": [
+          "set_refresh_hz(58.709)",
+          "set_size(256,256)",
+          "set_visarea(8,247,16,239)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 58.709,
+        "screenSize": [
+          256,
+          256
+        ],
+        "screenVisarea": [
+          8,
+          247,
+          16,
+          239
+        ]
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(gberetb_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 778,
+        "sourceColumn": 2,
+        "sourceEndLine": 778,
+        "targetClass": "gberetb_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:gberetb_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 498,
+        "sourceColumn": 1,
+        "sourceEndLine": 504,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE | TILEMAP_DRAW_ALL_CATEGORIES, 0);\n\tdraw_sprites(bitmap, cliprect);\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:gberetb_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 470,
+        "sourceColumn": 1,
+        "sourceEndLine": 496,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "for (int offs = m_spriteram.bytes() - 4; offs >= 0; offs -= 4)\n\t{\n\t\tif (m_spriteram[offs + 1])\n\t\t{\n\t\t\tint const attr = m_spriteram[offs + 3];\n\t\t\tint const code = m_spriteram[offs] + ((attr & 0x40) << 2);\n\t\t\tint const color = attr & 0x0f;\n\t\t\tint sx = m_spriteram[offs + 2] - 2 * (attr & 0x80);\n\t\t\tint sy = 240 - m_spriteram[offs + 1];\n\t\t\tint flipx = attr & 0x10;\n\t\t\tint flipy = attr & 0x20;\n\n\t\t\tif (flip_screen())\n\t\t\t{\n\t\t\t\tsx = 240 - sx;\n\t\t\t\tsy = 240 - sy;\n\t\t\t\tflipx = !flipx;\n\t\t\t\tflipy = !flipy;\n\t\t\t}\n\n\t\t\tm_gfxdecode->gfx(1)->transmask(bitmap, cliprect, code, color, flipx, flipy, sx, sy,\n\t\t\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(1), color, 0));\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_gberetb)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 781,
+        "sourceColumn": 2,
+        "sourceEndLine": 781,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(gberetb_state::palette), 2*16*16, 32)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 782,
+        "sourceColumn": 2,
+        "sourceEndLine": 782,
+        "clockExpr": "FUNC(gberetb_state::palette)"
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 785,
+        "sourceColumn": 2,
+        "sourceEndLine": 785
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/snsnd",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "snsnd",
+        "clock": 1666666.6666666667,
+        "config": [
+          "SN76489A(config, m_sn, 20_MHz_XTAL / 12).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 2,
+        "sourceEndLine": 787
+      }
+    },
+    {
+      "id": "audioroute:device:gberetb_state.gberetb/snsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "SN76489A(config, m_sn, 20_MHz_XTAL / 12).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 2,
+        "sourceEndLine": 787
+      }
+    },
+    {
+      "id": "inputs:gberet",
+      "label": "InputPorts",
+      "props": {
+        "name": "gberet",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 8,
+        "sourceEndLine": 605
+      }
+    },
+    {
+      "id": "inputs:gberet/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gberet/P1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gberet/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gberet/P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gberet/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":1,2,3,4\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 15,
+        "location": "#SW1\":1,2,3,4\"",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":5,6,7,8\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "32=4C 1C",
+          "80=3C 1C",
+          "128=2C 1C",
+          "64=3C 2C",
+          "16=4C 3C",
+          "240=1C 1C",
+          "48=3C 4C",
+          "112=2C 3C",
+          "224=1C 2C",
+          "96=2C 5C",
+          "208=1C 3C",
+          "192=1C 4C",
+          "176=1C 5C",
+          "160=1C 6C",
+          "144=1C 7C",
+          "0=No Coin B"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:1,2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 2,
+        "location": "SW2:1,2",
+        "settings": [
+          "3=2",
+          "2=3",
+          "1=5",
+          "0=7"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:3\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:3",
+        "settings": [
+          "0=Upright",
+          "4=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 24,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:4,5\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 8,
+        "location": "SW2:4,5",
+        "settings": [
+          "24=30K, 70K, Every 70K",
+          "16=40K, 80K, Every 80K",
+          "8=50K, 100K, Every 100K",
+          "0=50K, 200K, Every 200K"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 96,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:6,7\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 64,
+        "location": "SW2:6,7",
+        "settings": [
+          "96=Easy",
+          "64=Normal",
+          "32=Difficult",
+          "0=Very Difficult"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:8\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW3",
+      "label": "Port",
+      "props": {
+        "tag": "DSW3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW3:1\")"
+        ],
+        "name": "Flip Screen",
+        "defaultValue": 1,
+        "location": "SW3:1",
+        "settings": [
+          "1=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW3:2\")"
+        ],
+        "name": "Upright Controls",
+        "defaultValue": 2,
+        "location": "SW3:2",
+        "settings": [
+          "2=Single",
+          "0=Dual"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gberet/DSW3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gberetb",
+      "label": "InputPorts",
+      "props": {
+        "name": "gberetb",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 653,
+        "sourceColumn": 8,
+        "sourceEndLine": 653
+      }
+    },
+    {
+      "id": "inputs:gberetb/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:gberetb/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 255
+      }
+    },
+    {
+      "id": "inputs:gberetb/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:gberetb/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 15
+      }
+    },
+    {
+      "id": "inputs:gberetb/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gberetb/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gberetb/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gberetb/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gberetb/DSW3",
+      "label": "Port",
+      "props": {
+        "tag": "DSW3",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:gberetb/DSW3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 15
+      }
+    },
+    {
+      "id": "inputs:mrgoemon",
+      "label": "InputPorts",
+      "props": {
+        "name": "mrgoemon",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 670,
+        "sourceColumn": 8,
+        "sourceEndLine": 670
+      }
+    },
+    {
+      "id": "inputs:mrgoemon/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:mrgoemon/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 24,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:4,5\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 24,
+        "location": "SW2:4,5",
+        "settings": [
+          "24=20K, Every 60K",
+          "16=30K, Every 70K",
+          "8=40K, Every 80K",
+          "0=50K, Every 90K"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mrgoemon/DSW3",
+      "label": "Port",
+      "props": {
+        "tag": "DSW3",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:mrgoemon/DSW3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 4,
+        "activeLow": true,
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "gfxlayout:gberetb_charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gberetb_charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 512,
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          24,
+          28,
+          0,
+          4,
+          8,
+          12,
+          16,
+          20
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gberetb_spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gberetb_spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": 512,
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          131072,
+          262144,
+          393216
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x1",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x1",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 1,
+        "planeOffsets": [
+          "RGN_FRAC(0,1)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x3_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x3_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x5_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x5_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,5)",
+        "planes": 5,
+        "planeOffsets": [
+          "RGN_FRAC(4,5)",
+          "RGN_FRAC(3,5)",
+          "RGN_FRAC(2,5)",
+          "RGN_FRAC(1,5)",
+          "RGN_FRAC(0,5)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x6_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x6_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,6)",
+        "planes": 6,
+        "planeOffsets": [
+          "RGN_FRAC(5,6)",
+          "RGN_FRAC(4,6)",
+          "RGN_FRAC(3,6)",
+          "RGN_FRAC(2,6)",
+          "RGN_FRAC(1,6)",
+          "RGN_FRAC(0,6)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_planar",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_msb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_lsb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          36,
+          32,
+          44,
+          40,
+          52,
+          48,
+          60,
+          56
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          256,
+          260,
+          264,
+          268,
+          272,
+          276,
+          280,
+          284
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          260,
+          256,
+          268,
+          264,
+          276,
+          272,
+          284,
+          280
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          512,
+          516,
+          520,
+          524,
+          528,
+          532,
+          536,
+          540
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          516,
+          512,
+          524,
+          520,
+          532,
+          528,
+          540,
+          536
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gberet",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_gberet",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 715,
+        "sourceColumn": 8,
+        "sourceEndLine": 715
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gberet/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "gfx_8x8x4_packed_msb",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gberet/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gberetb",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_gberetb",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 720,
+        "sourceColumn": 8,
+        "sourceEndLine": 720
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gberetb/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "gberetb_charlayout",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gberetb/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "gberetb_spritelayout",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:gberet_state.gberet/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(gberet_state::palette), 2*16*16, 32)",
+        "ownerTag": "palette",
+        "targetClass": "gberet_state",
+        "targetMethod": "palette",
+        "entries": 32,
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 756
+      }
+    },
+    {
+      "id": "handler:gberet_state.palette",
+      "label": "Handler",
+      "props": {
+        "method": "palette",
+        "ownerClass": "gberet_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 335,
+        "sourceColumn": 1,
+        "sourceEndLine": 376,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "uint8_t const *color_prom = memregion(\"proms\")->base();\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\t// red component\n\t\tint bit0 = BIT(color_prom[i], 0);\n\t\tint bit1 = BIT(color_prom[i], 1);\n\t\tint bit2 = BIT(color_prom[i], 2);\n\t\tint const r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;\n\n\t\t// green component\n\t\tbit0 = BIT(color_prom[i], 3);\n\t\tbit1 = BIT(color_prom[i], 4);\n\t\tbit2 = BIT(color_prom[i], 5);\n\t\tint const g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;\n\n\t\t// blue component\n\t\tbit0 = BIT(color_prom[i], 6);\n\t\tbit1 = BIT(color_prom[i], 7);\n\t\tint const b = 0x52 * bit0 + 0xad * bit1;\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x20;\n\n\tfor (int i = 0; i < 0x100; i++)\n\t{\n\t\tuint8_t const ctabentry = (color_prom[i] & 0x0f) | 0x10;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\tfor (int i = 0x100; i < 0x200; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] & 0x0f;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}"
+      }
+    },
+    {
+      "id": "device:gberetb_state.gberetb/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(gberetb_state::palette), 2*16*16, 32)",
+        "ownerTag": "palette",
+        "targetClass": "gberetb_state",
+        "targetMethod": "palette",
+        "entries": 32,
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 782
+      }
+    },
+    {
+      "id": "handler:gberetb_state.palette",
+      "label": "Handler",
+      "props": {
+        "method": "palette",
+        "ownerClass": "gberetb_state",
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 335,
+        "sourceColumn": 1,
+        "sourceEndLine": 376,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "uint8_t const *color_prom = memregion(\"proms\")->base();\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\t// red component\n\t\tint bit0 = BIT(color_prom[i], 0);\n\t\tint bit1 = BIT(color_prom[i], 1);\n\t\tint bit2 = BIT(color_prom[i], 2);\n\t\tint const r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;\n\n\t\t// green component\n\t\tbit0 = BIT(color_prom[i], 3);\n\t\tbit1 = BIT(color_prom[i], 4);\n\t\tbit2 = BIT(color_prom[i], 5);\n\t\tint const g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;\n\n\t\t// blue component\n\t\tbit0 = BIT(color_prom[i], 6);\n\t\tbit1 = BIT(color_prom[i], 7);\n\t\tint const b = 0x52 * bit0 + 0xad * bit1;\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x20;\n\n\tfor (int i = 0; i < 0x100; i++)\n\t{\n\t\tuint8_t const ctabentry = (color_prom[i] & 0x0f) | 0x10;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\tfor (int i = 0x100; i < 0x200; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] & 0x0f;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:k005849.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:machine/input_merger.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:sound/sn76496.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/gberet.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/k005849.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/k005849.cpp",
+      "to": "file:k005849.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/k005849.cpp",
+      "to": "file:konami_helper.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/k005849.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/konami_helper.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/konami_helper.cpp",
+      "to": "file:konami_helper.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:gberet",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 897,
+        "sourceColumn": 1,
+        "sourceEndLine": 897
+      }
+    },
+    {
+      "from": "game:gberet",
+      "to": "machine:gberet_state.gberet",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gberet",
+      "to": "inputs:gberet",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gberet",
+      "to": "romset:gberet",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:rushatck",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 898,
+        "sourceColumn": 1,
+        "sourceEndLine": 898
+      }
+    },
+    {
+      "from": "game:rushatck",
+      "to": "game:gberet",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:rushatck",
+      "to": "machine:gberet_state.gberet",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:rushatck",
+      "to": "inputs:gberet",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:rushatck",
+      "to": "romset:rushatck",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:gberetb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 899,
+        "sourceColumn": 1,
+        "sourceEndLine": 899
+      }
+    },
+    {
+      "from": "game:gberetb",
+      "to": "game:gberet",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:gberetb",
+      "to": "machine:gberetb_state.gberetb",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gberetb",
+      "to": "inputs:gberetb",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gberetb",
+      "to": "romset:gberetb",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:mrgoemon",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 901,
+        "sourceColumn": 1,
+        "sourceEndLine": 901
+      }
+    },
+    {
+      "from": "game:mrgoemon",
+      "to": "machine:mrgoemon_state.gberet",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mrgoemon",
+      "to": "inputs:mrgoemon",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mrgoemon",
+      "to": "romset:mrgoemon",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "romset:gberet",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 797,
+        "sourceColumn": 1,
+        "sourceEndLine": 797
+      }
+    },
+    {
+      "from": "romset:gberet",
+      "to": "region:gberet/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberet/maincpu",
+      "to": "rom:gberet/maincpu/577l03.10c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberet/maincpu",
+      "to": "rom:gberet/maincpu/577l02.8c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberet/maincpu",
+      "to": "rom:gberet/maincpu/577l01.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberet",
+      "to": "region:gberet/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberet/tiles",
+      "to": "rom:gberet/tiles/577l07.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberet",
+      "to": "region:gberet/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberet/sprites",
+      "to": "rom:gberet/sprites/577l06.5e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberet/sprites",
+      "to": "rom:gberet/sprites/577l05.4e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberet/sprites",
+      "to": "rom:gberet/sprites/577l08.4f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberet/sprites",
+      "to": "rom:gberet/sprites/577l04.3e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberet",
+      "to": "region:gberet/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberet/proms",
+      "to": "rom:gberet/proms/577h09.2f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberet/proms",
+      "to": "rom:gberet/proms/577h11.6f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberet/proms",
+      "to": "rom:gberet/proms/577h10.5f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:rushatck",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 1,
+        "sourceEndLine": 818
+      }
+    },
+    {
+      "from": "romset:rushatck",
+      "to": "region:rushatck/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:rushatck/maincpu",
+      "to": "rom:rushatck/maincpu/577h03.10c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rushatck/maincpu",
+      "to": "rom:rushatck/maincpu/577h02.8c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rushatck/maincpu",
+      "to": "rom:rushatck/maincpu/577h01.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:rushatck",
+      "to": "region:rushatck/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:rushatck/tiles",
+      "to": "rom:rushatck/tiles/577h07.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:rushatck",
+      "to": "region:rushatck/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:rushatck/sprites",
+      "to": "rom:rushatck/sprites/577l06.5e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rushatck/sprites",
+      "to": "rom:rushatck/sprites/577h05.4e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rushatck/sprites",
+      "to": "rom:rushatck/sprites/577l08.4f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rushatck/sprites",
+      "to": "rom:rushatck/sprites/577l04.3e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:rushatck",
+      "to": "region:rushatck/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:rushatck/proms",
+      "to": "rom:rushatck/proms/577h09.2f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rushatck/proms",
+      "to": "rom:rushatck/proms/577h11.6f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rushatck/proms",
+      "to": "rom:rushatck/proms/577h10.5f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberetb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 839,
+        "sourceColumn": 1,
+        "sourceEndLine": 839
+      }
+    },
+    {
+      "from": "romset:gberetb",
+      "to": "region:gberetb/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberetb/maincpu",
+      "to": "rom:gberetb/maincpu/2-ic82.10g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/maincpu",
+      "to": "rom:gberetb/maincpu/3-ic81.10f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberetb",
+      "to": "region:gberetb/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberetb/tiles",
+      "to": "rom:gberetb/tiles/1-ic92.12c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberetb",
+      "to": "region:gberetb/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberetb/sprites",
+      "to": "rom:gberetb/sprites/7-1c8.2b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/sprites",
+      "to": "rom:gberetb/sprites/6-ic9.2c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/sprites",
+      "to": "rom:gberetb/sprites/5-ic10.2d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/sprites",
+      "to": "rom:gberetb/sprites/4-ic11.2e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberetb",
+      "to": "region:gberetb/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberetb/proms",
+      "to": "rom:gberetb/proms/82s123-ic100.13b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/proms",
+      "to": "rom:gberetb/proms/82s129-ic26.4g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/proms",
+      "to": "rom:gberetb/proms/82s129-ic34.5g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/proms",
+      "to": "rom:gberetb/proms/82s129-ic75.9j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gberetb/proms",
+      "to": "rom:gberetb/proms/82s129-ic90.12a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gberetb",
+      "to": "region:gberetb/plds",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gberetb/plds",
+      "to": "rom:gberetb/plds/pal16r6_ic35.5h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mrgoemon",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 864,
+        "sourceColumn": 1,
+        "sourceEndLine": 864
+      }
+    },
+    {
+      "from": "romset:mrgoemon",
+      "to": "region:mrgoemon/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mrgoemon/maincpu",
+      "to": "rom:mrgoemon/maincpu/621d01.10c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mrgoemon/maincpu",
+      "to": "rom:mrgoemon/maincpu/621d02.12c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mrgoemon",
+      "to": "region:mrgoemon/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mrgoemon/tiles",
+      "to": "rom:mrgoemon/tiles/621a05.6d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mrgoemon",
+      "to": "region:mrgoemon/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mrgoemon/sprites",
+      "to": "rom:mrgoemon/sprites/621d03.4d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mrgoemon/sprites",
+      "to": "rom:mrgoemon/sprites/621d04.5d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mrgoemon",
+      "to": "region:mrgoemon/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mrgoemon/proms",
+      "to": "rom:mrgoemon/proms/621a06.5f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mrgoemon/proms",
+      "to": "rom:mrgoemon/proms/621a08.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mrgoemon/proms",
+      "to": "rom:mrgoemon/proms/621a07.6f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 534,
+        "sourceColumn": 1,
+        "sourceEndLine": 551
+      }
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map/range1",
+      "to": "handler:gberet_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map/range2",
+      "to": "handler:gberet_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map/range6",
+      "to": "handler:k005849_device.scroll_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "k005849"
+      }
+    },
+    {
+      "from": "map:gberet_state.prg_map/range6",
+      "to": "handler:k005849_device.scroll_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "k005849"
+      }
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map/range7",
+      "to": "handler:k005849_device.ctrl_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "k005849"
+      }
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "handler:mrgoemon_state.coin_counter_w",
+      "to": "handler:gberet_state.coin_counter_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gberet_state.coin_counter_w",
+      "to": "handler:mrgoemon_state.coin_counter_w",
+      "rel": "OVERRIDDEN_BY",
+      "props": {
+        "class": "mrgoemon_state"
+      }
+    },
+    {
+      "from": "map:gberet_state.prg_map/range8",
+      "to": "handler:gberet_state.coin_counter_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map/range10",
+      "to": "handler:gberet_state.sound_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map/range11",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberet_state.prg_map",
+      "to": "map:gberet_state.prg_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mrgoemon_state.prg_map",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 553,
+        "sourceColumn": 1,
+        "sourceEndLine": 557
+      }
+    },
+    {
+      "from": "map:mrgoemon_state.prg_map",
+      "to": "map:gberet_state.prg_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:mrgoemon_state.prg_map",
+      "to": "map:mrgoemon_state.prg_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 576,
+        "sourceColumn": 1,
+        "sourceEndLine": 596
+      }
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map/range1",
+      "to": "handler:gberetb_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map/range2",
+      "to": "handler:gberetb_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map/range6",
+      "to": "handler:gberetb_state.flipscreen_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map/range11",
+      "to": "handler:sn76489a_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "snsnd"
+      }
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map/range16",
+      "to": "handler:gberetb_state.irq_ack_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:gberetb_state.prg_map/range16",
+      "to": "handler:gberetb_state.nmi_ack_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gberetb_state.prg_map",
+      "to": "map:gberetb_state.prg_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gberetb_state.prg_map/range17",
+      "to": "handler:gberetb_state.scroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 732,
+        "sourceColumn": 1,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "from": "handler:gberet_base_state.video_start",
+      "to": "handler:gberet_base_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "handler:gberet_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberet_state.gberet/maincpu",
+      "to": "map:gberet_state.prg_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/k005849",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849",
+      "to": "device:gberet_state.gberet/k005849/callback:k005849:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849/callback:k005849:0",
+      "to": "handler:input_merger_any_high_device.in_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849",
+      "to": "device:gberet_state.gberet/k005849/callback:k005849:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849/callback:k005849:1",
+      "to": "handler:input_merger_any_high_device.in_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849",
+      "to": "device:gberet_state.gberet/k005849/callback:k005849:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849/callback:k005849:2",
+      "to": "device:gberet_state.gberet/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849",
+      "to": "device:gberet_state.gberet/k005849/callback:k005849:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberet_state.gberet/k005849/callback:k005849:3",
+      "to": "handler:gberet_state.flip_screen_set",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/mainirq",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberet_state.gberet/mainirq",
+      "to": "device:gberet_state.gberet/mainirq/callback:mainirq:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberet_state.gberet/mainirq/callback:mainirq:0",
+      "to": "device:gberet_state.gberet/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberet_state.gberet/screen",
+      "to": "device:gberet_state.gberet/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:gberet_state.draw_sprites",
+      "to": "handler:k005849_device.ctrl_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gberet_state.screen_update",
+      "to": "handler:gberet_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gberet_state.screen_update",
+      "to": "handler:k005849_device.scroll_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gberet_state.gberet/screen/callback:screen:0",
+      "to": "handler:gberet_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "gfxdecode:gfx_gberet",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gberet_state.gberet",
+      "to": "device:gberet_state.gberet/snsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberet_state.gberet/snsnd",
+      "to": "audioroute:device:gberet_state.gberet/snsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 764,
+        "sourceColumn": 1,
+        "sourceEndLine": 788
+      }
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "handler:gberet_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "device:gberetb_state.gberetb/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/maincpu",
+      "to": "device:gberetb_state.gberetb/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/maincpu/callback:maincpu:0",
+      "to": "handler:gberetb_state.irq0_line_assert",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/maincpu",
+      "to": "device:gberetb_state.gberetb/maincpu/callback:maincpu:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/maincpu/callback:maincpu:1",
+      "to": "handler:gberetb_state.nmi_line_assert",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/maincpu",
+      "to": "map:gberetb_state.prg_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "device:gberetb_state.gberetb/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/screen",
+      "to": "device:gberetb_state.gberetb/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:gberetb_state.screen_update",
+      "to": "handler:gberetb_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/screen/callback:screen:0",
+      "to": "handler:gberetb_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "device:gberetb_state.gberetb/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "gfxdecode:gfx_gberetb",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "device:gberetb_state.gberetb/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "device:gberetb_state.gberetb/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gberetb_state.gberetb",
+      "to": "device:gberetb_state.gberetb/snsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/snsnd",
+      "to": "audioroute:device:gberetb_state.gberetb/snsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:gberet",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 8,
+        "sourceEndLine": 605
+      }
+    },
+    {
+      "from": "inputs:gberet",
+      "to": "inputs:gberet/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P1",
+      "to": "inputs:gberet/P1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet",
+      "to": "inputs:gberet/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/P2",
+      "to": "inputs:gberet/P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet",
+      "to": "inputs:gberet/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/SYSTEM",
+      "to": "inputs:gberet/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet",
+      "to": "inputs:gberet/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberet/DSW1",
+      "to": "inputs:gberet/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW1",
+      "to": "inputs:gberet/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet",
+      "to": "inputs:gberet/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberet/DSW2",
+      "to": "inputs:gberet/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW2",
+      "to": "inputs:gberet/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW2",
+      "to": "inputs:gberet/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW2",
+      "to": "inputs:gberet/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW2",
+      "to": "inputs:gberet/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet",
+      "to": "inputs:gberet/DSW3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberet/DSW3",
+      "to": "inputs:gberet/DSW3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW3",
+      "to": "inputs:gberet/DSW3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW3",
+      "to": "inputs:gberet/DSW3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberet/DSW3",
+      "to": "inputs:gberet/DSW3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberetb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 653,
+        "sourceColumn": 8,
+        "sourceEndLine": 653
+      }
+    },
+    {
+      "from": "inputs:gberetb",
+      "to": "inputs:gberet",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:gberetb",
+      "to": "inputs:gberetb/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberetb/P2",
+      "to": "inputs:gberetb/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberetb",
+      "to": "inputs:gberetb/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberetb/SYSTEM",
+      "to": "inputs:gberetb/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberetb/SYSTEM",
+      "to": "inputs:gberetb/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberetb/SYSTEM",
+      "to": "inputs:gberetb/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberetb/SYSTEM",
+      "to": "inputs:gberetb/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberetb/SYSTEM",
+      "to": "inputs:gberetb/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gberetb",
+      "to": "inputs:gberetb/DSW3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gberetb/DSW3",
+      "to": "inputs:gberetb/DSW3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mrgoemon",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 670,
+        "sourceColumn": 8,
+        "sourceEndLine": 670
+      }
+    },
+    {
+      "from": "inputs:mrgoemon",
+      "to": "inputs:gberet",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:mrgoemon",
+      "to": "inputs:mrgoemon/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mrgoemon/DSW2",
+      "to": "inputs:mrgoemon/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mrgoemon",
+      "to": "inputs:mrgoemon/DSW3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mrgoemon/DSW3",
+      "to": "inputs:mrgoemon/DSW3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "gfxlayout:gberetb_charlayout",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gberetb_spritelayout",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x1",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x3_planar",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_planar",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x5_planar",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x6_planar",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_planar",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_msb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_msb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_gberet",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 715,
+        "sourceColumn": 8,
+        "sourceEndLine": 715
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_gberet",
+      "to": "gfxdecode:gfx_gberet/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gberet/e0",
+      "to": "gfxlayout:gfx_8x8x4_packed_msb",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gberet",
+      "to": "gfxdecode:gfx_gberet/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gberet/e1",
+      "to": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gberetb",
+      "to": "file:src/mame/konami/gberet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/gberet.cpp",
+        "sourceLine": 720,
+        "sourceColumn": 8,
+        "sourceEndLine": 720
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_gberetb",
+      "to": "gfxdecode:gfx_gberetb/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gberetb/e0",
+      "to": "gfxlayout:gberetb_charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gberetb",
+      "to": "gfxdecode:gfx_gberetb/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gberetb/e1",
+      "to": "gfxlayout:gberetb_spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:gberet_state.gberet/palette",
+      "to": "device:gberet_state.gberet/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberet_state.gberet/palette/callback:palette_init",
+      "to": "handler:gberet_state.palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/palette",
+      "to": "device:gberetb_state.gberetb/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gberetb_state.gberetb/palette/callback:palette_init",
+      "to": "handler:gberetb_state.palette",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

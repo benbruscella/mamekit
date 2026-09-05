@@ -1,0 +1,605 @@
+{
+  "game": "bankp",
+  "title": "Bank Panic (Sanritsu / Sega, 1984)",
+  "family": "bankp",
+  "dataPath": "games/arcade/bankp",
+  "board": {
+    "family": "bankp",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 2578080,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 57343,
+            "kind": "rom"
+          },
+          {
+            "start": 57344,
+            "end": 61439,
+            "kind": "ram"
+          },
+          {
+            "start": 61440,
+            "end": 62463,
+            "kind": "ram",
+            "share": "videoram[0]",
+            "write": "bankp_state.videoram_w_0",
+            "handlerWidth": 8
+          },
+          {
+            "start": 62464,
+            "end": 63487,
+            "kind": "ram",
+            "share": "colorram[0]",
+            "write": "bankp_state.colorram_w_0",
+            "handlerWidth": 8
+          },
+          {
+            "start": 63488,
+            "end": 64511,
+            "kind": "ram",
+            "share": "videoram[1]",
+            "write": "bankp_state.videoram_w_1",
+            "handlerWidth": 8
+          },
+          {
+            "start": 64512,
+            "end": 65535,
+            "kind": "ram",
+            "share": "colorram[1]",
+            "write": "bankp_state.colorram_w_1",
+            "handlerWidth": 8
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "write": "sn1.write",
+              "read": "port.IN0"
+            },
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "write": "sn2.write",
+              "read": "port.IN1"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "write": "sn3.write",
+              "read": "port.IN2"
+            },
+            {
+              "start": 4,
+              "end": 4,
+              "kind": "handler",
+              "read": "port.DSW1"
+            },
+            {
+              "start": 5,
+              "end": 5,
+              "kind": "handler",
+              "write": "bankp_state.scroll_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 7,
+              "end": 7,
+              "kind": "handler",
+              "write": "bankp_state.video_control_w",
+              "handlerWidth": 8
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 57343,
+        "kind": "rom"
+      },
+      {
+        "start": 57344,
+        "end": 61439,
+        "kind": "ram"
+      },
+      {
+        "start": 61440,
+        "end": 62463,
+        "kind": "ram",
+        "share": "videoram[0]",
+        "write": "bankp_state.videoram_w_0",
+        "handlerWidth": 8
+      },
+      {
+        "start": 62464,
+        "end": 63487,
+        "kind": "ram",
+        "share": "colorram[0]",
+        "write": "bankp_state.colorram_w_0",
+        "handlerWidth": 8
+      },
+      {
+        "start": 63488,
+        "end": 64511,
+        "kind": "ram",
+        "share": "videoram[1]",
+        "write": "bankp_state.videoram_w_1",
+        "handlerWidth": 8
+      },
+      {
+        "start": 64512,
+        "end": 65535,
+        "kind": "ram",
+        "share": "colorram[1]",
+        "write": "bankp_state.colorram_w_1",
+        "handlerWidth": 8
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "write": "sn1.write",
+          "read": "port.IN0"
+        },
+        {
+          "start": 1,
+          "end": 1,
+          "kind": "handler",
+          "write": "sn2.write",
+          "read": "port.IN1"
+        },
+        {
+          "start": 2,
+          "end": 2,
+          "kind": "handler",
+          "write": "sn3.write",
+          "read": "port.IN2"
+        },
+        {
+          "start": 4,
+          "end": 4,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 5,
+          "end": 5,
+          "kind": "handler",
+          "write": "bankp_state.scroll_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 7,
+          "end": 7,
+          "kind": "handler",
+          "write": "bankp_state.video_control_w",
+          "handlerWidth": 8
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 224,
+      "height": 224,
+      "xOffset": 24,
+      "yOffset": 16,
+      "refresh": 61.03409090909091,
+      "htotal": 330,
+      "vtotal": 256,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "sn76489",
+    "clock": 2578080,
+    "chips": 3,
+    "deviceTypes": [
+      "SN76489A",
+      "SN76489A",
+      "SN76489A"
+    ],
+    "clocks": [
+      2578080,
+      2578080,
+      2578080
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 2,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 2,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 2,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-6175.7e",
+          "offset": 0,
+          "size": 16384,
+          "crc": "044552b8",
+          "alt": [
+            {
+              "file": "11.bin",
+              "crc": "056755ce"
+            }
+          ]
+        },
+        {
+          "file": "epr-6174.7f",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "d29b1598"
+        },
+        {
+          "file": "epr-6173.7h",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "b8405d38",
+          "alt": [
+            {
+              "file": "9.bin",
+              "crc": "08a8137b"
+            }
+          ]
+        },
+        {
+          "file": "epr-6176.7d",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "c98ac200"
+        }
+      ]
+    },
+    {
+      "region": "fgtiles",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "epr-6165.5l",
+          "offset": 0,
+          "size": 8192,
+          "crc": "aef34a93"
+        },
+        {
+          "file": "epr-6166.5k",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "ca13cb11"
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "epr-6172.5b",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c4c4878b"
+        },
+        {
+          "file": "epr-6171.5d",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "a18165a1"
+        },
+        {
+          "file": "epr-6170.5e",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "b58aa8fa"
+        },
+        {
+          "file": "epr-6169.5f",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "1aa37fce"
+        },
+        {
+          "file": "epr-6168.5h",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "05f3a867"
+        },
+        {
+          "file": "epr-6167.5i",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "3fa337e1"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "pr-6177.8a",
+          "offset": 0,
+          "size": 32,
+          "crc": "eb70c5ae"
+        },
+        {
+          "file": "pr-6178.6f",
+          "offset": 32,
+          "size": 256,
+          "crc": "0acca001"
+        },
+        {
+          "file": "pr-6179.5a",
+          "offset": 288,
+          "size": 256,
+          "crc": "e53bafdb"
+        }
+      ]
+    },
+    {
+      "region": "user1",
+      "size": 604,
+      "loads": [
+        {
+          "file": "315-5074.2c.bin",
+          "offset": 0,
+          "size": 603,
+          "crc": "2e57bbba",
+          "alt": [
+            {
+              "file": "82s153.bin",
+              "crc": ""
+            }
+          ]
+        },
+        {
+          "file": "315-5073.pal16l4",
+          "offset": 603,
+          "size": 1,
+          "crc": "",
+          "status": "nodump"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 0,
+      "name": "Coin Switch 1"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 0,
+      "name": "Coin Switch 2"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 16,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 0,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 0
+    },
+    {
+      "tag": "IN1",
+      "init": 0
+    },
+    {
+      "tag": "IN2",
+      "init": 0
+    },
+    {
+      "tag": "DSW1",
+      "init": 192
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

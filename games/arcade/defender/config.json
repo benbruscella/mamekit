@@ -1,0 +1,820 @@
+{
+  "game": "defender",
+  "title": "Defender (Red label) (Williams, 1980)",
+  "family": "williams",
+  "dataPath": "games/arcade/defender",
+  "board": {
+    "family": "williams",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "mc6809e",
+        "clock": 1000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 49151,
+            "kind": "ram",
+            "share": "videoram"
+          },
+          {
+            "start": 49152,
+            "end": 53247,
+            "kind": "nop"
+          },
+          {
+            "start": 49152,
+            "end": 49167,
+            "kind": "ram",
+            "mirror": 992,
+            "share": "paletteram",
+            "viewTag": "m_rom_view",
+            "viewEntry": 0,
+            "writeOnly": true
+          },
+          {
+            "start": 50175,
+            "end": 50175,
+            "kind": "handler",
+            "viewTag": "m_rom_view",
+            "viewEntry": 0,
+            "write": "defender_state.watchdog_reset_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 49168,
+            "end": 49183,
+            "kind": "handler",
+            "mirror": 992,
+            "viewTag": "m_rom_view",
+            "viewEntry": 0,
+            "write": "defender_state.video_control_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 50176,
+            "end": 50431,
+            "kind": "ram",
+            "mirror": 768,
+            "share": "nvram",
+            "viewTag": "m_rom_view",
+            "viewEntry": 0,
+            "write": "defender_state.cmos_4bit_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 51200,
+            "end": 52223,
+            "kind": "handler",
+            "viewTag": "m_rom_view",
+            "viewEntry": 0,
+            "read": "defender_state.video_counter_r"
+          },
+          {
+            "start": 52224,
+            "end": 52227,
+            "kind": "handler",
+            "mirror": 992,
+            "viewTag": "m_rom_view",
+            "viewEntry": 0,
+            "read": "pia_1.read",
+            "write": "pia_1.write"
+          },
+          {
+            "start": 52228,
+            "end": 52231,
+            "kind": "handler",
+            "mirror": 992,
+            "viewTag": "m_rom_view",
+            "viewEntry": 0,
+            "read": "pia_0.read",
+            "write": "pia_0.write"
+          },
+          {
+            "start": 53248,
+            "end": 57343,
+            "kind": "handler",
+            "write": "defender_state.bank_select_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 65535,
+            "kind": "rom",
+            "romOffset": 0
+          }
+        ]
+      },
+      {
+        "tag": "soundcpu",
+        "type": "m6808",
+        "clock": 3579545,
+        "region": "soundcpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "ram"
+          },
+          {
+            "start": 1024,
+            "end": 1027,
+            "kind": "handler",
+            "mirror": 32768,
+            "read": "pia_2.read",
+            "write": "pia_2.write"
+          },
+          {
+            "start": 45056,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 49151,
+        "kind": "ram",
+        "share": "videoram"
+      },
+      {
+        "start": 49152,
+        "end": 53247,
+        "kind": "nop"
+      },
+      {
+        "start": 49152,
+        "end": 49167,
+        "kind": "ram",
+        "mirror": 992,
+        "share": "paletteram",
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "writeOnly": true
+      },
+      {
+        "start": 50175,
+        "end": 50175,
+        "kind": "handler",
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "write": "defender_state.watchdog_reset_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 49168,
+        "end": 49183,
+        "kind": "handler",
+        "mirror": 992,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "write": "defender_state.video_control_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 50176,
+        "end": 50431,
+        "kind": "ram",
+        "mirror": 768,
+        "share": "nvram",
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "write": "defender_state.cmos_4bit_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 51200,
+        "end": 52223,
+        "kind": "handler",
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "read": "defender_state.video_counter_r"
+      },
+      {
+        "start": 52224,
+        "end": 52227,
+        "kind": "handler",
+        "mirror": 992,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "read": "pia_1.read",
+        "write": "pia_1.write"
+      },
+      {
+        "start": 52228,
+        "end": 52231,
+        "kind": "handler",
+        "mirror": 992,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "read": "pia_0.read",
+        "write": "pia_0.write"
+      },
+      {
+        "start": 53248,
+        "end": 57343,
+        "kind": "handler",
+        "write": "defender_state.bank_select_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 53248,
+        "end": 65535,
+        "kind": "rom",
+        "romOffset": 0
+      }
+    ],
+    "screen": {
+      "width": 292,
+      "height": 240,
+      "xOffset": 6,
+      "yOffset": 7,
+      "refresh": 60.09615384615385,
+      "htotal": 512,
+      "vtotal": 260,
+      "vbstart": 247,
+      "vbend": 7,
+      "updateMode": "scanline",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "dac",
+    "clock": 3579545,
+    "chips": 1,
+    "deviceTypes": [
+      "MC1408"
+    ],
+    "dacs": [
+      {
+        "deviceTag": "dac",
+        "bits": 8,
+        "mapper": "unsigned",
+        "gain": 1
+      }
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "speaker"
+      }
+    ],
+    "masterGain": 0.5,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "defend.1",
+          "offset": 0,
+          "size": 2048,
+          "crc": "c3e52d7e",
+          "alt": [
+            {
+              "file": "defeng01.bin",
+              "crc": "6111d74d"
+            }
+          ]
+        },
+        {
+          "file": "defend.4",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "9a72348b",
+          "alt": [
+            {
+              "file": "defeng04.bin",
+              "crc": "3cfc04ce"
+            }
+          ]
+        },
+        {
+          "file": "defend.2",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "89b75984",
+          "alt": [
+            {
+              "file": "defeng02.bin",
+              "crc": "d184ab6b"
+            },
+            {
+              "file": "rom2.bin",
+              "crc": "1126adc9"
+            },
+            {
+              "file": "16",
+              "crc": "03201532"
+            },
+            {
+              "file": "torna3.bin",
+              "crc": "a79213b2"
+            },
+            {
+              "file": "to16.bin",
+              "crc": "46ccd582"
+            },
+            {
+              "file": "2",
+              "crc": "2a4f4f44"
+            }
+          ]
+        },
+        {
+          "file": "defend.3",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "94f51e9b",
+          "alt": [
+            {
+              "file": "defeng03.bin",
+              "crc": "788b76d7"
+            },
+            {
+              "file": "wb03.bin",
+              "crc": "a732d649"
+            },
+            {
+              "file": "rom3.bin",
+              "crc": "4097b46b"
+            },
+            {
+              "file": "17",
+              "crc": "25287eca"
+            },
+            {
+              "file": "torna4.bin",
+              "crc": "f96d3d26"
+            },
+            {
+              "file": "tto17.bin",
+              "crc": "faa3613c"
+            },
+            {
+              "file": "17m5.4a",
+              "crc": "16a3c0dd"
+            },
+            {
+              "file": "defcmnda.3",
+              "crc": "7340209d"
+            },
+            {
+              "file": "3",
+              "crc": "a4112f91"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "banked",
+      "size": 28672,
+      "loads": [
+        {
+          "file": "defend.9",
+          "offset": 0,
+          "size": 2048,
+          "crc": "6870e8a5",
+          "alt": [
+            {
+              "file": "defeng09.bin",
+              "crc": "f57caa62"
+            },
+            {
+              "file": "rom9.bin",
+              "crc": "93012991"
+            },
+            {
+              "file": "df10-1.a1",
+              "crc": "12e2bd1c"
+            },
+            {
+              "file": "defcmnda.10",
+              "crc": "3dddae75"
+            },
+            {
+              "file": "0",
+              "crc": "7a1e5998"
+            }
+          ]
+        },
+        {
+          "file": "defend.12",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "f1f88938",
+          "alt": [
+            {
+              "file": "defeng12.bin",
+              "crc": "33db686f"
+            },
+            {
+              "file": "rom12.bin",
+              "crc": "4bdd8dc4"
+            },
+            {
+              "file": "rom7.bin",
+              "crc": "19e1ac79"
+            },
+            {
+              "file": "defcmnda.7",
+              "crc": "3f1e7cf8"
+            },
+            {
+              "file": "7",
+              "crc": "4c2616a3"
+            },
+            {
+              "file": "7.d5",
+              "crc": "88881cc6"
+            },
+            {
+              "file": "st_rom5.bin",
+              "crc": "c6f0c004"
+            },
+            {
+              "file": "002-12.ic9",
+              "crc": "eb73d8a1"
+            },
+            {
+              "file": "5d-7-2716.bin",
+              "crc": "a9bdacdc"
+            }
+          ]
+        },
+        {
+          "file": "defend.8",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "b649e306",
+          "alt": [
+            {
+              "file": "defeng08.bin",
+              "crc": "9a9eb3d2"
+            },
+            {
+              "file": "rom8.bin",
+              "crc": "5227fc0b"
+            },
+            {
+              "file": "rom9.bin",
+              "crc": "b8ac5966"
+            },
+            {
+              "file": "defcmnda.9",
+              "crc": "8882e1ff"
+            },
+            {
+              "file": "9",
+              "crc": "7b146003"
+            },
+            {
+              "file": "9.d4",
+              "crc": "252605c9"
+            },
+            {
+              "file": "st_rom4.bin",
+              "crc": "b48430bf"
+            },
+            {
+              "file": "002-8.ic11",
+              "crc": "17f7abde"
+            },
+            {
+              "file": "4d-9-2716.bin",
+              "crc": "906dca8f"
+            }
+          ]
+        },
+        {
+          "file": "defend.11",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "9deaf6d9",
+          "alt": [
+            {
+              "file": "defeng11.bin",
+              "crc": "5ca4e860"
+            },
+            {
+              "file": "rom11.bin",
+              "crc": "d068f0c5"
+            },
+            {
+              "file": "6",
+              "crc": "6d748030"
+            }
+          ]
+        },
+        {
+          "file": "defend.7",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "339e092e",
+          "alt": [
+            {
+              "file": "defeng07.bin",
+              "crc": "545c3326"
+            },
+            {
+              "file": "rom7.bin",
+              "crc": "fef4cb77"
+            },
+            {
+              "file": "8",
+              "crc": "52d5438b"
+            }
+          ]
+        },
+        {
+          "file": "defend.10",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "a543b167",
+          "alt": [
+            {
+              "file": "defeng10.bin",
+              "crc": "941cf34e"
+            },
+            {
+              "file": "rom10.bin",
+              "crc": "49b50b40"
+            },
+            {
+              "file": "rom5.bin",
+              "crc": "871f75a0"
+            },
+            {
+              "file": "5",
+              "crc": "4a270340"
+            },
+            {
+              "file": "st_rom1.bin",
+              "crc": "d23d6cdb"
+            },
+            {
+              "file": "002-10.ic7",
+              "crc": "3940d731"
+            }
+          ]
+        },
+        {
+          "file": "defend.6",
+          "offset": 24576,
+          "size": 2048,
+          "crc": "65f4efd1",
+          "alt": [
+            {
+              "file": "defeng06.bin",
+              "crc": "3af34c05"
+            },
+            {
+              "file": "rom6.bin",
+              "crc": "43d42a1b"
+            },
+            {
+              "file": "4",
+              "crc": "e13f457c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "video_sound_rom_1.ic12",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "fefd5b48",
+          "alt": [
+            {
+              "file": "dr12.i3",
+              "crc": "f122d9c9"
+            },
+            {
+              "file": "s",
+              "crc": "cb79ae42"
+            },
+            {
+              "file": "tornb6.bin",
+              "crc": "3685e033"
+            },
+            {
+              "file": "nextcentury_2732.ic24",
+              "crc": "4c2236cc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "decoder.2",
+          "offset": 0,
+          "size": 512,
+          "crc": "8dd98da5",
+          "alt": [
+            {
+              "file": "df11.k3",
+              "crc": "25de5d85"
+            }
+          ]
+        },
+        {
+          "file": "decoder.3",
+          "offset": 512,
+          "size": 512,
+          "crc": "c3f45f70"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "KeyX",
+        "Space"
+      ],
+      "label": "Fire",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "Thrust",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "Smart Bomb",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "Hyperspace",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "Reverse",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Auto Up / Manual Down",
+      "activeLow": false,
+      "toggle": true
+    },
+    {
+      "port": "IN2",
+      "mask": 2,
+      "keys": [
+        "F2"
+      ],
+      "label": "Advance",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "keys": [
+        "F3"
+      ],
+      "label": "High Score Reset",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 0
+    },
+    {
+      "tag": "IN1",
+      "init": 0
+    },
+    {
+      "tag": "IN2",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

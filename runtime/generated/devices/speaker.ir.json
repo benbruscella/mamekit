@@ -1,0 +1,467 @@
+{
+  "type": "SPEAKER",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "a2600",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "arkanoid",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "asteroid",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "bankp",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "berzerk",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "carnival",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "cavenger",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "centiped",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "coleco",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "congo",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "ddragon",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "defender",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "ffight",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "gameboy",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "gauntlet",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "gberet",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "ghouls",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "joust",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "jumpbug",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "ladybug",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "matmania",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "mrdo",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "mslug",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "mspacman",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "nes",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "panic",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "phoenix",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "rspeaker",
+        "speaker"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "popeye",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "qbert",
+      "tags": [
+        "knocker",
+        "speaker"
+      ]
+    },
+    {
+      "game": "qix",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "robotron",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "rtype",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "rygar",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "sf2",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "shinobi",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "simpsons",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "tmnt",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "travrusa",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "upndown",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "venture",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "wboy",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "speaker"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

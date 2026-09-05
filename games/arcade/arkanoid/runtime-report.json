@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "arkanoid",
+  "family": "arkanoid",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 81,
+    "total": 113,
+    "percent": 71.7
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "mcu:ARKANOID_68705P5",
+        "status": "executable",
+        "source": "src/mame/shared/taito68705.cpp:51"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "aysnd:YM2149",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1652"
+      },
+      {
+        "name": "mcu:M68705P5",
+        "status": "executable",
+        "source": "src/devices/cpu/m6805/m68705.cpp:113"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "arkanoid_state.arkanoid_d008_w",
+        "status": "generated",
+        "source": "src/mame/taito/arkanoid_v.cpp:21"
+      },
+      {
+        "name": "arkanoid_state.arkanoid_videoram_w",
+        "status": "generated",
+        "source": "src/mame/taito/arkanoid_v.cpp:15"
+      },
+      {
+        "name": "aysnd.address_data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1652"
+      },
+      {
+        "name": "aysnd.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1652"
+      },
+      {
+        "name": "mcu.data_r",
+        "status": "executable",
+        "source": "src/devices/cpu/m6805/m68705.cpp:113"
+      },
+      {
+        "name": "mcu.data_w",
+        "status": "executable",
+        "source": "src/devices/cpu/m6805/m68705.cpp:113"
+      },
+      {
+        "name": "port.BUTTONS",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM2",
+        "status": "generated"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "mcu.portb_r_cb -> arkanoid_state.input_mux_r",
+        "status": "generated",
+        "source": "src/mame/taito/arkanoid.cpp:1365"
+      },
+      {
+        "name": "screen.set_screen_update -> arkanoid_state.screen_update_arkanoid",
+        "status": "generated",
+        "source": "src/mame/taito/arkanoid.cpp:1372"
+      },
+      {
+        "name": "screen.screen_vblank -> maincpu",
+        "status": "generated",
+        "source": "src/mame/taito/arkanoid.cpp:1374"
+      },
+      {
+        "name": "aysnd.port_a_read_callback -> UNUSED",
+        "status": "generated",
+        "source": "src/mame/taito/arkanoid.cpp:1384"
+      },
+      {
+        "name": "aysnd.port_b_read_callback -> DSW",
+        "status": "generated",
+        "source": "src/mame/taito/arkanoid.cpp:1385"
+      },
+      {
+        "name": "mcu.portb_r -> arkanoid_68705p5_device.mcu_pb_r",
+        "status": "generated",
+        "source": "src/mame/shared/taito68705.cpp:345"
+      },
+      {
+        "name": "mcu.portc_r -> arkanoid_68705p5_device.mcu_pc_r",
+        "status": "generated",
+        "source": "src/mame/shared/taito68705.cpp:346"
+      },
+      {
+        "name": "mcu.porta_w -> arkanoid_68705p5_device.mcu_pa_w",
+        "status": "generated",
+        "source": "src/mame/shared/taito68705.cpp:347"
+      },
+      {
+        "name": "mcu.portc_w -> arkanoid_68705p5_device.mcu_pc_w",
+        "status": "generated",
+        "source": "src/mame/shared/taito68705.cpp:348"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/arkanoid/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 22,
+    "compiledMethods": 22,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 2,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 1,
+    "screenUpdate": "arkanoid_state.screen_update_arkanoid",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 8,
+    "generated": 16,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

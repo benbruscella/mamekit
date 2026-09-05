@@ -1,0 +1,7453 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/nintendo/mario.cpp",
+    "generatedAt": "2026-09-05T03:49:47.948Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Mirko Buffoni, Couriersud"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/nintendo/mario.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/mario.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/mcs48/mcs48.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/mcs48/mcs48.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/z80dma.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/z80dma.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/netlist.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/netlist.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:netlist/devices/net_lib.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "netlist/devices/net_lib.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/resnet.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/resnet.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:nl_mario.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "nl_mario.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/nintendo/nl_mario.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/nl_mario.h"
+      }
+    },
+    {
+      "id": "file:src/mame/nintendo/nl_mario.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/nl_mario.cpp"
+      }
+    },
+    {
+      "id": "game:mario",
+      "label": "Game",
+      "props": {
+        "name": "mario",
+        "year": "1983",
+        "company": "Nintendo of America",
+        "fullname": "Mario Bros. (US, revision E)",
+        "monitor": "ROT0",
+        "cls": "mario_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1120,
+        "sourceColumn": 1,
+        "sourceEndLine": 1120
+      }
+    },
+    {
+      "id": "game:mariog",
+      "label": "Game",
+      "props": {
+        "name": "mariog",
+        "year": "1983",
+        "company": "Nintendo of America",
+        "fullname": "Mario Bros. (US, revision G)",
+        "monitor": "ROT0",
+        "cls": "mario_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1121,
+        "sourceColumn": 1,
+        "sourceEndLine": 1121
+      }
+    },
+    {
+      "id": "game:mariof",
+      "label": "Game",
+      "props": {
+        "name": "mariof",
+        "year": "1983",
+        "company": "Nintendo of America",
+        "fullname": "Mario Bros. (US, revision F)",
+        "monitor": "ROT0",
+        "cls": "mario_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1122,
+        "sourceColumn": 1,
+        "sourceEndLine": 1122
+      }
+    },
+    {
+      "id": "game:marioj",
+      "label": "Game",
+      "props": {
+        "name": "marioj",
+        "year": "1983",
+        "company": "Nintendo",
+        "fullname": "Mario Bros. (Japan, revision C)",
+        "monitor": "ROT0",
+        "cls": "mario_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1123,
+        "sourceColumn": 1,
+        "sourceEndLine": 1123
+      }
+    },
+    {
+      "id": "game:marioja",
+      "label": "Game",
+      "props": {
+        "name": "marioja",
+        "year": "1983",
+        "company": "Nintendo",
+        "fullname": "Mario Bros. (Japan, older)",
+        "monitor": "ROT0",
+        "cls": "mario_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1124,
+        "sourceColumn": 1,
+        "sourceEndLine": 1124
+      }
+    },
+    {
+      "id": "game:masao",
+      "label": "Game",
+      "props": {
+        "name": "masao",
+        "year": "1983",
+        "company": "bootleg",
+        "fullname": "Masao",
+        "monitor": "ROT0",
+        "cls": "masao_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1125,
+        "sourceColumn": 1,
+        "sourceEndLine": 1125
+      }
+    },
+    {
+      "id": "romset:mario",
+      "label": "RomSet",
+      "props": {
+        "name": "mario",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 925,
+        "sourceColumn": 1,
+        "sourceEndLine": 925
+      }
+    },
+    {
+      "id": "region:mario/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 2,
+        "sourceEndLine": 926
+      }
+    },
+    {
+      "id": "rom:mario/maincpu/tma1-c-7f_e-1.7f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7f_e-1.7f",
+        "offset": 0,
+        "size": 8192,
+        "crc": "c0c6e014",
+        "sha1": "36a04f9ca1c2a583477cb8a6f2ef94e044e08296",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 927,
+        "sourceColumn": 2,
+        "sourceEndLine": 927
+      }
+    },
+    {
+      "id": "rom:mario/maincpu/tma1-c-7e_e-3.7e",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7e_e-3.7e",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "b09ab857",
+        "sha1": "35b91cd1c4c3dd2d543a1ea8ff7b951715727792",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 928,
+        "sourceColumn": 2,
+        "sourceEndLine": 928
+      }
+    },
+    {
+      "id": "rom:mario/maincpu/tma1-c-7d_e-1.7d",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7d_e-1.7d",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "dcceb6c1",
+        "sha1": "b19804e69ce2c98cf276c6055c3a250316b96b45",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 929,
+        "sourceColumn": 2,
+        "sourceEndLine": 929
+      }
+    },
+    {
+      "id": "rom:mario/maincpu/tma1-c-7c_e-3.7c",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7c_e-3.7c",
+        "offset": 61440,
+        "size": 4096,
+        "crc": "0d31bd1c",
+        "sha1": "a2e238470ba2ea3c81225fec687f61f047c68c59",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 930,
+        "sourceColumn": 2,
+        "sourceEndLine": 930
+      }
+    },
+    {
+      "id": "region:mario/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 2048,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "rom:mario/audiocpu/m58715-051p.5l",
+      "label": "Rom",
+      "props": {
+        "file": "m58715-051p.5l",
+        "offset": 0,
+        "size": 2048,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "region:mario/soundrom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundrom",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "rom:mario/soundrom/tma1-c-6k_e.6k",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-6k_e.6k",
+        "offset": 0,
+        "size": 4096,
+        "crc": "06b9ff85",
+        "sha1": "111a29bcb9cda0d935675fa26eca6b099a88427f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 936,
+        "sourceColumn": 2,
+        "sourceEndLine": 936
+      }
+    },
+    {
+      "id": "region:mario/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 2,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "rom:mario/gfx1/tma1-v-3f.3f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3f.3f",
+        "offset": 0,
+        "size": 4096,
+        "crc": "28b0c42c",
+        "sha1": "46749568aff88a28c3b6a1ac423abd1b90742a4d",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 939,
+        "sourceColumn": 2,
+        "sourceEndLine": 939
+      }
+    },
+    {
+      "id": "rom:mario/gfx1/tma1-v-3j.3j",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3j.3j",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "0c8cc04d",
+        "sha1": "15fae47d701dc1ef15c943cee6aa991776ecffdf",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 940,
+        "sourceColumn": 2,
+        "sourceEndLine": 940
+      }
+    },
+    {
+      "id": "region:mario/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942
+      }
+    },
+    {
+      "id": "rom:mario/gfx2/tma1-v.7m.7m",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v.7m.7m",
+        "offset": 0,
+        "size": 4096,
+        "crc": "d01c0e2c",
+        "sha1": "cd6cc9d69c36db15543601f5da2abf109cde43c9",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 943,
+        "sourceColumn": 2,
+        "sourceEndLine": 943
+      }
+    },
+    {
+      "id": "rom:mario/gfx2/tma1-v-7n.7n",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7n.7n",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "4f3a1f47",
+        "sha1": "0747d693b9482f6dd28b0bc484fd1d3e29d35654",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 944,
+        "sourceColumn": 2,
+        "sourceEndLine": 944
+      }
+    },
+    {
+      "id": "rom:mario/gfx2/tma1-v-7p.7p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7p.7p",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "56be6ccd",
+        "sha1": "15a6e16c189d45f72761ebcbe9db5001bdecd659",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 945,
+        "sourceColumn": 2,
+        "sourceEndLine": 945
+      }
+    },
+    {
+      "id": "rom:mario/gfx2/tma1-v.7s.7s",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v.7s.7s",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "ff856e6f",
+        "sha1": "2bc9ff18bb1842e8de2bc61ac828f1b175290bed",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 946,
+        "sourceColumn": 2,
+        "sourceEndLine": 946
+      }
+    },
+    {
+      "id": "rom:mario/gfx2/tma1-v-7t.7t",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7t.7t",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "641f0008",
+        "sha1": "589fe108c7c11278fd897f2ded8f0498bc149cfd",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 947,
+        "sourceColumn": 2,
+        "sourceEndLine": 947
+      }
+    },
+    {
+      "id": "rom:mario/gfx2/tma1-v.7u.7u",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v.7u.7u",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "d2dbeb75",
+        "sha1": "676cf3e15252cd0d9e926ca15c3aa0caa39be269",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 2,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "id": "region:mario/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "rom:mario/proms/tma1-c-4p.4p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-4p.4p",
+        "offset": 0,
+        "size": 512,
+        "crc": "afc9bd41",
+        "sha1": "90b739c4c7f24a88b6ac5ca29b06c032906a2801",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "region:mario/decoder_prom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "decoder_prom",
+        "size": 32,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 953,
+        "sourceColumn": 2,
+        "sourceEndLine": 953
+      }
+    },
+    {
+      "id": "rom:mario/decoder_prom/tma1-c-5b.5b",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-5b.5b",
+        "offset": 0,
+        "size": 32,
+        "crc": "58d86098",
+        "sha1": "d654995004b9052b12d3b682a2b39530e70030fc",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "romset:mariog",
+      "label": "RomSet",
+      "props": {
+        "name": "mariog",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 957,
+        "sourceColumn": 1,
+        "sourceEndLine": 957
+      }
+    },
+    {
+      "id": "region:mariog/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 2,
+        "sourceEndLine": 926
+      }
+    },
+    {
+      "id": "rom:mariog/maincpu/tma1-c-7f_g.7f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7f_g.7f",
+        "offset": 0,
+        "size": 8192,
+        "crc": "c0c6e014",
+        "sha1": "36a04f9ca1c2a583477cb8a6f2ef94e044e08296",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 959,
+        "sourceColumn": 2,
+        "sourceEndLine": 959
+      }
+    },
+    {
+      "id": "rom:mariog/maincpu/tma1-c-7e_g.7e",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7e_g.7e",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "116b3856",
+        "sha1": "e372f846d0e5a2b9b47ebd0330293fcc8a12363f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 960,
+        "sourceColumn": 2,
+        "sourceEndLine": 960
+      }
+    },
+    {
+      "id": "rom:mariog/maincpu/tma1-c-7d_g.7d",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7d_g.7d",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "dcceb6c1",
+        "sha1": "b19804e69ce2c98cf276c6055c3a250316b96b45",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 961,
+        "sourceColumn": 2,
+        "sourceEndLine": 961
+      }
+    },
+    {
+      "id": "rom:mariog/maincpu/tma1-c-7c_g.7c",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7c_g.7c",
+        "offset": 61440,
+        "size": 4096,
+        "crc": "4a63d96b",
+        "sha1": "b09060b2c84ab77cc540a27b8f932cb60ec8d442",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 962,
+        "sourceColumn": 2,
+        "sourceEndLine": 962
+      }
+    },
+    {
+      "id": "region:mariog/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 2048,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "rom:mariog/audiocpu/m58715-051p.5l",
+      "label": "Rom",
+      "props": {
+        "file": "m58715-051p.5l",
+        "offset": 0,
+        "size": 2048,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "region:mariog/soundrom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundrom",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "rom:mariog/soundrom/tma1-c-6k_e.6k",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-6k_e.6k",
+        "offset": 0,
+        "size": 4096,
+        "crc": "06b9ff85",
+        "sha1": "111a29bcb9cda0d935675fa26eca6b099a88427f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 936,
+        "sourceColumn": 2,
+        "sourceEndLine": 936
+      }
+    },
+    {
+      "id": "region:mariog/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 2,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "rom:mariog/gfx1/tma1-v-3f.3f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3f.3f",
+        "offset": 0,
+        "size": 4096,
+        "crc": "28b0c42c",
+        "sha1": "46749568aff88a28c3b6a1ac423abd1b90742a4d",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 939,
+        "sourceColumn": 2,
+        "sourceEndLine": 939
+      }
+    },
+    {
+      "id": "rom:mariog/gfx1/tma1-v-3j.3j",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3j.3j",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "0c8cc04d",
+        "sha1": "15fae47d701dc1ef15c943cee6aa991776ecffdf",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 940,
+        "sourceColumn": 2,
+        "sourceEndLine": 940
+      }
+    },
+    {
+      "id": "region:mariog/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942
+      }
+    },
+    {
+      "id": "rom:mariog/gfx2/tma1-v-7m.7m",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7m.7m",
+        "offset": 0,
+        "size": 4096,
+        "crc": "22b7372e",
+        "sha1": "4a1c1e239cb6d483e76f50d7a3b941025963c6a3",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 975,
+        "sourceColumn": 2,
+        "sourceEndLine": 975
+      }
+    },
+    {
+      "id": "rom:mariog/gfx2/tma1-v-7n.7n",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7n.7n",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "4f3a1f47",
+        "sha1": "0747d693b9482f6dd28b0bc484fd1d3e29d35654",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 944,
+        "sourceColumn": 2,
+        "sourceEndLine": 944
+      }
+    },
+    {
+      "id": "rom:mariog/gfx2/tma1-v-7p.7p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7p.7p",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "56be6ccd",
+        "sha1": "15a6e16c189d45f72761ebcbe9db5001bdecd659",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 945,
+        "sourceColumn": 2,
+        "sourceEndLine": 945
+      }
+    },
+    {
+      "id": "rom:mariog/gfx2/tma1-v-7s.7s",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7s.7s",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "56f1d613",
+        "sha1": "9af6844dbaa3615433d0595e9e85e72493e31a54",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 978,
+        "sourceColumn": 2,
+        "sourceEndLine": 978
+      }
+    },
+    {
+      "id": "rom:mariog/gfx2/tma1-v-7t.7t",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7t.7t",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "641f0008",
+        "sha1": "589fe108c7c11278fd897f2ded8f0498bc149cfd",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 947,
+        "sourceColumn": 2,
+        "sourceEndLine": 947
+      }
+    },
+    {
+      "id": "rom:mariog/gfx2/tma1-v-7u.7u",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7u.7u",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "7baf5309",
+        "sha1": "d9194ff7b89a18273d37b47228fc7fb7e2a0ed1f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 980,
+        "sourceColumn": 2,
+        "sourceEndLine": 980
+      }
+    },
+    {
+      "id": "region:mariog/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "rom:mariog/proms/tma1-c-4p.4p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-4p.4p",
+        "offset": 0,
+        "size": 512,
+        "crc": "afc9bd41",
+        "sha1": "90b739c4c7f24a88b6ac5ca29b06c032906a2801",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "region:mariog/decoder_prom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "decoder_prom",
+        "size": 32,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 953,
+        "sourceColumn": 2,
+        "sourceEndLine": 953
+      }
+    },
+    {
+      "id": "rom:mariog/decoder_prom/tma1-c-5b.5b",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-5b.5b",
+        "offset": 0,
+        "size": 32,
+        "crc": "58d86098",
+        "sha1": "d654995004b9052b12d3b682a2b39530e70030fc",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "romset:mariof",
+      "label": "RomSet",
+      "props": {
+        "name": "mariof",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 989,
+        "sourceColumn": 1,
+        "sourceEndLine": 989
+      }
+    },
+    {
+      "id": "region:mariof/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 2,
+        "sourceEndLine": 926
+      }
+    },
+    {
+      "id": "rom:mariof/maincpu/tma1-c-7f_f.7f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7f_f.7f",
+        "offset": 0,
+        "size": 8192,
+        "crc": "c0c6e014",
+        "sha1": "36a04f9ca1c2a583477cb8a6f2ef94e044e08296",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 991,
+        "sourceColumn": 2,
+        "sourceEndLine": 991
+      }
+    },
+    {
+      "id": "rom:mariof/maincpu/tma1-c-7e_f.7e",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7e_f.7e",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "94fb60d6",
+        "sha1": "e74d74aa27f87a164bdd453ab0076efeeb7d4ea3",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 992,
+        "sourceColumn": 2,
+        "sourceEndLine": 992
+      }
+    },
+    {
+      "id": "rom:mariof/maincpu/tma1-c-7d_f.7d",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7d_f.7d",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "dcceb6c1",
+        "sha1": "b19804e69ce2c98cf276c6055c3a250316b96b45",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 993,
+        "sourceColumn": 2,
+        "sourceEndLine": 993
+      }
+    },
+    {
+      "id": "rom:mariof/maincpu/tma1-c-7c_f.7c",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7c_f.7c",
+        "offset": 61440,
+        "size": 4096,
+        "crc": "4a63d96b",
+        "sha1": "b09060b2c84ab77cc540a27b8f932cb60ec8d442",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 994,
+        "sourceColumn": 2,
+        "sourceEndLine": 994
+      }
+    },
+    {
+      "id": "region:mariof/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 2048,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "rom:mariof/audiocpu/m58715-051p.5l",
+      "label": "Rom",
+      "props": {
+        "file": "m58715-051p.5l",
+        "offset": 0,
+        "size": 2048,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "region:mariof/soundrom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundrom",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "rom:mariof/soundrom/tma1-c-6k_e.6k",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-6k_e.6k",
+        "offset": 0,
+        "size": 4096,
+        "crc": "06b9ff85",
+        "sha1": "111a29bcb9cda0d935675fa26eca6b099a88427f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 936,
+        "sourceColumn": 2,
+        "sourceEndLine": 936
+      }
+    },
+    {
+      "id": "region:mariof/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 2,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "rom:mariof/gfx1/tma1-v-3f.3f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3f.3f",
+        "offset": 0,
+        "size": 4096,
+        "crc": "28b0c42c",
+        "sha1": "46749568aff88a28c3b6a1ac423abd1b90742a4d",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 939,
+        "sourceColumn": 2,
+        "sourceEndLine": 939
+      }
+    },
+    {
+      "id": "rom:mariof/gfx1/tma1-v-3j.3j",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3j.3j",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "0c8cc04d",
+        "sha1": "15fae47d701dc1ef15c943cee6aa991776ecffdf",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 940,
+        "sourceColumn": 2,
+        "sourceEndLine": 940
+      }
+    },
+    {
+      "id": "region:mariof/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942
+      }
+    },
+    {
+      "id": "rom:mariof/gfx2/tma1-v-7m.7m",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7m.7m",
+        "offset": 0,
+        "size": 4096,
+        "crc": "22b7372e",
+        "sha1": "4a1c1e239cb6d483e76f50d7a3b941025963c6a3",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 975,
+        "sourceColumn": 2,
+        "sourceEndLine": 975
+      }
+    },
+    {
+      "id": "rom:mariof/gfx2/tma1-v-7n.7n",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7n.7n",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "4f3a1f47",
+        "sha1": "0747d693b9482f6dd28b0bc484fd1d3e29d35654",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 944,
+        "sourceColumn": 2,
+        "sourceEndLine": 944
+      }
+    },
+    {
+      "id": "rom:mariof/gfx2/tma1-v-7p.7p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7p.7p",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "56be6ccd",
+        "sha1": "15a6e16c189d45f72761ebcbe9db5001bdecd659",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 945,
+        "sourceColumn": 2,
+        "sourceEndLine": 945
+      }
+    },
+    {
+      "id": "rom:mariof/gfx2/tma1-v-7s.7s",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7s.7s",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "56f1d613",
+        "sha1": "9af6844dbaa3615433d0595e9e85e72493e31a54",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 978,
+        "sourceColumn": 2,
+        "sourceEndLine": 978
+      }
+    },
+    {
+      "id": "rom:mariof/gfx2/tma1-v-7t.7t",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7t.7t",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "641f0008",
+        "sha1": "589fe108c7c11278fd897f2ded8f0498bc149cfd",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 947,
+        "sourceColumn": 2,
+        "sourceEndLine": 947
+      }
+    },
+    {
+      "id": "rom:mariof/gfx2/tma1-v-7u.7u",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7u.7u",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "7baf5309",
+        "sha1": "d9194ff7b89a18273d37b47228fc7fb7e2a0ed1f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 980,
+        "sourceColumn": 2,
+        "sourceEndLine": 980
+      }
+    },
+    {
+      "id": "region:mariof/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "rom:mariof/proms/tma1-c-4p_1.4p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-4p_1.4p",
+        "offset": 0,
+        "size": 512,
+        "crc": "8187d286",
+        "sha1": "8a6d8e622599f1aacaeb10f7b1a39a23c8a840a0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1015,
+        "sourceColumn": 2,
+        "sourceEndLine": 1015
+      }
+    },
+    {
+      "id": "region:mariof/decoder_prom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "decoder_prom",
+        "size": 32,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 953,
+        "sourceColumn": 2,
+        "sourceEndLine": 953
+      }
+    },
+    {
+      "id": "rom:mariof/decoder_prom/tma1-c-5b.5b",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-5b.5b",
+        "offset": 0,
+        "size": 32,
+        "crc": "58d86098",
+        "sha1": "d654995004b9052b12d3b682a2b39530e70030fc",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "romset:marioj",
+      "label": "RomSet",
+      "props": {
+        "name": "marioj",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1021,
+        "sourceColumn": 1,
+        "sourceEndLine": 1021
+      }
+    },
+    {
+      "id": "region:marioj/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 2,
+        "sourceEndLine": 926
+      }
+    },
+    {
+      "id": "rom:marioj/maincpu/tma1-c-a1.7f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-a1.7f",
+        "offset": 0,
+        "size": 8192,
+        "crc": "b64b6330",
+        "sha1": "f7084251ac325bbfa3fb804da16a50622e1fd213",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1023,
+        "sourceColumn": 2,
+        "sourceEndLine": 1023
+      }
+    },
+    {
+      "id": "rom:marioj/maincpu/tma1-c-a2.7e",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-a2.7e",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "290c4977",
+        "sha1": "5af266be0ddc883c6548c90e4a9084024a1e91a0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1024,
+        "sourceColumn": 2,
+        "sourceEndLine": 1024
+      }
+    },
+    {
+      "id": "rom:marioj/maincpu/tma1-c-a1.7d",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-a1.7d",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "f8575f31",
+        "sha1": "710d0e72fcfce700ed2a22fb9c7c392cc76b250b",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1025,
+        "sourceColumn": 2,
+        "sourceEndLine": 1025
+      }
+    },
+    {
+      "id": "rom:marioj/maincpu/tma1-c-a2.7c",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-a2.7c",
+        "offset": 61440,
+        "size": 4096,
+        "crc": "a3c11e9e",
+        "sha1": "d0612b0f8c2ea4e798f551922a04a324f4ed5f3d",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1026,
+        "sourceColumn": 2,
+        "sourceEndLine": 1026
+      }
+    },
+    {
+      "id": "region:marioj/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 2048,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "rom:marioj/audiocpu/m58715-051p.5l",
+      "label": "Rom",
+      "props": {
+        "file": "m58715-051p.5l",
+        "offset": 0,
+        "size": 2048,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "region:marioj/soundrom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundrom",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "rom:marioj/soundrom/tma1c-a.6k",
+      "label": "Rom",
+      "props": {
+        "file": "tma1c-a.6k",
+        "offset": 0,
+        "size": 4096,
+        "crc": "06b9ff85",
+        "sha1": "111a29bcb9cda0d935675fa26eca6b099a88427f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1032,
+        "sourceColumn": 2,
+        "sourceEndLine": 1032
+      }
+    },
+    {
+      "id": "region:marioj/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 2,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "rom:marioj/gfx1/tma1-v-a.3f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.3f",
+        "offset": 0,
+        "size": 4096,
+        "crc": "adf49ee0",
+        "sha1": "11fc2cd197bfe3ecb6af55c3c7a326c94988d2bd",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1035,
+        "sourceColumn": 2,
+        "sourceEndLine": 1035
+      }
+    },
+    {
+      "id": "rom:marioj/gfx1/tma1-v-a.3j",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.3j",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "a5318f2d",
+        "sha1": "e42f5e51804195c64a56addb18b7ad12c57bb09a",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1036,
+        "sourceColumn": 2,
+        "sourceEndLine": 1036
+      }
+    },
+    {
+      "id": "region:marioj/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942
+      }
+    },
+    {
+      "id": "rom:marioj/gfx2/tma1-v-a.7m",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.7m",
+        "offset": 0,
+        "size": 4096,
+        "crc": "186762f8",
+        "sha1": "711fdd37392656bdd5027e020d51d083ccd7c407",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1039,
+        "sourceColumn": 2,
+        "sourceEndLine": 1039
+      }
+    },
+    {
+      "id": "rom:marioj/gfx2/tma1-v-a.7n",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.7n",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "e0e08bba",
+        "sha1": "315eba2c10d426c9c0bb4e36987bf8ebed7df9a0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1040,
+        "sourceColumn": 2,
+        "sourceEndLine": 1040
+      }
+    },
+    {
+      "id": "rom:marioj/gfx2/tma1-v-a.7p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.7p",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "7b27c8c1",
+        "sha1": "3fb2613ce19e353fbcc77b6817927794fb35810f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1041,
+        "sourceColumn": 2,
+        "sourceEndLine": 1041
+      }
+    },
+    {
+      "id": "rom:marioj/gfx2/tma1-v-a.7s",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.7s",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "912ba80a",
+        "sha1": "351fb5b160216eb10e281815d05a7165ca0e5909",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1042,
+        "sourceColumn": 2,
+        "sourceEndLine": 1042
+      }
+    },
+    {
+      "id": "rom:marioj/gfx2/tma1-v-a.7t",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.7t",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "5cbb92a5",
+        "sha1": "a78a378e6d3060143dc456e9c33a5068da648331",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1043,
+        "sourceColumn": 2,
+        "sourceEndLine": 1043
+      }
+    },
+    {
+      "id": "rom:marioj/gfx2/tma1-v-a.7u",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-a.7u",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "13afb9ed",
+        "sha1": "b29dcd91cf5e639ee50b734afc7a3afce79634df",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1044,
+        "sourceColumn": 2,
+        "sourceEndLine": 1044
+      }
+    },
+    {
+      "id": "region:marioj/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "rom:marioj/proms/tma1-c-4p.4p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-4p.4p",
+        "offset": 0,
+        "size": 512,
+        "crc": "afc9bd41",
+        "sha1": "90b739c4c7f24a88b6ac5ca29b06c032906a2801",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "region:marioj/decoder_prom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "decoder_prom",
+        "size": 32,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 953,
+        "sourceColumn": 2,
+        "sourceEndLine": 953
+      }
+    },
+    {
+      "id": "rom:marioj/decoder_prom/tma1-c-5b.5b",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-5b.5b",
+        "offset": 0,
+        "size": 32,
+        "crc": "58d86098",
+        "sha1": "d654995004b9052b12d3b682a2b39530e70030fc",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "romset:marioja",
+      "label": "RomSet",
+      "props": {
+        "name": "marioja",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1053,
+        "sourceColumn": 1,
+        "sourceEndLine": 1053
+      }
+    },
+    {
+      "id": "region:marioja/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 2,
+        "sourceEndLine": 926
+      }
+    },
+    {
+      "id": "rom:marioja/maincpu/tma1-c-7f.7f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7f.7f",
+        "offset": 0,
+        "size": 8192,
+        "crc": "797770a3",
+        "sha1": "3b6cbac3338487d596c2f21f9fb9fb7080601fe0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1055,
+        "sourceColumn": 2,
+        "sourceEndLine": 1055
+      }
+    },
+    {
+      "id": "rom:marioja/maincpu/tma1-c-7e.7e",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7e.7e",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "35ef2dc6",
+        "sha1": "b8d28e0a2983ee5a71d12e1411bef3015cd4942f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1056,
+        "sourceColumn": 2,
+        "sourceEndLine": 1056
+      }
+    },
+    {
+      "id": "rom:marioja/maincpu/tma1-c-7d.7d",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7d.7d",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "6e25d1a8",
+        "sha1": "4b1d80aa86545d450bb384231d9ea25c60532689",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1057,
+        "sourceColumn": 2,
+        "sourceEndLine": 1057
+      }
+    },
+    {
+      "id": "rom:marioja/maincpu/tma1-c-7c.7c",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-7c.7c",
+        "offset": 61440,
+        "size": 4096,
+        "crc": "4b588f4b",
+        "sha1": "26066b9987c536a0f54e51a459d02eef0be582fb",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1058,
+        "sourceColumn": 2,
+        "sourceEndLine": 1058
+      }
+    },
+    {
+      "id": "region:marioja/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 2048,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "rom:marioja/audiocpu/m58715-051p.5l",
+      "label": "Rom",
+      "props": {
+        "file": "m58715-051p.5l",
+        "offset": 0,
+        "size": 2048,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "region:marioja/soundrom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundrom",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "rom:marioja/soundrom/tma1-c-6k.6k",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-6k.6k",
+        "offset": 0,
+        "size": 4096,
+        "crc": "06b9ff85",
+        "sha1": "111a29bcb9cda0d935675fa26eca6b099a88427f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1064,
+        "sourceColumn": 2,
+        "sourceEndLine": 1064
+      }
+    },
+    {
+      "id": "region:marioja/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 2,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "rom:marioja/gfx1/tma1-v-3f_c.3f",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3f_c.3f",
+        "offset": 0,
+        "size": 4096,
+        "crc": "adf49ee0",
+        "sha1": "11fc2cd197bfe3ecb6af55c3c7a326c94988d2bd",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1067,
+        "sourceColumn": 2,
+        "sourceEndLine": 1067
+      }
+    },
+    {
+      "id": "rom:marioja/gfx1/tma1-v-3j_c.3j",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-3j_c.3j",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "a5318f2d",
+        "sha1": "e42f5e51804195c64a56addb18b7ad12c57bb09a",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1068,
+        "sourceColumn": 2,
+        "sourceEndLine": 1068
+      }
+    },
+    {
+      "id": "region:marioja/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942
+      }
+    },
+    {
+      "id": "rom:marioja/gfx2/tma1-v-7m_c.7m",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7m_c.7m",
+        "offset": 0,
+        "size": 4096,
+        "crc": "eacc5bfa",
+        "sha1": "ef5ceca3416c95314816e725fb32cc9fa1659d34",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1071,
+        "sourceColumn": 2,
+        "sourceEndLine": 1071
+      }
+    },
+    {
+      "id": "rom:marioja/gfx2/tma1-v-7n_c.7n",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7n_c.7n",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "e0e08bba",
+        "sha1": "315eba2c10d426c9c0bb4e36987bf8ebed7df9a0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1072,
+        "sourceColumn": 2,
+        "sourceEndLine": 1072
+      }
+    },
+    {
+      "id": "rom:marioja/gfx2/tma1-v-7p_c.7p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7p_c.7p",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "7b27c8c1",
+        "sha1": "3fb2613ce19e353fbcc77b6817927794fb35810f",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1073,
+        "sourceColumn": 2,
+        "sourceEndLine": 1073
+      }
+    },
+    {
+      "id": "rom:marioja/gfx2/tma1-v-7s_c.7s",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7s_c.7s",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "385f1076",
+        "sha1": "5a6f55709d7b607318c61e2f403128143d5658ff",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1074,
+        "sourceColumn": 2,
+        "sourceEndLine": 1074
+      }
+    },
+    {
+      "id": "rom:marioja/gfx2/tma1-v-7t_c.7t",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7t_c.7t",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "5cbb92a5",
+        "sha1": "a78a378e6d3060143dc456e9c33a5068da648331",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1075,
+        "sourceColumn": 2,
+        "sourceEndLine": 1075
+      }
+    },
+    {
+      "id": "rom:marioja/gfx2/tma1-v-7u_c.7u",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-v-7u_c.7u",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "badb0191",
+        "sha1": "7dcb31dcdfe0b68f4e74a8678e4a5cfd82d8f0fe",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1076,
+        "sourceColumn": 2,
+        "sourceEndLine": 1076
+      }
+    },
+    {
+      "id": "region:marioja/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "rom:marioja/proms/tma1-c-4p.4p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-4p.4p",
+        "offset": 0,
+        "size": 512,
+        "crc": "8187d286",
+        "sha1": "8a6d8e622599f1aacaeb10f7b1a39a23c8a840a0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "region:marioja/decoder_prom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "decoder_prom",
+        "size": 32,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 953,
+        "sourceColumn": 2,
+        "sourceEndLine": 953
+      }
+    },
+    {
+      "id": "rom:marioja/decoder_prom/tma1-c-5b.5b",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-5b.5b",
+        "offset": 0,
+        "size": 32,
+        "crc": "58d86098",
+        "sha1": "d654995004b9052b12d3b682a2b39530e70030fc",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "romset:masao",
+      "label": "RomSet",
+      "props": {
+        "name": "masao",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1085,
+        "sourceColumn": 1,
+        "sourceEndLine": 1085
+      }
+    },
+    {
+      "id": "region:masao/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 2,
+        "sourceEndLine": 926
+      }
+    },
+    {
+      "id": "rom:masao/maincpu/masao-4.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-4.rom",
+        "offset": 0,
+        "size": 8192,
+        "crc": "07a75745",
+        "sha1": "acc760242a8862d177e3cff90aa32c4f3dac4e65",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1087,
+        "sourceColumn": 2,
+        "sourceEndLine": 1087
+      }
+    },
+    {
+      "id": "rom:masao/maincpu/masao-3.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-3.rom",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "55c629b6",
+        "sha1": "1f5b5699821871aadacc511663cb4bd4e357e215",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1088,
+        "sourceColumn": 2,
+        "sourceEndLine": 1088
+      }
+    },
+    {
+      "id": "rom:masao/maincpu/masao-2.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-2.rom",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "42e85240",
+        "sha1": "bc8cdf867b743c5ee58fcacb63a44f826c8f8c1a",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1089,
+        "sourceColumn": 2,
+        "sourceEndLine": 1089
+      }
+    },
+    {
+      "id": "rom:masao/maincpu/masao-1.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-1.rom",
+        "offset": 61440,
+        "size": 4096,
+        "crc": "b2817af9",
+        "sha1": "95e83752e544671a68df2107fae1010b187f04a6",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1090,
+        "sourceColumn": 2,
+        "sourceEndLine": 1090
+      }
+    },
+    {
+      "id": "region:masao/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "rom:masao/audiocpu/masao-5.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-5.rom",
+        "offset": 0,
+        "size": 4096,
+        "crc": "bd437198",
+        "sha1": "ebae88461984afc97bbc103fc6d95bc3c1865eec",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1093,
+        "sourceColumn": 2,
+        "sourceEndLine": 1093
+      }
+    },
+    {
+      "id": "region:masao/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 2,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "rom:masao/gfx1/masao-6.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-6.rom",
+        "offset": 0,
+        "size": 4096,
+        "crc": "1c9e0be2",
+        "sha1": "b4a650412dad90c6f6d79e93cde49055703b7f3e",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1096,
+        "sourceColumn": 2,
+        "sourceEndLine": 1096
+      }
+    },
+    {
+      "id": "rom:masao/gfx1/masao-7.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-7.rom",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "747c1349",
+        "sha1": "54674f78edf86953b7d500b66393483d1a5ce8ab",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1097,
+        "sourceColumn": 2,
+        "sourceEndLine": 1097
+      }
+    },
+    {
+      "id": "region:masao/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942
+      }
+    },
+    {
+      "id": "rom:masao/gfx2/masao-8.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-8.rom",
+        "offset": 0,
+        "size": 4096,
+        "crc": "186762f8",
+        "sha1": "711fdd37392656bdd5027e020d51d083ccd7c407",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1100,
+        "sourceColumn": 2,
+        "sourceEndLine": 1100
+      }
+    },
+    {
+      "id": "rom:masao/gfx2/masao-9.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-9.rom",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "50be3918",
+        "sha1": "73e22eee67a03732ff57e523f900f20c6aee0491",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1101,
+        "sourceColumn": 2,
+        "sourceEndLine": 1101
+      }
+    },
+    {
+      "id": "rom:masao/gfx2/masao-10.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-10.rom",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "56be6ccd",
+        "sha1": "15a6e16c189d45f72761ebcbe9db5001bdecd659",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1102,
+        "sourceColumn": 2,
+        "sourceEndLine": 1102
+      }
+    },
+    {
+      "id": "rom:masao/gfx2/masao-11.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-11.rom",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "912ba80a",
+        "sha1": "351fb5b160216eb10e281815d05a7165ca0e5909",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1103,
+        "sourceColumn": 2,
+        "sourceEndLine": 1103
+      }
+    },
+    {
+      "id": "rom:masao/gfx2/masao-12.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-12.rom",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "5cbb92a5",
+        "sha1": "a78a378e6d3060143dc456e9c33a5068da648331",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1104,
+        "sourceColumn": 2,
+        "sourceEndLine": 1104
+      }
+    },
+    {
+      "id": "rom:masao/gfx2/masao-13.rom",
+      "label": "Rom",
+      "props": {
+        "file": "masao-13.rom",
+        "offset": 20480,
+        "size": 4096,
+        "crc": "13afb9ed",
+        "sha1": "b29dcd91cf5e639ee50b734afc7a3afce79634df",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1105,
+        "sourceColumn": 2,
+        "sourceEndLine": 1105
+      }
+    },
+    {
+      "id": "region:masao/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "rom:masao/proms/tma1-c-4p.4p",
+      "label": "Rom",
+      "props": {
+        "file": "tma1-c-4p.4p",
+        "offset": 0,
+        "size": 512,
+        "crc": "afc9bd41",
+        "sha1": "90b739c4c7f24a88b6ac5ca29b06c032906a2801",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "map:mario_state.base_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mario_state",
+        "name": "base_map",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 1,
+        "sourceEndLine": 650
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 24575,
+        "raw": "map(0x0000, 0x5fff).rom()",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 2,
+        "sourceEndLine": 638,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 26623,
+        "raw": "map(0x6000, 0x67ff).ram()",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 639,
+        "sourceColumn": 2,
+        "sourceEndLine": 639,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 26624,
+        "end": 28671,
+        "raw": "map(0x6800, 0x6fff).ram().share(\"nvram\")",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 2,
+        "sourceEndLine": 640,
+        "ram": true,
+        "share": "nvram"
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 29695,
+        "raw": "map(0x7000, 0x73ff).ram().share(\"spriteram\")",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 641,
+        "sourceColumn": 2,
+        "sourceEndLine": 641,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 29696,
+        "end": 30719,
+        "raw": "map(0x7400, 0x77ff).ram().w(FUNC(mario_state::videoram_w)).share(\"videoram\")",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 642,
+        "sourceColumn": 2,
+        "sourceEndLine": 642,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:mario_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 502,
+        "sourceColumn": 1,
+        "sourceEndLine": 506,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 31744,
+        "end": 31744,
+        "raw": "map(0x7c00, 0x7c00).portr(\"IN0\")",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 643,
+        "sourceColumn": 2,
+        "sourceEndLine": 643,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 31872,
+        "end": 31872,
+        "raw": "map(0x7c80, 0x7c80).portr(\"IN1\")",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 644,
+        "sourceColumn": 2,
+        "sourceEndLine": 644,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 32000,
+        "end": 32000,
+        "raw": "map(0x7d00, 0x7d00).w(FUNC(mario_state::scroll_w))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 645,
+        "sourceColumn": 2,
+        "sourceEndLine": 645
+      }
+    },
+    {
+      "id": "handler:mario_state.scroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 520,
+        "sourceColumn": 1,
+        "sourceEndLine": 523,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_bg_tilemap->set_scrolly(0, data + 17);"
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 32256,
+        "end": 32256,
+        "raw": "map(0x7e00, 0x7e00).w(m_soundlatch[0], FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 646,
+        "sourceColumn": 2,
+        "sourceEndLine": 646
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 878,
+        "sourceColumn": 2,
+        "sourceEndLine": 878
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 32384,
+        "end": 32391,
+        "raw": "map(0x7e80, 0x7e87).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 647,
+        "sourceColumn": 2,
+        "sourceEndLine": 647
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 647,
+        "sourceColumn": 2,
+        "sourceEndLine": 647
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 32640,
+        "end": 32640,
+        "raw": "map(0x7f80, 0x7f80).portr(\"DSW\")",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 648,
+        "sourceColumn": 2,
+        "sourceEndLine": 648,
+        "portRead": "DSW"
+      }
+    },
+    {
+      "id": "map:mario_state.base_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 65535,
+        "raw": "map(0xf000, 0xffff).rom()",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 649,
+        "sourceColumn": 2,
+        "sourceEndLine": 649,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:mario_state.mario_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mario_state",
+        "name": "mario_map",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 652,
+        "sourceColumn": 1,
+        "sourceEndLine": 658,
+        "calls": [
+          "base_map"
+        ]
+      }
+    },
+    {
+      "id": "map:mario_state.mario_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 31744,
+        "end": 31744,
+        "raw": "map(0x7c00, 0x7c00).w(FUNC(mario_state::walk_w<0>))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 655,
+        "sourceColumn": 2,
+        "sourceEndLine": 655
+      }
+    },
+    {
+      "id": "handler:mario_state.walk_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "walk_w_0",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 343,
+        "sourceColumn": 1,
+        "sourceEndLine": 349,
+        "sourceConstants": [
+          "N=0"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_audio_snd[N]->write(0);\n\n\t// WR is asserted for 3 cycles\n\tm_walk_timer[N]->adjust(attotime::from_ticks(3, m_maincpu->clock()), N);"
+      }
+    },
+    {
+      "id": "map:mario_state.mario_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 31872,
+        "end": 31872,
+        "raw": "map(0x7c80, 0x7c80).w(FUNC(mario_state::walk_w<1>))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 656,
+        "sourceColumn": 2,
+        "sourceEndLine": 656
+      }
+    },
+    {
+      "id": "handler:mario_state.walk_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "walk_w_1",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 343,
+        "sourceColumn": 1,
+        "sourceEndLine": 349,
+        "sourceConstants": [
+          "N=1"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_audio_snd[N]->write(0);\n\n\t// WR is asserted for 3 cycles\n\tm_walk_timer[N]->adjust(attotime::from_ticks(3, m_maincpu->clock()), N);"
+      }
+    },
+    {
+      "id": "map:mario_state.mario_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 32512,
+        "end": 32519,
+        "raw": "map(0x7f00, 0x7f07).w(FUNC(mario_state::samples_w))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 657,
+        "sourceColumn": 2,
+        "sourceEndLine": 657
+      }
+    },
+    {
+      "id": "handler:mario_state.samples_w",
+      "label": "Handler",
+      "props": {
+        "method": "samples_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 351,
+        "sourceColumn": 1,
+        "sourceEndLine": 383,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "data &= 1;\n\n\tswitch (offset)\n\t{\n\t\t// death\n\t\tcase 0:\n\t\t\tm_audiocpu->set_input_line(0, data ? ASSERT_LINE : CLEAR_LINE);\n\t\t\tbreak;\n\n\t\t// get coin, ice\n\t\tcase 1: case 2:\n\t\t{\n\t\t\tconst uint8_t mask = 1 << (offset - 1);\n\t\t\tm_soundlatch[3]->write((m_soundlatch[3]->read() & ~mask) | (data ? mask : 0));\n\t\t\tbreak;\n\t\t}\n\n\t\t// crab, turtle, fly, coin\n\t\tcase 3: case 4: case 5: case 6:\n\t\t{\n\t\t\tconst uint8_t mask = 1 << (offset - 3);\n\t\t\tm_soundlatch[1]->write((m_soundlatch[1]->read() & ~mask) | (data ? mask : 0));\n\t\t\tbreak;\n\t\t}\n\n\t\t// skid\n\t\tcase 7:\n\t\t\tm_audio_snd[2]->write(data ^ 1);\n\t\t\tbreak;\n\t}"
+      }
+    },
+    {
+      "id": "map:masao_state.masao_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "masao_state",
+        "name": "masao_map",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 660,
+        "sourceColumn": 1,
+        "sourceEndLine": 664,
+        "calls": [
+          "base_map"
+        ]
+      }
+    },
+    {
+      "id": "map:masao_state.masao_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 32512,
+        "end": 32512,
+        "raw": "map(0x7f00, 0x7f00).w(FUNC(masao_state::soundirq_w))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 663,
+        "sourceColumn": 2,
+        "sourceEndLine": 663
+      }
+    },
+    {
+      "id": "handler:masao_state.soundirq_w",
+      "label": "Handler",
+      "props": {
+        "method": "soundirq_w",
+        "ownerClass": "masao_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 385,
+        "sourceColumn": 1,
+        "sourceEndLine": 394,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "data &= 1;\n\n\t// setting bit 0 high then low triggers IRQ on the sound CPU\n\tif (m_soundirq && !data)\n\t\tm_audiocpu->set_input_line(0, HOLD_LINE);\n\n\tm_soundirq = bool(data);"
+      }
+    },
+    {
+      "id": "map:mario_state.mario_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mario_state",
+        "name": "mario_io_map",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 666,
+        "sourceColumn": 1,
+        "sourceEndLine": 670,
+        "globalMask": 255
+      }
+    },
+    {
+      "id": "map:mario_state.mario_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).rw(m_z80dma, FUNC(z80dma_device::read), FUNC(z80dma_device::write))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 669,
+        "sourceColumn": 2,
+        "sourceEndLine": 669
+      }
+    },
+    {
+      "id": "handler:z80dma_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "z80dma_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 669,
+        "sourceColumn": 2,
+        "sourceEndLine": 669
+      }
+    },
+    {
+      "id": "handler:z80dma_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "z80dma_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 669,
+        "sourceColumn": 2,
+        "sourceEndLine": 669
+      }
+    },
+    {
+      "id": "map:mario_state.mario_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mario_state",
+        "name": "mario_sound_map",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 674,
+        "sourceColumn": 1,
+        "sourceEndLine": 677
+      }
+    },
+    {
+      "id": "map:mario_state.mario_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).rom().region(m_soundrom, 0)",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 676,
+        "sourceColumn": 2,
+        "sourceEndLine": 676,
+        "rom": true,
+        "region": "soundrom",
+        "regionOffset": 0
+      }
+    },
+    {
+      "id": "map:mario_state.mario_sound_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mario_state",
+        "name": "mario_sound_io_map",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 679,
+        "sourceColumn": 1,
+        "sourceEndLine": 682
+      }
+    },
+    {
+      "id": "map:mario_state.mario_sound_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 255,
+        "raw": "map(0x00, 0xff).r(FUNC(mario_state::tune_r)).w(FUNC(mario_state::dac_w))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 681,
+        "sourceColumn": 2,
+        "sourceEndLine": 681
+      }
+    },
+    {
+      "id": "handler:mario_state.tune_r",
+      "label": "Handler",
+      "props": {
+        "method": "tune_r",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 323,
+        "sourceColumn": 1,
+        "sourceEndLine": 340,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (!machine().side_effects_disabled())\n\t{\n\t\t// retry_access() forces the MCU to catch up before Z80 does the read\n\t\tif (!m_z80_sync)\n\t\t\tm_maincpu->retry_access();\n\n\t\tm_z80_sync = !m_z80_sync;\n\t}\n\n\tconst uint8_t p2 = m_soundlatch[2]->read();\n\n\tif (BIT(p2, 7))\n\t\treturn m_soundlatch[0]->read();\n\telse\n\t\treturn m_soundrom[(p2 & 0x0f) << 8 | offset];"
+      }
+    },
+    {
+      "id": "handler:mario_state.dac_w",
+      "label": "Handler",
+      "props": {
+        "method": "dac_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 172,
+        "sourceColumn": 31,
+        "sourceEndLine": 173,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_audio_dac->write(data);"
+      }
+    },
+    {
+      "id": "map:masao_state.masao_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "masao_state",
+        "name": "masao_sound_map",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 684,
+        "sourceColumn": 1,
+        "sourceEndLine": 690
+      }
+    },
+    {
+      "id": "map:masao_state.masao_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).rom()",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 686,
+        "sourceColumn": 2,
+        "sourceEndLine": 686,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:masao_state.masao_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 9215,
+        "raw": "map(0x2000, 0x23ff).ram()",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 687,
+        "sourceColumn": 2,
+        "sourceEndLine": 687,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:masao_state.masao_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16384,
+        "raw": "map(0x4000, 0x4000).rw(\"aysnd\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 688,
+        "sourceColumn": 2,
+        "sourceEndLine": 688
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_r",
+      "label": "Handler",
+      "props": {
+        "method": "data_r",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 688,
+        "sourceColumn": 2,
+        "sourceEndLine": 688
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 688,
+        "sourceColumn": 2,
+        "sourceEndLine": 688
+      }
+    },
+    {
+      "id": "map:masao_state.masao_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).w(\"aysnd\", FUNC(ay8910_device::address_w))",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 689,
+        "sourceColumn": 2,
+        "sourceEndLine": 689
+      }
+    },
+    {
+      "id": "handler:ay8910_device.address_w",
+      "label": "Handler",
+      "props": {
+        "method": "address_w",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 689,
+        "sourceColumn": 2,
+        "sourceEndLine": 689
+      }
+    },
+    {
+      "id": "machine:mario_state.mario_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "mario_state",
+        "name": "mario_base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_palette_bank\",\"bits\":8}",
+          "{\"name\":\"m_nmi_mask\",\"bits\":1}",
+          "{\"name\":\"m_z80_sync\",\"bits\":1}"
+        ],
+        "resetHandlers": [
+          "mario_state.machine_reset"
+        ],
+        "startHandlers": [
+          "mario_state.video_start"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 831,
+        "sourceColumn": 1,
+        "sourceEndLine": 866
+      }
+    },
+    {
+      "id": "handler:mario_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 265,
+        "sourceColumn": 1,
+        "sourceEndLine": 269,
+        "sourceParameters": "",
+        "sourceBody": "m_nmi_mask = false;\n\tm_z80_sync = false;"
+      }
+    },
+    {
+      "id": "handler:mario_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 411,
+        "sourceColumn": 1,
+        "sourceEndLine": 421,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(\n\t\t\t*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(mario_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS,\n\t\t\t8, 8, 32, 32);\n\n\tm_gfxdecode->gfx(0)->set_granularity(8);\n\n\tsave_item(NAME(m_gfx_bank));\n\tsave_item(NAME(m_palette_bank));"
+      }
+    },
+    {
+      "id": "handler:mario_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 403,
+        "sourceColumn": 1,
+        "sourceEndLine": 409,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code = m_videoram[tile_index] + 256 * m_gfx_bank;\n\tint color = 8 + (m_videoram[tile_index] >> 5) + 16 * m_palette_bank;\n\n\ttileinfo.set(0, code, color, 0);"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 4000000,
+        "config": [
+          "Z80(config, m_maincpu, 8_MHz_XTAL / 2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &mario_state::mario_map)",
+          "m_maincpu->set_addrmap(AS_IO, &mario_state::mario_io_map)",
+          "m_maincpu->busack_cb().set(m_z80dma, FUNC(z80dma_device::bai_w))"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 834,
+        "sourceColumn": 2,
+        "sourceEndLine": 834
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "busack_cb",
+        "operation": "set",
+        "raw": "m_maincpu->busack_cb().set(m_z80dma, FUNC(z80dma_device::bai_w))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 837,
+        "sourceColumn": 2,
+        "sourceEndLine": 837,
+        "targetClass": "z80dma_device",
+        "targetMethod": "bai_w",
+        "targetTag": "z80dma"
+      }
+    },
+    {
+      "id": "handler:z80dma_device.bai_w",
+      "label": "Handler",
+      "props": {
+        "method": "bai_w",
+        "ownerClass": "z80dma_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 837,
+        "sourceColumn": 2,
+        "sourceEndLine": 837
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/z80dma",
+      "label": "Device",
+      "props": {
+        "type": "Z80DMA",
+        "tag": "z80dma",
+        "clock": 4000000,
+        "config": [
+          "Z80DMA(config, m_z80dma, 8_MHz_XTAL / 2)",
+          "m_z80dma->out_busreq_callback().set_inputline(m_maincpu, Z80_INPUT_LINE_BUSREQ)",
+          "m_z80dma->in_mreq_callback().set(FUNC(mario_state::memory_read_byte))",
+          "m_z80dma->out_mreq_callback().set(FUNC(mario_state::memory_write_byte))"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 840,
+        "sourceColumn": 2,
+        "sourceEndLine": 840
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/z80dma/callback:z80dma:0",
+      "label": "Callback",
+      "props": {
+        "signal": "out_busreq_callback",
+        "operation": "set_inputline",
+        "raw": "m_z80dma->out_busreq_callback().set_inputline(m_maincpu, Z80_INPUT_LINE_BUSREQ)",
+        "ownerTag": "z80dma",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 841,
+        "sourceColumn": 2,
+        "sourceEndLine": 841,
+        "inputLine": "Z80_INPUT_LINE_BUSREQ",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/z80dma/callback:z80dma:1",
+      "label": "Callback",
+      "props": {
+        "signal": "in_mreq_callback",
+        "operation": "set",
+        "raw": "m_z80dma->in_mreq_callback().set(FUNC(mario_state::memory_read_byte))",
+        "ownerTag": "z80dma",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 842,
+        "sourceColumn": 2,
+        "sourceEndLine": 842,
+        "targetClass": "mario_state",
+        "targetMethod": "memory_read_byte"
+      }
+    },
+    {
+      "id": "handler:mario_state.memory_read_byte",
+      "label": "Handler",
+      "props": {
+        "method": "memory_read_byte",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 1,
+        "sourceEndLine": 598,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "address_space& prog_space = m_maincpu->space(AS_PROGRAM);\n\treturn prog_space.read_byte(offset);"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/z80dma/callback:z80dma:2",
+      "label": "Callback",
+      "props": {
+        "signal": "out_mreq_callback",
+        "operation": "set",
+        "raw": "m_z80dma->out_mreq_callback().set(FUNC(mario_state::memory_write_byte))",
+        "ownerTag": "z80dma",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 843,
+        "sourceColumn": 2,
+        "sourceEndLine": 843,
+        "targetClass": "mario_state",
+        "targetMethod": "memory_write_byte"
+      }
+    },
+    {
+      "id": "handler:mario_state.memory_write_byte",
+      "label": "Handler",
+      "props": {
+        "method": "memory_write_byte",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 600,
+        "sourceColumn": 1,
+        "sourceEndLine": 604,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "address_space& prog_space = m_maincpu->space(AS_PROGRAM);\n\treturn prog_space.write_byte(offset, data);"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "ls259_device &mainlatch(LS259(config, \"mainlatch\"))",
+          "mainlatch.q_out_cb<0>().set(FUNC(mario_state::gfx_bank_w))",
+          "mainlatch.q_out_cb<1>().set_nop()",
+          "mainlatch.q_out_cb<2>().set(FUNC(mario_state::flip_screen_set))",
+          "mainlatch.q_out_cb<3>().set(FUNC(mario_state::palette_bank_w))",
+          "mainlatch.q_out_cb<4>().set(FUNC(mario_state::nmi_mask_w))",
+          "mainlatch.q_out_cb<5>().set(\"z80dma\", FUNC(z80dma_device::rdy_w))",
+          "mainlatch.q_out_cb<6>().set(FUNC(mario_state::coin_counter_2_w))",
+          "mainlatch.q_out_cb<7>().set(FUNC(mario_state::coin_counter_1_w))"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 845,
+        "sourceColumn": 2,
+        "sourceEndLine": 845
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<0>().set(FUNC(mario_state::gfx_bank_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 846,
+        "sourceColumn": 2,
+        "sourceEndLine": 846,
+        "slot": "0",
+        "targetClass": "mario_state",
+        "targetMethod": "gfx_bank_w"
+      }
+    },
+    {
+      "id": "handler:mario_state.gfx_bank_w",
+      "label": "Handler",
+      "props": {
+        "method": "gfx_bank_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 508,
+        "sourceColumn": 1,
+        "sourceEndLine": 512,
+        "sourceParameters": "int state",
+        "sourceBody": "m_gfx_bank = state;\n\tmachine().tilemap().mark_all_dirty();"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_nop",
+        "raw": "mainlatch.q_out_cb<1>().set_nop()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 847,
+        "sourceColumn": 2,
+        "sourceEndLine": 847,
+        "slot": "1"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<2>().set(FUNC(mario_state::flip_screen_set))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 848,
+        "sourceColumn": 2,
+        "sourceEndLine": 848,
+        "slot": "2",
+        "targetClass": "mario_state",
+        "targetMethod": "flip_screen_set"
+      }
+    },
+    {
+      "id": "handler:mario_state.flip_screen_set",
+      "label": "Handler",
+      "props": {
+        "method": "flip_screen_set",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 848,
+        "sourceColumn": 2,
+        "sourceEndLine": 848
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<3>().set(FUNC(mario_state::palette_bank_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 849,
+        "sourceColumn": 2,
+        "sourceEndLine": 849,
+        "slot": "3",
+        "targetClass": "mario_state",
+        "targetMethod": "palette_bank_w"
+      }
+    },
+    {
+      "id": "handler:mario_state.palette_bank_w",
+      "label": "Handler",
+      "props": {
+        "method": "palette_bank_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 514,
+        "sourceColumn": 1,
+        "sourceEndLine": 518,
+        "sourceParameters": "int state",
+        "sourceBody": "m_palette_bank = state;\n\tmachine().tilemap().mark_all_dirty();"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<4>().set(FUNC(mario_state::nmi_mask_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 850,
+        "sourceColumn": 2,
+        "sourceEndLine": 850,
+        "slot": "4",
+        "targetClass": "mario_state",
+        "targetMethod": "nmi_mask_w"
+      }
+    },
+    {
+      "id": "handler:mario_state.nmi_mask_w",
+      "label": "Handler",
+      "props": {
+        "method": "nmi_mask_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 1,
+        "sourceEndLine": 611,
+        "sourceParameters": "int state",
+        "sourceBody": "m_nmi_mask = state;\n\tif (!state)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<5>().set(\"z80dma\", FUNC(z80dma_device::rdy_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 851,
+        "sourceColumn": 2,
+        "sourceEndLine": 851,
+        "slot": "5",
+        "targetTag": "z80dma",
+        "targetClass": "z80dma_device",
+        "targetMethod": "rdy_w"
+      }
+    },
+    {
+      "id": "handler:z80dma_device.rdy_w",
+      "label": "Handler",
+      "props": {
+        "method": "rdy_w",
+        "ownerClass": "z80dma_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 851,
+        "sourceColumn": 2,
+        "sourceEndLine": 851
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:6",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<6>().set(FUNC(mario_state::coin_counter_2_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 852,
+        "sourceColumn": 2,
+        "sourceEndLine": 852,
+        "slot": "6",
+        "targetClass": "mario_state",
+        "targetMethod": "coin_counter_2_w"
+      }
+    },
+    {
+      "id": "handler:mario_state.coin_counter_2_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_2_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 1,
+        "sourceEndLine": 621,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, state);"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/mainlatch/callback:mainlatch:7",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<7>().set(FUNC(mario_state::coin_counter_1_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 853,
+        "sourceColumn": 2,
+        "sourceEndLine": 853,
+        "slot": "7",
+        "targetClass": "mario_state",
+        "targetMethod": "coin_counter_1_w"
+      }
+    },
+    {
+      "id": "handler:mario_state.coin_counter_1_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_1_w",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 1,
+        "sourceEndLine": 616,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, state);"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/nvram",
+      "label": "Device",
+      "props": {
+        "type": "NVRAM",
+        "tag": "nvram",
+        "clock": null,
+        "config": [
+          "NVRAM(config, \"nvram\", nvram_device::DEFAULT_ALL_0)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 855,
+        "sourceColumn": 2,
+        "sourceEndLine": 855,
+        "clockExpr": "nvram_device::DEFAULT_ALL_0"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(24_MHz_XTAL / 4, 384, 0, 256, 264, 16, 240)",
+          "screen.set_screen_update(FUNC(mario_state::screen_update))",
+          "screen.set_palette(m_palette)",
+          "screen.screen_vblank().set(FUNC(mario_state::vblank_irq))"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 858,
+        "sourceColumn": 2,
+        "sourceEndLine": 858,
+        "configCalls": [
+          "set_raw(6000000,384,0,256,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          256,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "24_MHz_XTAL / 4",
+          "384",
+          "0",
+          "256",
+          "264",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(mario_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 860,
+        "sourceColumn": 2,
+        "sourceEndLine": 860,
+        "targetClass": "mario_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:mario_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 1,
+        "sourceEndLine": 585,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:mario_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 532,
+        "sourceColumn": 1,
+        "sourceEndLine": 577,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "const uint8_t flip = flip_screen() ? 0xff : 0;\n\tint offs = 0;\n\n\twhile (offs != m_spriteram.bytes())\n\t{\n\t\tif (m_spriteram[offs])\n\t\t{\n\t\t\t// from schematics...\n\t\t\tint y = (m_spriteram[offs + 0] + (flip ? 0xf7 : 0xf9) + 1) & 0xff;\n\t\t\tint x = m_spriteram[offs + 3];\n\t\t\t// sprite will be drawn if (y + scanline) & 0xF0 = 0xF0\n\t\t\ty = 240 - y; // logical screen position\n\n\t\t\ty ^= flip; // physical screen location\n\t\t\tx ^= flip; // physical screen location\n\n\t\t\tint code = m_spriteram[offs + 2];\n\t\t\tint color = (m_spriteram[offs + 1] & 0x0f) + 16 * m_palette_bank;\n\t\t\tint flipx = (m_spriteram[offs + 1] & 0x80);\n\t\t\tint flipy = (m_spriteram[offs + 1] & 0x40);\n\n\t\t\tif (flip)\n\t\t\t{\n\t\t\t\ty -= 14;\n\t\t\t\tx -= 7;\n\t\t\t\tflipx = !flipx;\n\t\t\t\tflipy = !flipy;\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\ty += 1;\n\t\t\t\tx -= 8;\n\t\t\t}\n\n\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap, cliprect,\n\t\t\t\t\tcode,\n\t\t\t\t\tcolor,\n\t\t\t\t\tflipx, flipy,\n\t\t\t\t\tx, y, 0);\n\t\t}\n\n\t\toffs += 4;\n\t}"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "screen.screen_vblank().set(FUNC(mario_state::vblank_irq))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 862,
+        "sourceColumn": 2,
+        "sourceEndLine": 862,
+        "targetClass": "mario_state",
+        "targetMethod": "vblank_irq"
+      }
+    },
+    {
+      "id": "handler:mario_state.vblank_irq",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_irq",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 1,
+        "sourceEndLine": 627,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_nmi_mask)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_mario)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 864,
+        "sourceColumn": 2,
+        "sourceEndLine": 864,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(mario_state::palette), 256)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 865,
+        "sourceColumn": 2,
+        "sourceEndLine": 865,
+        "clockExpr": "FUNC(mario_state::palette)"
+      }
+    },
+    {
+      "id": "machine:mario_state.mario",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "mario_state",
+        "name": "mario",
+        "calls": [
+          "mario_base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_palette_bank\",\"bits\":8}",
+          "{\"name\":\"m_nmi_mask\",\"bits\":1}",
+          "{\"name\":\"m_z80_sync\",\"bits\":1}"
+        ],
+        "resetHandlers": [
+          "mario_state.machine_reset"
+        ],
+        "startHandlers": [
+          "mario_state.video_start"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 868,
+        "sourceColumn": 1,
+        "sourceEndLine": 896
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "M58715",
+        "tag": "audiocpu",
+        "clock": 11000000,
+        "config": [
+          "m58715_device &audiocpu(M58715(config, m_audiocpu, 11_MHz_XTAL))",
+          "audiocpu.set_addrmap(AS_PROGRAM, &mario_state::mario_sound_map)",
+          "audiocpu.set_addrmap(AS_IO, &mario_state::mario_sound_io_map)",
+          "audiocpu.p1_in_cb().set(m_soundlatch[1], FUNC(generic_latch_8_device::read))",
+          "audiocpu.p2_in_cb().set(m_soundlatch[2], FUNC(generic_latch_8_device::read)).mask(0xef)",
+          "audiocpu.p2_out_cb().set(m_soundlatch[2], FUNC(generic_latch_8_device::write))",
+          "audiocpu.p2_out_cb().append_inputline(m_audiocpu, MCS48_INPUT_EA).bit(5).invert()",
+          "audiocpu.t0_in_cb().set(m_soundlatch[3], FUNC(generic_latch_8_device::read)).bit(0)",
+          "audiocpu.t1_in_cb().set(m_soundlatch[3], FUNC(generic_latch_8_device::read)).bit(1)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 873,
+        "sourceColumn": 2,
+        "sourceEndLine": 873
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audiocpu/callback:audiocpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "p1_in_cb",
+        "operation": "set",
+        "raw": "audiocpu.p1_in_cb().set(m_soundlatch[1], FUNC(generic_latch_8_device::read))",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 876,
+        "sourceColumn": 2,
+        "sourceEndLine": 876,
+        "targetClass": "generic_latch_8_device",
+        "targetMethod": "read",
+        "targetTag": "soundlatch1"
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 914,
+        "sourceColumn": 2,
+        "sourceEndLine": 914
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audiocpu/callback:audiocpu:1",
+      "label": "Callback",
+      "props": {
+        "signal": "p2_in_cb",
+        "operation": "set",
+        "raw": "audiocpu.p2_in_cb().set(m_soundlatch[2], FUNC(generic_latch_8_device::read)).mask(0xef)",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 877,
+        "sourceColumn": 2,
+        "sourceEndLine": 877,
+        "transforms": [
+          "mask(0xef)"
+        ],
+        "targetClass": "generic_latch_8_device",
+        "targetMethod": "read",
+        "targetTag": "soundlatch2"
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audiocpu/callback:audiocpu:2",
+      "label": "Callback",
+      "props": {
+        "signal": "p2_out_cb",
+        "operation": "set",
+        "raw": "audiocpu.p2_out_cb().set(m_soundlatch[2], FUNC(generic_latch_8_device::write))",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 878,
+        "sourceColumn": 2,
+        "sourceEndLine": 878,
+        "targetClass": "generic_latch_8_device",
+        "targetMethod": "write",
+        "targetTag": "soundlatch2"
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audiocpu/callback:audiocpu:3",
+      "label": "Callback",
+      "props": {
+        "signal": "p2_out_cb",
+        "operation": "append_inputline",
+        "raw": "audiocpu.p2_out_cb().append_inputline(m_audiocpu, MCS48_INPUT_EA).bit(5).invert()",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 879,
+        "sourceColumn": 2,
+        "sourceEndLine": 879,
+        "transforms": [
+          "bit(5)",
+          "invert"
+        ],
+        "inputLine": "MCS48_INPUT_EA",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audiocpu/callback:audiocpu:4",
+      "label": "Callback",
+      "props": {
+        "signal": "t0_in_cb",
+        "operation": "set",
+        "raw": "audiocpu.t0_in_cb().set(m_soundlatch[3], FUNC(generic_latch_8_device::read)).bit(0)",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 880,
+        "sourceColumn": 2,
+        "sourceEndLine": 880,
+        "transforms": [
+          "bit(0)"
+        ],
+        "targetClass": "generic_latch_8_device",
+        "targetMethod": "read",
+        "targetTag": "soundlatch3"
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audiocpu/callback:audiocpu:5",
+      "label": "Callback",
+      "props": {
+        "signal": "t1_in_cb",
+        "operation": "set",
+        "raw": "audiocpu.t1_in_cb().set(m_soundlatch[3], FUNC(generic_latch_8_device::read)).bit(1)",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 881,
+        "sourceColumn": 2,
+        "sourceEndLine": 881,
+        "transforms": [
+          "bit(1)"
+        ],
+        "targetClass": "generic_latch_8_device",
+        "targetMethod": "read",
+        "targetTag": "soundlatch3"
+      }
+    },
+    {
+      "id": "device:mario_state.mario/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 883,
+        "sourceColumn": 2,
+        "sourceEndLine": 883
+      }
+    },
+    {
+      "id": "device:mario_state.mario/snd_nl",
+      "label": "Device",
+      "props": {
+        "type": "NETLIST_SOUND",
+        "tag": "snd_nl",
+        "clock": 48000,
+        "config": [
+          "NETLIST_SOUND(config, \"snd_nl\", 48000).set_source(netlist_mario).add_route(ALL_OUTPUTS, \"mono\", 0.5)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 888,
+        "sourceColumn": 2,
+        "sourceEndLine": 888
+      }
+    },
+    {
+      "id": "audioroute:device:mario_state.mario/snd_nl/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.5,
+        "raw": "NETLIST_SOUND(config, \"snd_nl\", 48000).set_source(netlist_mario).add_route(ALL_OUTPUTS, \"mono\", 0.5)",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 888,
+        "sourceColumn": 2,
+        "sourceEndLine": 888
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audio_snd[0]",
+      "label": "Device",
+      "props": {
+        "type": "NETLIST_LOGIC_INPUT",
+        "tag": "audio_snd[0]",
+        "clock": null,
+        "config": [
+          "NETLIST_LOGIC_INPUT(config, m_audio_snd[0], \"SOUND0.IN\", 0)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 890,
+        "sourceColumn": 2,
+        "sourceEndLine": 890,
+        "clockExpr": "\"SOUND0.IN\""
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audio_snd[1]",
+      "label": "Device",
+      "props": {
+        "type": "NETLIST_LOGIC_INPUT",
+        "tag": "audio_snd[1]",
+        "clock": null,
+        "config": [
+          "NETLIST_LOGIC_INPUT(config, m_audio_snd[1], \"SOUND1.IN\", 0)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 891,
+        "sourceColumn": 2,
+        "sourceEndLine": 891,
+        "clockExpr": "\"SOUND1.IN\""
+      }
+    },
+    {
+      "id": "device:mario_state.mario/audio_snd[2]",
+      "label": "Device",
+      "props": {
+        "type": "NETLIST_LOGIC_INPUT",
+        "tag": "audio_snd[2]",
+        "clock": null,
+        "config": [
+          "NETLIST_LOGIC_INPUT(config, m_audio_snd[2], \"SOUND7.IN\", 0)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 892,
+        "sourceColumn": 2,
+        "sourceEndLine": 892,
+        "clockExpr": "\"SOUND7.IN\""
+      }
+    },
+    {
+      "id": "device:mario_state.mario/snd_nl:dac",
+      "label": "Device",
+      "props": {
+        "type": "NETLIST_INT_INPUT",
+        "tag": "snd_nl:dac",
+        "clock": null,
+        "config": [
+          "NETLIST_INT_INPUT(config, m_audio_dac, \"DAC.VAL\", 0, 255)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 893,
+        "sourceColumn": 2,
+        "sourceEndLine": 893,
+        "clockExpr": "\"DAC.VAL\""
+      }
+    },
+    {
+      "id": "device:mario_state.mario/snd_nl:cout0",
+      "label": "Device",
+      "props": {
+        "type": "NETLIST_STREAM_OUTPUT",
+        "tag": "snd_nl:cout0",
+        "clock": 0,
+        "config": [
+          "NETLIST_STREAM_OUTPUT(config, \"snd_nl:cout0\", 0, \"ROUT.1\").set_mult_offset(150000.0 / 32768.0, 0.0)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 895,
+        "sourceColumn": 2,
+        "sourceEndLine": 895
+      }
+    },
+    {
+      "id": "device:mario_state.mario/soundlatch0",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch0",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch[0])"
+        ]
+      }
+    },
+    {
+      "id": "device:mario_state.mario/soundlatch1",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch1",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch[1])"
+        ]
+      }
+    },
+    {
+      "id": "device:mario_state.mario/soundlatch2",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch2",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch[2])"
+        ]
+      }
+    },
+    {
+      "id": "device:mario_state.mario/soundlatch3",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch3",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch[3])"
+        ]
+      }
+    },
+    {
+      "id": "machine:masao_state.masao",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "masao_state",
+        "name": "masao",
+        "calls": [
+          "mario_base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_gfx_bank\",\"bits\":8}",
+          "{\"name\":\"m_palette_bank\",\"bits\":8}",
+          "{\"name\":\"m_nmi_mask\",\"bits\":1}",
+          "{\"name\":\"m_z80_sync\",\"bits\":1}",
+          "{\"name\":\"m_soundirq\",\"bits\":1}"
+        ],
+        "resetHandlers": [
+          "mario_state.machine_reset"
+        ],
+        "startHandlers": [
+          "mario_state.video_start"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"maincpu\",\"config\":[\"m_maincpu->set_clock(4'000'000)\"],\"clock\":4000000}"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 898,
+        "sourceColumn": 1,
+        "sourceEndLine": 916
+      }
+    },
+    {
+      "id": "device:masao_state.masao/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 1789772.625,
+        "config": [
+          "Z80(config, m_audiocpu, 14'318'181 / 8)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &masao_state::masao_sound_map)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 906,
+        "sourceColumn": 2,
+        "sourceEndLine": 906
+      }
+    },
+    {
+      "id": "device:masao_state.masao/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 909,
+        "sourceColumn": 2,
+        "sourceEndLine": 909
+      }
+    },
+    {
+      "id": "device:masao_state.masao/soundlatch0",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch0",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch[0])"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 911,
+        "sourceColumn": 2,
+        "sourceEndLine": 911
+      }
+    },
+    {
+      "id": "device:masao_state.masao/aysnd",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "aysnd",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &aysnd(AY8910(config, \"aysnd\", 14'318'181 / 8))",
+          "aysnd.port_a_read_callback().set(m_soundlatch[0], FUNC(generic_latch_8_device::read))",
+          "aysnd.add_route(ALL_OUTPUTS, \"mono\", 0.50)"
+        ],
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 913,
+        "sourceColumn": 2,
+        "sourceEndLine": 913
+      }
+    },
+    {
+      "id": "audioroute:device:masao_state.masao/aysnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.5,
+        "raw": "aysnd.add_route(ALL_OUTPUTS, \"mono\", 0.50)",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 915,
+        "sourceColumn": 2,
+        "sourceEndLine": 915
+      }
+    },
+    {
+      "id": "device:masao_state.masao/aysnd/callback:aysnd:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_a_read_callback",
+        "operation": "set",
+        "raw": "aysnd.port_a_read_callback().set(m_soundlatch[0], FUNC(generic_latch_8_device::read))",
+        "ownerTag": "aysnd",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 914,
+        "sourceColumn": 2,
+        "sourceEndLine": 914,
+        "targetClass": "generic_latch_8_device",
+        "targetMethod": "read",
+        "targetTag": "soundlatch0"
+      }
+    },
+    {
+      "id": "inputs:mario",
+      "label": "InputPorts",
+      "props": {
+        "name": "mario",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 699,
+        "sourceColumn": 8,
+        "sourceEndLine": 699
+      }
+    },
+    {
+      "id": "inputs:mario/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_START1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_START2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 128,
+        "activeLow": false,
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_COIN1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_COIN2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:mario/DSW",
+      "label": "Port",
+      "props": {
+        "tag": "DSW",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mario/DSW/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!1,!2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW1:!1,!2",
+        "settings": [
+          "0=3",
+          "1=4",
+          "2=5",
+          "3=6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mario/DSW/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!3,!4\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 0,
+        "location": "SW1:!3,!4",
+        "settings": [
+          "4=2C 1C",
+          "0=1C 1C",
+          "8=1C 2C",
+          "12=1C 3C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mario/DSW/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!5,!6\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW1:!5,!6",
+        "settings": [
+          "0=20k only",
+          "16=30k only",
+          "32=40k only",
+          "48=None"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mario/DSW/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!7,!8\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 0,
+        "location": "SW1:!7,!8",
+        "settings": [
+          "0=Easy",
+          "128=Medium",
+          "64=Hard",
+          "192=Hardest"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mario/MONITOR",
+      "label": "Port",
+      "props": {
+        "tag": "MONITOR",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mario/MONITOR/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(mario_state::adjust_palette), 0)"
+        ],
+        "name": "Monitor",
+        "defaultValue": 0,
+        "settings": [
+          "0=Nintendo",
+          "1=Std 15.72Khz"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mariof",
+      "label": "InputPorts",
+      "props": {
+        "name": "mariof",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 8,
+        "sourceEndLine": 748
+      }
+    },
+    {
+      "id": "inputs:mariof/DSW",
+      "label": "Port",
+      "props": {
+        "tag": "DSW",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:mariof/DSW/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!5,!6\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW1:!5,!6",
+        "settings": [
+          "0=20k 40k 20k+",
+          "16=30k 50k 20k+",
+          "32=40k 60k 20k+",
+          "48=None"
+        ]
+      }
+    },
+    {
+      "id": "inputs:marioj",
+      "label": "InputPorts",
+      "props": {
+        "name": "marioj",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 759,
+        "sourceColumn": 8,
+        "sourceEndLine": 759
+      }
+    },
+    {
+      "id": "inputs:marioj/DSW",
+      "label": "Port",
+      "props": {
+        "tag": "DSW",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:marioj/DSW/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!1,!2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW1:!1,!2",
+        "settings": [
+          "0=3",
+          "1=4",
+          "2=5",
+          "3=6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:marioj/DSW/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 28,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!3,!4,!5\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 0,
+        "location": "SW1:!3,!4,!5",
+        "settings": [
+          "8=3C 1C",
+          "16=2C 1C",
+          "0=1C 1C",
+          "24=1C 2C",
+          "4=1C 3C",
+          "12=1C 4C",
+          "20=1C 5C",
+          "28=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:marioj/DSW/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!6\")"
+        ],
+        "name": "2 Players Game",
+        "defaultValue": 32,
+        "location": "SW1:!6",
+        "settings": [
+          "0=1 Credit",
+          "32=2 Credits"
+        ]
+      }
+    },
+    {
+      "id": "inputs:marioj/DSW/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW1:!7,!8\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW1:!7,!8",
+        "settings": [
+          "0=20k 50k 30k+",
+          "64=30k 60k 30k+",
+          "128=40k 70k 30k+",
+          "192=None"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 512,
+        "planes": 2,
+        "planeOffsets": [
+          32768,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": 256,
+        "planes": 3,
+        "planeOffsets": [
+          131072,
+          65536,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          32768,
+          32769,
+          32770,
+          32771,
+          32772,
+          32773,
+          32774,
+          32775
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x1",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x1",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 1,
+        "planeOffsets": [
+          "RGN_FRAC(0,1)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x3_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x3_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x5_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x5_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,5)",
+        "planes": 5,
+        "planeOffsets": [
+          "RGN_FRAC(4,5)",
+          "RGN_FRAC(3,5)",
+          "RGN_FRAC(2,5)",
+          "RGN_FRAC(1,5)",
+          "RGN_FRAC(0,5)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x6_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x6_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,6)",
+        "planes": 6,
+        "planeOffsets": [
+          "RGN_FRAC(5,6)",
+          "RGN_FRAC(4,6)",
+          "RGN_FRAC(3,6)",
+          "RGN_FRAC(2,6)",
+          "RGN_FRAC(1,6)",
+          "RGN_FRAC(0,6)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_planar",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_msb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_lsb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          36,
+          32,
+          44,
+          40,
+          52,
+          48,
+          60,
+          56
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          256,
+          260,
+          264,
+          268,
+          272,
+          276,
+          280,
+          284
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          260,
+          256,
+          268,
+          264,
+          276,
+          272,
+          284,
+          280
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          512,
+          516,
+          520,
+          524,
+          528,
+          532,
+          536,
+          540
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          516,
+          512,
+          524,
+          520,
+          532,
+          528,
+          540,
+          536
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_mario",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_mario",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 819,
+        "sourceColumn": 8,
+        "sourceEndLine": 819
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_mario/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx1",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_mario/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx2",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:mario_state.mario_base/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(mario_state::palette), 256)",
+        "ownerTag": "palette",
+        "targetClass": "mario_state",
+        "targetMethod": "palette",
+        "entries": 256,
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 865
+      }
+    },
+    {
+      "id": "handler:mario_state.palette",
+      "label": "Handler",
+      "props": {
+        "method": "palette",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 490,
+        "sourceColumn": 1,
+        "sourceEndLine": 493,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "set_palette(0);"
+      }
+    },
+    {
+      "id": "handler:mario_state.set_palette",
+      "label": "Handler",
+      "props": {
+        "method": "set_palette",
+        "ownerClass": "mario_state",
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 476,
+        "sourceColumn": 1,
+        "sourceEndLine": 488,
+        "sourceParameters": "int monitor",
+        "sourceBody": "uint8_t const *const color_prom = memregion(\"proms\")->base();\n\n\tstd::vector<rgb_t> rgb;\n\tif (monitor == 0)\n\t\tcompute_res_net_all(rgb, color_prom, mario_decode_info, mario_net_info);\n\telse\n\t\tcompute_res_net_all(rgb, color_prom + 256, mario_decode_info, mario_net_info_std);\n\n\tm_palette->set_pen_colors(0, rgb);\n\tm_palette->palette()->normalize_range(0, 255);"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:cpu/mcs48/mcs48.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:machine/z80dma.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:machine/netlist.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:netlist/devices/net_lib.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:video/resnet.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/mario.cpp",
+      "to": "file:nl_mario.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nl_mario.cpp",
+      "to": "file:netlist/devices/net_lib.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:mario",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1120,
+        "sourceColumn": 1,
+        "sourceEndLine": 1120
+      }
+    },
+    {
+      "from": "game:mario",
+      "to": "machine:mario_state.mario",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mario",
+      "to": "inputs:mario",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mario",
+      "to": "romset:mario",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:mariog",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1121,
+        "sourceColumn": 1,
+        "sourceEndLine": 1121
+      }
+    },
+    {
+      "from": "game:mariog",
+      "to": "game:mario",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:mariog",
+      "to": "machine:mario_state.mario",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mariog",
+      "to": "inputs:mario",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mariog",
+      "to": "romset:mariog",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:mariof",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1122,
+        "sourceColumn": 1,
+        "sourceEndLine": 1122
+      }
+    },
+    {
+      "from": "game:mariof",
+      "to": "game:mario",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:mariof",
+      "to": "machine:mario_state.mario",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mariof",
+      "to": "inputs:mariof",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mariof",
+      "to": "romset:mariof",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:marioj",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1123,
+        "sourceColumn": 1,
+        "sourceEndLine": 1123
+      }
+    },
+    {
+      "from": "game:marioj",
+      "to": "game:mario",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:marioj",
+      "to": "machine:mario_state.mario",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:marioj",
+      "to": "inputs:marioj",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:marioj",
+      "to": "romset:marioj",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:marioja",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1124,
+        "sourceColumn": 1,
+        "sourceEndLine": 1124
+      }
+    },
+    {
+      "from": "game:marioja",
+      "to": "game:mario",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:marioja",
+      "to": "machine:mario_state.mario",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:marioja",
+      "to": "inputs:mariof",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:marioja",
+      "to": "romset:marioja",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:masao",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1125,
+        "sourceColumn": 1,
+        "sourceEndLine": 1125
+      }
+    },
+    {
+      "from": "game:masao",
+      "to": "game:mario",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:masao",
+      "to": "machine:masao_state.masao",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:masao",
+      "to": "inputs:mario",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:masao",
+      "to": "romset:masao",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "romset:mario",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 925,
+        "sourceColumn": 1,
+        "sourceEndLine": 925
+      }
+    },
+    {
+      "from": "romset:mario",
+      "to": "region:mario/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mario/maincpu",
+      "to": "rom:mario/maincpu/tma1-c-7f_e-1.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/maincpu",
+      "to": "rom:mario/maincpu/tma1-c-7e_e-3.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/maincpu",
+      "to": "rom:mario/maincpu/tma1-c-7d_e-1.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/maincpu",
+      "to": "rom:mario/maincpu/tma1-c-7c_e-3.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mario",
+      "to": "region:mario/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mario/audiocpu",
+      "to": "rom:mario/audiocpu/m58715-051p.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mario",
+      "to": "region:mario/soundrom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mario/soundrom",
+      "to": "rom:mario/soundrom/tma1-c-6k_e.6k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mario",
+      "to": "region:mario/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mario/gfx1",
+      "to": "rom:mario/gfx1/tma1-v-3f.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/gfx1",
+      "to": "rom:mario/gfx1/tma1-v-3j.3j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mario",
+      "to": "region:mario/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mario/gfx2",
+      "to": "rom:mario/gfx2/tma1-v.7m.7m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/gfx2",
+      "to": "rom:mario/gfx2/tma1-v-7n.7n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/gfx2",
+      "to": "rom:mario/gfx2/tma1-v-7p.7p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/gfx2",
+      "to": "rom:mario/gfx2/tma1-v.7s.7s",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/gfx2",
+      "to": "rom:mario/gfx2/tma1-v-7t.7t",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mario/gfx2",
+      "to": "rom:mario/gfx2/tma1-v.7u.7u",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mario",
+      "to": "region:mario/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mario/proms",
+      "to": "rom:mario/proms/tma1-c-4p.4p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mario",
+      "to": "region:mario/decoder_prom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mario/decoder_prom",
+      "to": "rom:mario/decoder_prom/tma1-c-5b.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariog",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 957,
+        "sourceColumn": 1,
+        "sourceEndLine": 957
+      }
+    },
+    {
+      "from": "romset:mariog",
+      "to": "region:mariog/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariog/maincpu",
+      "to": "rom:mariog/maincpu/tma1-c-7f_g.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/maincpu",
+      "to": "rom:mariog/maincpu/tma1-c-7e_g.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/maincpu",
+      "to": "rom:mariog/maincpu/tma1-c-7d_g.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/maincpu",
+      "to": "rom:mariog/maincpu/tma1-c-7c_g.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariog",
+      "to": "region:mariog/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariog/audiocpu",
+      "to": "rom:mariog/audiocpu/m58715-051p.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariog",
+      "to": "region:mariog/soundrom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariog/soundrom",
+      "to": "rom:mariog/soundrom/tma1-c-6k_e.6k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariog",
+      "to": "region:mariog/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariog/gfx1",
+      "to": "rom:mariog/gfx1/tma1-v-3f.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/gfx1",
+      "to": "rom:mariog/gfx1/tma1-v-3j.3j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariog",
+      "to": "region:mariog/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariog/gfx2",
+      "to": "rom:mariog/gfx2/tma1-v-7m.7m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/gfx2",
+      "to": "rom:mariog/gfx2/tma1-v-7n.7n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/gfx2",
+      "to": "rom:mariog/gfx2/tma1-v-7p.7p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/gfx2",
+      "to": "rom:mariog/gfx2/tma1-v-7s.7s",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/gfx2",
+      "to": "rom:mariog/gfx2/tma1-v-7t.7t",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariog/gfx2",
+      "to": "rom:mariog/gfx2/tma1-v-7u.7u",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariog",
+      "to": "region:mariog/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariog/proms",
+      "to": "rom:mariog/proms/tma1-c-4p.4p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariog",
+      "to": "region:mariog/decoder_prom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariog/decoder_prom",
+      "to": "rom:mariog/decoder_prom/tma1-c-5b.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariof",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 989,
+        "sourceColumn": 1,
+        "sourceEndLine": 989
+      }
+    },
+    {
+      "from": "romset:mariof",
+      "to": "region:mariof/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariof/maincpu",
+      "to": "rom:mariof/maincpu/tma1-c-7f_f.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/maincpu",
+      "to": "rom:mariof/maincpu/tma1-c-7e_f.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/maincpu",
+      "to": "rom:mariof/maincpu/tma1-c-7d_f.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/maincpu",
+      "to": "rom:mariof/maincpu/tma1-c-7c_f.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariof",
+      "to": "region:mariof/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariof/audiocpu",
+      "to": "rom:mariof/audiocpu/m58715-051p.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariof",
+      "to": "region:mariof/soundrom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariof/soundrom",
+      "to": "rom:mariof/soundrom/tma1-c-6k_e.6k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariof",
+      "to": "region:mariof/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariof/gfx1",
+      "to": "rom:mariof/gfx1/tma1-v-3f.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/gfx1",
+      "to": "rom:mariof/gfx1/tma1-v-3j.3j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariof",
+      "to": "region:mariof/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariof/gfx2",
+      "to": "rom:mariof/gfx2/tma1-v-7m.7m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/gfx2",
+      "to": "rom:mariof/gfx2/tma1-v-7n.7n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/gfx2",
+      "to": "rom:mariof/gfx2/tma1-v-7p.7p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/gfx2",
+      "to": "rom:mariof/gfx2/tma1-v-7s.7s",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/gfx2",
+      "to": "rom:mariof/gfx2/tma1-v-7t.7t",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mariof/gfx2",
+      "to": "rom:mariof/gfx2/tma1-v-7u.7u",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariof",
+      "to": "region:mariof/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariof/proms",
+      "to": "rom:mariof/proms/tma1-c-4p_1.4p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mariof",
+      "to": "region:mariof/decoder_prom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mariof/decoder_prom",
+      "to": "rom:mariof/decoder_prom/tma1-c-5b.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioj",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1021,
+        "sourceColumn": 1,
+        "sourceEndLine": 1021
+      }
+    },
+    {
+      "from": "romset:marioj",
+      "to": "region:marioj/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioj/maincpu",
+      "to": "rom:marioj/maincpu/tma1-c-a1.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/maincpu",
+      "to": "rom:marioj/maincpu/tma1-c-a2.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/maincpu",
+      "to": "rom:marioj/maincpu/tma1-c-a1.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/maincpu",
+      "to": "rom:marioj/maincpu/tma1-c-a2.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioj",
+      "to": "region:marioj/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioj/audiocpu",
+      "to": "rom:marioj/audiocpu/m58715-051p.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioj",
+      "to": "region:marioj/soundrom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioj/soundrom",
+      "to": "rom:marioj/soundrom/tma1c-a.6k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioj",
+      "to": "region:marioj/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioj/gfx1",
+      "to": "rom:marioj/gfx1/tma1-v-a.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/gfx1",
+      "to": "rom:marioj/gfx1/tma1-v-a.3j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioj",
+      "to": "region:marioj/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioj/gfx2",
+      "to": "rom:marioj/gfx2/tma1-v-a.7m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/gfx2",
+      "to": "rom:marioj/gfx2/tma1-v-a.7n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/gfx2",
+      "to": "rom:marioj/gfx2/tma1-v-a.7p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/gfx2",
+      "to": "rom:marioj/gfx2/tma1-v-a.7s",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/gfx2",
+      "to": "rom:marioj/gfx2/tma1-v-a.7t",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioj/gfx2",
+      "to": "rom:marioj/gfx2/tma1-v-a.7u",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioj",
+      "to": "region:marioj/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioj/proms",
+      "to": "rom:marioj/proms/tma1-c-4p.4p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioj",
+      "to": "region:marioj/decoder_prom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioj/decoder_prom",
+      "to": "rom:marioj/decoder_prom/tma1-c-5b.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioja",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1053,
+        "sourceColumn": 1,
+        "sourceEndLine": 1053
+      }
+    },
+    {
+      "from": "romset:marioja",
+      "to": "region:marioja/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioja/maincpu",
+      "to": "rom:marioja/maincpu/tma1-c-7f.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/maincpu",
+      "to": "rom:marioja/maincpu/tma1-c-7e.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/maincpu",
+      "to": "rom:marioja/maincpu/tma1-c-7d.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/maincpu",
+      "to": "rom:marioja/maincpu/tma1-c-7c.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioja",
+      "to": "region:marioja/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioja/audiocpu",
+      "to": "rom:marioja/audiocpu/m58715-051p.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioja",
+      "to": "region:marioja/soundrom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioja/soundrom",
+      "to": "rom:marioja/soundrom/tma1-c-6k.6k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioja",
+      "to": "region:marioja/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioja/gfx1",
+      "to": "rom:marioja/gfx1/tma1-v-3f_c.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/gfx1",
+      "to": "rom:marioja/gfx1/tma1-v-3j_c.3j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioja",
+      "to": "region:marioja/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioja/gfx2",
+      "to": "rom:marioja/gfx2/tma1-v-7m_c.7m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/gfx2",
+      "to": "rom:marioja/gfx2/tma1-v-7n_c.7n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/gfx2",
+      "to": "rom:marioja/gfx2/tma1-v-7p_c.7p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/gfx2",
+      "to": "rom:marioja/gfx2/tma1-v-7s_c.7s",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/gfx2",
+      "to": "rom:marioja/gfx2/tma1-v-7t_c.7t",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marioja/gfx2",
+      "to": "rom:marioja/gfx2/tma1-v-7u_c.7u",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioja",
+      "to": "region:marioja/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioja/proms",
+      "to": "rom:marioja/proms/tma1-c-4p.4p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:marioja",
+      "to": "region:marioja/decoder_prom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:marioja/decoder_prom",
+      "to": "rom:marioja/decoder_prom/tma1-c-5b.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:masao",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 1085,
+        "sourceColumn": 1,
+        "sourceEndLine": 1085
+      }
+    },
+    {
+      "from": "romset:masao",
+      "to": "region:masao/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:masao/maincpu",
+      "to": "rom:masao/maincpu/masao-4.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/maincpu",
+      "to": "rom:masao/maincpu/masao-3.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/maincpu",
+      "to": "rom:masao/maincpu/masao-2.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/maincpu",
+      "to": "rom:masao/maincpu/masao-1.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:masao",
+      "to": "region:masao/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:masao/audiocpu",
+      "to": "rom:masao/audiocpu/masao-5.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:masao",
+      "to": "region:masao/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:masao/gfx1",
+      "to": "rom:masao/gfx1/masao-6.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/gfx1",
+      "to": "rom:masao/gfx1/masao-7.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:masao",
+      "to": "region:masao/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:masao/gfx2",
+      "to": "rom:masao/gfx2/masao-8.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/gfx2",
+      "to": "rom:masao/gfx2/masao-9.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/gfx2",
+      "to": "rom:masao/gfx2/masao-10.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/gfx2",
+      "to": "rom:masao/gfx2/masao-11.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/gfx2",
+      "to": "rom:masao/gfx2/masao-12.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:masao/gfx2",
+      "to": "rom:masao/gfx2/masao-13.rom",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:masao",
+      "to": "region:masao/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:masao/proms",
+      "to": "rom:masao/proms/tma1-c-4p.4p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 1,
+        "sourceEndLine": 650
+      }
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map/range4",
+      "to": "handler:mario_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map/range7",
+      "to": "handler:mario_state.scroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map/range8",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch0"
+      }
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map/range9",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.base_map",
+      "to": "map:mario_state.base_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.mario_map",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 652,
+        "sourceColumn": 1,
+        "sourceEndLine": 658
+      }
+    },
+    {
+      "from": "map:mario_state.mario_map",
+      "to": "map:mario_state.base_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:mario_state.mario_map",
+      "to": "map:mario_state.mario_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.mario_map/range0",
+      "to": "handler:mario_state.walk_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mario_state.mario_map",
+      "to": "map:mario_state.mario_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.mario_map/range1",
+      "to": "handler:mario_state.walk_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mario_state.mario_map",
+      "to": "map:mario_state.mario_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.mario_map/range2",
+      "to": "handler:mario_state.samples_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:masao_state.masao_map",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 660,
+        "sourceColumn": 1,
+        "sourceEndLine": 664
+      }
+    },
+    {
+      "from": "map:masao_state.masao_map",
+      "to": "map:mario_state.base_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:masao_state.masao_map",
+      "to": "map:masao_state.masao_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:masao_state.masao_map/range0",
+      "to": "handler:masao_state.soundirq_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mario_state.mario_io_map",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 666,
+        "sourceColumn": 1,
+        "sourceEndLine": 670
+      }
+    },
+    {
+      "from": "map:mario_state.mario_io_map",
+      "to": "map:mario_state.mario_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.mario_io_map/range0",
+      "to": "handler:z80dma_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "z80dma"
+      }
+    },
+    {
+      "from": "map:mario_state.mario_io_map/range0",
+      "to": "handler:z80dma_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "z80dma"
+      }
+    },
+    {
+      "from": "map:mario_state.mario_sound_map",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 674,
+        "sourceColumn": 1,
+        "sourceEndLine": 677
+      }
+    },
+    {
+      "from": "map:mario_state.mario_sound_map",
+      "to": "map:mario_state.mario_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.mario_sound_io_map",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 679,
+        "sourceColumn": 1,
+        "sourceEndLine": 682
+      }
+    },
+    {
+      "from": "map:mario_state.mario_sound_io_map",
+      "to": "map:mario_state.mario_sound_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mario_state.mario_sound_io_map/range0",
+      "to": "handler:mario_state.tune_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:mario_state.mario_sound_io_map/range0",
+      "to": "handler:mario_state.dac_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:masao_state.masao_sound_map",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 684,
+        "sourceColumn": 1,
+        "sourceEndLine": 690
+      }
+    },
+    {
+      "from": "map:masao_state.masao_sound_map",
+      "to": "map:masao_state.masao_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:masao_state.masao_sound_map",
+      "to": "map:masao_state.masao_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:masao_state.masao_sound_map",
+      "to": "map:masao_state.masao_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:masao_state.masao_sound_map/range2",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "aysnd"
+      }
+    },
+    {
+      "from": "map:masao_state.masao_sound_map/range2",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "aysnd"
+      }
+    },
+    {
+      "from": "map:masao_state.masao_sound_map",
+      "to": "map:masao_state.masao_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:masao_state.masao_sound_map/range3",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "aysnd"
+      }
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 831,
+        "sourceColumn": 1,
+        "sourceEndLine": 866
+      }
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "handler:mario_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:mario_state.video_start",
+      "to": "handler:mario_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "handler:mario_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "device:mario_state.mario_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario_base/maincpu",
+      "to": "device:mario_state.mario_base/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/maincpu/callback:maincpu:0",
+      "to": "handler:z80dma_device.bai_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/maincpu",
+      "to": "map:mario_state.mario_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:mario_state.mario_base/maincpu",
+      "to": "map:mario_state.mario_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "device:mario_state.mario_base/z80dma",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario_base/z80dma",
+      "to": "device:mario_state.mario_base/z80dma/callback:z80dma:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/z80dma/callback:z80dma:0",
+      "to": "device:mario_state.mario_base/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario_base/z80dma",
+      "to": "device:mario_state.mario_base/z80dma/callback:z80dma:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/z80dma/callback:z80dma:1",
+      "to": "handler:mario_state.memory_read_byte",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/z80dma",
+      "to": "device:mario_state.mario_base/z80dma/callback:z80dma:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/z80dma/callback:z80dma:2",
+      "to": "handler:mario_state.memory_write_byte",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "device:mario_state.mario_base/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:0",
+      "to": "handler:mario_state.gfx_bank_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:2",
+      "to": "handler:mario_state.flip_screen_set",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:3",
+      "to": "handler:mario_state.palette_bank_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:4",
+      "to": "handler:mario_state.nmi_mask_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:5",
+      "to": "handler:z80dma_device.rdy_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:5",
+      "to": "device:mario_state.mario_base/z80dma",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:6",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:6",
+      "to": "handler:mario_state.coin_counter_2_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch",
+      "to": "device:mario_state.mario_base/mainlatch/callback:mainlatch:7",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/mainlatch/callback:mainlatch:7",
+      "to": "handler:mario_state.coin_counter_1_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "device:mario_state.mario_base/nvram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "device:mario_state.mario_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario_base/screen",
+      "to": "device:mario_state.mario_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:mario_state.screen_update",
+      "to": "handler:mario_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/screen/callback:screen:0",
+      "to": "handler:mario_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/screen",
+      "to": "device:mario_state.mario_base/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario_base/screen/callback:screen:1",
+      "to": "handler:mario_state.vblank_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "device:mario_state.mario_base/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "gfxdecode:gfx_mario",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:mario_state.mario_base",
+      "to": "device:mario_state.mario_base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 868,
+        "sourceColumn": 1,
+        "sourceEndLine": 896
+      }
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "handler:mario_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "handler:mario_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "machine:mario_state.mario_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "device:mario_state.mario/audiocpu/callback:audiocpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu/callback:audiocpu:0",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "device:mario_state.mario/audiocpu/callback:audiocpu:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu/callback:audiocpu:1",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "device:mario_state.mario/audiocpu/callback:audiocpu:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu/callback:audiocpu:2",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "device:mario_state.mario/audiocpu/callback:audiocpu:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu/callback:audiocpu:3",
+      "to": "device:mario_state.mario/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "device:mario_state.mario/audiocpu/callback:audiocpu:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu/callback:audiocpu:4",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "device:mario_state.mario/audiocpu/callback:audiocpu:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu/callback:audiocpu:5",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "map:mario_state.mario_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:mario_state.mario/audiocpu",
+      "to": "map:mario_state.mario_sound_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/snd_nl",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:mario_state.mario/snd_nl",
+      "to": "audioroute:device:mario_state.mario/snd_nl/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/audio_snd[0]",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/audio_snd[1]",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/audio_snd[2]",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/snd_nl:dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/snd_nl:cout0",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/soundlatch0",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/soundlatch1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/soundlatch2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mario_state.mario",
+      "to": "device:mario_state.mario/soundlatch3",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 898,
+        "sourceColumn": 1,
+        "sourceEndLine": 916
+      }
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "handler:mario_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "handler:mario_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "machine:mario_state.mario_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "map:masao_state.masao_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "device:masao_state.masao/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:masao_state.masao/audiocpu",
+      "to": "map:masao_state.masao_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "device:masao_state.masao/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "device:masao_state.masao/soundlatch0",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:masao_state.masao",
+      "to": "device:masao_state.masao/aysnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:masao_state.masao/aysnd",
+      "to": "audioroute:device:masao_state.masao/aysnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:masao_state.masao/aysnd",
+      "to": "device:masao_state.masao/aysnd/callback:aysnd:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:masao_state.masao/aysnd/callback:aysnd:0",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:masao_state.masao/aysnd/callback:aysnd:0",
+      "to": "device:masao_state.masao/soundlatch0",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "inputs:mario",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 699,
+        "sourceColumn": 8,
+        "sourceEndLine": 699
+      }
+    },
+    {
+      "from": "inputs:mario",
+      "to": "inputs:mario/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN0",
+      "to": "inputs:mario/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario",
+      "to": "inputs:mario/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/IN1",
+      "to": "inputs:mario/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario",
+      "to": "inputs:mario/DSW",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mario/DSW",
+      "to": "inputs:mario/DSW/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/DSW",
+      "to": "inputs:mario/DSW/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/DSW",
+      "to": "inputs:mario/DSW/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario/DSW",
+      "to": "inputs:mario/DSW/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mario",
+      "to": "inputs:mario/MONITOR",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mario/MONITOR",
+      "to": "inputs:mario/MONITOR/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mariof",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 8,
+        "sourceEndLine": 748
+      }
+    },
+    {
+      "from": "inputs:mariof",
+      "to": "inputs:mario",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:mariof",
+      "to": "inputs:mariof/DSW",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mariof/DSW",
+      "to": "inputs:mariof/DSW/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marioj",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 759,
+        "sourceColumn": 8,
+        "sourceEndLine": 759
+      }
+    },
+    {
+      "from": "inputs:marioj",
+      "to": "inputs:mario",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:marioj",
+      "to": "inputs:marioj/DSW",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:marioj/DSW",
+      "to": "inputs:marioj/DSW/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marioj/DSW",
+      "to": "inputs:marioj/DSW/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marioj/DSW",
+      "to": "inputs:marioj/DSW/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marioj/DSW",
+      "to": "inputs:marioj/DSW/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x1",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x3_planar",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_planar",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x5_planar",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x6_planar",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_planar",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_msb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_msb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_mario",
+      "to": "file:src/mame/nintendo/mario.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/mario.cpp",
+        "sourceLine": 819,
+        "sourceColumn": 8,
+        "sourceEndLine": 819
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_mario",
+      "to": "gfxdecode:gfx_mario/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_mario/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_mario",
+      "to": "gfxdecode:gfx_mario/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_mario/e1",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:mario_state.mario_base/palette",
+      "to": "device:mario_state.mario_base/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:mario_state.set_palette",
+      "to": "handler:mario_state.palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:mario_state.palette",
+      "to": "handler:mario_state.set_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mario_state.mario_base/palette/callback:palette_init",
+      "to": "handler:mario_state.palette",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

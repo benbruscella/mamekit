@@ -1,0 +1,5447 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/snk/neogeo.cpp",
+    "generatedAt": "2026-09-05T03:49:56.558Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Bryan McPhail,Ernesto Corvi,Andrew Prime,Zsolt Vasvari"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/snk/neogeo.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/snk/neogeo.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:neogeo.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "neogeo.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:softlist_dev.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "softlist_dev.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:irrmaze.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "irrmaze.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:neogeo.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "neogeo.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:logmacro.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "logmacro.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:neogeo",
+      "label": "Game",
+      "props": {
+        "name": "neogeo",
+        "year": "1990",
+        "company": "SNK",
+        "fullname": "Neo-Geo MV-6F",
+        "monitor": "ROT0",
+        "cls": "mvs_led_el_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IS_BIOS_ROOT | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2428,
+        "sourceColumn": 1,
+        "sourceEndLine": 2428
+      }
+    },
+    {
+      "id": "game:mslug",
+      "label": "Game",
+      "props": {
+        "name": "mslug",
+        "year": "1996",
+        "company": "Nazca",
+        "fullname": "Metal Slug - Super Vehicle-001",
+        "monitor": "ROT0",
+        "cls": "mvs_led_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 12139,
+        "sourceColumn": 1,
+        "sourceEndLine": 12139
+      }
+    },
+    {
+      "id": "romset:neogeo",
+      "label": "RomSet",
+      "props": {
+        "name": "neogeo",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2375,
+        "sourceColumn": 1,
+        "sourceEndLine": 2375
+      }
+    },
+    {
+      "id": "region:neogeo/mainbios",
+      "label": "RomRegion",
+      "props": {
+        "tag": "mainbios",
+        "size": 524288,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:neogeo/mainbios/sp-s2.sp1",
+      "label": "Rom",
+      "props": {
+        "file": "sp-s2.sp1",
+        "offset": 0,
+        "size": 131072,
+        "crc": "9036d879",
+        "sha1": "4f5ed7105b7128794654ce82b51723e16e389543",
+        "groupSize": 2,
+        "reverse": true
+      }
+    },
+    {
+      "id": "region:neogeo/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 1048576,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2378,
+        "sourceColumn": 2,
+        "sourceEndLine": 2378
+      }
+    },
+    {
+      "id": "region:neogeo/audiobios",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiobios",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2298,
+        "sourceColumn": 2,
+        "sourceEndLine": 2298
+      }
+    },
+    {
+      "id": "rom:neogeo/audiobios/sm1.sm1",
+      "label": "Rom",
+      "props": {
+        "file": "sm1.sm1",
+        "offset": 0,
+        "size": 131072,
+        "crc": "94416d67",
+        "sha1": "42f9d7ddd6c0931fd64226a60dc73602b2819dcf",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2299,
+        "sourceColumn": 2,
+        "sourceEndLine": 2299
+      }
+    },
+    {
+      "id": "region:neogeo/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 327680,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2383,
+        "sourceColumn": 2,
+        "sourceEndLine": 2383
+      }
+    },
+    {
+      "id": "rom:neogeo/audiocpu/sm1.sm1",
+      "label": "Rom",
+      "props": {
+        "file": "sm1.sm1",
+        "offset": 0,
+        "size": 131072,
+        "crc": "94416d67",
+        "sha1": "42f9d7ddd6c0931fd64226a60dc73602b2819dcf",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2299,
+        "sourceColumn": 2,
+        "sourceEndLine": 2299
+      }
+    },
+    {
+      "id": "region:neogeo/spritegen:zoomy",
+      "label": "RomRegion",
+      "props": {
+        "tag": "spritegen:zoomy",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2369,
+        "sourceColumn": 2,
+        "sourceEndLine": 2369
+      }
+    },
+    {
+      "id": "rom:neogeo/spritegen:zoomy/000-lo.lo",
+      "label": "Rom",
+      "props": {
+        "file": "000-lo.lo",
+        "offset": 0,
+        "size": 131072,
+        "crc": "5a86cff2",
+        "sha1": "5992277debadeb64d1c1c64b0a92d9293eaf7e4a",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2370,
+        "sourceColumn": 2,
+        "sourceEndLine": 2370
+      }
+    },
+    {
+      "id": "region:neogeo/fixed",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fixed",
+        "size": 131072,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2388,
+        "sourceColumn": 2,
+        "sourceEndLine": 2388
+      }
+    },
+    {
+      "id": "region:neogeo/fixedbios",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fixedbios",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2357,
+        "sourceColumn": 2,
+        "sourceEndLine": 2357
+      }
+    },
+    {
+      "id": "rom:neogeo/fixedbios/sfix.sfix",
+      "label": "Rom",
+      "props": {
+        "file": "sfix.sfix",
+        "offset": 0,
+        "size": 131072,
+        "crc": "c2ea0cfd",
+        "sha1": "fd4a618cdcdbf849374f0a50dd8efe9dbab706c3",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2358,
+        "sourceColumn": 2,
+        "sourceEndLine": 2358
+      }
+    },
+    {
+      "id": "region:neogeo/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 1048576,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2393,
+        "sourceColumn": 2,
+        "sourceEndLine": 2393
+      }
+    },
+    {
+      "id": "romset:mslug",
+      "label": "RomSet",
+      "props": {
+        "name": "mslug",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 6886,
+        "sourceColumn": 1,
+        "sourceEndLine": 6886
+      }
+    },
+    {
+      "id": "region:mslug/cslot1:maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "cslot1:maincpu",
+        "size": 2097152,
+        "flags": "ROMREGION_BE|ROMREGION_16BIT",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 3066,
+        "sourceColumn": 2,
+        "sourceEndLine": 3066
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:maincpu/201-p1.p1",
+      "label": "Rom",
+      "props": {
+        "file": "201-p1.p1",
+        "offset": 1048576,
+        "size": 1048576,
+        "crc": "08d8daa5",
+        "sha1": "b888993dbb7e9f0a28a01d7d2e1da00ef9cf6f38",
+        "groupSize": 2,
+        "reverse": true,
+        "continueSegments": [
+          0,
+          1048576,
+          1048576
+        ]
+      }
+    },
+    {
+      "id": "region:mslug/cslot1:fixed",
+      "label": "RomRegion",
+      "props": {
+        "tag": "cslot1:fixed",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2355,
+        "sourceColumn": 2,
+        "sourceEndLine": 2355
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:fixed/201-s1.s1",
+      "label": "Rom",
+      "props": {
+        "file": "201-s1.s1",
+        "offset": 0,
+        "size": 131072,
+        "crc": "2f55958d",
+        "sha1": "550b53628daec9f1e1e11a398854092d90f9505a"
+      }
+    },
+    {
+      "id": "region:mslug/fixedbios",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fixedbios",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2357,
+        "sourceColumn": 2,
+        "sourceEndLine": 2357
+      }
+    },
+    {
+      "id": "rom:mslug/fixedbios/sfix.sfix",
+      "label": "Rom",
+      "props": {
+        "file": "sfix.sfix",
+        "offset": 0,
+        "size": 131072,
+        "crc": "c2ea0cfd",
+        "sha1": "fd4a618cdcdbf849374f0a50dd8efe9dbab706c3",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2358,
+        "sourceColumn": 2,
+        "sourceEndLine": 2358
+      }
+    },
+    {
+      "id": "region:mslug/spritegen:zoomy",
+      "label": "RomRegion",
+      "props": {
+        "tag": "spritegen:zoomy",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2369,
+        "sourceColumn": 2,
+        "sourceEndLine": 2369
+      }
+    },
+    {
+      "id": "rom:mslug/spritegen:zoomy/000-lo.lo",
+      "label": "Rom",
+      "props": {
+        "file": "000-lo.lo",
+        "offset": 0,
+        "size": 131072,
+        "crc": "5a86cff2",
+        "sha1": "5992277debadeb64d1c1c64b0a92d9293eaf7e4a",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2370,
+        "sourceColumn": 2,
+        "sourceEndLine": 2370
+      }
+    },
+    {
+      "id": "region:mslug/mainbios",
+      "label": "RomRegion",
+      "props": {
+        "tag": "mainbios",
+        "size": 524288,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mslug/mainbios/sp-s2.sp1",
+      "label": "Rom",
+      "props": {
+        "file": "sp-s2.sp1",
+        "offset": 0,
+        "size": 131072,
+        "crc": "9036d879",
+        "sha1": "4f5ed7105b7128794654ce82b51723e16e389543",
+        "groupSize": 2,
+        "reverse": true
+      }
+    },
+    {
+      "id": "region:mslug/audiobios",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiobios",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2298,
+        "sourceColumn": 2,
+        "sourceEndLine": 2298
+      }
+    },
+    {
+      "id": "rom:mslug/audiobios/sm1.sm1",
+      "label": "Rom",
+      "props": {
+        "file": "sm1.sm1",
+        "offset": 0,
+        "size": 131072,
+        "crc": "94416d67",
+        "sha1": "42f9d7ddd6c0931fd64226a60dc73602b2819dcf",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2299,
+        "sourceColumn": 2,
+        "sourceEndLine": 2299
+      }
+    },
+    {
+      "id": "region:mslug/cslot1:audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "cslot1:audiocpu",
+        "size": 196608,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2300,
+        "sourceColumn": 2,
+        "sourceEndLine": 2300
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:audiocpu/201-m1.m1",
+      "label": "Rom",
+      "props": {
+        "file": "201-m1.m1",
+        "offset": 0,
+        "size": 131072,
+        "crc": "c28b3253",
+        "sha1": "fd75bd15aed30266a8b3775f276f997af57d1c06",
+        "reloadOffsets": [
+          65536
+        ]
+      }
+    },
+    {
+      "id": "region:mslug/cslot1:ymsnd:adpcma",
+      "label": "RomRegion",
+      "props": {
+        "tag": "cslot1:ymsnd:adpcma",
+        "size": 8388608,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 3073,
+        "sourceColumn": 2,
+        "sourceEndLine": 3073
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:ymsnd:adpcma/201-v1.v1",
+      "label": "Rom",
+      "props": {
+        "file": "201-v1.v1",
+        "offset": 0,
+        "size": 4194304,
+        "crc": "23d22ed1",
+        "sha1": "cd076928468ad6bcc5f19f88cb843ecb5e660681",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 6896,
+        "sourceColumn": 2,
+        "sourceEndLine": 6896
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:ymsnd:adpcma/201-v2.v2",
+      "label": "Rom",
+      "props": {
+        "file": "201-v2.v2",
+        "offset": 4194304,
+        "size": 4194304,
+        "crc": "472cf9db",
+        "sha1": "5f79ea9286d22ed208128f9c31ca75552ce08b57",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 6897,
+        "sourceColumn": 2,
+        "sourceEndLine": 6897
+      }
+    },
+    {
+      "id": "region:mslug/cslot1:sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "cslot1:sprites",
+        "size": 16777216,
+        "flags": "0",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 3082,
+        "sourceColumn": 2,
+        "sourceEndLine": 3082
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:sprites/201-c1.c1",
+      "label": "Rom",
+      "props": {
+        "file": "201-c1.c1",
+        "offset": 0,
+        "size": 4194304,
+        "crc": "72813676",
+        "sha1": "7b045d1a48980cb1a140699011cb1a3d4acdc4d1",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:sprites/201-c2.c2",
+      "label": "Rom",
+      "props": {
+        "file": "201-c2.c2",
+        "offset": 1,
+        "size": 4194304,
+        "crc": "96f62574",
+        "sha1": "cb7254b885989223bba597b8ff0972dfa5957816",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:sprites/201-c3.c3",
+      "label": "Rom",
+      "props": {
+        "file": "201-c3.c3",
+        "offset": 8388608,
+        "size": 4194304,
+        "crc": "5121456a",
+        "sha1": "0a7a27d603d1bb2520b5570ebf5b34a106e255a6",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:mslug/cslot1:sprites/201-c4.c4",
+      "label": "Rom",
+      "props": {
+        "file": "201-c4.c4",
+        "offset": 8388609,
+        "size": 4194304,
+        "crc": "f4ad59a3",
+        "sha1": "4e94fda8ee63abf0f92afe08060a488546e5c280",
+        "skip": 1
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "neogeo_base_state",
+        "name": "base_main_map",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1709,
+        "sourceColumn": 1,
+        "sourceEndLine": 1720
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 3276800,
+        "end": 3276800,
+        "raw": "map(0x320000, 0x320000).mirror(0x01fffe).w(FUNC(neogeo_base_state::audio_command_w))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1711,
+        "sourceColumn": 2,
+        "sourceEndLine": 1711,
+        "mirror": 131070
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.audio_command_w",
+      "label": "Handler",
+      "props": {
+        "method": "audio_command_w",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1002,
+        "sourceColumn": 1,
+        "sourceEndLine": 1007,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// glitches in s1945p without the perfect_quantum here\n\tm_soundlatch->write(data);\n\tmachine().scheduler().perfect_quantum(attotime::from_usec(50));"
+      }
+    },
+    {
+      "id": "handler:ng_memcard_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ng_memcard_device",
+        "sourceFile": "src/mame/snk/ng_memcard.cpp",
+        "sourceLine": 103,
+        "sourceColumn": 1,
+        "sourceEndLine": 107,
+        "sourceParameters": "offs_t offset, uint16_t data",
+        "sourceBody": "if (!m_lock1 && m_unlock2)\n\t\tm_memcard_data[offset & 0x07ff] = uint8_t(data & 0x00ff);"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 3538944,
+        "end": 3670015,
+        "raw": "map(0x360000, 0x37ffff).r(FUNC(neogeo_base_state::unmapped_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1712,
+        "sourceColumn": 2,
+        "sourceEndLine": 1712
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.unmapped_r",
+      "label": "Handler",
+      "props": {
+        "method": "unmapped_r",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1016,
+        "sourceColumn": 1,
+        "sourceEndLine": 1033,
+        "sourceParameters": "address_space &space",
+        "sourceBody": "uint16_t ret;\n\n\t/* unmapped memory returns the last word on the data bus, which is almost always the opcode\n\t   of the next instruction due to prefetch */\n\n\t/* prevent recursion */\n\tif (m_recurse)\n\t\tret = 0xffff;\n\telse\n\t{\n\t\tm_recurse = true;\n\t\tret = space.read_word(m_maincpu->pc());\n\t\tm_recurse = false;\n\t}\n\treturn ret;"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 3670016,
+        "end": 3670271,
+        "raw": "map(0x380000, 0x3800ff).mirror(0x01ff00).w(FUNC(neogeo_base_state::io_control_w)).umask16(0x00ff)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1713,
+        "sourceColumn": 2,
+        "sourceEndLine": 1713,
+        "mirror": 130816,
+        "umask": 255
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.io_control_w",
+      "label": "Handler",
+      "props": {
+        "method": "io_control_w",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 929,
+        "sourceColumn": 1,
+        "sourceEndLine": 946,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "switch (offset & 0x38) // TODO: the mask is supposedly less restrictive on AES?\n\t{\n\tcase 0x00:\n\t\tif (m_ctrl1) m_ctrl1->write_ctrlsel(data & 0x07);\n\t\tif (m_ctrl2) m_ctrl2->write_ctrlsel((data >> 3) & 0x07);\n\t\tif (m_edge) m_edge->write_ctrlsel(data & 0x3f); // FIXME: only MV-1B and MV-1C have this output\n\t\tbreak;\n\n\tcase 0x08:\n\t\tm_card_bank = data & 0x07;\n\t\tbreak;\n\n\tdefault:\n\t\tlogerror(\"%s: Unmapped I/O control write.  Offset: %02x  Data: %02x\\n\", machine().describe_context(), offset, data);\n\t}"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 3801088,
+        "end": 3801119,
+        "raw": "map(0x3a0000, 0x3a001f).mirror(0x01ffe0).r(FUNC(neogeo_base_state::unmapped_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1714,
+        "sourceColumn": 2,
+        "sourceEndLine": 1714,
+        "mirror": 131040
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 3801088,
+        "end": 3801119,
+        "raw": "map(0x3a0000, 0x3a001f).mirror(0x01ffe0).w(m_systemlatch, FUNC(hc259_device::write_a3)).umask16(0x00ff)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1715,
+        "sourceColumn": 2,
+        "sourceEndLine": 1715,
+        "mirror": 131040,
+        "umask": 255
+      }
+    },
+    {
+      "id": "handler:hc259_device.write_a3",
+      "label": "Handler",
+      "props": {
+        "method": "write_a3",
+        "ownerClass": "hc259_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1715,
+        "sourceColumn": 2,
+        "sourceEndLine": 1715
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 3932160,
+        "end": 3932167,
+        "raw": "map(0x3c0000, 0x3c0007).mirror(0x01fff8).r(FUNC(neogeo_base_state::video_register_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1716,
+        "sourceColumn": 2,
+        "sourceEndLine": 1716,
+        "mirror": 131064
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.video_register_r",
+      "label": "Handler",
+      "props": {
+        "method": "video_register_r",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 228,
+        "sourceColumn": 1,
+        "sourceEndLine": 248,
+        "sourceParameters": "address_space &space, offs_t offset, uint16_t mem_mask",
+        "sourceBody": "uint16_t ret;\n\n\t// accessing the LSB only is not mapped\n\tif (mem_mask == 0x00ff)\n\t\tret = unmapped_r(space) & 0x00ff;\n\telse\n\t{\n\t\tswitch (offset)\n\t\t{\n\t\tdefault:\n\t\tcase 0x00:\n\t\tcase 0x01: ret = m_sprgen->get_videoram_data(); break;\n\t\tcase 0x02: ret = m_sprgen->get_videoram_modulo(); break;\n\t\tcase 0x03: ret = get_video_control(); break;\n\t\t}\n\t}\n\n\treturn ret;"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.get_videoram_data",
+      "label": "Handler",
+      "props": {
+        "method": "get_videoram_data",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 85,
+        "sourceColumn": 1,
+        "sourceEndLine": 88,
+        "sourceParameters": "",
+        "sourceBody": "return m_vram_read_buffer;"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.get_videoram_modulo",
+      "label": "Handler",
+      "props": {
+        "method": "get_videoram_modulo",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 106,
+        "sourceColumn": 1,
+        "sourceEndLine": 109,
+        "sourceParameters": "",
+        "sourceBody": "return m_vram_modulo;"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.get_video_control",
+      "label": "Handler",
+      "props": {
+        "method": "get_video_control",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 176,
+        "sourceColumn": 1,
+        "sourceEndLine": 214,
+        "sourceConstants": [
+          "VERBOSE=0",
+          "NEOGEO_VTOTAL=264"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "/*\n\t    The format of this very important location is:  AAAA AAAA A??? BCCC\n\n\t    A is the raster line counter. mosyougi relies solely on this to do the\n\t      raster effects on the title screen; sdodgeb loops waiting for the top\n\t      bit to be 1; zedblade heavily depends on it to work correctly (it\n\t      checks the top bit in the IRQ2 handler).\n\t    B is definitely a PAL/NTSC flag. (LSPC2 only) Evidence:\n\t      1) trally changes the position of the speed indicator depending on\n\t         it (0 = lower 1 = higher).\n\t      2) samsho3 sets a variable to 60 when the bit is 0 and 50 when it's 1.\n\t         This is obviously the video refresh rate in Hz.\n\t      3) samsho3 sets another variable to 256 or 307. This could be the total\n\t         screen height (including vblank), or close to that.\n\t      Some games (e.g. lstbld2, samsho3) do this (or similar):\n\t      bclr    #$0, $3c000e.l\n\t      when the bit is set, so 3c000e (whose function is unknown) has to be\n\t      related\n\t    C animation counter lower 3 bits\n\t*/\n\n\t// the vertical counter chain goes from 0xf8 - 0x1ff\n\tuint16_t v_counter = m_screen->vpos() + 0x100;\n\n\tif (v_counter >= 0x200)\n\t\tv_counter = v_counter - NEOGEO_VTOTAL;\n\n\tuint16_t const ret = (v_counter << 7) | (m_sprgen->get_auto_animation_counter() & 0x0007);\n\n\tif (!machine().side_effects_disabled())\n\t{\n\t\tif (VERBOSE)\n\t\t\tlogerror(\"%s: video_control read (%04x)\\n\", machine().describe_context(), ret);\n\t}\n\n\treturn ret;"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.get_auto_animation_counter",
+      "label": "Handler",
+      "props": {
+        "method": "get_auto_animation_counter",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 130,
+        "sourceColumn": 1,
+        "sourceEndLine": 133,
+        "sourceParameters": "",
+        "sourceBody": "return m_auto_animation_counter;"
+      }
+    },
+    {
+      "id": "handler:ng_memcard_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ng_memcard_device",
+        "sourceFile": "src/mame/snk/ng_memcard.cpp",
+        "sourceLine": 95,
+        "sourceColumn": 1,
+        "sourceEndLine": 101,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (m_regsel)\n\t\treturn 0xff00 | m_memcard_data[offset & 0x07ff];\n\telse\n\t\treturn 0xffff;"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 3932160,
+        "end": 3932175,
+        "raw": "map(0x3c0000, 0x3c000f).mirror(0x01fff0).w(FUNC(neogeo_base_state::video_register_w))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1717,
+        "sourceColumn": 2,
+        "sourceEndLine": 1717,
+        "mirror": 131056
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.video_register_w",
+      "label": "Handler",
+      "props": {
+        "method": "video_register_w",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 251,
+        "sourceColumn": 1,
+        "sourceEndLine": 272,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "// accessing the LSB only is not mapped\n\tif (mem_mask != 0x00ff)\n\t{\n\t\t// accessing the MSB only stores same data in MSB and LSB\n\t\tif (mem_mask == 0xff00)\n\t\t\tdata = (data & 0xff00) | (data >> 8);\n\n\t\tswitch (offset)\n\t\t{\n\t\tcase 0x00: m_sprgen->set_videoram_offset(data); break;\n\t\tcase 0x01: m_sprgen->set_videoram_data(data); break;\n\t\tcase 0x02: m_sprgen->set_videoram_modulo(data); break;\n\t\tcase 0x03: set_video_control(data); break;\n\t\tcase 0x04: set_display_counter_msb(data); break;\n\t\tcase 0x05: set_display_counter_lsb(data); break;\n\t\tcase 0x06: acknowledge_interrupt(data); break;\n\t\tcase 0x07: break; // d0: pause timer for 32 lines when in PAL mode (LSPC2 only)\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_video_control",
+      "label": "Handler",
+      "props": {
+        "method": "set_video_control",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 217,
+        "sourceColumn": 1,
+        "sourceEndLine": 225,
+        "sourceConstants": [
+          "VERBOSE=0"
+        ],
+        "sourceParameters": "uint16_t data",
+        "sourceBody": "if (VERBOSE) logerror(\"%s: video control write %04x\\n\", machine().describe_context(), data);\n\n\tm_sprgen->set_auto_animation_speed(data >> 8);\n\tm_sprgen->set_auto_animation_disabled(BIT(data, 3));\n\n\tset_display_position_interrupt_control(data & 0x00f0);"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.set_auto_animation_speed",
+      "label": "Handler",
+      "props": {
+        "method": "set_auto_animation_speed",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 118,
+        "sourceColumn": 1,
+        "sourceEndLine": 121,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_auto_animation_speed = data;"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.set_auto_animation_disabled",
+      "label": "Handler",
+      "props": {
+        "method": "set_auto_animation_disabled",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 124,
+        "sourceColumn": 1,
+        "sourceEndLine": 127,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_auto_animation_disabled = data;"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_display_position_interrupt_control",
+      "label": "Handler",
+      "props": {
+        "method": "set_display_position_interrupt_control",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 769,
+        "sourceColumn": 1,
+        "sourceEndLine": 772,
+        "sourceParameters": "uint16_t data",
+        "sourceBody": "m_display_position_interrupt_control = data;"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_display_counter_msb",
+      "label": "Handler",
+      "props": {
+        "method": "set_display_counter_msb",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 775,
+        "sourceColumn": 1,
+        "sourceEndLine": 780,
+        "sourceParameters": "uint16_t data",
+        "sourceBody": "m_display_counter = (m_display_counter & 0x0000ffff) | ((uint32_t)data << 16);\n\n\tLOGMASKED(LOG_VIDEO_SYSTEM, \"PC %06x: set_display_counter %08x\\n\", m_maincpu->pc(), m_display_counter);"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_display_counter_lsb",
+      "label": "Handler",
+      "props": {
+        "method": "set_display_counter_lsb",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 783,
+        "sourceColumn": 1,
+        "sourceEndLine": 794,
+        "sourceConstants": [
+          "IRQ2CTRL_LOAD_RELATIVE=5"
+        ],
+        "sourceParameters": "uint16_t data",
+        "sourceBody": "m_display_counter = (m_display_counter & 0xffff0000) | data;\n\n\tLOGMASKED(LOG_VIDEO_SYSTEM, \"PC %06x: set_display_counter %08x\\n\", m_maincpu->pc(), m_display_counter);\n\n\tif (BIT(m_display_position_interrupt_control, IRQ2CTRL_LOAD_RELATIVE))\n\t{\n\t\tLOGMASKED(LOG_VIDEO_SYSTEM, \"AUTOLOAD_RELATIVE \");\n\t\tadjust_display_position_interrupt_timer();\n\t}"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.adjust_display_position_interrupt_timer",
+      "label": "Handler",
+      "props": {
+        "method": "adjust_display_position_interrupt_timer",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 760,
+        "sourceColumn": 1,
+        "sourceEndLine": 766,
+        "sourceConstants": [
+          "NEOGEO_PIXEL_CLOCK=6000000",
+          "NEOGEO_HTOTAL=384"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "attotime period = attotime::from_ticks((uint64_t)m_display_counter + 1, NEOGEO_PIXEL_CLOCK);\n\tLOGMASKED(LOG_VIDEO_SYSTEM, \"adjust_display_position_interrupt_timer  current y: %02x  current x: %02x   target y: %x  target x: %x\\n\", m_screen->vpos(), m_screen->hpos(), (m_display_counter + 1) / NEOGEO_HTOTAL, (m_display_counter + 1) % NEOGEO_HTOTAL);\n\n\tm_display_position_interrupt_timer->adjust(period);"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.acknowledge_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "acknowledge_interrupt",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 805,
+        "sourceColumn": 1,
+        "sourceEndLine": 815,
+        "sourceParameters": "uint16_t data",
+        "sourceBody": "if (BIT(data, 0))\n\t\tm_irq3_pending = 0;\n\tif (BIT(data, 1))\n\t\tm_display_position_interrupt_pending = 0;\n\tif (BIT(data, 2))\n\t\tm_vblank_interrupt_pending = 0;\n\n\tupdate_interrupts();"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.update_interrupts",
+      "label": "Handler",
+      "props": {
+        "method": "update_interrupts",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 797,
+        "sourceColumn": 1,
+        "sourceEndLine": 802,
+        "sourceParameters": "",
+        "sourceBody": "m_maincpu->set_input_line(3, m_irq3_pending ? ASSERT_LINE : CLEAR_LINE);\n\tm_maincpu->set_input_line(m_raster_level, m_display_position_interrupt_pending ? ASSERT_LINE : CLEAR_LINE);\n\tm_maincpu->set_input_line(m_vblank_level, m_vblank_interrupt_pending ? ASSERT_LINE : CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 4063232,
+        "end": 4194303,
+        "raw": "map(0x3e0000, 0x3fffff).r(FUNC(neogeo_base_state::unmapped_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1718,
+        "sourceColumn": 2,
+        "sourceEndLine": 1718
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.base_main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 4194304,
+        "end": 4202495,
+        "raw": "map(0x400000, 0x401fff).mirror(0x3fe000).rw(FUNC(neogeo_base_state::paletteram_r), FUNC(neogeo_base_state::paletteram_w))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1719,
+        "sourceColumn": 2,
+        "sourceEndLine": 1719,
+        "mirror": 4186112
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.paletteram_r",
+      "label": "Handler",
+      "props": {
+        "method": "paletteram_r",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 89,
+        "sourceColumn": 1,
+        "sourceEndLine": 92,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "return m_paletteram[m_palette_bank + offset];"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.paletteram_w",
+      "label": "Handler",
+      "props": {
+        "method": "paletteram_w",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 95,
+        "sourceColumn": 1,
+        "sourceEndLine": 114,
+        "sourceParameters": "offs_t offset, uint16_t data",
+        "sourceBody": "offset += m_palette_bank;\n\tm_paletteram[offset] = data;\n\n\tuint8_t const dark = data >> 15;\n\tuint8_t const r = ((data >> 14) & 0x1) | ((data >> 7) & 0x1e);\n\tuint8_t const g = ((data >> 13) & 0x1) | ((data >> 3) & 0x1e);\n\tuint8_t const b = ((data >> 12) & 0x1) | ((data << 1) & 0x1e);\n\n\tm_palette->set_pen_color(offset,\n\t\t\t\t\t\t\t\tm_palette_lookup[r][dark],\n\t\t\t\t\t\t\t\tm_palette_lookup[g][dark],\n\t\t\t\t\t\t\t\tm_palette_lookup[b][dark]); // normal\n\n\tm_palette->set_pen_color(offset + 0x2000,\n\t\t\t\t\t\t\t\tm_palette_lookup[r][dark+2],\n\t\t\t\t\t\t\t\tm_palette_lookup[g][dark+2],\n\t\t\t\t\t\t\t\tm_palette_lookup[b][dark+2]); // shadow"
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "ngarcade_base_state",
+        "name": "neogeo_main_map",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1722,
+        "sourceColumn": 1,
+        "sourceEndLine": 1737,
+        "calls": [
+          "base_main_map"
+        ]
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 127,
+        "raw": "map(0x000000, 0x00007f).r(FUNC(ngarcade_base_state::banked_vectors_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1726,
+        "sourceColumn": 2,
+        "sourceEndLine": 1726
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.banked_vectors_r",
+      "label": "Handler",
+      "props": {
+        "method": "banked_vectors_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1689,
+        "sourceColumn": 1,
+        "sourceEndLine": 1701,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (!m_use_cart_vectors)\n\t{\n\t\tuint16_t* bios = (uint16_t*)m_region_mainbios->base();\n\t\treturn bios[offset];\n\t}\n\telse\n\t{\n\t\tuint16_t* rom = (m_slots[m_curr_slot] && m_slots[m_curr_slot]->get_rom_size() > 0) ? m_slots[m_curr_slot]->get_rom_base() : m_region_maincpu ? (uint16_t*)m_region_maincpu->base() : m_share_maincpu;\n\t\treturn rom[offset];\n\t}"
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1048576,
+        "end": 1114111,
+        "raw": "map(0x100000, 0x10ffff).mirror(0x0f0000).ram()",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1727,
+        "sourceColumn": 2,
+        "sourceEndLine": 1727,
+        "mirror": 983040,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 3145729,
+        "end": 3145729,
+        "raw": "map(0x300001, 0x300001).mirror(0x01fffe).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1729,
+        "sourceColumn": 2,
+        "sourceEndLine": 1729,
+        "mirror": 131070
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1729,
+        "sourceColumn": 2,
+        "sourceEndLine": 1729
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 3145856,
+        "end": 3145857,
+        "raw": "map(0x300080, 0x300081).mirror(0x01ff7e).portr(\"TEST\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1730,
+        "sourceColumn": 2,
+        "sourceEndLine": 1730,
+        "mirror": 130942,
+        "portRead": "TEST"
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 3276800,
+        "end": 3276801,
+        "raw": "map(0x320000, 0x320001).mirror(0x01fffe).portr(\"AUDIO_COIN\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1731,
+        "sourceColumn": 2,
+        "sourceEndLine": 1731,
+        "mirror": 131070,
+        "portRead": "AUDIO_COIN"
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 3670016,
+        "end": 3670017,
+        "raw": "map(0x380000, 0x380001).mirror(0x01fffe).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1732,
+        "sourceColumn": 2,
+        "sourceEndLine": 1732,
+        "mirror": 131070,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388608,
+        "end": 8392703,
+        "raw": "map(0x800000, 0x800fff).r(FUNC(ngarcade_base_state::unmapped_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1733,
+        "sourceColumn": 2,
+        "sourceEndLine": 1733
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.unmapped_r",
+      "label": "Handler",
+      "props": {
+        "method": "unmapped_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1016,
+        "sourceColumn": 1,
+        "sourceEndLine": 1033,
+        "sourceParameters": "address_space &space",
+        "sourceBody": "uint16_t ret;\n\n\t/* unmapped memory returns the last word on the data bus, which is almost always the opcode\n\t   of the next instruction due to prefetch */\n\n\t/* prevent recursion */\n\tif (m_recurse)\n\t\tret = 0xffff;\n\telse\n\t{\n\t\tm_recurse = true;\n\t\tret = space.read_word(m_maincpu->pc());\n\t\tm_recurse = false;\n\t}\n\treturn ret;"
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 12582912,
+        "end": 12713983,
+        "raw": "map(0xc00000, 0xc1ffff).mirror(0x0e0000).rom().region(\"mainbios\", 0)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1734,
+        "sourceColumn": 2,
+        "sourceEndLine": 1734,
+        "mirror": 917504,
+        "rom": true,
+        "region": "mainbios",
+        "regionOffset": 0
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 13631488,
+        "end": 13697023,
+        "raw": "map(0xd00000, 0xd0ffff).mirror(0x0f0000).ram().w(FUNC(ngarcade_base_state::save_ram_w)).share(\"saveram\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1735,
+        "sourceColumn": 2,
+        "sourceEndLine": 1735,
+        "mirror": 983040,
+        "ram": true,
+        "share": "saveram"
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.save_ram_w",
+      "label": "Handler",
+      "props": {
+        "method": "save_ram_w",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1049,
+        "sourceColumn": 1,
+        "sourceEndLine": 1053,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "if (m_save_ram_unlocked)\n\t\tCOMBINE_DATA(&m_save_ram[offset]);"
+      }
+    },
+    {
+      "id": "map:ngarcade_base_state.neogeo_main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 14680064,
+        "end": 16777215,
+        "raw": "map(0xe00000, 0xffffff).r(FUNC(ngarcade_base_state::unmapped_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1736,
+        "sourceColumn": 2,
+        "sourceEndLine": 1736
+      }
+    },
+    {
+      "id": "handler:ng_memcard_device.present",
+      "label": "Handler",
+      "props": {
+        "method": "present",
+        "ownerClass": "ng_memcard_device",
+        "sourceFile": "src/mame/snk/ng_memcard.h",
+        "sourceLine": 37,
+        "sourceColumn": 26,
+        "sourceEndLine": 39,
+        "sourceParameters": "",
+        "sourceBody": "return is_loaded();"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "neogeo_base_state",
+        "name": "audio_map",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1777,
+        "sourceColumn": 1,
+        "sourceEndLine": 1785
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).bankr(m_bank_audio_main)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1779,
+        "sourceColumn": 2,
+        "sourceEndLine": 1779,
+        "bankRead": "audio_main"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 49151,
+        "raw": "map(0x8000, 0xbfff).bankr(\"audio_8000\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1780,
+        "sourceColumn": 2,
+        "sourceEndLine": 1780,
+        "bankRead": "audio_8000"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 57343,
+        "raw": "map(0xc000, 0xdfff).bankr(\"audio_c000\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1781,
+        "sourceColumn": 2,
+        "sourceEndLine": 1781,
+        "bankRead": "audio_c000"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 61439,
+        "raw": "map(0xe000, 0xefff).bankr(\"audio_e000\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1782,
+        "sourceColumn": 2,
+        "sourceEndLine": 1782,
+        "bankRead": "audio_e000"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 63487,
+        "raw": "map(0xf000, 0xf7ff).bankr(\"audio_f000\")",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1783,
+        "sourceColumn": 2,
+        "sourceEndLine": 1783,
+        "bankRead": "audio_f000"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 63488,
+        "end": 65535,
+        "raw": "map(0xf800, 0xffff).ram()",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1784,
+        "sourceColumn": 2,
+        "sourceEndLine": 1784,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "neogeo_base_state",
+        "name": "audio_io_map",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1795,
+        "sourceColumn": 1,
+        "sourceEndLine": 1802
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).mirror(0xff00).rw(m_soundlatch, FUNC(generic_latch_8_device::read), FUNC(generic_latch_8_device::clear_w))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1797,
+        "sourceColumn": 2,
+        "sourceEndLine": 1797,
+        "mirror": 65280
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1797,
+        "sourceColumn": 2,
+        "sourceEndLine": 1797
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.clear_w",
+      "label": "Handler",
+      "props": {
+        "method": "clear_w",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1797,
+        "sourceColumn": 2,
+        "sourceEndLine": 1797
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_io_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4,
+        "end": 7,
+        "raw": "map(0x04, 0x07).mirror(0xff00).rw(m_ym, FUNC(ym2610_device::read), FUNC(ym2610_device::write))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1798,
+        "sourceColumn": 2,
+        "sourceEndLine": 1798,
+        "mirror": 65280
+      }
+    },
+    {
+      "id": "handler:ym2610_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2610_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1798,
+        "sourceColumn": 2,
+        "sourceEndLine": 1798
+      }
+    },
+    {
+      "id": "handler:ym2610_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2610_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1798,
+        "sourceColumn": 2,
+        "sourceEndLine": 1798
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_io_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 8,
+        "end": 8,
+        "raw": "map(0x08, 0x08).mirror(0xff00).select(0x0010).w(FUNC(neogeo_base_state::audio_cpu_enable_nmi_w))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1799,
+        "sourceColumn": 2,
+        "sourceEndLine": 1799,
+        "mirror": 65280
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.audio_cpu_enable_nmi_w",
+      "label": "Handler",
+      "props": {
+        "method": "audio_cpu_enable_nmi_w",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 885,
+        "sourceColumn": 1,
+        "sourceEndLine": 889,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "// out ($08) enables the nmi, out ($18) disables it\n\tm_audionmi->in_w<1>(BIT(~offset, 4));"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_io_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 8,
+        "end": 11,
+        "raw": "map(0x08, 0x0b).mirror(0x00f0).select(0xff00).r(FUNC(neogeo_base_state::audio_cpu_bank_select_r))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1800,
+        "sourceColumn": 2,
+        "sourceEndLine": 1800,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.audio_cpu_bank_select_r",
+      "label": "Handler",
+      "props": {
+        "method": "audio_cpu_bank_select_r",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1112,
+        "sourceColumn": 1,
+        "sourceEndLine": 1118,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (!machine().side_effects_disabled())\n\t\tm_bank_audio_cart[offset & 3]->set_entry(offset >> 8);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "map:neogeo_base_state.audio_io_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 12,
+        "end": 12,
+        "raw": "map(0x0c, 0x0c).mirror(0xff00).w(m_soundlatch2, FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1801,
+        "sourceColumn": 2,
+        "sourceEndLine": 1801,
+        "mirror": 65280
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1801,
+        "sourceColumn": 2,
+        "sourceEndLine": 1801
+      }
+    },
+    {
+      "id": "machine:neogeo_base_state.neogeo_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "neogeo_base_state",
+        "name": "neogeo_base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_vblank_level\",\"bits\":8}",
+          "{\"name\":\"m_raster_level\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_vectors\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_audio\",\"bits\":8}",
+          "{\"name\":\"m_card_bank\",\"bits\":8}",
+          "{\"name\":\"m_bank_base\",\"bits\":32}",
+          "{\"name\":\"m_curr_slot\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_recurse\",\"bits\":1}",
+          "{\"name\":\"m_display_counter\",\"bits\":32}",
+          "{\"name\":\"m_vblank_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_irq3_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_control\",\"bits\":8}",
+          "{\"name\":\"m_screen_shadow\",\"bits\":1}",
+          "{\"name\":\"m_palette_bank\",\"bits\":32}"
+        ],
+        "resetHandlers": [
+          "neogeo_base_state.machine_reset"
+        ],
+        "startHandlers": [
+          "neogeo_base_state.video_start"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1921,
+        "sourceColumn": 1,
+        "sourceEndLine": 1962
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1659,
+        "sourceColumn": 1,
+        "sourceEndLine": 1671,
+        "sourceParameters": "",
+        "sourceBody": "// disable audiocpu NMI\n\tm_audionmi->in_w<1>(0);\n\tm_soundlatch->acknowledge_w();\n\n\tstart_interrupt_timers();\n\n\t// trigger the IRQ3 that was set by MACHINE_START\n\tupdate_interrupts();\n\n\tm_recurse = false;"
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1673,
+        "sourceColumn": 1,
+        "sourceEndLine": 1679,
+        "sourceParameters": "",
+        "sourceBody": "neogeo_base_state::machine_reset();\n\n\tmachine().bookkeeping().coin_lockout_w(0, 1);\n\tmachine().bookkeeping().coin_lockout_w(1, 1);"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.start_interrupt_timers",
+      "label": "Handler",
+      "props": {
+        "method": "start_interrupt_timers",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 871,
+        "sourceColumn": 1,
+        "sourceEndLine": 875,
+        "sourceConstants": [
+          "NEOGEO_VBSTART=240"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "m_vblank_interrupt_timer->adjust(m_screen->time_until_pos(NEOGEO_VBSTART) + NEOGEO_VBLANK_IRQ_HTIM);\n\tm_display_position_vblank_timer->adjust(m_screen->time_until_pos(NEOGEO_VBSTART) + NEOGEO_VBLANK_RELOAD_HTIM);"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 123,
+        "sourceColumn": 1,
+        "sourceEndLine": 137,
+        "sourceParameters": "",
+        "sourceBody": "create_rgb_lookups();\n\n\tm_paletteram.resize(0x1000 * 2, 0);\n\n\tm_screen_shadow = false;\n\tm_palette_bank = 0;\n\n\tsave_item(NAME(m_paletteram));\n\tsave_item(NAME(m_screen_shadow));\n\tsave_item(NAME(m_palette_bank));\n\n\tset_pens();"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.create_rgb_lookups",
+      "label": "Handler",
+      "props": {
+        "method": "create_rgb_lookups",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 23,
+        "sourceColumn": 1,
+        "sourceEndLine": 65,
+        "sourceParameters": "",
+        "sourceBody": "/* compute four sets of weights - with or without the pulldowns -\n\t   ensuring that we use the same scaler for all */\n\tdouble weights_normal[5];\n\tdouble scaler = compute_resistor_weights(0, 255, -1,\n\t\t\t\t\t\t\t\t\t\t\t5, resistances, weights_normal, 0, 0,\n\t\t\t\t\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0,\n\t\t\t\t\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0);\n\n\tdouble weights_dark[5];\n\tcompute_resistor_weights(0, 255, scaler,\n\t\t\t\t\t\t\t5, resistances, weights_dark, 8200, 0,\n\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0,\n\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0);\n\n\tdouble weights_shadow[5];\n\tcompute_resistor_weights(0, 255, scaler,\n\t\t\t\t\t\t\t5, resistances, weights_shadow, 150, 0,\n\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0,\n\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0);\n\n\tdouble weights_dark_shadow[5];\n\tcompute_resistor_weights(0, 255, scaler,\n\t\t\t\t\t\t\t5, resistances, weights_dark_shadow, 1.0 / ((1.0 / 8200) + (1.0 / 150)), 0,\n\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0,\n\t\t\t\t\t\t\t0, nullptr, nullptr, 0, 0);\n\n\tfor (int i = 0; i < 32; i++)\n\t{\n\t\tint const i4 = BIT(i, 4);\n\t\tint const i3 = BIT(i, 3);\n\t\tint const i2 = BIT(i, 2);\n\t\tint const i1 = BIT(i, 1);\n\t\tint const i0 = BIT(i, 0);\n\t\tm_palette_lookup[i][0] = combine_weights(weights_normal, i0, i1, i2, i3, i4);\n\t\tm_palette_lookup[i][1] = combine_weights(weights_dark, i0, i1, i2, i3, i4);\n\t\tm_palette_lookup[i][2] = combine_weights(weights_shadow, i0, i1, i2, i3, i4);\n\t\tm_palette_lookup[i][3] = combine_weights(weights_dark_shadow, i0, i1, i2, i3, i4);\n\t}"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_pens",
+      "label": "Handler",
+      "props": {
+        "method": "set_pens",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 67,
+        "sourceColumn": 1,
+        "sourceEndLine": 72,
+        "sourceParameters": "",
+        "sourceBody": "const pen_t *pen_base = m_palette->pens() + m_palette_bank + (m_screen_shadow ? 0x2000 : 0);\n\tm_sprgen->set_pens(pen_base);\n\tm_bg_pen = pen_base + 0xfff;"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M68000",
+        "tag": "maincpu",
+        "clock": 12000000,
+        "config": [
+          "M68000(config, m_maincpu, NEOGEO_MAIN_CPU_CLOCK)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1924,
+        "sourceColumn": 2,
+        "sourceEndLine": 1924
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 4000000,
+        "config": [
+          "Z80(config, m_audiocpu, NEOGEO_AUDIO_CPU_CLOCK)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &neogeo_base_state::audio_map)",
+          "m_audiocpu->set_addrmap(AS_IO, &neogeo_base_state::audio_io_map)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1926,
+        "sourceColumn": 2,
+        "sourceEndLine": 1926
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/systemlatch",
+      "label": "Device",
+      "props": {
+        "type": "HC259",
+        "tag": "systemlatch",
+        "clock": null,
+        "config": [
+          "HC259(config, m_systemlatch)",
+          "m_systemlatch->q_out_cb<0>().set(FUNC(neogeo_base_state::set_screen_shadow))",
+          "m_systemlatch->q_out_cb<1>().set(FUNC(neogeo_base_state::set_use_cart_vectors))",
+          "m_systemlatch->q_out_cb<2>().set_nop()",
+          "m_systemlatch->q_out_cb<3>().set_nop()",
+          "m_systemlatch->q_out_cb<4>().set_nop()",
+          "m_systemlatch->q_out_cb<7>().set(FUNC(neogeo_base_state::set_palette_bank))",
+          "m_systemlatch->q_out_cb<5>().set(FUNC(ngarcade_base_state::set_use_cart_audio))",
+          "m_systemlatch->q_out_cb<6>().set(FUNC(ngarcade_base_state::set_save_ram_unlock))",
+          "m_systemlatch->q_out_cb<2>().set(m_memcard, FUNC(ng_memcard_device::lock1_w))",
+          "m_systemlatch->q_out_cb<3>().set(m_memcard, FUNC(ng_memcard_device::unlock2_w))",
+          "m_systemlatch->q_out_cb<4>().set(m_memcard, FUNC(ng_memcard_device::regsel_w))"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1930,
+        "sourceColumn": 2,
+        "sourceEndLine": 1930
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<0>().set(FUNC(neogeo_base_state::set_screen_shadow))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1931,
+        "sourceColumn": 2,
+        "sourceEndLine": 1931,
+        "slot": "0",
+        "targetClass": "neogeo_base_state",
+        "targetMethod": "set_screen_shadow"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_screen_shadow",
+      "label": "Handler",
+      "props": {
+        "method": "set_screen_shadow",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 75,
+        "sourceColumn": 1,
+        "sourceEndLine": 79,
+        "sourceParameters": "int state",
+        "sourceBody": "m_screen_shadow = state;\n\tset_pens();"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<1>().set(FUNC(neogeo_base_state::set_use_cart_vectors))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1932,
+        "sourceColumn": 2,
+        "sourceEndLine": 1932,
+        "slot": "1",
+        "targetClass": "neogeo_base_state",
+        "targetMethod": "set_use_cart_vectors"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_use_cart_vectors",
+      "label": "Handler",
+      "props": {
+        "method": "set_use_cart_vectors",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1127,
+        "sourceColumn": 1,
+        "sourceEndLine": 1130,
+        "sourceParameters": "int state",
+        "sourceBody": "m_use_cart_vectors = state;"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<7>().set(FUNC(neogeo_base_state::set_palette_bank))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1936,
+        "sourceColumn": 2,
+        "sourceEndLine": 1936,
+        "slot": "7",
+        "targetClass": "neogeo_base_state",
+        "targetMethod": "set_palette_bank"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.set_palette_bank",
+      "label": "Handler",
+      "props": {
+        "method": "set_palette_bank",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 82,
+        "sourceColumn": 1,
+        "sourceEndLine": 86,
+        "sourceParameters": "int state",
+        "sourceBody": "m_palette_bank = state ? 0x1000 : 0;\n\tset_pens();"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(NEOGEO_PIXEL_CLOCK, NEOGEO_HTOTAL, NEOGEO_HBEND, NEOGEO_HBSTART, NEOGEO_VTOTAL, NEOGEO_VBEND, NEOGEO_VBSTART)",
+          "m_screen->set_screen_update(FUNC(neogeo_base_state::screen_update))"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1941,
+        "sourceColumn": 2,
+        "sourceEndLine": 1941,
+        "configCalls": [
+          "set_raw(6000000,384,28,348,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          28,
+          348,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "NEOGEO_PIXEL_CLOCK",
+          "NEOGEO_HTOTAL",
+          "NEOGEO_HBEND",
+          "NEOGEO_HBSTART",
+          "NEOGEO_VTOTAL",
+          "NEOGEO_VBEND",
+          "NEOGEO_VBSTART"
+        ]
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(neogeo_base_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1943,
+        "sourceColumn": 2,
+        "sourceEndLine": 1943,
+        "targetClass": "neogeo_base_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo_v.cpp",
+        "sourceLine": 157,
+        "sourceColumn": 1,
+        "sourceEndLine": 167,
+        "sourceParameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// fill with background color first\n\tbitmap.fill(*m_bg_pen, cliprect);\n\n\tm_sprgen->draw_sprites(bitmap, cliprect.min_y);\n\n\tm_sprgen->draw_fixed_layer(bitmap, cliprect.min_y);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 283,
+        "sourceColumn": 1,
+        "sourceEndLine": 459,
+        "sourceConstants": [
+          "NEOGEO_HBEND=28"
+        ],
+        "sourceParameters": "bitmap_rgb32 &bitmap, int scanline",
+        "sourceBody": "int max_sprite_index;\n\tint y = 0;\n\tint x = 0;\n\tint rows = 0;\n\tint zoom_y = 0;\n\tint zoom_x = 0;\n\tu16 *sprite_list;\n\n\t/* select the active list */\n\tif (BIT(scanline, 0))\n\t\tsprite_list = &m_videoram_drawsource[0x8680];\n\telse\n\t\tsprite_list = &m_videoram_drawsource[0x8600];\n\n\t/* optimization -- find last non-zero entry and only draw that many +1\n\t   sprite.  This is not 100% correct as the hardware will keep drawing\n\t   the #0 sprite over and over, but we need the speed */\n\tfor (max_sprite_index = (MAX_SPRITES_PER_LINE - 1); max_sprite_index >= 0; max_sprite_index--)\n\t{\n\t\tif (sprite_list[max_sprite_index] != 0)\n\t\t\tbreak;\n\t}\n\n\t/* add the +1 now, just in case the 0 at the end is real sprite */\n\tif (max_sprite_index != (MAX_SPRITES_PER_LINE - 1))\n\t\tmax_sprite_index = max_sprite_index + 1;\n\n\tfor (int sprite_index = 0; sprite_index <= max_sprite_index; sprite_index++)\n\t{\n\t\tconst u16 sprite_number = sprite_list[sprite_index] & 0x01ff;\n\t\tconst u16 y_control = m_videoram_drawsource[0x8200 | sprite_number];\n\t\tconst u16 zoom_control = m_videoram_drawsource[0x8000 | sprite_number];\n\n\t\t/* if chained, go to next X coordinate and get new X zoom */\n\t\tif (BIT(y_control, 6))\n\t\t{\n\t\t\tx = (x + zoom_x + 1) & 0x01ff;\n\t\t\tzoom_x = (zoom_control >> 8) & 0x0f;\n\t\t}\n\t\t/* new block */\n\t\telse\n\t\t{\n\t\t\ty = 0x200 - (y_control >> 7);\n\t\t\tx = m_videoram_drawsource[0x8400 | sprite_number] >> 7;\n\n\t\t\tzoom_y = (zoom_control & 0xff);\n\n\t\t\tzoom_x = (zoom_control >> 8) & 0x0f;\n\t\t\trows = y_control & 0x3f;\n\t\t}\n\n\t\t/* skip if falls completely outside the screen */\n\t\tif ((x >= 0x140) && (x <= 0x1f0))\n\t\t\tcontinue;\n\n\t\t/* double check the Y coordinate, in case somebody modified the sprite coordinate\n\t\t   since we buffered it */\n\t\tif (sprite_on_scanline(scanline, y, rows))\n\t\t{\n\t\t\tconst int sprite_line = (scanline - y) & 0x1ff;\n\t\t\tint zoom_line = sprite_line & 0xff;\n\t\t\tbool invert = BIT(sprite_line, 8);\n\n\t\t\tif (invert)\n\t\t\t\tzoom_line ^= 0xff;\n\n\t\t\tif (rows > 0x20)\n\t\t\t{\n\t\t\t\tzoom_line = zoom_line % ((zoom_y + 1) << 1);\n\n\t\t\t\tif (zoom_line > zoom_y)\n\t\t\t\t{\n\t\t\t\t\tzoom_line = ((zoom_y + 1) << 1) - 1 - zoom_line;\n\t\t\t\t\tinvert = !invert;\n\t\t\t\t}\n\t\t\t}\n\n\t\t\tconst u8 sprite_y_and_tile = m_region_zoomy[(zoom_y << 8) | zoom_line];\n\n\t\t\tint sprite_y = sprite_y_and_tile & 0x0f;\n\t\t\tint tile = sprite_y_and_tile >> 4;\n\n\t\t\tif (invert)\n\t\t\t{\n\t\t\t\tsprite_y ^= 0x0f;\n\t\t\t\ttile ^= 0x1f;\n\t\t\t}\n\n\t\t\tconst offs_t attr_and_code_offs = (sprite_number << 6) | (tile << 1);\n\t\t\tconst u16 attr = m_videoram_drawsource[attr_and_code_offs + 1];\n\t\t\tu32 code = ((attr << 12) & 0xf0000) | m_videoram_drawsource[attr_and_code_offs];\n\n\t\t\t/* substitute auto animation bits */\n\t\t\tif (!m_auto_animation_disabled)\n\t\t\t{\n\t\t\t\tif (BIT(attr, 3))\n\t\t\t\t\tcode = (code & ~0x07) | (m_auto_animation_counter & 0x07);\n\t\t\t\telse if (BIT(attr, 2))\n\t\t\t\t\tcode = (code & ~0x03) | (m_auto_animation_counter & 0x03);\n\t\t\t}\n\n\t\t\t/* vertical flip? */\n\t\t\tif (BIT(attr, 1))\n\t\t\t\tsprite_y ^= 0x0f;\n\n\t\t\tu16 zoom_x_table = TABLE(zoom_x, 0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa, 0xaaea, 0xbaea, 0xbaeb, 0xbbeb, 0xbbef, 0xfbef, 0xfbff, 0xffff);\n\n\t\t\t/* compute offset in gfx ROM and mask it to the number of bits available */\n\t\t\tint gfx_base = ((code << 8) | (sprite_y << 4)) & m_sprite_gfx_address_mask;\n\n\t\t\tconst pen_t *line_pens = &m_pens[attr >> 8 << m_bppshift];\n\n\t\t\tint x_inc;\n\n\t\t\t/* horizontal flip? */\n\t\t\tif (BIT(attr, 0))\n\t\t\t{\n\t\t\t\tgfx_base = gfx_base + 0x0f;\n\t\t\t\tx_inc = -1;\n\t\t\t}\n\t\t\telse\n\t\t\t\tx_inc = 1;\n\n\t\t\t/* draw the line - no wrap-around */\n\t\t\tif (x <= 0x01f0)\n\t\t\t{\n\t\t\t\tu32 *pixel_addr = &bitmap.pix(scanline, x + NEOGEO_HBEND);\n\n\t\t\t\tfor (int i = 0; i < 0x10; i++)\n\t\t\t\t{\n\t\t\t\t\tif (BIT(zoom_x_table, 15))\n\t\t\t\t\t{\n\t\t\t\t\t\tdraw_pixel(gfx_base, pixel_addr, line_pens);\n\n\t\t\t\t\t\tpixel_addr++;\n\t\t\t\t\t}\n\n\t\t\t\t\tzoom_x_table <<= 1;\n\t\t\t\t\tif (zoom_x_table == 0)\n\t\t\t\t\t\tbreak;\n\n\t\t\t\t\tgfx_base += x_inc;\n\t\t\t\t}\n\t\t\t}\n\t\t\t/* wrap-around */\n\t\t\telse\n\t\t\t{\n\t\t\t\tconst int x_save = x;\n\t\t\t\tu32 *pixel_addr = &bitmap.pix(scanline, NEOGEO_HBEND);\n\n\t\t\t\tfor (int i = 0; i < 0x10; i++)\n\t\t\t\t{\n\t\t\t\t\tif (BIT(zoom_x_table, 15))\n\t\t\t\t\t{\n\t\t\t\t\t\tif (x >= 0x200)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tdraw_pixel(gfx_base, pixel_addr, line_pens);\n\n\t\t\t\t\t\t\tpixel_addr++;\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\tx++;\n\t\t\t\t\t}\n\n\t\t\t\t\tzoom_x_table <<= 1;\n\t\t\t\t\tif (zoom_x_table == 0)\n\t\t\t\t\t\tbreak;\n\n\t\t\t\t\tgfx_base += x_inc;\n\t\t\t\t}\n\t\t\t\tx = x_save;\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.sprite_on_scanline",
+      "label": "Handler",
+      "props": {
+        "method": "sprite_on_scanline",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 277,
+        "sourceColumn": 1,
+        "sourceEndLine": 280,
+        "sourceParameters": "int scanline, int y, int rows",
+        "sourceBody": "return (rows == 0) || (rows >= 0x20) || ((scanline - y) & 0x1ff) < (rows * 0x10);"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.draw_fixed_layer",
+      "label": "Handler",
+      "props": {
+        "method": "draw_fixed_layer",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 180,
+        "sourceColumn": 1,
+        "sourceEndLine": 245,
+        "sourceConstants": [
+          "NEOGEO_HBEND=28",
+          "FIX_BANKTYPE_GAROU=1",
+          "FIX_BANKTYPE_KOF2000=2"
+        ],
+        "sourceParameters": "bitmap_rgb32 &bitmap, int scanline",
+        "sourceBody": "assert((m_fixed_layer_source && m_region_fixed != nullptr) || (m_region_fixedbios != nullptr));\n\n\tu8* gfx_base = m_fixed_layer_source ? m_region_fixed : m_region_fixedbios->base();\n\tconst u32 addr_mask = ( m_fixed_layer_source ? m_region_fixed_size : m_region_fixedbios->bytes() ) - 1;\n\tconst u16 *video_data = &m_videoram_drawsource[0x7000 | (scanline >> 3)];\n\tu32 *pixel_addr = &bitmap.pix(scanline, NEOGEO_HBEND);\n\n\tint garouoffsets[34]{};\n\tconst bool banked = m_fixed_layer_source && (addr_mask > 0x1ffff);\n\n\t/* thanks to Mr K for the garou & kof2000 banking info */\n\t/* Build line banking table for Garou & MS3 before starting render */\n\tif (banked && m_fixed_layer_bank_type == FIX_BANKTYPE_GAROU)\n\t{\n\t\tint garoubank = 0;\n\t\tint k = 0;\n\t\tint y = 0;\n\t\twhile (y < 32)\n\t\t{\n\t\t\tif (m_videoram_drawsource[0x7500 + k] == 0x0200 && (m_videoram_drawsource[0x7580 + k] & 0xff00) == 0xff00)\n\t\t\t{\n\t\t\t\tgaroubank = m_videoram_drawsource[0x7580 + k] & 3;\n\t\t\t\tgarouoffsets[y++] = garoubank;\n\t\t\t}\n\t\t\tgarouoffsets[y++] = garoubank;\n\t\t\tk += 2;\n\t\t}\n\t}\n\n\tfor (int x = 0; x < 40; x++)\n\t{\n\t\tconst u16 code_and_palette = *video_data;\n\t\tu16 code = code_and_palette & 0x0fff;\n\n\t\tif (banked)\n\t\t{\n\t\t\tint y = scanline >> 3;\n\t\t\tswitch (m_fixed_layer_bank_type)\n\t\t\t{\n\t\t\tcase FIX_BANKTYPE_GAROU:\n\t\t\t\t/* Garou, MSlug 3 */\n\t\t\t\tcode += 0x1000 * (garouoffsets[(y - 2) & 31] ^ 3);\n\t\t\t\tbreak;\n\t\t\tcase FIX_BANKTYPE_KOF2000:\n\t\t\t\tcode += 0x1000 * (((m_videoram_drawsource[0x7500 + ((y - 1) & 31) + 32 * (x / 6)] >> (5 - (x % 6)) * 2) & 3) ^ 3);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t{\n\t\t\tconst int gfx_offset = ((code << 5) | (scanline & 0x07)) & addr_mask;\n\n\t\t\tconst pen_t *char_pens = &m_pens[code_and_palette >> 12 << m_bppshift];\n\n\t\t\t\n\n\t\t\tfor (int i = 0; i < 4; i++)\n\t\t\t{\n\t\t\t\tdraw_fixed_layer_2pixels(pixel_addr, gfx_offset + TABLE(i, 0x10, 0x18, 0x00, 0x08), gfx_base, char_pens);\n\t\t\t}\n\t\t}\n\t\tvideo_data = video_data + 0x20;\n\t}"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.draw_fixed_layer_2pixels",
+      "label": "Handler",
+      "props": {
+        "method": "draw_fixed_layer_2pixels",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 248,
+        "sourceColumn": 1,
+        "sourceEndLine": 260,
+        "sourceParameters": "u32*&pixel_addr, int offset, u8* gfx_base, const pen_t* char_pens",
+        "sourceBody": "const u8 data = gfx_base[offset];\n\n\tif (data & 0x0f)\n\t\t*pixel_addr = char_pens[data & 0x0f];\n\tpixel_addr++;\n\n\tif (data & 0xf0)\n\t\t*pixel_addr = char_pens[(data & 0xf0) >> 4];\n\tpixel_addr++;"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, palette_device::BLACK, 4096*2*2)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1946,
+        "sourceColumn": 2,
+        "sourceEndLine": 1946,
+        "clockExpr": "palette_device::BLACK"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/spritegen",
+      "label": "Device",
+      "props": {
+        "type": "NEOGEO_SPRITE_OPTIMZIED",
+        "tag": "spritegen",
+        "clock": null,
+        "config": [
+          "NEOGEO_SPRITE_OPTIMZIED(config, m_sprgen).set_screen(m_screen)"
+        ],
+        "cls": "neosprite_optimized_device",
+        "clsHierarchy": [
+          "neosprite_optimized_device",
+          "neosprite_base_device"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1948,
+        "sourceColumn": 2,
+        "sourceEndLine": 1948
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/audionmi",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ALL_HIGH",
+        "tag": "audionmi",
+        "clock": null,
+        "config": [
+          "INPUT_MERGER_ALL_HIGH(config, m_audionmi)",
+          "m_audionmi->output_handler().set_inputline(m_audiocpu, INPUT_LINE_NMI)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1951,
+        "sourceColumn": 2,
+        "sourceEndLine": 1951
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/audionmi/callback:audionmi:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set_inputline",
+        "raw": "m_audionmi->output_handler().set_inputline(m_audiocpu, INPUT_LINE_NMI)",
+        "ownerTag": "audionmi",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1952,
+        "sourceColumn": 2,
+        "sourceEndLine": 1952,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch)",
+          "m_soundlatch->set_separate_acknowledge(false)",
+          "m_soundlatch->data_pending_callback().set(m_audionmi, FUNC(input_merger_device::in_w<0>))"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1954,
+        "sourceColumn": 2,
+        "sourceEndLine": 1954
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/soundlatch/callback:soundlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set",
+        "raw": "m_soundlatch->data_pending_callback().set(m_audionmi, FUNC(input_merger_device::in_w<0>))",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1956,
+        "sourceColumn": 2,
+        "sourceEndLine": 1956,
+        "targetClass": "input_merger_device",
+        "targetMethod": "in_w_0",
+        "targetTag": "audionmi"
+      }
+    },
+    {
+      "id": "handler:input_merger_device.in_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_0",
+        "ownerClass": "input_merger_device",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1956,
+        "sourceColumn": 2,
+        "sourceEndLine": 1956
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/soundlatch2",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch2",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch2)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1958,
+        "sourceColumn": 2,
+        "sourceEndLine": 1958
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/ymsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM2610",
+        "tag": "ymsnd",
+        "clock": 8000000,
+        "config": [
+          "YM2610(config, m_ym, NEOGEO_YM2610_CLOCK)",
+          "m_ym->irq_handler().set_inputline(m_audiocpu, 0)",
+          "m_ym->add_route(0, \"speaker\", 0.84, 0)",
+          "m_ym->add_route(0, \"speaker\", 0.84, 1)",
+          "m_ym->add_route(1, \"speaker\", 0.98, 0)",
+          "m_ym->add_route(2, \"speaker\", 0.98, 1)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1960,
+        "sourceColumn": 2,
+        "sourceEndLine": 1960
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_base/ymsnd/callback:ymsnd:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set_inputline",
+        "raw": "m_ym->irq_handler().set_inputline(m_audiocpu, 0)",
+        "ownerTag": "ymsnd",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1961,
+        "sourceColumn": 2,
+        "sourceEndLine": 1961,
+        "inputLine": "0",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "machine:neogeo_base_state.neogeo_stereo",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "neogeo_base_state",
+        "name": "neogeo_stereo",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_vblank_level\",\"bits\":8}",
+          "{\"name\":\"m_raster_level\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_vectors\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_audio\",\"bits\":8}",
+          "{\"name\":\"m_card_bank\",\"bits\":8}",
+          "{\"name\":\"m_bank_base\",\"bits\":32}",
+          "{\"name\":\"m_curr_slot\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_recurse\",\"bits\":1}",
+          "{\"name\":\"m_display_counter\",\"bits\":32}",
+          "{\"name\":\"m_vblank_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_irq3_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_control\",\"bits\":8}",
+          "{\"name\":\"m_screen_shadow\",\"bits\":1}",
+          "{\"name\":\"m_palette_bank\",\"bits\":32}"
+        ],
+        "resetHandlers": [
+          "neogeo_base_state.machine_reset"
+        ],
+        "startHandlers": [
+          "neogeo_base_state.video_start"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"ymsnd\",\"config\":[\"m_ym->add_route(0, \\\"speaker\\\", 0.84, 0)\",\"m_ym->add_route(0, \\\"speaker\\\", 0.84, 1)\",\"m_ym->add_route(1, \\\"speaker\\\", 0.98, 0)\",\"m_ym->add_route(2, \\\"speaker\\\", 0.98, 1)\"]}"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1965,
+        "sourceColumn": 1,
+        "sourceEndLine": 1973
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_stereo/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1967,
+        "sourceColumn": 2,
+        "sourceEndLine": 1967
+      }
+    },
+    {
+      "id": "machine:neogeo_base_state.neogeo_memcard",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "neogeo_base_state",
+        "name": "neogeo_memcard",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_vblank_level\",\"bits\":8}",
+          "{\"name\":\"m_raster_level\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_vectors\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_audio\",\"bits\":8}",
+          "{\"name\":\"m_card_bank\",\"bits\":8}",
+          "{\"name\":\"m_bank_base\",\"bits\":32}",
+          "{\"name\":\"m_curr_slot\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_recurse\",\"bits\":1}",
+          "{\"name\":\"m_display_counter\",\"bits\":32}",
+          "{\"name\":\"m_vblank_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_irq3_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_control\",\"bits\":8}",
+          "{\"name\":\"m_screen_shadow\",\"bits\":1}",
+          "{\"name\":\"m_palette_bank\",\"bits\":32}"
+        ],
+        "resetHandlers": [
+          "neogeo_base_state.machine_reset"
+        ],
+        "startHandlers": [
+          "neogeo_base_state.video_start"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"systemlatch\",\"config\":[\"m_systemlatch->q_out_cb<2>().set(m_memcard, FUNC(ng_memcard_device::lock1_w))\",\"m_systemlatch->q_out_cb<3>().set(m_memcard, FUNC(ng_memcard_device::unlock2_w))\",\"m_systemlatch->q_out_cb<4>().set(m_memcard, FUNC(ng_memcard_device::regsel_w))\"]}"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1976,
+        "sourceColumn": 1,
+        "sourceEndLine": 1983
+      }
+    },
+    {
+      "id": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<2>().set(m_memcard, FUNC(ng_memcard_device::lock1_w))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1980,
+        "sourceColumn": 2,
+        "sourceEndLine": 1980,
+        "slot": "2",
+        "targetClass": "ng_memcard_device",
+        "targetMethod": "lock1_w",
+        "targetTag": "memcard"
+      }
+    },
+    {
+      "id": "handler:ng_memcard_device.lock1_w",
+      "label": "Handler",
+      "props": {
+        "method": "lock1_w",
+        "ownerClass": "ng_memcard_device",
+        "sourceFile": "src/mame/snk/ng_memcard.cpp",
+        "sourceLine": 110,
+        "sourceColumn": 1,
+        "sourceEndLine": 113,
+        "sourceParameters": "int state",
+        "sourceBody": "m_lock1 = state;"
+      }
+    },
+    {
+      "id": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<3>().set(m_memcard, FUNC(ng_memcard_device::unlock2_w))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1981,
+        "sourceColumn": 2,
+        "sourceEndLine": 1981,
+        "slot": "3",
+        "targetClass": "ng_memcard_device",
+        "targetMethod": "unlock2_w",
+        "targetTag": "memcard"
+      }
+    },
+    {
+      "id": "handler:ng_memcard_device.unlock2_w",
+      "label": "Handler",
+      "props": {
+        "method": "unlock2_w",
+        "ownerClass": "ng_memcard_device",
+        "sourceFile": "src/mame/snk/ng_memcard.cpp",
+        "sourceLine": 115,
+        "sourceColumn": 1,
+        "sourceEndLine": 118,
+        "sourceParameters": "int state",
+        "sourceBody": "m_unlock2 = state;"
+      }
+    },
+    {
+      "id": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<4>().set(m_memcard, FUNC(ng_memcard_device::regsel_w))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1982,
+        "sourceColumn": 2,
+        "sourceEndLine": 1982,
+        "slot": "4",
+        "targetClass": "ng_memcard_device",
+        "targetMethod": "regsel_w",
+        "targetTag": "memcard"
+      }
+    },
+    {
+      "id": "handler:ng_memcard_device.regsel_w",
+      "label": "Handler",
+      "props": {
+        "method": "regsel_w",
+        "ownerClass": "ng_memcard_device",
+        "sourceFile": "src/mame/snk/ng_memcard.cpp",
+        "sourceLine": 120,
+        "sourceColumn": 1,
+        "sourceEndLine": 123,
+        "sourceParameters": "int state",
+        "sourceBody": "m_regsel = state;"
+      }
+    },
+    {
+      "id": "device:neogeo_base_state.neogeo_memcard/memcard",
+      "label": "Device",
+      "props": {
+        "type": "NG_MEMCARD",
+        "tag": "memcard",
+        "clock": 0,
+        "config": [
+          "NG_MEMCARD(config, m_memcard)"
+        ],
+        "cls": "ng_memcard_device",
+        "clsHierarchy": [
+          "ng_memcard_device"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1978,
+        "sourceColumn": 2,
+        "sourceEndLine": 1978
+      }
+    },
+    {
+      "id": "machine:ngarcade_base_state.neogeo_arcade",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "ngarcade_base_state",
+        "name": "neogeo_arcade",
+        "calls": [
+          "neogeo_base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_vblank_level\",\"bits\":8}",
+          "{\"name\":\"m_raster_level\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_vectors\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_audio\",\"bits\":8}",
+          "{\"name\":\"m_card_bank\",\"bits\":8}",
+          "{\"name\":\"m_bank_base\",\"bits\":32}",
+          "{\"name\":\"m_curr_slot\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_recurse\",\"bits\":1}",
+          "{\"name\":\"m_display_counter\",\"bits\":32}",
+          "{\"name\":\"m_vblank_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_irq3_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_control\",\"bits\":8}",
+          "{\"name\":\"m_screen_shadow\",\"bits\":1}",
+          "{\"name\":\"m_palette_bank\",\"bits\":32}",
+          "{\"name\":\"m_save_ram_unlocked\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "neogeo_base_state.machine_reset",
+          "ngarcade_base_state.machine_reset"
+        ],
+        "startHandlers": [
+          "neogeo_base_state.video_start"
+        ],
+        "installedHandlers": [
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"start\":3145728,\"end\":3145729,\"mirror\":130942,\"className\":\"ngarcade_base_state\",\"method\":\"in0_edge_joy_r\"}",
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"start\":3145728,\"end\":3145729,\"mirror\":130942,\"className\":\"ngarcade_base_state\",\"method\":\"in0_edge_r\"}",
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"start\":3407872,\"end\":3407873,\"mirror\":131070,\"className\":\"ngarcade_base_state\",\"method\":\"in1_edge_joy_r\"}",
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"start\":3407872,\"end\":3407873,\"mirror\":131070,\"className\":\"ngarcade_base_state\",\"method\":\"in1_edge_r\"}",
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"start\":8388608,\"end\":12582911,\"className\":\"ngarcade_base_state\",\"method\":\"memcard_r\"}",
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"write\",\"start\":8388608,\"end\":12582911,\"className\":\"ngarcade_base_state\",\"method\":\"memcard_w\"}"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"systemlatch\",\"config\":[\"m_systemlatch->q_out_cb<5>().set(FUNC(ngarcade_base_state::set_use_cart_audio))\",\"m_systemlatch->q_out_cb<6>().set(FUNC(ngarcade_base_state::set_save_ram_unlock))\"]}"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1986,
+        "sourceColumn": 1,
+        "sourceEndLine": 2000
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.in0_edge_joy_r",
+      "label": "Handler",
+      "props": {
+        "method": "in0_edge_joy_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 904,
+        "sourceColumn": 1,
+        "sourceEndLine": 907,
+        "sourceParameters": "",
+        "sourceBody": "return ((m_edge->in0_r() & m_ctrl1->read_ctrl()) << 8) | m_dsw->read();",
+        "inputMembers": [
+          "m_dsw=DSW"
+        ]
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.in0_edge_r",
+      "label": "Handler",
+      "props": {
+        "method": "in0_edge_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 899,
+        "sourceColumn": 1,
+        "sourceEndLine": 902,
+        "sourceParameters": "",
+        "sourceBody": "return (m_edge->in0_r() << 8) | m_dsw->read();",
+        "inputMembers": [
+          "m_dsw=DSW"
+        ]
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.in1_edge_joy_r",
+      "label": "Handler",
+      "props": {
+        "method": "in1_edge_joy_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 914,
+        "sourceColumn": 1,
+        "sourceEndLine": 917,
+        "sourceParameters": "",
+        "sourceBody": "return ((m_edge->in1_r() & m_ctrl2->read_ctrl()) << 8) | 0xff;"
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.in1_edge_r",
+      "label": "Handler",
+      "props": {
+        "method": "in1_edge_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 909,
+        "sourceColumn": 1,
+        "sourceEndLine": 912,
+        "sourceParameters": "",
+        "sourceBody": "return (m_edge->in1_r() << 8) | 0xff;"
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.memcard_r",
+      "label": "Handler",
+      "props": {
+        "method": "memcard_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1071,
+        "sourceColumn": 1,
+        "sourceEndLine": 1081,
+        "sourceParameters": "offs_t offset, uint16_t mem_mask",
+        "sourceBody": "if (!machine().side_effects_disabled())\n\t\tm_maincpu->eat_cycles(2); // insert waitstate\n\n\t// memory card enabled by /UDS\n\tif (ACCESSING_BITS_8_15 && m_memcard->present())\n\t\treturn m_memcard->read((offs_t(m_card_bank) << 21) | offset);\n\telse\n\t\treturn 0xffff;"
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.memcard_w",
+      "label": "Handler",
+      "props": {
+        "method": "memcard_w",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1084,
+        "sourceColumn": 1,
+        "sourceEndLine": 1091,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "m_maincpu->eat_cycles(2); // insert waitstate\n\n\t// memory card enabled by /UDS\n\tif (ACCESSING_BITS_8_15 && m_memcard->present())\n\t\tm_memcard->write((offs_t(m_card_bank) << 21) | offset, data);"
+      }
+    },
+    {
+      "id": "machine:ngarcade_base_state.neogeo_arcade/callback:systemlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<5>().set(FUNC(ngarcade_base_state::set_use_cart_audio))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1992,
+        "sourceColumn": 2,
+        "sourceEndLine": 1992,
+        "slot": "5",
+        "targetClass": "ngarcade_base_state",
+        "targetMethod": "set_use_cart_audio"
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.set_use_cart_audio",
+      "label": "Handler",
+      "props": {
+        "method": "set_use_cart_audio",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1133,
+        "sourceColumn": 1,
+        "sourceEndLine": 1138,
+        "sourceParameters": "int state",
+        "sourceBody": "m_use_cart_audio = state;\n\tm_sprgen->set_fixed_layer_source(state);\n\tm_bank_audio_main->set_entry(m_use_cart_audio);"
+      }
+    },
+    {
+      "id": "handler:neosprite_base_device.set_fixed_layer_source",
+      "label": "Handler",
+      "props": {
+        "method": "set_fixed_layer_source",
+        "ownerClass": "neosprite_base_device",
+        "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+        "sourceLine": 168,
+        "sourceColumn": 1,
+        "sourceEndLine": 171,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_fixed_layer_source = data;"
+      }
+    },
+    {
+      "id": "machine:ngarcade_base_state.neogeo_arcade/callback:systemlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_systemlatch->q_out_cb<6>().set(FUNC(ngarcade_base_state::set_save_ram_unlock))",
+        "ownerTag": "systemlatch",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1993,
+        "sourceColumn": 2,
+        "sourceEndLine": 1993,
+        "slot": "6",
+        "targetClass": "ngarcade_base_state",
+        "targetMethod": "set_save_ram_unlock"
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.set_save_ram_unlock",
+      "label": "Handler",
+      "props": {
+        "method": "set_save_ram_unlock",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1043,
+        "sourceColumn": 1,
+        "sourceEndLine": 1046,
+        "sourceParameters": "int state",
+        "sourceBody": "m_save_ram_unlocked = state;"
+      }
+    },
+    {
+      "id": "device:ngarcade_base_state.neogeo_arcade/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_time(attotime::from_ticks(3244030, NEOGEO_MASTER_CLOCK))"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1995,
+        "sourceColumn": 2,
+        "sourceEndLine": 1995
+      }
+    },
+    {
+      "id": "device:ngarcade_base_state.neogeo_arcade/upd4990a",
+      "label": "Device",
+      "props": {
+        "type": "UPD4990A",
+        "tag": "upd4990a",
+        "clock": null,
+        "config": [
+          "UPD4990A(config, m_upd4990a)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1997,
+        "sourceColumn": 2,
+        "sourceEndLine": 1997
+      }
+    },
+    {
+      "id": "device:ngarcade_base_state.neogeo_arcade/saveram",
+      "label": "Device",
+      "props": {
+        "type": "NVRAM",
+        "tag": "saveram",
+        "clock": null,
+        "config": [
+          "NVRAM(config, \"saveram\", nvram_device::DEFAULT_ALL_0)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1999,
+        "sourceColumn": 2,
+        "sourceEndLine": 1999,
+        "clockExpr": "nvram_device::DEFAULT_ALL_0"
+      }
+    },
+    {
+      "id": "machine:mvs_led_state.mv1_fixed",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "mvs_led_state",
+        "name": "mv1_fixed",
+        "calls": [
+          "neogeo_arcade",
+          "neogeo_stereo",
+          "neogeo_memcard"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_vblank_level\",\"bits\":8}",
+          "{\"name\":\"m_raster_level\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_vectors\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_audio\",\"bits\":8}",
+          "{\"name\":\"m_card_bank\",\"bits\":8}",
+          "{\"name\":\"m_bank_base\",\"bits\":32}",
+          "{\"name\":\"m_curr_slot\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_recurse\",\"bits\":1}",
+          "{\"name\":\"m_display_counter\",\"bits\":32}",
+          "{\"name\":\"m_vblank_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_irq3_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_control\",\"bits\":8}",
+          "{\"name\":\"m_screen_shadow\",\"bits\":1}",
+          "{\"name\":\"m_palette_bank\",\"bits\":32}",
+          "{\"name\":\"m_save_ram_unlocked\",\"bits\":8}",
+          "{\"name\":\"m_output_data\",\"bits\":8}",
+          "{\"name\":\"m_output_latch\",\"bits\":8}",
+          "{\"name\":\"m_led1_value\",\"bits\":8}",
+          "{\"name\":\"m_led2_value\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "neogeo_base_state.machine_reset",
+          "ngarcade_base_state.machine_reset"
+        ],
+        "startHandlers": [
+          "neogeo_base_state.video_start"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2110,
+        "sourceColumn": 1,
+        "sourceEndLine": 2120
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.mv1_fixed/audio_main/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_main",
+        "member": "m_bank_audio_main",
+        "startEntry": 0,
+        "entries": 1,
+        "region": "audiobios",
+        "offset": 0,
+        "stride": 0,
+        "initialEntry": 1,
+        "raw": "m_bank_audio_main->configure_entry(0, (m_region_audiobios != nullptr) ? m_region_audiobios->base() : ROM)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.mv1_fixed/audio_main/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_main",
+        "member": "m_bank_audio_main",
+        "startEntry": 1,
+        "entries": 1,
+        "region": "cslot1:audiocpu",
+        "offset": 0,
+        "stride": 0,
+        "initialEntry": 1,
+        "raw": "m_bank_audio_main->configure_entry(1, ROM)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.mv1_fixed/audio_f000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_f000",
+        "member": "audio_f000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 11,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.mv1_fixed/audio_e000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_e000",
+        "member": "audio_e000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 12,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.mv1_fixed/audio_c000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_c000",
+        "member": "audio_c000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 13,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.mv1_fixed/audio_8000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_8000",
+        "member": "audio_8000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 14,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "device:mvs_led_state.mv1_fixed/edge",
+      "label": "Device",
+      "props": {
+        "type": "NEOGEO_CTRL_EDGE_CONNECTOR",
+        "tag": "edge",
+        "clock": null,
+        "config": [
+          "NEOGEO_CTRL_EDGE_CONNECTOR(config, m_edge, neogeo_arc_edge, \"joy\", true)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2116,
+        "sourceColumn": 2,
+        "sourceEndLine": 2116,
+        "slotOptions": "neogeo_arc_edge",
+        "slotDefault": "joy"
+      }
+    },
+    {
+      "id": "device:mvs_led_state.mv1_fixed/ctrl1",
+      "label": "Device",
+      "props": {
+        "type": "NEOGEO_CONTROL_PORT",
+        "tag": "ctrl1",
+        "clock": null,
+        "config": [
+          "NEOGEO_CONTROL_PORT(config, m_ctrl1, neogeo_arc_pin15, nullptr, true)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2118,
+        "sourceColumn": 2,
+        "sourceEndLine": 2118,
+        "clockExpr": "neogeo_arc_pin15"
+      }
+    },
+    {
+      "id": "device:mvs_led_state.mv1_fixed/ctrl2",
+      "label": "Device",
+      "props": {
+        "type": "NEOGEO_CONTROL_PORT",
+        "tag": "ctrl2",
+        "clock": null,
+        "config": [
+          "NEOGEO_CONTROL_PORT(config, m_ctrl2, neogeo_arc_pin15, nullptr, true)"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2119,
+        "sourceColumn": 2,
+        "sourceEndLine": 2119,
+        "clockExpr": "neogeo_arc_pin15"
+      }
+    },
+    {
+      "id": "machine:mvs_led_state.neobase",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "mvs_led_state",
+        "name": "neobase",
+        "calls": [
+          "mv1_fixed"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_vblank_level\",\"bits\":8}",
+          "{\"name\":\"m_raster_level\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_vectors\",\"bits\":8}",
+          "{\"name\":\"m_use_cart_audio\",\"bits\":8}",
+          "{\"name\":\"m_card_bank\",\"bits\":8}",
+          "{\"name\":\"m_bank_base\",\"bits\":32}",
+          "{\"name\":\"m_curr_slot\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_recurse\",\"bits\":1}",
+          "{\"name\":\"m_display_counter\",\"bits\":32}",
+          "{\"name\":\"m_vblank_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_pending\",\"bits\":8}",
+          "{\"name\":\"m_irq3_pending\",\"bits\":8}",
+          "{\"name\":\"m_display_position_interrupt_control\",\"bits\":8}",
+          "{\"name\":\"m_screen_shadow\",\"bits\":1}",
+          "{\"name\":\"m_palette_bank\",\"bits\":32}",
+          "{\"name\":\"m_save_ram_unlocked\",\"bits\":8}",
+          "{\"name\":\"m_output_data\",\"bits\":8}",
+          "{\"name\":\"m_output_latch\",\"bits\":8}",
+          "{\"name\":\"m_led1_value\",\"bits\":8}",
+          "{\"name\":\"m_led2_value\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "neogeo_base_state.machine_reset",
+          "ngarcade_base_state.machine_reset"
+        ],
+        "startHandlers": [
+          "neogeo_base_state.video_start"
+        ],
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2448,
+        "sourceColumn": 1,
+        "sourceEndLine": 2452
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.neobase/audio_main/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_main",
+        "member": "m_bank_audio_main",
+        "startEntry": 0,
+        "entries": 1,
+        "region": "audiobios",
+        "offset": 0,
+        "stride": 0,
+        "initialEntry": 1,
+        "raw": "m_bank_audio_main->configure_entry(0, (m_region_audiobios != nullptr) ? m_region_audiobios->base() : ROM)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.neobase/audio_main/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_main",
+        "member": "m_bank_audio_main",
+        "startEntry": 1,
+        "entries": 1,
+        "region": "cslot1:audiocpu",
+        "offset": 0,
+        "stride": 0,
+        "initialEntry": 1,
+        "raw": "m_bank_audio_main->configure_entry(1, ROM)",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.neobase/audio_f000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_f000",
+        "member": "audio_f000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 11,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.neobase/audio_e000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_e000",
+        "member": "audio_e000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 12,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.neobase/audio_c000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_c000",
+        "member": "audio_c000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 13,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "bank:mvs_led_state.neobase/audio_8000",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audio_8000",
+        "member": "audio_8000",
+        "startEntry": 0,
+        "entries": 256,
+        "region": "cslot1:audiocpu",
+        "offset": 65536,
+        "stride": 0,
+        "dynamicShift": 14,
+        "raw": "m_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "id": "inputs:neogeo",
+      "label": "InputPorts",
+      "props": {
+        "name": "neogeo",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1813,
+        "sourceColumn": 1,
+        "sourceEndLine": 1813
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW",
+      "label": "Port",
+      "props": {
+        "tag": "DSW",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW:1\")"
+        ],
+        "name": "Setting Mode",
+        "defaultValue": 1,
+        "location": "SW:1",
+        "settings": [
+          "1=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW:2\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 2,
+        "location": "SW:2",
+        "settings": [
+          "2=Normal",
+          "0=VS Mode"
+        ]
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW:3\")"
+        ],
+        "name": "Controller",
+        "defaultValue": 4,
+        "location": "SW:3",
+        "settings": [
+          "4=Joystick",
+          "0=Mahjong Panel"
+        ]
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 24,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW:4,5\")"
+        ],
+        "name": "COMM Setting (Cabinet No.)",
+        "defaultValue": 24,
+        "location": "SW:4,5",
+        "settings": [
+          "24=1",
+          "16=2",
+          "8=3",
+          "0=4"
+        ]
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW:6\")"
+        ],
+        "name": "COMM Setting (Link Enable)",
+        "defaultValue": 32,
+        "location": "SW:6",
+        "settings": [
+          "32=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW:7\")"
+        ],
+        "name": "Free Play",
+        "defaultValue": 64,
+        "location": "SW:7",
+        "settings": [
+          "64=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:neogeo/DSW/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW:8\")"
+        ],
+        "name": "Freeze",
+        "defaultValue": 128,
+        "location": "SW:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:neogeo/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:neogeo/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 255
+      }
+    },
+    {
+      "id": "inputs:neogeo/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 3840,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(ngarcade_base_state::startsel_edge_joy_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "handler:ngarcade_base_state.startsel_edge_joy_r",
+      "label": "Handler",
+      "props": {
+        "method": "startsel_edge_joy_r",
+        "ownerClass": "ngarcade_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 919,
+        "sourceColumn": 1,
+        "sourceEndLine": 927,
+        "sourceParameters": "",
+        "sourceBody": "uint32_t ret = m_edge->read_start_sel() | ~0x05;\n\tif (m_ctrl1)\n\t\tret &= (m_ctrl1->read_start_sel() << 0) | ~0x03;\n\tif (m_ctrl2)\n\t\tret &= (m_ctrl2->read_start_sel() << 2) | ~0x0c;\n\treturn ret;"
+      }
+    },
+    {
+      "id": "inputs:neogeo/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 28672,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(neogeo_base_state::get_memcard_status))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.get_memcard_status",
+      "label": "Handler",
+      "props": {
+        "method": "get_memcard_status",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1063,
+        "sourceColumn": 1,
+        "sourceEndLine": 1068,
+        "sourceParameters": "",
+        "sourceBody": "// D0 and D1 are memcard 1 and 2 presence indicators, D2 indicates memcard\n\t// write protect status (we are always write enabled)\n\treturn (!m_memcard || !m_memcard->present()) ? 0x07 : 0x00;"
+      }
+    },
+    {
+      "id": "inputs:neogeo/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32768,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN",
+      "label": "Port",
+      "props": {
+        "tag": "AUDIO_COIN",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 24,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 24
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"upd4990a\", FUNC(upd1990a_device::tp_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"upd4990a\", FUNC(upd1990a_device::data_out_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:neogeo/AUDIO_COIN/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(neogeo_base_state::get_audio_result))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "handler:neogeo_base_state.get_audio_result",
+      "label": "Handler",
+      "props": {
+        "method": "get_audio_result",
+        "ownerClass": "neogeo_base_state",
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1100,
+        "sourceColumn": 1,
+        "sourceEndLine": 1103,
+        "sourceParameters": "",
+        "sourceBody": "return m_soundlatch2->read();"
+      }
+    },
+    {
+      "id": "inputs:neogeo/TEST",
+      "label": "Port",
+      "props": {
+        "tag": "TEST",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:neogeo/TEST/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 63,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:neogeo/TEST/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:neogeo/TEST/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 128,
+        "activeLow": true,
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:neogeo/TEST/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 65280
+      }
+    },
+    {
+      "id": "file:src/devices/bus/neogeo_ctrl/joystick.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/devices/bus/neogeo_ctrl/joystick.cpp"
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac",
+      "label": "InputPorts",
+      "props": {
+        "name": "neogeo_joy_ac"
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1",
+      "label": "Port",
+      "props": {
+        "tag": "JOY1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_NAME(\"%p A\")"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_NAME(\"%p B\")"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_NAME(\"%p C\")"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_NAME(\"%p D\")"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2",
+      "label": "Port",
+      "props": {
+        "tag": "JOY2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_NAME(\"%p A\")"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_NAME(\"%p B\")"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_NAME(\"%p C\")"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/JOY2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_NAME(\"%p D\")"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/START",
+      "label": "Port",
+      "props": {
+        "tag": "START",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/START/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 250,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 250
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/START/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:neogeo_joy_ac/START/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 4
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:mslug",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 12139,
+        "sourceColumn": 1,
+        "sourceEndLine": 12139
+      }
+    },
+    {
+      "from": "game:mslug",
+      "to": "game:neogeo",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:mslug",
+      "to": "machine:mvs_led_state.neobase",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mslug",
+      "to": "inputs:neogeo",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mslug",
+      "to": "romset:mslug",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:neogeo.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:softlist_dev.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:irrmaze.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:neogeo.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/snk/neogeo.cpp",
+      "to": "file:logmacro.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:neogeo",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2428,
+        "sourceColumn": 1,
+        "sourceEndLine": 2428
+      }
+    },
+    {
+      "from": "game:neogeo",
+      "to": "romset:neogeo",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2448,
+        "sourceColumn": 1,
+        "sourceEndLine": 2452
+      }
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "handler:neogeo_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "handler:ngarcade_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "handler:neogeo_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "machine:mvs_led_state.mv1_fixed",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "bank:mvs_led_state.neobase/audio_main/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "bank:mvs_led_state.neobase/audio_main/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "bank:mvs_led_state.neobase/audio_f000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "bank:mvs_led_state.neobase/audio_e000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "bank:mvs_led_state.neobase/audio_c000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.neobase",
+      "to": "bank:mvs_led_state.neobase/audio_8000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "inputs:neogeo",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1813,
+        "sourceColumn": 1,
+        "sourceEndLine": 1813
+      }
+    },
+    {
+      "from": "inputs:neogeo",
+      "to": "inputs:neogeo/DSW",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:neogeo",
+      "to": "inputs:neogeo/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:neogeo",
+      "to": "inputs:neogeo/AUDIO_COIN",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:neogeo",
+      "to": "inputs:neogeo/TEST",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 6886,
+        "sourceColumn": 1,
+        "sourceEndLine": 6886
+      }
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/cslot1:maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/cslot1:fixed",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/fixedbios",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/spritegen:zoomy",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/mainbios",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/audiobios",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/cslot1:audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/cslot1:ymsnd:adpcma",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mslug",
+      "to": "region:mslug/cslot1:sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2375,
+        "sourceColumn": 1,
+        "sourceEndLine": 2375
+      }
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/mainbios",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/audiobios",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/spritegen:zoomy",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/fixed",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/fixedbios",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:neogeo",
+      "to": "region:neogeo/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:neogeo_base_state.machine_reset",
+      "to": "handler:neogeo_base_state.start_interrupt_timers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.machine_reset",
+      "to": "handler:neogeo_base_state.update_interrupts",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ngarcade_base_state.machine_reset",
+      "to": "handler:neogeo_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_start",
+      "to": "handler:neogeo_base_state.create_rgb_lookups",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_start",
+      "to": "handler:neogeo_base_state.set_pens",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 2110,
+        "sourceColumn": 1,
+        "sourceEndLine": 2120
+      }
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "handler:neogeo_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "handler:ngarcade_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "handler:neogeo_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "machine:ngarcade_base_state.neogeo_arcade",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "machine:neogeo_base_state.neogeo_stereo",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "machine:neogeo_base_state.neogeo_memcard",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "bank:mvs_led_state.mv1_fixed/audio_main/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "bank:mvs_led_state.mv1_fixed/audio_main/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "bank:mvs_led_state.mv1_fixed/audio_f000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "bank:mvs_led_state.mv1_fixed/audio_e000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "bank:mvs_led_state.mv1_fixed/audio_c000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "bank:mvs_led_state.mv1_fixed/audio_8000",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "device:mvs_led_state.mv1_fixed/edge",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "device:mvs_led_state.mv1_fixed/ctrl1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mvs_led_state.mv1_fixed",
+      "to": "device:mvs_led_state.mv1_fixed/ctrl2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "bank:mvs_led_state.neobase/audio_main/0",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.neobase/audio_main/1",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.neobase/audio_f000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.neobase/audio_e000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.neobase/audio_c000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.neobase/audio_8000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "inputs:neogeo/DSW",
+      "to": "inputs:neogeo/DSW/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/DSW",
+      "to": "inputs:neogeo/DSW/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/DSW",
+      "to": "inputs:neogeo/DSW/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/DSW",
+      "to": "inputs:neogeo/DSW/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/DSW",
+      "to": "inputs:neogeo/DSW/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/DSW",
+      "to": "inputs:neogeo/DSW/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/DSW",
+      "to": "inputs:neogeo/DSW/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/SYSTEM",
+      "to": "inputs:neogeo/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/SYSTEM",
+      "to": "inputs:neogeo/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/SYSTEM",
+      "to": "inputs:neogeo/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/SYSTEM",
+      "to": "inputs:neogeo/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN",
+      "to": "inputs:neogeo/AUDIO_COIN/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/TEST",
+      "to": "inputs:neogeo/TEST/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/TEST",
+      "to": "inputs:neogeo/TEST/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/TEST",
+      "to": "inputs:neogeo/TEST/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo/TEST",
+      "to": "inputs:neogeo/TEST/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:mslug/cslot1:maincpu",
+      "to": "rom:mslug/cslot1:maincpu/201-p1.p1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:fixed",
+      "to": "rom:mslug/cslot1:fixed/201-s1.s1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/fixedbios",
+      "to": "rom:mslug/fixedbios/sfix.sfix",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/spritegen:zoomy",
+      "to": "rom:mslug/spritegen:zoomy/000-lo.lo",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/mainbios",
+      "to": "rom:mslug/mainbios/sp-s2.sp1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/audiobios",
+      "to": "rom:mslug/audiobios/sm1.sm1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:audiocpu",
+      "to": "rom:mslug/cslot1:audiocpu/201-m1.m1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:ymsnd:adpcma",
+      "to": "rom:mslug/cslot1:ymsnd:adpcma/201-v1.v1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:ymsnd:adpcma",
+      "to": "rom:mslug/cslot1:ymsnd:adpcma/201-v2.v2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:sprites",
+      "to": "rom:mslug/cslot1:sprites/201-c1.c1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:sprites",
+      "to": "rom:mslug/cslot1:sprites/201-c2.c2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:sprites",
+      "to": "rom:mslug/cslot1:sprites/201-c3.c3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mslug/cslot1:sprites",
+      "to": "rom:mslug/cslot1:sprites/201-c4.c4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:neogeo/mainbios",
+      "to": "rom:neogeo/mainbios/sp-s2.sp1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:neogeo/audiobios",
+      "to": "rom:neogeo/audiobios/sm1.sm1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:neogeo/audiocpu",
+      "to": "rom:neogeo/audiocpu/sm1.sm1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:neogeo/spritegen:zoomy",
+      "to": "rom:neogeo/spritegen:zoomy/000-lo.lo",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:neogeo/fixedbios",
+      "to": "rom:neogeo/fixedbios/sfix.sfix",
+      "rel": "LOADS"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1986,
+        "sourceColumn": 1,
+        "sourceEndLine": 2000
+      }
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:neogeo_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:ngarcade_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:neogeo_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:ngarcade_base_state.in0_edge_joy_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:ngarcade_base_state.in0_edge_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:ngarcade_base_state.in1_edge_joy_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:ngarcade_base_state.in1_edge_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:ngarcade_base_state.memcard_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "handler:ngarcade_base_state.memcard_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "machine:neogeo_base_state.neogeo_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "map:ngarcade_base_state.neogeo_main_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "machine:ngarcade_base_state.neogeo_arcade/callback:systemlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "machine:ngarcade_base_state.neogeo_arcade/callback:systemlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "device:ngarcade_base_state.neogeo_arcade/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "device:ngarcade_base_state.neogeo_arcade/upd4990a",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade",
+      "to": "device:ngarcade_base_state.neogeo_arcade/saveram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_stereo",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1965,
+        "sourceColumn": 1,
+        "sourceEndLine": 1973
+      }
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_stereo",
+      "to": "handler:neogeo_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_stereo",
+      "to": "handler:neogeo_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_stereo",
+      "to": "device:neogeo_base_state.neogeo_stereo/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1976,
+        "sourceColumn": 1,
+        "sourceEndLine": 1983
+      }
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard",
+      "to": "handler:neogeo_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard",
+      "to": "handler:neogeo_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard",
+      "to": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard",
+      "to": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard",
+      "to": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard",
+      "to": "device:neogeo_base_state.neogeo_memcard/memcard",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "bank:mvs_led_state.mv1_fixed/audio_main/0",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.mv1_fixed/audio_main/1",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.mv1_fixed/audio_f000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.mv1_fixed/audio_e000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.mv1_fixed/audio_c000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "bank:mvs_led_state.mv1_fixed/audio_8000",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1313,
+        "sourceColumn": 1,
+        "sourceEndLine": 1350
+      }
+    },
+    {
+      "from": "device:mvs_led_state.mv1_fixed/edge",
+      "to": "inputs:neogeo_joy_ac",
+      "rel": "USES_INPUTS",
+      "props": {
+        "option": "joy"
+      }
+    },
+    {
+      "from": "inputs:neogeo/SYSTEM/f1",
+      "to": "handler:ngarcade_base_state.startsel_edge_joy_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:neogeo/SYSTEM/f2",
+      "to": "handler:neogeo_base_state.get_memcard_status",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:neogeo/AUDIO_COIN/f7",
+      "to": "handler:neogeo_base_state.get_audio_result",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ngarcade_base_state.in0_edge_joy_r",
+      "to": "handler:ng_memcard_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ngarcade_base_state.in0_edge_r",
+      "to": "handler:ng_memcard_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ngarcade_base_state.memcard_r",
+      "to": "handler:ng_memcard_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ngarcade_base_state.memcard_r",
+      "to": "handler:ng_memcard_device.present",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ngarcade_base_state.memcard_w",
+      "to": "handler:ng_memcard_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ngarcade_base_state.memcard_w",
+      "to": "handler:ng_memcard_device.present",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1921,
+        "sourceColumn": 1,
+        "sourceEndLine": 1962
+      }
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "handler:neogeo_base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "handler:neogeo_base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/systemlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/spritegen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/audionmi",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/soundlatch2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_base",
+      "to": "device:neogeo_base_state.neogeo_base/ymsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1722,
+        "sourceColumn": 1,
+        "sourceEndLine": 1737
+      }
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:neogeo_base_state.base_main_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map",
+      "to": "map:ngarcade_base_state.neogeo_main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade/callback:systemlatch:0",
+      "to": "handler:ngarcade_base_state.set_use_cart_audio",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ngarcade_base_state.neogeo_arcade/callback:systemlatch:1",
+      "to": "handler:ngarcade_base_state.set_save_ram_unlock",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:0",
+      "to": "handler:ng_memcard_device.lock1_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:1",
+      "to": "handler:ng_memcard_device.unlock2_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:neogeo_base_state.neogeo_memcard/callback:systemlatch:2",
+      "to": "handler:ng_memcard_device.regsel_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac",
+      "to": "file:src/devices/bus/neogeo_ctrl/joystick.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac",
+      "to": "inputs:neogeo_joy_ac/JOY1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac",
+      "to": "inputs:neogeo_joy_ac/JOY2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac",
+      "to": "inputs:neogeo_joy_ac/START",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "handler:neogeo_base_state.get_memcard_status",
+      "to": "handler:ng_memcard_device.present",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.get_audio_result",
+      "to": "handler:ng_memcard_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/audiocpu",
+      "to": "map:neogeo_base_state.audio_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/audiocpu",
+      "to": "map:neogeo_base_state.audio_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/systemlatch",
+      "to": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/systemlatch",
+      "to": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/systemlatch",
+      "to": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/screen",
+      "to": "device:neogeo_base_state.neogeo_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/audionmi",
+      "to": "device:neogeo_base_state.neogeo_base/audionmi/callback:audionmi:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/soundlatch",
+      "to": "device:neogeo_base_state.neogeo_base/soundlatch/callback:soundlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/ymsnd",
+      "to": "device:neogeo_base_state.neogeo_base/ymsnd/callback:ymsnd:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1709,
+        "sourceColumn": 1,
+        "sourceEndLine": 1720
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map",
+      "to": "map:neogeo_base_state.base_main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map/range0",
+      "to": "handler:ngarcade_base_state.banked_vectors_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map/range2",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map/range6",
+      "to": "handler:ngarcade_base_state.unmapped_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map/range8",
+      "to": "handler:ngarcade_base_state.save_ram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:ngarcade_base_state.neogeo_main_map/range9",
+      "to": "handler:ngarcade_base_state.unmapped_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:ngarcade_base_state.set_use_cart_audio",
+      "to": "handler:neosprite_base_device.set_fixed_layer_source",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY1",
+      "to": "inputs:neogeo_joy_ac/JOY1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/JOY2",
+      "to": "inputs:neogeo_joy_ac/JOY2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/START",
+      "to": "inputs:neogeo_joy_ac/START/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/START",
+      "to": "inputs:neogeo_joy_ac/START/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:neogeo_joy_ac/START",
+      "to": "inputs:neogeo_joy_ac/START/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_map",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1777,
+        "sourceColumn": 1,
+        "sourceEndLine": 1785
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.audio_map",
+      "to": "map:neogeo_base_state.audio_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_map",
+      "to": "map:neogeo_base_state.audio_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_map",
+      "to": "map:neogeo_base_state.audio_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_map",
+      "to": "map:neogeo_base_state.audio_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_map",
+      "to": "map:neogeo_base_state.audio_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_map",
+      "to": "map:neogeo_base_state.audio_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map",
+      "to": "file:src/mame/snk/neogeo.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/snk/neogeo.cpp",
+        "sourceLine": 1795,
+        "sourceColumn": 1,
+        "sourceEndLine": 1802
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map",
+      "to": "map:neogeo_base_state.audio_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map",
+      "to": "map:neogeo_base_state.audio_io_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map",
+      "to": "map:neogeo_base_state.audio_io_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map",
+      "to": "map:neogeo_base_state.audio_io_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map",
+      "to": "map:neogeo_base_state.audio_io_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:0",
+      "to": "handler:neogeo_base_state.set_screen_shadow",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:1",
+      "to": "handler:neogeo_base_state.set_use_cart_vectors",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/systemlatch/callback:systemlatch:5",
+      "to": "handler:neogeo_base_state.set_palette_bank",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/screen/callback:screen:0",
+      "to": "handler:neogeo_base_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/audionmi/callback:audionmi:0",
+      "to": "device:neogeo_base_state.neogeo_base/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/soundlatch/callback:soundlatch:0",
+      "to": "handler:input_merger_device.in_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/soundlatch/callback:soundlatch:0",
+      "to": "device:neogeo_base_state.neogeo_base/audionmi",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:neogeo_base_state.neogeo_base/ymsnd/callback:ymsnd:0",
+      "to": "device:neogeo_base_state.neogeo_base/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range0",
+      "to": "handler:neogeo_base_state.audio_command_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range1",
+      "to": "handler:neogeo_base_state.unmapped_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range2",
+      "to": "handler:neogeo_base_state.io_control_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range3",
+      "to": "handler:neogeo_base_state.unmapped_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range4",
+      "to": "handler:hc259_device.write_a3",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "systemlatch"
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range5",
+      "to": "handler:neogeo_base_state.video_register_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range6",
+      "to": "handler:neogeo_base_state.video_register_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range7",
+      "to": "handler:neogeo_base_state.unmapped_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range8",
+      "to": "handler:neogeo_base_state.paletteram_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:neogeo_base_state.base_main_map/range8",
+      "to": "handler:neogeo_base_state.paletteram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map/range0",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map/range0",
+      "to": "handler:generic_latch_8_device.clear_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map/range1",
+      "to": "handler:ym2610_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map/range1",
+      "to": "handler:ym2610_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map/range2",
+      "to": "handler:neogeo_base_state.audio_cpu_enable_nmi_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map/range3",
+      "to": "handler:neogeo_base_state.audio_cpu_bank_select_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:neogeo_base_state.audio_io_map/range4",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch2"
+      }
+    },
+    {
+      "from": "handler:neogeo_base_state.set_screen_shadow",
+      "to": "handler:neogeo_base_state.set_pens",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.set_palette_bank",
+      "to": "handler:neogeo_base_state.set_pens",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.screen_update",
+      "to": "handler:neosprite_base_device.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.screen_update",
+      "to": "handler:neosprite_base_device.draw_fixed_layer",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.audio_command_w",
+      "to": "handler:ng_memcard_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_r",
+      "to": "handler:neosprite_base_device.get_videoram_data",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_r",
+      "to": "handler:neosprite_base_device.get_videoram_modulo",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_r",
+      "to": "handler:neogeo_base_state.unmapped_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_r",
+      "to": "handler:neogeo_base_state.get_video_control",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_w",
+      "to": "handler:neogeo_base_state.set_video_control",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_w",
+      "to": "handler:neogeo_base_state.set_display_counter_msb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_w",
+      "to": "handler:neogeo_base_state.set_display_counter_lsb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.video_register_w",
+      "to": "handler:neogeo_base_state.acknowledge_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neosprite_base_device.draw_sprites",
+      "to": "handler:neosprite_base_device.sprite_on_scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neosprite_base_device.draw_fixed_layer",
+      "to": "handler:neosprite_base_device.draw_fixed_layer_2pixels",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.get_video_control",
+      "to": "handler:neosprite_base_device.get_auto_animation_counter",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.get_video_control",
+      "to": "handler:ng_memcard_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.set_video_control",
+      "to": "handler:neosprite_base_device.set_auto_animation_speed",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.set_video_control",
+      "to": "handler:neosprite_base_device.set_auto_animation_disabled",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.set_video_control",
+      "to": "handler:neogeo_base_state.set_display_position_interrupt_control",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.set_display_counter_lsb",
+      "to": "handler:neogeo_base_state.adjust_display_position_interrupt_timer",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:neogeo_base_state.acknowledge_interrupt",
+      "to": "handler:neogeo_base_state.update_interrupts",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

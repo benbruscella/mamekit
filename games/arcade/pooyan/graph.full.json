@@ -1,0 +1,4986 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/pooyan.cpp",
+    "generatedAt": "2026-09-05T03:49:57.424Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Allard van der Bas"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/pooyan.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/pooyan.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:timeplt_a.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "timeplt_a.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/resnet.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/resnet.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/konami/konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/konamipt.h"
+      }
+    },
+    {
+      "id": "file:src/mame/shared/timeplt_a.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/shared/timeplt_a.h"
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/flt_rc.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/flt_rc.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/shared/timeplt_a.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/shared/timeplt_a.cpp"
+      }
+    },
+    {
+      "id": "game:pooyan",
+      "label": "Game",
+      "props": {
+        "name": "pooyan",
+        "year": "1982",
+        "company": "Konami",
+        "fullname": "Pooyan",
+        "monitor": "ROT90",
+        "cls": "pooyan_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 1,
+        "sourceEndLine": 544
+      }
+    },
+    {
+      "id": "game:pooyans",
+      "label": "Game",
+      "props": {
+        "name": "pooyans",
+        "year": "1982",
+        "company": "Konami (Stern Electronics license)",
+        "fullname": "Pooyan (Stern Electronics)",
+        "monitor": "ROT90",
+        "cls": "pooyan_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 545,
+        "sourceColumn": 1,
+        "sourceEndLine": 545
+      }
+    },
+    {
+      "id": "game:pootan",
+      "label": "Game",
+      "props": {
+        "name": "pootan",
+        "year": "1982",
+        "company": "bootleg",
+        "fullname": "Pootan",
+        "monitor": "ROT90",
+        "cls": "pooyan_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 546,
+        "sourceColumn": 1,
+        "sourceEndLine": 546
+      }
+    },
+    {
+      "id": "romset:pooyan",
+      "label": "RomSet",
+      "props": {
+        "name": "pooyan",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 459,
+        "sourceColumn": 1,
+        "sourceEndLine": 459
+      }
+    },
+    {
+      "id": "region:pooyan/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 460,
+        "sourceColumn": 2,
+        "sourceEndLine": 460
+      }
+    },
+    {
+      "id": "rom:pooyan/maincpu/1.4a",
+      "label": "Rom",
+      "props": {
+        "file": "1.4a",
+        "offset": 0,
+        "size": 8192,
+        "crc": "bb319c63",
+        "sha1": "5401b8ef586127c8cf5a431e5c44e38be2254a98",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 461,
+        "sourceColumn": 2,
+        "sourceEndLine": 461
+      }
+    },
+    {
+      "id": "rom:pooyan/maincpu/2.5a",
+      "label": "Rom",
+      "props": {
+        "file": "2.5a",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "a1463d98",
+        "sha1": "b23cc7e61276c61a78e80fe08c7f0c8adadf2ffe",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 462,
+        "sourceColumn": 2,
+        "sourceEndLine": 462
+      }
+    },
+    {
+      "id": "rom:pooyan/maincpu/3.6a",
+      "label": "Rom",
+      "props": {
+        "file": "3.6a",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "fe1a9e08",
+        "sha1": "5206893760f188ac71a5e6bd42561cf25fcc3d49",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 463,
+        "sourceColumn": 2,
+        "sourceEndLine": 463
+      }
+    },
+    {
+      "id": "rom:pooyan/maincpu/4.7a",
+      "label": "Rom",
+      "props": {
+        "file": "4.7a",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "9e0f9bcc",
+        "sha1": "4d9707423ad531ac535db432e329b3d52cbb4559",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 464,
+        "sourceColumn": 2,
+        "sourceEndLine": 464
+      }
+    },
+    {
+      "id": "region:pooyan/timeplt_audio:tpsound",
+      "label": "RomRegion",
+      "props": {
+        "tag": "timeplt_audio:tpsound",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 2,
+        "sourceEndLine": 466
+      }
+    },
+    {
+      "id": "rom:pooyan/timeplt_audio:tpsound/xx.7a",
+      "label": "Rom",
+      "props": {
+        "file": "xx.7a",
+        "offset": 0,
+        "size": 4096,
+        "crc": "fbe2b368",
+        "sha1": "5689a84ef110bdc0039ad1a6c5778e0b8eccfce0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 467,
+        "sourceColumn": 2,
+        "sourceEndLine": 467
+      }
+    },
+    {
+      "id": "rom:pooyan/timeplt_audio:tpsound/xx.8a",
+      "label": "Rom",
+      "props": {
+        "file": "xx.8a",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "e1795b3d",
+        "sha1": "9ab4e5362f9f7d9b46b750e14b1d9d71c57be40f",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 2,
+        "sourceEndLine": 468
+      }
+    },
+    {
+      "id": "region:pooyan/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 470,
+        "sourceColumn": 2,
+        "sourceEndLine": 470
+      }
+    },
+    {
+      "id": "rom:pooyan/tiles/8.10g",
+      "label": "Rom",
+      "props": {
+        "file": "8.10g",
+        "offset": 0,
+        "size": 4096,
+        "crc": "931b29eb",
+        "sha1": "0325c1c1fdb44e0044b82b7c79b5eeabf5c11ce7",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 471,
+        "sourceColumn": 2,
+        "sourceEndLine": 471
+      }
+    },
+    {
+      "id": "rom:pooyan/tiles/7.9g",
+      "label": "Rom",
+      "props": {
+        "file": "7.9g",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "bbe6d6e4",
+        "sha1": "de5447d59a99c4c08c4f40c0b7dd3c3c609c11d4",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 472,
+        "sourceColumn": 2,
+        "sourceEndLine": 472
+      }
+    },
+    {
+      "id": "region:pooyan/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 474,
+        "sourceColumn": 2,
+        "sourceEndLine": 474
+      }
+    },
+    {
+      "id": "rom:pooyan/sprites/6.9a",
+      "label": "Rom",
+      "props": {
+        "file": "6.9a",
+        "offset": 0,
+        "size": 4096,
+        "crc": "b2d8c121",
+        "sha1": "189ad488869f34d7a38b82ef70eb805acfe04312",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 475,
+        "sourceColumn": 2,
+        "sourceEndLine": 475
+      }
+    },
+    {
+      "id": "rom:pooyan/sprites/5.8a",
+      "label": "Rom",
+      "props": {
+        "file": "5.8a",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "1097c2b6",
+        "sha1": "c815f0d27593efd23923511bdd13835456ef7f76",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 476,
+        "sourceColumn": 2,
+        "sourceEndLine": 476
+      }
+    },
+    {
+      "id": "region:pooyan/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 478,
+        "sourceColumn": 2,
+        "sourceEndLine": 478
+      }
+    },
+    {
+      "id": "rom:pooyan/proms/pooyan.pr1",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr1",
+        "offset": 0,
+        "size": 32,
+        "crc": "a06a6d0e",
+        "sha1": "ae131320b66d76d4bc9108da6708f6f874b2e123",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 2,
+        "sourceEndLine": 479
+      }
+    },
+    {
+      "id": "rom:pooyan/proms/pooyan.pr3",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr3",
+        "offset": 32,
+        "size": 256,
+        "crc": "8cd4cd60",
+        "sha1": "e0188ecd5b53a8e6e28c1de80def676740772334",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 480,
+        "sourceColumn": 2,
+        "sourceEndLine": 480
+      }
+    },
+    {
+      "id": "rom:pooyan/proms/pooyan.pr2",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr2",
+        "offset": 288,
+        "size": 256,
+        "crc": "82748c0b",
+        "sha1": "9ce8eb92e482eba5a9077e9db99841d65b011346",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 481,
+        "sourceColumn": 2,
+        "sourceEndLine": 481
+      }
+    },
+    {
+      "id": "romset:pooyans",
+      "label": "RomSet",
+      "props": {
+        "name": "pooyans",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 484,
+        "sourceColumn": 1,
+        "sourceEndLine": 484
+      }
+    },
+    {
+      "id": "region:pooyans/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 460,
+        "sourceColumn": 2,
+        "sourceEndLine": 460
+      }
+    },
+    {
+      "id": "rom:pooyans/maincpu/ic22_a4.cpu",
+      "label": "Rom",
+      "props": {
+        "file": "ic22_a4.cpu",
+        "offset": 0,
+        "size": 8192,
+        "crc": "916ae7d7",
+        "sha1": "e96eba381e6ad228acf4b74240d618f9d0bae39d",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 486,
+        "sourceColumn": 2,
+        "sourceEndLine": 486
+      }
+    },
+    {
+      "id": "rom:pooyans/maincpu/ic23_a5.cpu",
+      "label": "Rom",
+      "props": {
+        "file": "ic23_a5.cpu",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "8fe38c61",
+        "sha1": "4588f9f80a5884e056a1d429785c7331e92d5654",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 487,
+        "sourceColumn": 2,
+        "sourceEndLine": 487
+      }
+    },
+    {
+      "id": "rom:pooyans/maincpu/ic24_a6.cpu",
+      "label": "Rom",
+      "props": {
+        "file": "ic24_a6.cpu",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "2660218a",
+        "sha1": "606b10a4bab2432e20471440105e04d15d384570",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 488,
+        "sourceColumn": 2,
+        "sourceEndLine": 488
+      }
+    },
+    {
+      "id": "rom:pooyans/maincpu/ic25_a7.cpu",
+      "label": "Rom",
+      "props": {
+        "file": "ic25_a7.cpu",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "3d2a10ad",
+        "sha1": "962c621a19e9797b8f3d12c150aa0b90958c9498",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 489,
+        "sourceColumn": 2,
+        "sourceEndLine": 489
+      }
+    },
+    {
+      "id": "region:pooyans/timeplt_audio:tpsound",
+      "label": "RomRegion",
+      "props": {
+        "tag": "timeplt_audio:tpsound",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 2,
+        "sourceEndLine": 466
+      }
+    },
+    {
+      "id": "rom:pooyans/timeplt_audio:tpsound/xx.7a",
+      "label": "Rom",
+      "props": {
+        "file": "xx.7a",
+        "offset": 0,
+        "size": 4096,
+        "crc": "fbe2b368",
+        "sha1": "5689a84ef110bdc0039ad1a6c5778e0b8eccfce0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 467,
+        "sourceColumn": 2,
+        "sourceEndLine": 467
+      }
+    },
+    {
+      "id": "rom:pooyans/timeplt_audio:tpsound/xx.8a",
+      "label": "Rom",
+      "props": {
+        "file": "xx.8a",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "e1795b3d",
+        "sha1": "9ab4e5362f9f7d9b46b750e14b1d9d71c57be40f",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 2,
+        "sourceEndLine": 468
+      }
+    },
+    {
+      "id": "region:pooyans/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 470,
+        "sourceColumn": 2,
+        "sourceEndLine": 470
+      }
+    },
+    {
+      "id": "rom:pooyans/tiles/ic13_g10.cpu",
+      "label": "Rom",
+      "props": {
+        "file": "ic13_g10.cpu",
+        "offset": 0,
+        "size": 4096,
+        "crc": "7433aea9",
+        "sha1": "a5ad6311f097fefb6e7b747ebe9d01d72d7755d0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 496,
+        "sourceColumn": 2,
+        "sourceEndLine": 496
+      }
+    },
+    {
+      "id": "rom:pooyans/tiles/ic14_g9.cpu",
+      "label": "Rom",
+      "props": {
+        "file": "ic14_g9.cpu",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "87c1789e",
+        "sha1": "7637a9604a3ad4f9a27105d87252de3d923672aa",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 497,
+        "sourceColumn": 2,
+        "sourceEndLine": 497
+      }
+    },
+    {
+      "id": "region:pooyans/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 474,
+        "sourceColumn": 2,
+        "sourceEndLine": 474
+      }
+    },
+    {
+      "id": "rom:pooyans/sprites/6.9a",
+      "label": "Rom",
+      "props": {
+        "file": "6.9a",
+        "offset": 0,
+        "size": 4096,
+        "crc": "b2d8c121",
+        "sha1": "189ad488869f34d7a38b82ef70eb805acfe04312",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 475,
+        "sourceColumn": 2,
+        "sourceEndLine": 475
+      }
+    },
+    {
+      "id": "rom:pooyans/sprites/5.8a",
+      "label": "Rom",
+      "props": {
+        "file": "5.8a",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "1097c2b6",
+        "sha1": "c815f0d27593efd23923511bdd13835456ef7f76",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 476,
+        "sourceColumn": 2,
+        "sourceEndLine": 476
+      }
+    },
+    {
+      "id": "region:pooyans/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 478,
+        "sourceColumn": 2,
+        "sourceEndLine": 478
+      }
+    },
+    {
+      "id": "rom:pooyans/proms/pooyan.pr1",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr1",
+        "offset": 0,
+        "size": 32,
+        "crc": "a06a6d0e",
+        "sha1": "ae131320b66d76d4bc9108da6708f6f874b2e123",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 2,
+        "sourceEndLine": 479
+      }
+    },
+    {
+      "id": "rom:pooyans/proms/pooyan.pr3",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr3",
+        "offset": 32,
+        "size": 256,
+        "crc": "8cd4cd60",
+        "sha1": "e0188ecd5b53a8e6e28c1de80def676740772334",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 480,
+        "sourceColumn": 2,
+        "sourceEndLine": 480
+      }
+    },
+    {
+      "id": "rom:pooyans/proms/pooyan.pr2",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr2",
+        "offset": 288,
+        "size": 256,
+        "crc": "82748c0b",
+        "sha1": "9ce8eb92e482eba5a9077e9db99841d65b011346",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 481,
+        "sourceColumn": 2,
+        "sourceEndLine": 481
+      }
+    },
+    {
+      "id": "romset:pootan",
+      "label": "RomSet",
+      "props": {
+        "name": "pootan",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 509,
+        "sourceColumn": 1,
+        "sourceEndLine": 509
+      }
+    },
+    {
+      "id": "region:pootan/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 460,
+        "sourceColumn": 2,
+        "sourceEndLine": 460
+      }
+    },
+    {
+      "id": "rom:pootan/maincpu/poo_ic22.bin",
+      "label": "Rom",
+      "props": {
+        "file": "poo_ic22.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "41b23a24",
+        "sha1": "366efcc45613391c1ab1514654ecac1ae3d39d0e",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 511,
+        "sourceColumn": 2,
+        "sourceEndLine": 511
+      }
+    },
+    {
+      "id": "rom:pootan/maincpu/poo_ic23.bin",
+      "label": "Rom",
+      "props": {
+        "file": "poo_ic23.bin",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "c9d94661",
+        "sha1": "af1e818335adb4398ea0dc41be0d6399999f3946",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 512,
+        "sourceColumn": 2,
+        "sourceEndLine": 512
+      }
+    },
+    {
+      "id": "rom:pootan/maincpu/3.6a",
+      "label": "Rom",
+      "props": {
+        "file": "3.6a",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "fe1a9e08",
+        "sha1": "5206893760f188ac71a5e6bd42561cf25fcc3d49",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 463,
+        "sourceColumn": 2,
+        "sourceEndLine": 463
+      }
+    },
+    {
+      "id": "rom:pootan/maincpu/poo_ic25.bin",
+      "label": "Rom",
+      "props": {
+        "file": "poo_ic25.bin",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "8ae459ef",
+        "sha1": "995eba204bbb82da20063b965bf79a64441a907a",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 514,
+        "sourceColumn": 2,
+        "sourceEndLine": 514
+      }
+    },
+    {
+      "id": "region:pootan/timeplt_audio:tpsound",
+      "label": "RomRegion",
+      "props": {
+        "tag": "timeplt_audio:tpsound",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 2,
+        "sourceEndLine": 466
+      }
+    },
+    {
+      "id": "rom:pootan/timeplt_audio:tpsound/xx.7a",
+      "label": "Rom",
+      "props": {
+        "file": "xx.7a",
+        "offset": 0,
+        "size": 4096,
+        "crc": "fbe2b368",
+        "sha1": "5689a84ef110bdc0039ad1a6c5778e0b8eccfce0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 467,
+        "sourceColumn": 2,
+        "sourceEndLine": 467
+      }
+    },
+    {
+      "id": "rom:pootan/timeplt_audio:tpsound/xx.8a",
+      "label": "Rom",
+      "props": {
+        "file": "xx.8a",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "e1795b3d",
+        "sha1": "9ab4e5362f9f7d9b46b750e14b1d9d71c57be40f",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 2,
+        "sourceEndLine": 468
+      }
+    },
+    {
+      "id": "region:pootan/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 470,
+        "sourceColumn": 2,
+        "sourceEndLine": 470
+      }
+    },
+    {
+      "id": "rom:pootan/tiles/poo_ic13.bin",
+      "label": "Rom",
+      "props": {
+        "file": "poo_ic13.bin",
+        "offset": 0,
+        "size": 4096,
+        "crc": "0be802e4",
+        "sha1": "07adc17bcb7332ddc00b7c71bf4919eda80b0bdb",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 521,
+        "sourceColumn": 2,
+        "sourceEndLine": 521
+      }
+    },
+    {
+      "id": "rom:pootan/tiles/poo_ic14.bin",
+      "label": "Rom",
+      "props": {
+        "file": "poo_ic14.bin",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "cba29096",
+        "sha1": "b5a4cf75089cf04f7361e00074816facd57452b2",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 522,
+        "sourceColumn": 2,
+        "sourceEndLine": 522
+      }
+    },
+    {
+      "id": "region:pootan/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 474,
+        "sourceColumn": 2,
+        "sourceEndLine": 474
+      }
+    },
+    {
+      "id": "rom:pootan/sprites/6.9a",
+      "label": "Rom",
+      "props": {
+        "file": "6.9a",
+        "offset": 0,
+        "size": 4096,
+        "crc": "b2d8c121",
+        "sha1": "189ad488869f34d7a38b82ef70eb805acfe04312",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 475,
+        "sourceColumn": 2,
+        "sourceEndLine": 475
+      }
+    },
+    {
+      "id": "rom:pootan/sprites/5.8a",
+      "label": "Rom",
+      "props": {
+        "file": "5.8a",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "1097c2b6",
+        "sha1": "c815f0d27593efd23923511bdd13835456ef7f76",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 476,
+        "sourceColumn": 2,
+        "sourceEndLine": 476
+      }
+    },
+    {
+      "id": "region:pootan/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 478,
+        "sourceColumn": 2,
+        "sourceEndLine": 478
+      }
+    },
+    {
+      "id": "rom:pootan/proms/pooyan.pr1",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr1",
+        "offset": 0,
+        "size": 32,
+        "crc": "a06a6d0e",
+        "sha1": "ae131320b66d76d4bc9108da6708f6f874b2e123",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 2,
+        "sourceEndLine": 479
+      }
+    },
+    {
+      "id": "rom:pootan/proms/pooyan.pr3",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr3",
+        "offset": 32,
+        "size": 256,
+        "crc": "8cd4cd60",
+        "sha1": "e0188ecd5b53a8e6e28c1de80def676740772334",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 480,
+        "sourceColumn": 2,
+        "sourceEndLine": 480
+      }
+    },
+    {
+      "id": "rom:pootan/proms/pooyan.pr2",
+      "label": "Rom",
+      "props": {
+        "file": "pooyan.pr2",
+        "offset": 288,
+        "size": 256,
+        "crc": "82748c0b",
+        "sha1": "9ce8eb92e482eba5a9077e9db99841d65b011346",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 481,
+        "sourceColumn": 2,
+        "sourceEndLine": 481
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "pooyan_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 292,
+        "sourceColumn": 1,
+        "sourceEndLine": 308
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 294,
+        "sourceColumn": 2,
+        "sourceEndLine": 294,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 33791,
+        "raw": "map(0x8000, 0x83ff).ram().w(FUNC(pooyan_state::colorram_w)).share(m_colorram)",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 295,
+        "sourceColumn": 2,
+        "sourceEndLine": 295,
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 207,
+        "sourceColumn": 1,
+        "sourceEndLine": 211,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 33792,
+        "end": 34815,
+        "raw": "map(0x8400, 0x87ff).ram().w(FUNC(pooyan_state::videoram_w)).share(m_videoram)",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 296,
+        "sourceColumn": 2,
+        "sourceEndLine": 296,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 200,
+        "sourceColumn": 1,
+        "sourceEndLine": 204,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 34816,
+        "end": 36863,
+        "raw": "map(0x8800, 0x8fff).ram()",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 297,
+        "sourceColumn": 2,
+        "sourceEndLine": 297,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 36864,
+        "end": 37119,
+        "raw": "map(0x9000, 0x90ff).mirror(0x0b00).ram().share(m_spriteram[0])",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 298,
+        "sourceColumn": 2,
+        "sourceEndLine": 298,
+        "mirror": 2816,
+        "ram": true,
+        "share": "spriteram[0]"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 37888,
+        "end": 38143,
+        "raw": "map(0x9400, 0x94ff).mirror(0x0b00).ram().share(m_spriteram[1])",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 299,
+        "sourceColumn": 2,
+        "sourceEndLine": 299,
+        "mirror": 2816,
+        "ram": true,
+        "share": "spriteram[1]"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 40960,
+        "raw": "map(0xa000, 0xa000).mirror(0x5e7f).portr(\"DSW1\")",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 300,
+        "sourceColumn": 2,
+        "sourceEndLine": 300,
+        "mirror": 24191,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 41088,
+        "end": 41088,
+        "raw": "map(0xa080, 0xa080).mirror(0x5e1f).portr(\"IN0\")",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 301,
+        "sourceColumn": 2,
+        "sourceEndLine": 301,
+        "mirror": 24095,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 41120,
+        "end": 41120,
+        "raw": "map(0xa0a0, 0xa0a0).mirror(0x5e1f).portr(\"IN1\")",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 302,
+        "sourceColumn": 2,
+        "sourceEndLine": 302,
+        "mirror": 24095,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 41152,
+        "end": 41152,
+        "raw": "map(0xa0c0, 0xa0c0).mirror(0x5e1f).portr(\"IN2\")",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 303,
+        "sourceColumn": 2,
+        "sourceEndLine": 303,
+        "mirror": 24095,
+        "portRead": "IN2"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 41184,
+        "end": 41184,
+        "raw": "map(0xa0e0, 0xa0e0).mirror(0x5e1f).portr(\"DSW0\")",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 304,
+        "sourceColumn": 2,
+        "sourceEndLine": 304,
+        "mirror": 24095,
+        "portRead": "DSW0"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 40960,
+        "raw": "map(0xa000, 0xa000).mirror(0x5e7f).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 305,
+        "sourceColumn": 2,
+        "sourceEndLine": 305,
+        "mirror": 24191
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 305,
+        "sourceColumn": 2,
+        "sourceEndLine": 305
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 41216,
+        "end": 41216,
+        "raw": "map(0xa100, 0xa100).mirror(0x5e7f).w(\"timeplt_audio\", FUNC(timeplt_audio_device::sound_data_w))",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 306,
+        "sourceColumn": 2,
+        "sourceEndLine": 306,
+        "mirror": 24191
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.sound_data_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_data_w",
+        "ownerClass": "timeplt_audio_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 130,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_soundlatch->write(data);"
+      }
+    },
+    {
+      "id": "map:pooyan_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 41344,
+        "end": 41351,
+        "raw": "map(0xa180, 0xa187).mirror(0x5e78).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 307,
+        "sourceColumn": 2,
+        "sourceEndLine": 307,
+        "mirror": 24184
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 307,
+        "sourceColumn": 2,
+        "sourceEndLine": 307
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "timeplt_audio_device",
+        "name": "timeplt_sound_map",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 159,
+        "sourceColumn": 1,
+        "sourceEndLine": 168
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 12287,
+        "raw": "map(0x0000, 0x2fff).rom()",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 161,
+        "sourceColumn": 2,
+        "sourceEndLine": 161,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 13311,
+        "raw": "map(0x3000, 0x33ff).mirror(0x0c00).ram()",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 162,
+        "sourceColumn": 2,
+        "sourceEndLine": 162,
+        "mirror": 3072,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16384,
+        "raw": "map(0x4000, 0x4000).mirror(0x0fff).rw(\"ay1\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 163,
+        "sourceColumn": 2,
+        "sourceEndLine": 163,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_r",
+      "label": "Handler",
+      "props": {
+        "method": "data_r",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 178,
+        "sourceColumn": 2,
+        "sourceEndLine": 178
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 178,
+        "sourceColumn": 2,
+        "sourceEndLine": 178
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 20480,
+        "raw": "map(0x5000, 0x5000).mirror(0x0fff).w(\"ay1\", FUNC(ay8910_device::address_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 164,
+        "sourceColumn": 2,
+        "sourceEndLine": 164,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "handler:ay8910_device.address_w",
+      "label": "Handler",
+      "props": {
+        "method": "address_w",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 179,
+        "sourceColumn": 2,
+        "sourceEndLine": 179
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).mirror(0x0fff).rw(\"ay2\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 165,
+        "sourceColumn": 2,
+        "sourceEndLine": 165,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 28672,
+        "raw": "map(0x7000, 0x7000).mirror(0x0fff).w(\"ay2\", FUNC(ay8910_device::address_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 2,
+        "sourceEndLine": 166,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).w(FUNC(timeplt_audio_device::filter_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 167,
+        "sourceColumn": 2,
+        "sourceEndLine": 167
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.filter_w",
+      "label": "Handler",
+      "props": {
+        "method": "filter_w",
+        "ownerClass": "timeplt_audio_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 109,
+        "sourceColumn": 1,
+        "sourceEndLine": 117,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "set_filter(1, 0, (offset >>  0) & 3);\n\tset_filter(1, 1, (offset >>  2) & 3);\n\tset_filter(1, 2, (offset >>  4) & 3);\n\tset_filter(0, 0, (offset >>  6) & 3);\n\tset_filter(0, 1, (offset >>  8) & 3);\n\tset_filter(0, 2, (offset >> 10) & 3);"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.set_filter",
+      "label": "Handler",
+      "props": {
+        "method": "set_filter",
+        "ownerClass": "timeplt_audio_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 96,
+        "sourceColumn": 1,
+        "sourceEndLine": 106,
+        "sourceConstants": [
+          "LOWPASS_3R=0"
+        ],
+        "sourceParameters": "int no, int ch, int data",
+        "sourceBody": "int C = 0;\n\n\tif (BIT(data, 0))\n\t\tC += 220000;    /* 220000pF = 0.220uF */\n\tif (BIT(data, 1))\n\t\tC +=  47000;    /*  47000pF = 0.047uF */\n\n\tm_filter[no][ch]->filter_rc_set_RC(filter_rc_device::LOWPASS_3R, 1000, 5100, 0, CAP_P(C));"
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "locomotn_audio_device",
+        "name": "locomotn_sound_map",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 171,
+        "sourceColumn": 1,
+        "sourceEndLine": 180
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 8191,
+        "raw": "map(0x0000, 0x1fff).rom()",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 173,
+        "sourceColumn": 2,
+        "sourceEndLine": 173,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 9215,
+        "raw": "map(0x2000, 0x23ff).mirror(0x0c00).ram()",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 174,
+        "sourceColumn": 2,
+        "sourceEndLine": 174,
+        "mirror": 3072,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 16383,
+        "raw": "map(0x3000, 0x3fff).w(FUNC(locomotn_audio_device::filter_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 175,
+        "sourceColumn": 2,
+        "sourceEndLine": 175
+      }
+    },
+    {
+      "id": "handler:locomotn_audio_device.filter_w",
+      "label": "Handler",
+      "props": {
+        "method": "filter_w",
+        "ownerClass": "locomotn_audio_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 109,
+        "sourceColumn": 1,
+        "sourceEndLine": 117,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "set_filter(1, 0, (offset >>  0) & 3);\n\tset_filter(1, 1, (offset >>  2) & 3);\n\tset_filter(1, 2, (offset >>  4) & 3);\n\tset_filter(0, 0, (offset >>  6) & 3);\n\tset_filter(0, 1, (offset >>  8) & 3);\n\tset_filter(0, 2, (offset >> 10) & 3);"
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16384,
+        "raw": "map(0x4000, 0x4000).mirror(0x0fff).rw(\"ay1\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 176,
+        "sourceColumn": 2,
+        "sourceEndLine": 176,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 20480,
+        "raw": "map(0x5000, 0x5000).mirror(0x0fff).w(\"ay1\", FUNC(ay8910_device::address_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 177,
+        "sourceColumn": 2,
+        "sourceEndLine": 177,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).mirror(0x0fff).rw(\"ay2\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 178,
+        "sourceColumn": 2,
+        "sourceEndLine": 178,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:locomotn_audio_device.locomotn_sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 28672,
+        "raw": "map(0x7000, 0x7000).mirror(0x0fff).w(\"ay2\", FUNC(ay8910_device::address_w))",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 179,
+        "sourceColumn": 2,
+        "sourceEndLine": 179,
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "machine:pooyan_state.pooyan",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "pooyan_state",
+        "name": "pooyan",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_irq_enable\",\"bits\":8}"
+        ],
+        "startHandlers": [
+          "pooyan_state.video_start"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 421,
+        "sourceColumn": 1,
+        "sourceEndLine": 450
+      }
+    },
+    {
+      "id": "handler:pooyan_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 187,
+        "sourceColumn": 1,
+        "sourceEndLine": 190,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(pooyan_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 169,
+        "sourceColumn": 1,
+        "sourceEndLine": 177,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int const attr = m_colorram[tile_index];\n\tint const code = m_videoram[tile_index];\n\tint const color = attr & 0x0f;\n\tint const flags = TILE_FLIPYX(attr >> 6);\n\n\ttileinfo.set(0, code, color, flags);"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_maincpu, 18.432_MHz_XTAL / 3 / 2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &pooyan_state::main_map)"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 424,
+        "sourceColumn": 2,
+        "sourceEndLine": 424
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "ls259_device &mainlatch(LS259(config, \"mainlatch\"))",
+          "mainlatch.q_out_cb<0>().set(FUNC(pooyan_state::irq_enable_w))",
+          "mainlatch.q_out_cb<1>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::sh_irqtrigger_w))",
+          "mainlatch.q_out_cb<2>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::mute_w))",
+          "mainlatch.q_out_cb<3>().set(FUNC(pooyan_state::coin_counter_w<0>))",
+          "mainlatch.q_out_cb<4>().set(FUNC(pooyan_state::coin_counter_w<1>))",
+          "mainlatch.q_out_cb<5>().set_nop()",
+          "mainlatch.q_out_cb<7>().set(FUNC(pooyan_state::flip_screen_set)).invert()"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 427,
+        "sourceColumn": 2,
+        "sourceEndLine": 427
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<0>().set(FUNC(pooyan_state::irq_enable_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 428,
+        "sourceColumn": 2,
+        "sourceEndLine": 428,
+        "slot": "0",
+        "targetClass": "pooyan_state",
+        "targetMethod": "irq_enable_w"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.irq_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "irq_enable_w",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 271,
+        "sourceColumn": 1,
+        "sourceEndLine": 276,
+        "sourceParameters": "int state",
+        "sourceBody": "m_irq_enable = state;\n\tif (!m_irq_enable)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<1>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::sh_irqtrigger_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 429,
+        "sourceColumn": 2,
+        "sourceEndLine": 429,
+        "slot": "1",
+        "targetTag": "timeplt_audio",
+        "targetClass": "timeplt_audio_device",
+        "targetMethod": "sh_irqtrigger_w"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.sh_irqtrigger_w",
+      "label": "Handler",
+      "props": {
+        "method": "sh_irqtrigger_w",
+        "ownerClass": "timeplt_audio_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 133,
+        "sourceColumn": 1,
+        "sourceEndLine": 142,
+        "sourceParameters": "int state",
+        "sourceBody": "if (m_last_irq_state == 0 && state)\n\t{\n\t\t/* setting bit 0 low then high triggers IRQ on the sound CPU */\n\t\tm_soundcpu->set_input_line(0, HOLD_LINE); // Z80 IM1\n\t}\n\n\tm_last_irq_state = state;"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<2>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::mute_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 430,
+        "sourceColumn": 2,
+        "sourceEndLine": 430,
+        "slot": "2",
+        "targetTag": "timeplt_audio",
+        "targetClass": "timeplt_audio_device",
+        "targetMethod": "mute_w"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.mute_w",
+      "label": "Handler",
+      "props": {
+        "method": "mute_w",
+        "ownerClass": "timeplt_audio_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 1,
+        "sourceEndLine": 149,
+        "sourceParameters": "int state",
+        "sourceBody": "// controls pin 6 (DC audio mute) of LA4460 amplifier\n\tmachine().sound().system_mute(state);"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<3>().set(FUNC(pooyan_state::coin_counter_w<0>))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 2,
+        "sourceEndLine": 431,
+        "slot": "3",
+        "targetClass": "pooyan_state",
+        "targetMethod": "coin_counter_w_0"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.coin_counter_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w_0",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 280,
+        "sourceColumn": 1,
+        "sourceEndLine": 283,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(Which, state);"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<4>().set(FUNC(pooyan_state::coin_counter_w<1>))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 432,
+        "sourceColumn": 2,
+        "sourceEndLine": 432,
+        "slot": "4",
+        "targetClass": "pooyan_state",
+        "targetMethod": "coin_counter_w_1"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.coin_counter_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w_1",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 280,
+        "sourceColumn": 1,
+        "sourceEndLine": 283,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(Which, state);"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_nop",
+        "raw": "mainlatch.q_out_cb<5>().set_nop()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 433,
+        "sourceColumn": 2,
+        "sourceEndLine": 433,
+        "slot": "5"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:6",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<7>().set(FUNC(pooyan_state::flip_screen_set)).invert()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434,
+        "slot": "7",
+        "transforms": [
+          "invert"
+        ],
+        "targetClass": "pooyan_state",
+        "targetMethod": "flip_screen_set"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.flip_screen_set",
+      "label": "Handler",
+      "props": {
+        "method": "flip_screen_set",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 436,
+        "sourceColumn": 2,
+        "sourceEndLine": 436
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(18.432_MHz_XTAL / 3, 384, 0, 256, 264, 16, 240)",
+          "screen.set_screen_update(FUNC(pooyan_state::screen_update))",
+          "screen.set_palette(m_palette)",
+          "screen.screen_vblank().set(FUNC(pooyan_state::vblank_irq))"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 439,
+        "sourceColumn": 2,
+        "sourceEndLine": 439,
+        "configCalls": [
+          "set_raw(6144000,384,0,256,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6144000,
+          384,
+          0,
+          256,
+          264,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "18.432_MHz_XTAL / 3",
+          "384",
+          "0",
+          "256",
+          "264",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(pooyan_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 441,
+        "sourceColumn": 2,
+        "sourceEndLine": 441,
+        "targetClass": "pooyan_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 250,
+        "sourceColumn": 1,
+        "sourceEndLine": 255,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 221,
+        "sourceColumn": 1,
+        "sourceEndLine": 240,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "for (int offs = 0x10; offs < 0x40; offs += 2)\n\t{\n\t\tint const sx = m_spriteram[0][offs];\n\t\tint const sy = 240 - m_spriteram[1][offs + 1];\n\n\t\tint const code = m_spriteram[0][offs + 1];\n\t\tint const color = m_spriteram[1][offs] & 0x0f;\n\t\tint const flipx = ~m_spriteram[1][offs] & 0x40;\n\t\tint const flipy = m_spriteram[1][offs] & 0x80;\n\n\t\tm_gfxdecode->gfx(1)->transmask(bitmap, cliprect,\n\t\t\tcode,\n\t\t\tcolor,\n\t\t\tflipx, flipy,\n\t\t\tsx, sy,\n\t\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(1), color, 0));\n\t}"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "screen.screen_vblank().set(FUNC(pooyan_state::vblank_irq))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 443,
+        "sourceColumn": 2,
+        "sourceEndLine": 443,
+        "targetClass": "pooyan_state",
+        "targetMethod": "vblank_irq"
+      }
+    },
+    {
+      "id": "handler:pooyan_state.vblank_irq",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_irq",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 264,
+        "sourceColumn": 1,
+        "sourceEndLine": 268,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_irq_enable)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_pooyan)"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 445,
+        "sourceColumn": 2,
+        "sourceEndLine": 445,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(pooyan_state::palette), 16*16+16*16, 32)"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 446,
+        "sourceColumn": 2,
+        "sourceEndLine": 446,
+        "clockExpr": "FUNC(pooyan_state::palette)"
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/timeplt_audio",
+      "label": "Device",
+      "props": {
+        "type": "TIMEPLT_AUDIO",
+        "tag": "timeplt_audio",
+        "clock": 14318181,
+        "config": [
+          "TIMEPLT_AUDIO(config, \"timeplt_audio\")"
+        ],
+        "cls": "timeplt_audio_device",
+        "clsHierarchy": [
+          "timeplt_audio_device"
+        ],
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 449,
+        "sourceColumn": 2,
+        "sourceEndLine": 449
+      }
+    },
+    {
+      "id": "machine:timeplt_audio_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "timeplt_audio_device",
+        "name": "device_add_mconfig",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_last_irq_state\",\"bits\":8}"
+        ],
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 189,
+        "sourceColumn": 1,
+        "sourceEndLine": 217
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "tpsound",
+        "clock": 1789772.625,
+        "config": [
+          "Z80(config, m_soundcpu, DERIVED_CLOCK(1, 8))",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &timeplt_audio_device::timeplt_sound_map)"
+        ],
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 192,
+        "sourceColumn": 2,
+        "sourceEndLine": 192
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()",
+          "for (required_device<filter_rc_device> &filter : m_filter[0])\n\t\tFILTER_RC(config, filter).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+          "for (required_device<filter_rc_device> &filter : m_filter[1])\n\t\tFILTER_RC(config, filter).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 196,
+        "sourceColumn": 2,
+        "sourceEndLine": 196
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch)"
+        ],
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 198,
+        "sourceColumn": 2,
+        "sourceEndLine": 198
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay1",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &ay1(AY8910(config, \"ay1\", DERIVED_CLOCK(1, 8)))",
+          "ay1.port_a_read_callback().set(m_soundlatch, FUNC(generic_latch_8_device::read))",
+          "ay1.port_b_read_callback().set(FUNC(timeplt_audio_device::portB_r))",
+          "ay1.add_route(0, \"filter.0.0\", 0.60)",
+          "ay1.add_route(1, \"filter.0.1\", 0.60)",
+          "ay1.add_route(2, \"filter.0.2\", 0.60)"
+        ],
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 200,
+        "sourceColumn": 2,
+        "sourceEndLine": 200
+      }
+    },
+    {
+      "id": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "filter.0.0",
+        "gain": 0.6,
+        "raw": "ay1.add_route(0, \"filter.0.0\", 0.60)",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 203,
+        "sourceColumn": 2,
+        "sourceEndLine": 203
+      }
+    },
+    {
+      "id": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "filter.0.1",
+        "gain": 0.6,
+        "raw": "ay1.add_route(1, \"filter.0.1\", 0.60)",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 204,
+        "sourceColumn": 2,
+        "sourceEndLine": 204
+      }
+    },
+    {
+      "id": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/2",
+      "label": "AudioRoute",
+      "props": {
+        "output": "2",
+        "target": "filter.0.2",
+        "gain": 0.6,
+        "raw": "ay1.add_route(2, \"filter.0.2\", 0.60)",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 205,
+        "sourceColumn": 2,
+        "sourceEndLine": 205
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_a_read_callback",
+        "operation": "set",
+        "raw": "ay1.port_a_read_callback().set(m_soundlatch, FUNC(generic_latch_8_device::read))",
+        "ownerTag": "ay1",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 201,
+        "sourceColumn": 2,
+        "sourceEndLine": 201,
+        "targetClass": "generic_latch_8_device",
+        "targetMethod": "read",
+        "targetTag": "soundlatch"
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 201,
+        "sourceColumn": 2,
+        "sourceEndLine": 201
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1",
+      "label": "Callback",
+      "props": {
+        "signal": "port_b_read_callback",
+        "operation": "set",
+        "raw": "ay1.port_b_read_callback().set(FUNC(timeplt_audio_device::portB_r))",
+        "ownerTag": "ay1",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 202,
+        "sourceColumn": 2,
+        "sourceEndLine": 202,
+        "targetClass": "timeplt_audio_device",
+        "targetMethod": "portB_r"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.portB_r",
+      "label": "Handler",
+      "props": {
+        "method": "portB_r",
+        "ownerClass": "timeplt_audio_device",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 78,
+        "sourceColumn": 1,
+        "sourceEndLine": 86,
+        "sourceParameters": "",
+        "sourceBody": "return TABLE((m_soundcpu->total_cycles() / 512) % 10, 0x00, 0x10, 0x20, 0x30, 0x40, 0x90, 0xa0, 0xb0, 0xa0, 0xd0);"
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay2",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &ay2(AY8910(config, \"ay2\", DERIVED_CLOCK(1, 8)))",
+          "ay2.add_route(0, \"filter.1.0\", 0.60)",
+          "ay2.add_route(1, \"filter.1.1\", 0.60)",
+          "ay2.add_route(2, \"filter.1.2\", 0.60)"
+        ],
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 207,
+        "sourceColumn": 2,
+        "sourceEndLine": 207
+      }
+    },
+    {
+      "id": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "filter.1.0",
+        "gain": 0.6,
+        "raw": "ay2.add_route(0, \"filter.1.0\", 0.60)",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 208,
+        "sourceColumn": 2,
+        "sourceEndLine": 208
+      }
+    },
+    {
+      "id": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "filter.1.1",
+        "gain": 0.6,
+        "raw": "ay2.add_route(1, \"filter.1.1\", 0.60)",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 209,
+        "sourceColumn": 2,
+        "sourceEndLine": 209
+      }
+    },
+    {
+      "id": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/2",
+      "label": "AudioRoute",
+      "props": {
+        "output": "2",
+        "target": "filter.1.2",
+        "gain": 0.6,
+        "raw": "ay2.add_route(2, \"filter.1.2\", 0.60)",
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 210,
+        "sourceColumn": 2,
+        "sourceEndLine": 210
+      }
+    },
+    {
+      "id": "machine:locomotn_audio_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "locomotn_audio_device",
+        "name": "device_add_mconfig",
+        "calls": [
+          "timeplt_audio_device::device_add_mconfig"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_last_irq_state\",\"bits\":8}"
+        ],
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 220,
+        "sourceColumn": 1,
+        "sourceEndLine": 226
+      }
+    },
+    {
+      "id": "inputs:pooyan",
+      "label": "InputPorts",
+      "props": {
+        "name": "pooyan",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 318,
+        "sourceColumn": 8,
+        "sourceEndLine": 318
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 224,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 224
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 3,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 3
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 224,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 224
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 3,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 3
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:pooyan/IN2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 224,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 224
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW0",
+      "label": "Port",
+      "props": {
+        "tag": "DSW0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":1,2,3,4\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 15,
+        "location": "#SW1\":1,2,3,4\"",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":5,6,7,8\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "32=4C 1C",
+          "80=3C 1C",
+          "128=2C 1C",
+          "64=3C 2C",
+          "16=4C 3C",
+          "240=1C 1C",
+          "48=3C 4C",
+          "112=2C 3C",
+          "224=1C 2C",
+          "96=2C 5C",
+          "208=1C 3C",
+          "192=1C 4C",
+          "176=1C 5C",
+          "160=1C 6C",
+          "144=1C 7C",
+          "0=Invalid"
+        ]
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:1,2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 3,
+        "location": "SW2:1,2",
+        "settings": [
+          "3=3",
+          "2=4",
+          "1=5",
+          "0=255 (Cheat)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:3\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:3",
+        "settings": [
+          "0=Upright",
+          "4=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:4\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 8,
+        "location": "SW2:4",
+        "settings": [
+          "8=50K 80K+",
+          "0=30K 70K+"
+        ]
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 112,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:5,6,7\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 112,
+        "location": "SW2:5,6,7",
+        "settings": [
+          "112=1 (Easy)",
+          "96=2",
+          "80=3",
+          "64=4",
+          "48=5",
+          "32=6",
+          "16=7",
+          "0=8 (Hard)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:pooyan/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:8\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)+4",
+          "RGN_FRAC(1,2)+0",
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)+4",
+          "RGN_FRAC(1,2)+0",
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67,
+          128,
+          129,
+          130,
+          131,
+          192,
+          193,
+          194,
+          195
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x1",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x1",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 1,
+        "planeOffsets": [
+          "RGN_FRAC(0,1)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x3_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x3_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x5_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x5_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,5)",
+        "planes": 5,
+        "planeOffsets": [
+          "RGN_FRAC(4,5)",
+          "RGN_FRAC(3,5)",
+          "RGN_FRAC(2,5)",
+          "RGN_FRAC(1,5)",
+          "RGN_FRAC(0,5)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x6_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x6_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,6)",
+        "planes": 6,
+        "planeOffsets": [
+          "RGN_FRAC(5,6)",
+          "RGN_FRAC(4,6)",
+          "RGN_FRAC(3,6)",
+          "RGN_FRAC(2,6)",
+          "RGN_FRAC(1,6)",
+          "RGN_FRAC(0,6)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_planar",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_msb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_lsb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          36,
+          32,
+          44,
+          40,
+          52,
+          48,
+          60,
+          56
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          256,
+          260,
+          264,
+          268,
+          272,
+          276,
+          280,
+          284
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          260,
+          256,
+          268,
+          264,
+          276,
+          272,
+          284,
+          280
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          512,
+          516,
+          520,
+          524,
+          528,
+          532,
+          536,
+          540
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          516,
+          512,
+          524,
+          520,
+          532,
+          528,
+          540,
+          536
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_pooyan",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_pooyan",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 402,
+        "sourceColumn": 8,
+        "sourceEndLine": 402
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_pooyan/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_pooyan/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:pooyan_state.pooyan/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(pooyan_state::palette), 16*16+16*16, 32)",
+        "ownerTag": "palette",
+        "targetClass": "pooyan_state",
+        "targetMethod": "palette",
+        "entries": 32,
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 446
+      }
+    },
+    {
+      "id": "handler:pooyan_state.palette",
+      "label": "Handler",
+      "props": {
+        "method": "palette",
+        "ownerClass": "pooyan_state",
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 105,
+        "sourceColumn": 1,
+        "sourceEndLine": 159,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "const uint8_t *color_prom = memregion(\"proms\")->base();\n\t\n\t\n\n\t// compute the color output resistor weights\n\tdouble rweights[3], gweights[3], bweights[2];\n\tcompute_resistor_weights(0, 255, -1.0,\n\t\t\t3, resistances_rg, rweights, 1000, 0,\n\t\t\t3, resistances_rg, gweights, 1000, 0,\n\t\t\t2, resistances_b,  bweights, 1000, 0);\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\tint bit0, bit1, bit2;\n\n\t\t// red component\n\t\tbit0 = BIT(color_prom[i], 0);\n\t\tbit1 = BIT(color_prom[i], 1);\n\t\tbit2 = BIT(color_prom[i], 2);\n\t\tint const r = combine_weights(rweights, bit0, bit1, bit2);\n\n\t\t// green component\n\t\tbit0 = BIT(color_prom[i], 3);\n\t\tbit1 = BIT(color_prom[i], 4);\n\t\tbit2 = BIT(color_prom[i], 5);\n\t\tint const g = combine_weights(gweights, bit0, bit1, bit2);\n\n\t\t// blue component\n\t\tbit0 = BIT(color_prom[i], 6);\n\t\tbit1 = BIT(color_prom[i], 7);\n\t\tint const b = combine_weights(bweights, bit0, bit1);\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x20;\n\n\t// characters\n\tfor (int i = 0; i < 0x100; i++)\n\t{\n\t\tuint8_t const ctabentry = (color_prom[i] & 0x0f) | 0x10;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\t// sprites\n\tfor (int i = 0x100; i < 0x200; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] & 0x0f;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:timeplt_a.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:video/resnet.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/pooyan.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.h",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.h",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.h",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.h",
+      "to": "file:sound/flt_rc.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.cpp",
+      "to": "file:timeplt_a.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/timeplt_a.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:pooyan",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 1,
+        "sourceEndLine": 544
+      }
+    },
+    {
+      "from": "game:pooyan",
+      "to": "machine:pooyan_state.pooyan",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:pooyan",
+      "to": "inputs:pooyan",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:pooyan",
+      "to": "romset:pooyan",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:pooyans",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 545,
+        "sourceColumn": 1,
+        "sourceEndLine": 545
+      }
+    },
+    {
+      "from": "game:pooyans",
+      "to": "game:pooyan",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:pooyans",
+      "to": "machine:pooyan_state.pooyan",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:pooyans",
+      "to": "inputs:pooyan",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:pooyans",
+      "to": "romset:pooyans",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:pootan",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 546,
+        "sourceColumn": 1,
+        "sourceEndLine": 546
+      }
+    },
+    {
+      "from": "game:pootan",
+      "to": "game:pooyan",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:pootan",
+      "to": "machine:pooyan_state.pooyan",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:pootan",
+      "to": "inputs:pooyan",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:pootan",
+      "to": "romset:pootan",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "romset:pooyan",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 459,
+        "sourceColumn": 1,
+        "sourceEndLine": 459
+      }
+    },
+    {
+      "from": "romset:pooyan",
+      "to": "region:pooyan/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyan/maincpu",
+      "to": "rom:pooyan/maincpu/1.4a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/maincpu",
+      "to": "rom:pooyan/maincpu/2.5a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/maincpu",
+      "to": "rom:pooyan/maincpu/3.6a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/maincpu",
+      "to": "rom:pooyan/maincpu/4.7a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyan",
+      "to": "region:pooyan/timeplt_audio:tpsound",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyan/timeplt_audio:tpsound",
+      "to": "rom:pooyan/timeplt_audio:tpsound/xx.7a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/timeplt_audio:tpsound",
+      "to": "rom:pooyan/timeplt_audio:tpsound/xx.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyan",
+      "to": "region:pooyan/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyan/tiles",
+      "to": "rom:pooyan/tiles/8.10g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/tiles",
+      "to": "rom:pooyan/tiles/7.9g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyan",
+      "to": "region:pooyan/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyan/sprites",
+      "to": "rom:pooyan/sprites/6.9a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/sprites",
+      "to": "rom:pooyan/sprites/5.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyan",
+      "to": "region:pooyan/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyan/proms",
+      "to": "rom:pooyan/proms/pooyan.pr1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/proms",
+      "to": "rom:pooyan/proms/pooyan.pr3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyan/proms",
+      "to": "rom:pooyan/proms/pooyan.pr2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyans",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 484,
+        "sourceColumn": 1,
+        "sourceEndLine": 484
+      }
+    },
+    {
+      "from": "romset:pooyans",
+      "to": "region:pooyans/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyans/maincpu",
+      "to": "rom:pooyans/maincpu/ic22_a4.cpu",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/maincpu",
+      "to": "rom:pooyans/maincpu/ic23_a5.cpu",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/maincpu",
+      "to": "rom:pooyans/maincpu/ic24_a6.cpu",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/maincpu",
+      "to": "rom:pooyans/maincpu/ic25_a7.cpu",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyans",
+      "to": "region:pooyans/timeplt_audio:tpsound",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyans/timeplt_audio:tpsound",
+      "to": "rom:pooyans/timeplt_audio:tpsound/xx.7a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/timeplt_audio:tpsound",
+      "to": "rom:pooyans/timeplt_audio:tpsound/xx.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyans",
+      "to": "region:pooyans/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyans/tiles",
+      "to": "rom:pooyans/tiles/ic13_g10.cpu",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/tiles",
+      "to": "rom:pooyans/tiles/ic14_g9.cpu",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyans",
+      "to": "region:pooyans/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyans/sprites",
+      "to": "rom:pooyans/sprites/6.9a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/sprites",
+      "to": "rom:pooyans/sprites/5.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pooyans",
+      "to": "region:pooyans/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pooyans/proms",
+      "to": "rom:pooyans/proms/pooyan.pr1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/proms",
+      "to": "rom:pooyans/proms/pooyan.pr3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pooyans/proms",
+      "to": "rom:pooyans/proms/pooyan.pr2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pootan",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 509,
+        "sourceColumn": 1,
+        "sourceEndLine": 509
+      }
+    },
+    {
+      "from": "romset:pootan",
+      "to": "region:pootan/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pootan/maincpu",
+      "to": "rom:pootan/maincpu/poo_ic22.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/maincpu",
+      "to": "rom:pootan/maincpu/poo_ic23.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/maincpu",
+      "to": "rom:pootan/maincpu/3.6a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/maincpu",
+      "to": "rom:pootan/maincpu/poo_ic25.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pootan",
+      "to": "region:pootan/timeplt_audio:tpsound",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pootan/timeplt_audio:tpsound",
+      "to": "rom:pootan/timeplt_audio:tpsound/xx.7a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/timeplt_audio:tpsound",
+      "to": "rom:pootan/timeplt_audio:tpsound/xx.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pootan",
+      "to": "region:pootan/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pootan/tiles",
+      "to": "rom:pootan/tiles/poo_ic13.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/tiles",
+      "to": "rom:pootan/tiles/poo_ic14.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pootan",
+      "to": "region:pootan/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pootan/sprites",
+      "to": "rom:pootan/sprites/6.9a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/sprites",
+      "to": "rom:pootan/sprites/5.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:pootan",
+      "to": "region:pootan/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:pootan/proms",
+      "to": "rom:pootan/proms/pooyan.pr1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/proms",
+      "to": "rom:pootan/proms/pooyan.pr3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:pootan/proms",
+      "to": "rom:pootan/proms/pooyan.pr2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 292,
+        "sourceColumn": 1,
+        "sourceEndLine": 308
+      }
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map/range1",
+      "to": "handler:pooyan_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map/range2",
+      "to": "handler:pooyan_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map/range11",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map/range12",
+      "to": "handler:timeplt_audio_device.sound_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "timeplt_audio"
+      }
+    },
+    {
+      "from": "map:pooyan_state.main_map",
+      "to": "map:pooyan_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:pooyan_state.main_map/range13",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "file:src/mame/shared/timeplt_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 159,
+        "sourceColumn": 1,
+        "sourceEndLine": 168
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "handler:timeplt_audio_device.filter_w",
+      "to": "handler:timeplt_audio_device.set_filter",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "to": "handler:timeplt_audio_device.filter_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "file:src/mame/shared/timeplt_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 171,
+        "sourceColumn": 1,
+        "sourceEndLine": 180
+      }
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "map:locomotn_audio_device.locomotn_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "map:locomotn_audio_device.locomotn_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "map:locomotn_audio_device.locomotn_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "handler:locomotn_audio_device.filter_w",
+      "to": "handler:timeplt_audio_device.set_filter",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map/range2",
+      "to": "handler:locomotn_audio_device.filter_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "map:locomotn_audio_device.locomotn_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map/range3",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map/range3",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "map:locomotn_audio_device.locomotn_sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map/range4",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "map:locomotn_audio_device.locomotn_sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map/range5",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map/range5",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map",
+      "to": "map:locomotn_audio_device.locomotn_sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:locomotn_audio_device.locomotn_sound_map/range6",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 421,
+        "sourceColumn": 1,
+        "sourceEndLine": 450
+      }
+    },
+    {
+      "from": "handler:pooyan_state.video_start",
+      "to": "handler:pooyan_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "handler:pooyan_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "device:pooyan_state.pooyan/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/maincpu",
+      "to": "map:pooyan_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "device:pooyan_state.pooyan/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch",
+      "to": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:0",
+      "to": "handler:pooyan_state.irq_enable_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch",
+      "to": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:1",
+      "to": "handler:timeplt_audio_device.sh_irqtrigger_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch",
+      "to": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:2",
+      "to": "handler:timeplt_audio_device.mute_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch",
+      "to": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:3",
+      "to": "handler:pooyan_state.coin_counter_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch",
+      "to": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:4",
+      "to": "handler:pooyan_state.coin_counter_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch",
+      "to": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch",
+      "to": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:6",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/mainlatch/callback:mainlatch:6",
+      "to": "handler:pooyan_state.flip_screen_set",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "device:pooyan_state.pooyan/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "device:pooyan_state.pooyan/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/screen",
+      "to": "device:pooyan_state.pooyan/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:pooyan_state.screen_update",
+      "to": "handler:pooyan_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/screen/callback:screen:0",
+      "to": "handler:pooyan_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/screen",
+      "to": "device:pooyan_state.pooyan/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/screen/callback:screen:1",
+      "to": "handler:pooyan_state.vblank_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "device:pooyan_state.pooyan/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "gfxdecode:gfx_pooyan",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "device:pooyan_state.pooyan/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:pooyan_state.pooyan",
+      "to": "device:pooyan_state.pooyan/timeplt_audio",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/timeplt_audio",
+      "to": "machine:timeplt_audio_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "file:src/mame/shared/timeplt_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 189,
+        "sourceColumn": 1,
+        "sourceEndLine": 217
+      }
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "to": "map:timeplt_audio_device.timeplt_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "to": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "to": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "to": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/2",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0",
+      "to": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1",
+      "to": "handler:timeplt_audio_device.portB_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "to": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "to": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "to": "audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/2",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:locomotn_audio_device.device_add_mconfig",
+      "to": "file:src/mame/shared/timeplt_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+        "sourceLine": 220,
+        "sourceColumn": 1,
+        "sourceEndLine": 226
+      }
+    },
+    {
+      "from": "machine:locomotn_audio_device.device_add_mconfig",
+      "to": "machine:timeplt_audio_device.device_add_mconfig",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:locomotn_audio_device.device_add_mconfig",
+      "to": "map:locomotn_audio_device.locomotn_sound_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "tpsound"
+      }
+    },
+    {
+      "from": "inputs:pooyan",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 318,
+        "sourceColumn": 8,
+        "sourceEndLine": 318
+      }
+    },
+    {
+      "from": "inputs:pooyan",
+      "to": "inputs:pooyan/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:pooyan/IN0",
+      "to": "inputs:pooyan/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN0",
+      "to": "inputs:pooyan/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN0",
+      "to": "inputs:pooyan/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN0",
+      "to": "inputs:pooyan/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN0",
+      "to": "inputs:pooyan/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN0",
+      "to": "inputs:pooyan/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan",
+      "to": "inputs:pooyan/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:pooyan/IN1",
+      "to": "inputs:pooyan/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN1",
+      "to": "inputs:pooyan/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN1",
+      "to": "inputs:pooyan/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN1",
+      "to": "inputs:pooyan/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN1",
+      "to": "inputs:pooyan/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan",
+      "to": "inputs:pooyan/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:pooyan/IN2",
+      "to": "inputs:pooyan/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN2",
+      "to": "inputs:pooyan/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN2",
+      "to": "inputs:pooyan/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN2",
+      "to": "inputs:pooyan/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/IN2",
+      "to": "inputs:pooyan/IN2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan",
+      "to": "inputs:pooyan/DSW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:pooyan/DSW0",
+      "to": "inputs:pooyan/DSW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/DSW0",
+      "to": "inputs:pooyan/DSW0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan",
+      "to": "inputs:pooyan/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:pooyan/DSW1",
+      "to": "inputs:pooyan/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/DSW1",
+      "to": "inputs:pooyan/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/DSW1",
+      "to": "inputs:pooyan/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/DSW1",
+      "to": "inputs:pooyan/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:pooyan/DSW1",
+      "to": "inputs:pooyan/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x1",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x3_planar",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_planar",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x5_planar",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x6_planar",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_planar",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_msb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_msb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_pooyan",
+      "to": "file:src/mame/konami/pooyan.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/pooyan.cpp",
+        "sourceLine": 402,
+        "sourceColumn": 8,
+        "sourceEndLine": 402
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_pooyan",
+      "to": "gfxdecode:gfx_pooyan/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_pooyan/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_pooyan",
+      "to": "gfxdecode:gfx_pooyan/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_pooyan/e1",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/palette",
+      "to": "device:pooyan_state.pooyan/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:pooyan_state.pooyan/palette/callback:palette_init",
+      "to": "handler:pooyan_state.palette",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

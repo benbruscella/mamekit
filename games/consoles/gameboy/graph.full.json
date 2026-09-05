@@ -1,0 +1,6137 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/nintendo/gb.cpp",
+    "generatedAt": "2026-09-05T03:50:51.628Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Anthony Kruize,Wilbert Pol"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/nintendo/gb.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/gb.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/gameboy/carts.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/gameboy/carts.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/gameboy/gbslot.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/gameboy/gbslot.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/gameboy/mdslot.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/gameboy/mdslot.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/lr35902/lr35902.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/lr35902/lr35902.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/ram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/ram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/gb.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/gb.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/gb_lcd.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/gb_lcd.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:softlist_dev.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "softlist_dev.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:logmacro.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "logmacro.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:gameboy",
+      "label": "Game",
+      "props": {
+        "name": "gameboy",
+        "year": "1990",
+        "company": "Nintendo",
+        "fullname": "Game Boy",
+        "monitor": "ROT0",
+        "cls": "gb_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1293,
+        "sourceColumn": 1,
+        "sourceEndLine": 1293
+      }
+    },
+    {
+      "id": "game:supergb",
+      "label": "Game",
+      "props": {
+        "name": "supergb",
+        "year": "1994",
+        "company": "Nintendo",
+        "fullname": "Super Game Boy",
+        "monitor": "ROT0",
+        "cls": "sgb_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1294,
+        "sourceColumn": 1,
+        "sourceEndLine": 1294
+      }
+    },
+    {
+      "id": "game:supergb2",
+      "label": "Game",
+      "props": {
+        "name": "supergb2",
+        "year": "1998",
+        "company": "Nintendo",
+        "fullname": "Super Game Boy 2",
+        "monitor": "ROT0",
+        "cls": "sgb_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1295,
+        "sourceColumn": 1,
+        "sourceEndLine": 1295
+      }
+    },
+    {
+      "id": "game:gbpocket",
+      "label": "Game",
+      "props": {
+        "name": "gbpocket",
+        "year": "1996",
+        "company": "Nintendo",
+        "fullname": "Game Boy Pocket",
+        "monitor": "ROT0",
+        "cls": "gb_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1296,
+        "sourceColumn": 1,
+        "sourceEndLine": 1296
+      }
+    },
+    {
+      "id": "game:gbcolor",
+      "label": "Game",
+      "props": {
+        "name": "gbcolor",
+        "year": "1998",
+        "company": "Nintendo",
+        "fullname": "Game Boy Color",
+        "monitor": "ROT0",
+        "cls": "gbc_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1297,
+        "sourceColumn": 1,
+        "sourceEndLine": 1297
+      }
+    },
+    {
+      "id": "game:megaduck",
+      "label": "Game",
+      "props": {
+        "name": "megaduck",
+        "year": "1993",
+        "company": "Welback Holdings (Timlex International) / Creatronic / Videojet / Cougar USA",
+        "fullname": "Mega Duck / Cougar Boy",
+        "monitor": "ROT0",
+        "cls": "megaduck_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1300,
+        "sourceColumn": 1,
+        "sourceEndLine": 1300
+      }
+    },
+    {
+      "id": "game:mduckspa",
+      "label": "Game",
+      "props": {
+        "name": "mduckspa",
+        "year": "199?",
+        "company": "Cefa Toys",
+        "fullname": "Super Quique / Mega Duck (Spain)",
+        "monitor": "ROT0",
+        "cls": "megaduck_state",
+        "init": "empty_init",
+        "flags": "MACHINE_NOT_WORKING",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1302,
+        "sourceColumn": 1,
+        "sourceEndLine": 1302
+      }
+    },
+    {
+      "id": "game:gamefgtr",
+      "label": "Game",
+      "props": {
+        "name": "gamefgtr",
+        "year": "1993",
+        "company": "bootleg",
+        "fullname": "Game Fighter (bootleg)",
+        "monitor": "ROT0",
+        "cls": "gb_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1306,
+        "sourceColumn": 1,
+        "sourceEndLine": 1306
+      }
+    },
+    {
+      "id": "romset:gameboy",
+      "label": "RomSet",
+      "props": {
+        "name": "gameboy",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1217,
+        "sourceColumn": 1,
+        "sourceEndLine": 1217
+      }
+    },
+    {
+      "id": "region:gameboy/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1218,
+        "sourceColumn": 2,
+        "sourceEndLine": 1218
+      }
+    },
+    {
+      "id": "rom:gameboy/maincpu/dmg_boot.bin",
+      "label": "Rom",
+      "props": {
+        "file": "dmg_boot.bin",
+        "offset": 0,
+        "size": 256,
+        "crc": "59c8598e",
+        "sha1": "4ed31ec6b0b175bb109c0eb5fd3d193da823339f"
+      }
+    },
+    {
+      "id": "romset:supergb",
+      "label": "RomSet",
+      "props": {
+        "name": "supergb",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1225,
+        "sourceColumn": 1,
+        "sourceEndLine": 1225
+      }
+    },
+    {
+      "id": "region:supergb/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1218,
+        "sourceColumn": 2,
+        "sourceEndLine": 1218
+      }
+    },
+    {
+      "id": "rom:supergb/maincpu/sgb_boot.bin",
+      "label": "Rom",
+      "props": {
+        "file": "sgb_boot.bin",
+        "offset": 0,
+        "size": 256,
+        "crc": "ec8a83b9",
+        "sha1": "aa2f50a77dfb4823da96ba99309085a3c6278515",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1227,
+        "sourceColumn": 2,
+        "sourceEndLine": 1227
+      }
+    },
+    {
+      "id": "romset:supergb2",
+      "label": "RomSet",
+      "props": {
+        "name": "supergb2",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1230,
+        "sourceColumn": 1,
+        "sourceEndLine": 1230
+      }
+    },
+    {
+      "id": "region:supergb2/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1218,
+        "sourceColumn": 2,
+        "sourceEndLine": 1218
+      }
+    },
+    {
+      "id": "rom:supergb2/maincpu/sgb2_boot.bin",
+      "label": "Rom",
+      "props": {
+        "file": "sgb2_boot.bin",
+        "offset": 0,
+        "size": 256,
+        "crc": "53d0dd63",
+        "sha1": "93407ea10d2f30ab96a314d8eca44fe160aea734",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1232,
+        "sourceColumn": 2,
+        "sourceEndLine": 1232
+      }
+    },
+    {
+      "id": "romset:gbpocket",
+      "label": "RomSet",
+      "props": {
+        "name": "gbpocket",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1235,
+        "sourceColumn": 1,
+        "sourceEndLine": 1235
+      }
+    },
+    {
+      "id": "region:gbpocket/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1218,
+        "sourceColumn": 2,
+        "sourceEndLine": 1218
+      }
+    },
+    {
+      "id": "rom:gbpocket/maincpu/mgb_boot.bin",
+      "label": "Rom",
+      "props": {
+        "file": "mgb_boot.bin",
+        "offset": 0,
+        "size": 256,
+        "crc": "e6920754",
+        "sha1": "4e68f9da03c310e84c523654b9026e51f26ce7f0",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1237,
+        "sourceColumn": 2,
+        "sourceEndLine": 1237
+      }
+    },
+    {
+      "id": "romset:gbcolor",
+      "label": "RomSet",
+      "props": {
+        "name": "gbcolor",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1240,
+        "sourceColumn": 1,
+        "sourceEndLine": 1240
+      }
+    },
+    {
+      "id": "region:gbcolor/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 2048,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1218,
+        "sourceColumn": 2,
+        "sourceEndLine": 1218
+      }
+    },
+    {
+      "id": "rom:gbcolor/maincpu/gbc_boot.1",
+      "label": "Rom",
+      "props": {
+        "file": "gbc_boot.1",
+        "offset": 0,
+        "size": 256,
+        "crc": "779ea374",
+        "sha1": "e4b40c9fd593a97a1618cfb2696f290cf9596a62",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1242,
+        "sourceColumn": 2,
+        "sourceEndLine": 1242
+      }
+    },
+    {
+      "id": "rom:gbcolor/maincpu/gbc_boot.2",
+      "label": "Rom",
+      "props": {
+        "file": "gbc_boot.2",
+        "offset": 256,
+        "size": 1792,
+        "crc": "f741807d",
+        "sha1": "f943b1e0b640cf1d371e1d8f0ada69af03ebb396",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1243,
+        "sourceColumn": 2,
+        "sourceEndLine": 1243
+      }
+    },
+    {
+      "id": "romset:megaduck",
+      "label": "RomSet",
+      "props": {
+        "name": "megaduck",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1246,
+        "sourceColumn": 1,
+        "sourceEndLine": 1246
+      }
+    },
+    {
+      "id": "romset:gamefgtr",
+      "label": "RomSet",
+      "props": {
+        "name": "gamefgtr",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1249,
+        "sourceColumn": 1,
+        "sourceEndLine": 1249
+      }
+    },
+    {
+      "id": "region:gamefgtr/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1218,
+        "sourceColumn": 2,
+        "sourceEndLine": 1218
+      }
+    },
+    {
+      "id": "rom:gamefgtr/maincpu/gamefgtr.bin",
+      "label": "Rom",
+      "props": {
+        "file": "gamefgtr.bin",
+        "offset": 0,
+        "size": 256,
+        "crc": "908ba8de",
+        "sha1": "a4a36f71bf1b3b587df620d48ae940af93a982a5",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1251,
+        "sourceColumn": 2,
+        "sourceEndLine": 1251
+      }
+    },
+    {
+      "id": "romset:mduckspa",
+      "label": "RomSet",
+      "props": {
+        "name": "mduckspa",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1281,
+        "sourceColumn": 1,
+        "sourceEndLine": 1281
+      }
+    },
+    {
+      "id": "region:mduckspa/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 524288,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1218,
+        "sourceColumn": 2,
+        "sourceEndLine": 1218
+      }
+    },
+    {
+      "id": "rom:mduckspa/maincpu/megaducksp.bin",
+      "label": "Rom",
+      "props": {
+        "file": "megaducksp.bin",
+        "offset": 0,
+        "size": 524288,
+        "crc": "debd33fd",
+        "sha1": "fbf86dffa82f6e469da46623541f6f58f6c8a0d8",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1283,
+        "sourceColumn": 2,
+        "sourceEndLine": 1283
+      }
+    },
+    {
+      "id": "region:mduckspa/81x00",
+      "label": "RomRegion",
+      "props": {
+        "tag": "81x00",
+        "size": 65536,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1285,
+        "sourceColumn": 2,
+        "sourceEndLine": 1285
+      }
+    },
+    {
+      "id": "rom:mduckspa/81x00/81x00.bin",
+      "label": "Rom",
+      "props": {
+        "file": "81x00.bin",
+        "offset": 0,
+        "size": 65536,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1286,
+        "sourceColumn": 2,
+        "sourceEndLine": 1286,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gb_state",
+        "name": "gameboy_map",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 899,
+        "sourceColumn": 1,
+        "sourceEndLine": 912,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 40959,
+        "raw": "map(0x8000, 0x9fff).rw(m_ppu, FUNC(dmg_ppu_device::vram_r), FUNC(dmg_ppu_device::vram_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 902,
+        "sourceColumn": 2,
+        "sourceEndLine": 902
+      }
+    },
+    {
+      "id": "handler:dmg_ppu_device.vram_r",
+      "label": "Handler",
+      "props": {
+        "method": "vram_r",
+        "ownerClass": "dmg_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 2,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "id": "handler:dmg_ppu_device.vram_w",
+      "label": "Handler",
+      "props": {
+        "method": "vram_w",
+        "ownerClass": "dmg_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 2,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 57343,
+        "raw": "map(0xc000, 0xdfff).mirror(0x2000).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 903,
+        "sourceColumn": 2,
+        "sourceEndLine": 903,
+        "mirror": 8192,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 65024,
+        "end": 65279,
+        "raw": "map(0xfe00, 0xfeff).rw(m_ppu, FUNC(dmg_ppu_device::oam_r), FUNC(dmg_ppu_device::oam_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 904,
+        "sourceColumn": 2,
+        "sourceEndLine": 904
+      }
+    },
+    {
+      "id": "handler:dmg_ppu_device.oam_r",
+      "label": "Handler",
+      "props": {
+        "method": "oam_r",
+        "ownerClass": "dmg_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "handler:dmg_ppu_device.oam_w",
+      "label": "Handler",
+      "props": {
+        "method": "oam_w",
+        "ownerClass": "dmg_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 65280,
+        "end": 65295,
+        "raw": "map(0xff00, 0xff0f).rw(FUNC(gb_state::gb_io_r), FUNC(gb_state::gb_io_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 905,
+        "sourceColumn": 2,
+        "sourceEndLine": 905
+      }
+    },
+    {
+      "id": "handler:gb_state.gb_io_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io_r",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 1,
+        "sourceEndLine": 642,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "switch(offset)\n\t{\n\t\tcase 0x04:\n\t\t\tLOG(\"read DIV, divcount = %04x\\n\", m_divcount);\n\t\t\treturn (m_divcount >> 8) & 0xFF;\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\tcase 0x02:\n\t\tcase 0x03:\n\t\tcase 0x05:\n\t\tcase 0x06:\n\t\tcase 0x07:\n\t\t\treturn m_gb_io[offset];\n\t\tcase 0x0F:\n\t\t\t/* Make sure the internal states are up to date */\n\t\t\tm_ppu->update_state();\n\t\t\tLOG(\"read if\\n\");\nlogerror(\"IF read, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\t\treturn 0xE0 | m_maincpu->get_if();\n\t\tdefault:\n\t\t\t/* Unsupported registers return 0xFF */\n\t\t\treturn 0xFF;\n\t}"
+      }
+    },
+    {
+      "id": "handler:gb_state.gb_io_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io_w",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 349,
+        "sourceColumn": 1,
+        "sourceEndLine": 429,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "switch (offset)\n\t{\n\tcase 0x00:                      /* JOYP - Joypad */\n\t\tm_gb_io[0x00] = 0xCF | data;\n\t\tif (!(data & 0x20))\n\t\t\tm_gb_io[0x00] &= (m_inputs->read() >> 4) | 0xF0;\n\t\tif (!(data & 0x10))\n\t\t\tm_gb_io[0x00] &= m_inputs->read() | 0xF0;\n\t\treturn;\n\tcase 0x01:                      /* SB - Serial transfer data */\n\t\tbreak;\n\tcase 0x02:                      /* SC - SIO control */\n\t\tswitch (data & 0x81)\n\t\t{\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\t\tm_sio_count = 0;\n\t\t\tbreak;\n\t\tcase 0x80:              /* enabled & external clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\tcase 0x81:              /* enabled & internal clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\t}\nlogerror(\"m_gb_io[0x02] write, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\tdata |= 0x7E; // unused bits stay high\n\t\tbreak;\n\tcase 0x03:\n\t\treturn;\n\tcase 0x04:                      /* DIV - Divider register */\n\t\t/* Force increment of m_gb_io[0x05] register when the 'highest' bit is set */\n\t\tif ((m_divcount >> (m_shift - 1)) & 1)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t}\n\t\tLOG(\"DIV write\\n\");\n\t\tm_divcount = 0;\n\t\treturn;\n\tcase 0x05:                      /* TIMA - Timer counter */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tdata = m_gb_io[0x06];\n\t\t}\n\t\tbreak;\n\tcase 0x06:                      /* TMA - Timer module */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tm_gb_io[0x05] = data;\n\t\t}\n\t\tbreak;\n\tcase 0x07:                      /* TAC - Timer control */\n\t\tdata |= 0xF8;\n\t\t/* Check if timer is just disabled or the timer frequency is changing */\n\t\tif ((!(data & 0x04) && (m_gb_io[0x07] & 0x04)) || ((data & 0x04) && (m_gb_io[0x07] & 0x04) && (data & 0x03) != (m_gb_io[0x07] & 0x03)))\n\t\t{\n\t\t\t/* Check if m_gb_io[0x05] should be incremented */\n\t\t\tif ((m_divcount & (m_shift_cycles - 1)) >= (m_shift_cycles >> 1))\n\t\t\t{\n\t\t\t\tgb_timer_increment();\n\t\t\t}\n\t\t}\n\t\tm_shift = TABLE(data & 0x03, 10, 4, 6, 8);\n\t\tm_shift_cycles = 1 << m_shift;\n\t\tbreak;\n\tcase 0x0F:                      /* IF - Interrupt flag */\n\t\tm_ppu->update_state();\n\t\tLOG(\"write if\\n\");\n\t\tdata &= 0x1F;\n\t\tm_maincpu->set_if(data);\n\t\tbreak;\n\t}\n\n\tm_gb_io[offset] = data;",
+        "inputMembers": [
+          "m_inputs=INPUTS"
+        ]
+      }
+    },
+    {
+      "id": "handler:base_state.gb_timer_increment",
+      "label": "Handler",
+      "props": {
+        "method": "gb_timer_increment",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 688,
+        "sourceColumn": 1,
+        "sourceEndLine": 698,
+        "sourceParameters": "",
+        "sourceBody": "gb_timer_check_irq();\n\n\tLOG(\"increment timer\\n\");\n\tm_gb_io[0x05] += 1;\n\tif (m_gb_io[0x05] == 0)\n\t{\n\t\tm_triggering_irq = 1;\n\t}"
+      }
+    },
+    {
+      "id": "handler:base_state.gb_timer_check_irq",
+      "label": "Handler",
+      "props": {
+        "method": "gb_timer_check_irq",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 671,
+        "sourceColumn": 1,
+        "sourceEndLine": 686,
+        "sourceConstants": [
+          "TIM_INT=2"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "m_reloading = 0;\n\tif (m_triggering_irq)\n\t{\n\t\tm_triggering_irq = 0;\n\t\tif (m_gb_io[0x05] == 0)\n\t\t{\n\t\t\tm_gb_io[0x05] = m_gb_io[0x06];\n\t\t\tm_maincpu->set_input_line(lr35902_cpu_device::TIM_INT, ASSERT_LINE);\n\t\t\t// Make sure the state is updated during the current timeslice in case it is read.\n\t\t\tm_maincpu->execute_set_input(lr35902_cpu_device::TIM_INT, ASSERT_LINE);\n\t\t\tm_reloading = 1;\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 65296,
+        "end": 65318,
+        "raw": "map(0xff10, 0xff26).rw(m_apu, FUNC(gameboy_sound_device::sound_r), FUNC(gameboy_sound_device::sound_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 906,
+        "sourceColumn": 2,
+        "sourceEndLine": 906
+      }
+    },
+    {
+      "id": "handler:gameboy_sound_device.sound_r",
+      "label": "Handler",
+      "props": {
+        "method": "sound_r",
+        "ownerClass": "gameboy_sound_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 937,
+        "sourceColumn": 2,
+        "sourceEndLine": 937
+      }
+    },
+    {
+      "id": "handler:gameboy_sound_device.sound_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_w",
+        "ownerClass": "gameboy_sound_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 937,
+        "sourceColumn": 2,
+        "sourceEndLine": 937
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 65319,
+        "end": 65327,
+        "raw": "map(0xff27, 0xff2f).noprw()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 907,
+        "sourceColumn": 2,
+        "sourceEndLine": 907
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 65328,
+        "end": 65343,
+        "raw": "map(0xff30, 0xff3f).rw(m_apu, FUNC(gameboy_sound_device::wave_r), FUNC(gameboy_sound_device::wave_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 908,
+        "sourceColumn": 2,
+        "sourceEndLine": 908
+      }
+    },
+    {
+      "id": "handler:gameboy_sound_device.wave_r",
+      "label": "Handler",
+      "props": {
+        "method": "wave_r",
+        "ownerClass": "gameboy_sound_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "handler:gameboy_sound_device.wave_w",
+      "label": "Handler",
+      "props": {
+        "method": "wave_w",
+        "ownerClass": "gameboy_sound_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 65344,
+        "end": 65407,
+        "raw": "map(0xff40, 0xff7f).r(m_ppu, FUNC(dmg_ppu_device::video_r)).w(FUNC(gb_state::gb_io2_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 909,
+        "sourceColumn": 2,
+        "sourceEndLine": 909
+      }
+    },
+    {
+      "id": "handler:dmg_ppu_device.video_r",
+      "label": "Handler",
+      "props": {
+        "method": "video_r",
+        "ownerClass": "dmg_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 909,
+        "sourceColumn": 2,
+        "sourceEndLine": 909
+      }
+    },
+    {
+      "id": "handler:gb_state.gb_io2_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io2_w",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 1,
+        "sourceEndLine": 437,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (offset == 0x10)\n\t\tdisable_boot(); // disable boot ROM\n\telse\n\t\tm_ppu->video_w(offset, data);"
+      }
+    },
+    {
+      "id": "handler:gb_state.disable_boot",
+      "label": "Handler",
+      "props": {
+        "method": "disable_boot",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 343,
+        "sourceColumn": 1,
+        "sourceEndLine": 346,
+        "sourceParameters": "",
+        "sourceBody": "m_boot_view.disable();"
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 65408,
+        "end": 65534,
+        "raw": "map(0xff80, 0xfffe).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 910,
+        "sourceColumn": 2,
+        "sourceEndLine": 910,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gb_state.gameboy_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 65535,
+        "end": 65535,
+        "raw": "map(0xffff, 0xffff).rw(FUNC(gb_state::gb_ie_r), FUNC(gb_state::gb_ie_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 911,
+        "sourceColumn": 2,
+        "sourceEndLine": 911
+      }
+    },
+    {
+      "id": "handler:gb_state.gb_ie_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_r",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 1,
+        "sourceEndLine": 609,
+        "sourceParameters": "",
+        "sourceBody": "return m_maincpu->get_ie();"
+      }
+    },
+    {
+      "id": "handler:gb_state.gb_ie_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_w",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 1,
+        "sourceEndLine": 614,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_maincpu->set_ie(data);"
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "sgb_state",
+        "name": "sgb_map",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 914,
+        "sourceColumn": 1,
+        "sourceEndLine": 927,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 40959,
+        "raw": "map(0x8000, 0x9fff).rw(m_ppu, FUNC(sgb_ppu_device::vram_r), FUNC(sgb_ppu_device::vram_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 917,
+        "sourceColumn": 2,
+        "sourceEndLine": 917
+      }
+    },
+    {
+      "id": "handler:sgb_ppu_device.vram_r",
+      "label": "Handler",
+      "props": {
+        "method": "vram_r",
+        "ownerClass": "sgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 917,
+        "sourceColumn": 2,
+        "sourceEndLine": 917
+      }
+    },
+    {
+      "id": "handler:sgb_ppu_device.vram_w",
+      "label": "Handler",
+      "props": {
+        "method": "vram_w",
+        "ownerClass": "sgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 917,
+        "sourceColumn": 2,
+        "sourceEndLine": 917
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 57343,
+        "raw": "map(0xc000, 0xdfff).mirror(0x2000).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 918,
+        "sourceColumn": 2,
+        "sourceEndLine": 918,
+        "mirror": 8192,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 65024,
+        "end": 65279,
+        "raw": "map(0xfe00, 0xfeff).rw(m_ppu, FUNC(sgb_ppu_device::oam_r), FUNC(sgb_ppu_device::oam_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 919,
+        "sourceColumn": 2,
+        "sourceEndLine": 919
+      }
+    },
+    {
+      "id": "handler:sgb_ppu_device.oam_r",
+      "label": "Handler",
+      "props": {
+        "method": "oam_r",
+        "ownerClass": "sgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 919,
+        "sourceColumn": 2,
+        "sourceEndLine": 919
+      }
+    },
+    {
+      "id": "handler:sgb_ppu_device.oam_w",
+      "label": "Handler",
+      "props": {
+        "method": "oam_w",
+        "ownerClass": "sgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 919,
+        "sourceColumn": 2,
+        "sourceEndLine": 919
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 65280,
+        "end": 65295,
+        "raw": "map(0xff00, 0xff0f).rw(FUNC(sgb_state::gb_io_r), FUNC(sgb_state::sgb_io_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 920,
+        "sourceColumn": 2,
+        "sourceEndLine": 920
+      }
+    },
+    {
+      "id": "handler:sgb_state.gb_io_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io_r",
+        "ownerClass": "sgb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 1,
+        "sourceEndLine": 642,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "switch(offset)\n\t{\n\t\tcase 0x04:\n\t\t\tLOG(\"read DIV, divcount = %04x\\n\", m_divcount);\n\t\t\treturn (m_divcount >> 8) & 0xFF;\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\tcase 0x02:\n\t\tcase 0x03:\n\t\tcase 0x05:\n\t\tcase 0x06:\n\t\tcase 0x07:\n\t\t\treturn m_gb_io[offset];\n\t\tcase 0x0F:\n\t\t\t/* Make sure the internal states are up to date */\n\t\t\tm_ppu->update_state();\n\t\t\tLOG(\"read if\\n\");\nlogerror(\"IF read, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\t\treturn 0xE0 | m_maincpu->get_if();\n\t\tdefault:\n\t\t\t/* Unsupported registers return 0xFF */\n\t\t\treturn 0xFF;\n\t}"
+      }
+    },
+    {
+      "id": "handler:sgb_state.sgb_io_w",
+      "label": "Handler",
+      "props": {
+        "method": "sgb_io_w",
+        "ownerClass": "sgb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 491,
+        "sourceColumn": 1,
+        "sourceEndLine": 603,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "switch (offset)\n\t{\n\t\tcase 0x00:\n\t\t\tswitch (data & 0x30)\n\t\t\t{\n\t\t\tcase 0x00:                 /* start condition */\n\t\t\t\tif (m_sgb_start)\n\t\t\t\t\tlogerror(\"SGB: Start condition before end of transfer ??\\n\");\n\t\t\t\tm_sgb_bitcount = 0;\n\t\t\t\tm_sgb_start = 1;\n\t\t\t\tm_sgb_rest = 0;\n\t\t\t\tm_gb_io[0x00] = 0x0F & ((m_inputs->read() >> 4) | m_inputs->read() | 0xF0);\n\t\t\t\tbreak;\n\t\t\tcase 0x10:                 /* data true */\n\t\t\t\tif (m_sgb_rest)\n\t\t\t\t{\n\t\t\t\t\t/* We should test for this case , but the code below won't\n\t\t\t\t\t   work with the current setup */\n#if 0\n\t\t\t\t\tif (m_sgb_bytecount == 16)\n\t\t\t\t\t{\n\t\t\t\t\t\tlogerror(\"SGB: end of block is not zero!\");\n\t\t\t\t\t\tm_sgb_start = 0;\n\t\t\t\t\t}\n#endif\n\t\t\t\t\tm_sgb_data[m_sgb_bytecount] >>= 1;\n\t\t\t\t\tm_sgb_data[m_sgb_bytecount] |= 0x80;\n\t\t\t\t\tm_sgb_bitcount++;\n\t\t\t\t\tif (m_sgb_bitcount == 8)\n\t\t\t\t\t{\n\t\t\t\t\t\tm_sgb_bitcount = 0;\n\t\t\t\t\t\tm_sgb_bytecount++;\n\t\t\t\t\t}\n\t\t\t\t\tm_sgb_rest = 0;\n\t\t\t\t}\n\t\t\t\tm_gb_io[0x00] = 0x1F & ((m_inputs->read() >> 4) | 0xF0);\n\t\t\t\tbreak;\n\t\t\tcase 0x20:              /* data false */\n\t\t\t\tif (m_sgb_rest)\n\t\t\t\t{\n\t\t\t\t\tif (m_sgb_bytecount == 16 && m_sgb_packets == -1)\n\t\t\t\t\t{\n#ifdef MAME_DEBUG\n\t\t\t\t\t\tLOG(\"SGB: %s (%02X) pkts: %d data: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\\n\",\n\t\t\t\t\t\t\t\tsgbcmds[m_sgb_data[0] >> 3],m_sgb_data[0] >> 3, m_sgb_data[0] & 0x07, m_sgb_data[1], m_sgb_data[2], m_sgb_data[3],\n\t\t\t\t\t\t\t\tm_sgb_data[4], m_sgb_data[5], m_sgb_data[6], m_sgb_data[7],\n\t\t\t\t\t\t\t\tm_sgb_data[8], m_sgb_data[9], m_sgb_data[10], m_sgb_data[11],\n\t\t\t\t\t\t\t\tm_sgb_data[12], m_sgb_data[13], m_sgb_data[14], m_sgb_data[15]);\n#endif\n\t\t\t\t\t\tm_sgb_packets = m_sgb_data[0] & 0x07;\n\t\t\t\t\t\tm_sgb_start = 0;\n\t\t\t\t\t}\n\t\t\t\t\tif (m_sgb_bytecount == (m_sgb_packets << 4))\n\t\t\t\t\t{\n\t\t\t\t\t\tswitch (m_sgb_data[0] >> 3)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tcase 0x11:  /* MLT_REQ - Multi controller request */\n\t\t\t\t\t\t\t\tif (m_sgb_data[1] == 0x00)\n\t\t\t\t\t\t\t\t\tm_sgb_controller_mode = 0;\n\t\t\t\t\t\t\t\telse if (m_sgb_data[1] == 0x01)\n\t\t\t\t\t\t\t\t\tm_sgb_controller_mode = 2;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\tdynamic_cast<sgb_ppu_device*>(m_ppu.target())->sgb_io_write_pal(m_sgb_data[0] >> 3, &m_sgb_data[0]);\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tm_sgb_start = 0;\n\t\t\t\t\t\tm_sgb_bytecount = 0;\n\t\t\t\t\t\tm_sgb_packets = -1;\n\t\t\t\t\t}\n\t\t\t\t\tif (m_sgb_start)\n\t\t\t\t\t{\n\t\t\t\t\t\tm_sgb_data[m_sgb_bytecount] >>= 1;\n\t\t\t\t\t\tm_sgb_bitcount++;\n\t\t\t\t\t\tif (m_sgb_bitcount == 8)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tm_sgb_bitcount = 0;\n\t\t\t\t\t\t\tm_sgb_bytecount++;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tm_sgb_rest = 0;\n\t\t\t\t}\n\t\t\t\tm_gb_io[0x00] = 0x2F & (m_inputs->read() | 0xF0);\n\t\t\t\tbreak;\n\t\t\tcase 0x30:                 /* rest condition */\n\t\t\t\tif (m_sgb_start)\n\t\t\t\t\tm_sgb_rest = 1;\n\t\t\t\tif (m_sgb_controller_mode)\n\t\t\t\t{\n\t\t\t\t\tm_sgb_controller_no++;\n\t\t\t\t\tif (m_sgb_controller_no == m_sgb_controller_mode)\n\t\t\t\t\t\tm_sgb_controller_no = 0;\n\t\t\t\t\tm_gb_io[0x00] = 0x3F - m_sgb_controller_no;\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t\tm_gb_io[0x00] = 0x3F;\n\n\t\t\t\t/* Hack to let cartridge know it's running on an SGB */\n\t\t\t\tif ((m_sgb_data[0] >> 3) == 0x1F)\n\t\t\t\t\tm_gb_io[0x00] = 0x3E;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\treturn;\n\t\tdefault:\n\t\t\t/* we didn't handle the write, so pass it to the GB handler */\n\t\t\tgb_io_w(offset, data);\n\t\t\treturn;\n\t}\n\n\tm_gb_io[offset] = data;",
+        "inputMembers": [
+          "m_inputs=INPUTS"
+        ]
+      }
+    },
+    {
+      "id": "handler:base_state.gb_io_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io_w",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 349,
+        "sourceColumn": 1,
+        "sourceEndLine": 429,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "switch (offset)\n\t{\n\tcase 0x00:                      /* JOYP - Joypad */\n\t\tm_gb_io[0x00] = 0xCF | data;\n\t\tif (!(data & 0x20))\n\t\t\tm_gb_io[0x00] &= (m_inputs->read() >> 4) | 0xF0;\n\t\tif (!(data & 0x10))\n\t\t\tm_gb_io[0x00] &= m_inputs->read() | 0xF0;\n\t\treturn;\n\tcase 0x01:                      /* SB - Serial transfer data */\n\t\tbreak;\n\tcase 0x02:                      /* SC - SIO control */\n\t\tswitch (data & 0x81)\n\t\t{\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\t\tm_sio_count = 0;\n\t\t\tbreak;\n\t\tcase 0x80:              /* enabled & external clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\tcase 0x81:              /* enabled & internal clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\t}\nlogerror(\"m_gb_io[0x02] write, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\tdata |= 0x7E; // unused bits stay high\n\t\tbreak;\n\tcase 0x03:\n\t\treturn;\n\tcase 0x04:                      /* DIV - Divider register */\n\t\t/* Force increment of m_gb_io[0x05] register when the 'highest' bit is set */\n\t\tif ((m_divcount >> (m_shift - 1)) & 1)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t}\n\t\tLOG(\"DIV write\\n\");\n\t\tm_divcount = 0;\n\t\treturn;\n\tcase 0x05:                      /* TIMA - Timer counter */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tdata = m_gb_io[0x06];\n\t\t}\n\t\tbreak;\n\tcase 0x06:                      /* TMA - Timer module */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tm_gb_io[0x05] = data;\n\t\t}\n\t\tbreak;\n\tcase 0x07:                      /* TAC - Timer control */\n\t\tdata |= 0xF8;\n\t\t/* Check if timer is just disabled or the timer frequency is changing */\n\t\tif ((!(data & 0x04) && (m_gb_io[0x07] & 0x04)) || ((data & 0x04) && (m_gb_io[0x07] & 0x04) && (data & 0x03) != (m_gb_io[0x07] & 0x03)))\n\t\t{\n\t\t\t/* Check if m_gb_io[0x05] should be incremented */\n\t\t\tif ((m_divcount & (m_shift_cycles - 1)) >= (m_shift_cycles >> 1))\n\t\t\t{\n\t\t\t\tgb_timer_increment();\n\t\t\t}\n\t\t}\n\t\tm_shift = TABLE(data & 0x03, 10, 4, 6, 8);\n\t\tm_shift_cycles = 1 << m_shift;\n\t\tbreak;\n\tcase 0x0F:                      /* IF - Interrupt flag */\n\t\tm_ppu->update_state();\n\t\tLOG(\"write if\\n\");\n\t\tdata &= 0x1F;\n\t\tm_maincpu->set_if(data);\n\t\tbreak;\n\t}\n\n\tm_gb_io[offset] = data;",
+        "inputMembers": [
+          "m_inputs=INPUTS"
+        ]
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 65296,
+        "end": 65318,
+        "raw": "map(0xff10, 0xff26).rw(m_apu, FUNC(gameboy_sound_device::sound_r), FUNC(gameboy_sound_device::sound_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 921,
+        "sourceColumn": 2,
+        "sourceEndLine": 921
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 65319,
+        "end": 65327,
+        "raw": "map(0xff27, 0xff2f).noprw()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 922,
+        "sourceColumn": 2,
+        "sourceEndLine": 922
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 65328,
+        "end": 65343,
+        "raw": "map(0xff30, 0xff3f).rw(m_apu, FUNC(gameboy_sound_device::wave_r), FUNC(gameboy_sound_device::wave_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 923,
+        "sourceColumn": 2,
+        "sourceEndLine": 923
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 65344,
+        "end": 65407,
+        "raw": "map(0xff40, 0xff7f).r(m_ppu, FUNC(sgb_ppu_device::video_r)).w(FUNC(sgb_state::gb_io2_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 924,
+        "sourceColumn": 2,
+        "sourceEndLine": 924
+      }
+    },
+    {
+      "id": "handler:sgb_ppu_device.video_r",
+      "label": "Handler",
+      "props": {
+        "method": "video_r",
+        "ownerClass": "sgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 924,
+        "sourceColumn": 2,
+        "sourceEndLine": 924
+      }
+    },
+    {
+      "id": "handler:sgb_state.gb_io2_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io2_w",
+        "ownerClass": "sgb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 1,
+        "sourceEndLine": 437,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (offset == 0x10)\n\t\tdisable_boot(); // disable boot ROM\n\telse\n\t\tm_ppu->video_w(offset, data);"
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 65408,
+        "end": 65534,
+        "raw": "map(0xff80, 0xfffe).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 925,
+        "sourceColumn": 2,
+        "sourceEndLine": 925,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:sgb_state.sgb_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 65535,
+        "end": 65535,
+        "raw": "map(0xffff, 0xffff).rw(FUNC(sgb_state::gb_ie_r), FUNC(sgb_state::gb_ie_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 926,
+        "sourceColumn": 2,
+        "sourceEndLine": 926
+      }
+    },
+    {
+      "id": "handler:sgb_state.gb_ie_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_r",
+        "ownerClass": "sgb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 1,
+        "sourceEndLine": 609,
+        "sourceParameters": "",
+        "sourceBody": "return m_maincpu->get_ie();"
+      }
+    },
+    {
+      "id": "handler:sgb_state.gb_ie_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_w",
+        "ownerClass": "sgb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 1,
+        "sourceEndLine": 614,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_maincpu->set_ie(data);"
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gbc_state",
+        "name": "gbc_map",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 929,
+        "sourceColumn": 1,
+        "sourceEndLine": 943,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 40959,
+        "raw": "map(0x8000, 0x9fff).rw(m_ppu, FUNC(cgb_ppu_device::vram_r), FUNC(cgb_ppu_device::vram_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "handler:cgb_ppu_device.vram_r",
+      "label": "Handler",
+      "props": {
+        "method": "vram_r",
+        "ownerClass": "cgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "handler:cgb_ppu_device.vram_w",
+      "label": "Handler",
+      "props": {
+        "method": "vram_w",
+        "ownerClass": "cgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 2,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 53247,
+        "raw": "map(0xc000, 0xcfff).mirror(0x2000).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 933,
+        "sourceColumn": 2,
+        "sourceEndLine": 933,
+        "mirror": 8192,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 57343,
+        "raw": "map(0xd000, 0xdfff).mirror(0x2000).bankrw(m_rambank)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 934,
+        "sourceColumn": 2,
+        "sourceEndLine": 934,
+        "mirror": 8192,
+        "bankRead": "cgb_ram",
+        "bankWrite": "cgb_ram"
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 65024,
+        "end": 65279,
+        "raw": "map(0xfe00, 0xfeff).rw(m_ppu, FUNC(cgb_ppu_device::oam_r), FUNC(cgb_ppu_device::oam_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "handler:cgb_ppu_device.oam_r",
+      "label": "Handler",
+      "props": {
+        "method": "oam_r",
+        "ownerClass": "cgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "handler:cgb_ppu_device.oam_w",
+      "label": "Handler",
+      "props": {
+        "method": "oam_w",
+        "ownerClass": "cgb_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 935,
+        "sourceColumn": 2,
+        "sourceEndLine": 935
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 65280,
+        "end": 65295,
+        "raw": "map(0xff00, 0xff0f).rw(FUNC(gbc_state::gb_io_r), FUNC(gbc_state::gbc_io_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 936,
+        "sourceColumn": 2,
+        "sourceEndLine": 936
+      }
+    },
+    {
+      "id": "handler:gbc_state.gb_io_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io_r",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 1,
+        "sourceEndLine": 642,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "switch(offset)\n\t{\n\t\tcase 0x04:\n\t\t\tLOG(\"read DIV, divcount = %04x\\n\", m_divcount);\n\t\t\treturn (m_divcount >> 8) & 0xFF;\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\tcase 0x02:\n\t\tcase 0x03:\n\t\tcase 0x05:\n\t\tcase 0x06:\n\t\tcase 0x07:\n\t\t\treturn m_gb_io[offset];\n\t\tcase 0x0F:\n\t\t\t/* Make sure the internal states are up to date */\n\t\t\tm_ppu->update_state();\n\t\t\tLOG(\"read if\\n\");\nlogerror(\"IF read, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\t\treturn 0xE0 | m_maincpu->get_if();\n\t\tdefault:\n\t\t\t/* Unsupported registers return 0xFF */\n\t\t\treturn 0xFF;\n\t}"
+      }
+    },
+    {
+      "id": "handler:gbc_state.gbc_io_w",
+      "label": "Handler",
+      "props": {
+        "method": "gbc_io_w",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 740,
+        "sourceColumn": 1,
+        "sourceEndLine": 750,
+        "sourceConstants": [
+          "SIO_FAST_CLOCK=2"
+        ],
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "gb_io_w(offset, data);\n\n\t// On CGB the internal serial transfer clock is selectable\n\tif (offset == 0x02)\n\t{\n\t\tm_internal_serial_frequency = ((data & SIO_FAST_CLOCK) ? 16 : 512) / 2;\n\t\tm_gb_io[0x02] = (m_gb_io[0x02] & ~SIO_FAST_CLOCK) | (data & SIO_FAST_CLOCK);\n\t}"
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 65296,
+        "end": 65318,
+        "raw": "map(0xff10, 0xff26).rw(m_apu, FUNC(gameboy_sound_device::sound_r), FUNC(gameboy_sound_device::sound_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 937,
+        "sourceColumn": 2,
+        "sourceEndLine": 937
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 65319,
+        "end": 65327,
+        "raw": "map(0xff27, 0xff2f).noprw()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 2,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 65328,
+        "end": 65343,
+        "raw": "map(0xff30, 0xff3f).rw(m_apu, FUNC(gameboy_sound_device::wave_r), FUNC(gameboy_sound_device::wave_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 939,
+        "sourceColumn": 2,
+        "sourceEndLine": 939
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 65344,
+        "end": 65407,
+        "raw": "map(0xff40, 0xff7f).rw(FUNC(gbc_state::gbc_io2_r), FUNC(gbc_state::gbc_io2_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 940,
+        "sourceColumn": 2,
+        "sourceEndLine": 940
+      }
+    },
+    {
+      "id": "handler:gbc_state.gbc_io2_r",
+      "label": "Handler",
+      "props": {
+        "method": "gbc_io2_r",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 774,
+        "sourceColumn": 1,
+        "sourceEndLine": 788,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "switch (offset)\n\t{\n\tcase 0x0D:  // KEY1\n\t\treturn m_maincpu->get_speed();\n\tcase 0x16:  // RP - Infrared port\n\t\tbreak;\n\tcase 0x30:  // SVBK - RAM bank select\n\t\treturn m_rambank->entry();\n\tdefault:\n\t\tbreak;\n\t}\n\treturn m_ppu->video_r(offset);"
+      }
+    },
+    {
+      "id": "handler:gbc_state.gbc_io2_w",
+      "label": "Handler",
+      "props": {
+        "method": "gbc_io2_w",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 753,
+        "sourceColumn": 1,
+        "sourceEndLine": 772,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "switch (offset)\n\t{\n\t\tcase 0x0D:  // KEY1 - Prepare speed switch\n\t\t\tm_maincpu->set_speed(data);\n\t\t\treturn;\n\t\tcase 0x10:  // BFF - boot ROM disable\n\t\t\tdisable_boot();\n\t\t\treturn;\n\t\tcase 0x16:  // RP - Infrared port\n\t\t\tbreak;\n\t\tcase 0x30:  // SVBK - RAM bank select\n\t\t\tm_rambank->set_entry(data & 0x07);\n\t\t\tbreak;\n\t\tdefault:\n\t\t\tbreak;\n\t}\n\tm_ppu->video_w(offset, data);"
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 65408,
+        "end": 65534,
+        "raw": "map(0xff80, 0xfffe).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 941,
+        "sourceColumn": 2,
+        "sourceEndLine": 941,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gbc_state.gbc_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 65535,
+        "end": 65535,
+        "raw": "map(0xffff, 0xffff).rw(FUNC(gbc_state::gb_ie_r), FUNC(gbc_state::gb_ie_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 942,
+        "sourceColumn": 2,
+        "sourceEndLine": 942
+      }
+    },
+    {
+      "id": "handler:gbc_state.gb_ie_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_r",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 1,
+        "sourceEndLine": 609,
+        "sourceParameters": "",
+        "sourceBody": "return m_maincpu->get_ie();"
+      }
+    },
+    {
+      "id": "handler:gbc_state.gb_ie_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_w",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 1,
+        "sourceEndLine": 614,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_maincpu->set_ie(data);"
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "megaduck_state",
+        "name": "megaduck_map",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 945,
+        "sourceColumn": 1,
+        "sourceEndLine": 959,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 40959,
+        "raw": "map(0x8000, 0x9fff).rw(m_ppu, FUNC(dmg_ppu_device::vram_r), FUNC(dmg_ppu_device::vram_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 2,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 65023,
+        "raw": "map(0xc000, 0xfdff).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 949,
+        "sourceColumn": 2,
+        "sourceEndLine": 949,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 65024,
+        "end": 65279,
+        "raw": "map(0xfe00, 0xfeff).rw(m_ppu, FUNC(dmg_ppu_device::oam_r), FUNC(dmg_ppu_device::oam_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 65280,
+        "end": 65295,
+        "raw": "map(0xff00, 0xff0f).rw(FUNC(megaduck_state::gb_io_r), FUNC(megaduck_state::gb_io_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "handler:megaduck_state.gb_io_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io_r",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 1,
+        "sourceEndLine": 642,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "switch(offset)\n\t{\n\t\tcase 0x04:\n\t\t\tLOG(\"read DIV, divcount = %04x\\n\", m_divcount);\n\t\t\treturn (m_divcount >> 8) & 0xFF;\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\tcase 0x02:\n\t\tcase 0x03:\n\t\tcase 0x05:\n\t\tcase 0x06:\n\t\tcase 0x07:\n\t\t\treturn m_gb_io[offset];\n\t\tcase 0x0F:\n\t\t\t/* Make sure the internal states are up to date */\n\t\t\tm_ppu->update_state();\n\t\t\tLOG(\"read if\\n\");\nlogerror(\"IF read, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\t\treturn 0xE0 | m_maincpu->get_if();\n\t\tdefault:\n\t\t\t/* Unsupported registers return 0xFF */\n\t\t\treturn 0xFF;\n\t}"
+      }
+    },
+    {
+      "id": "handler:megaduck_state.gb_io_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_io_w",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 349,
+        "sourceColumn": 1,
+        "sourceEndLine": 429,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "switch (offset)\n\t{\n\tcase 0x00:                      /* JOYP - Joypad */\n\t\tm_gb_io[0x00] = 0xCF | data;\n\t\tif (!(data & 0x20))\n\t\t\tm_gb_io[0x00] &= (m_inputs->read() >> 4) | 0xF0;\n\t\tif (!(data & 0x10))\n\t\t\tm_gb_io[0x00] &= m_inputs->read() | 0xF0;\n\t\treturn;\n\tcase 0x01:                      /* SB - Serial transfer data */\n\t\tbreak;\n\tcase 0x02:                      /* SC - SIO control */\n\t\tswitch (data & 0x81)\n\t\t{\n\t\tcase 0x00:\n\t\tcase 0x01:\n\t\t\tm_sio_count = 0;\n\t\t\tbreak;\n\t\tcase 0x80:              /* enabled & external clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\tcase 0x81:              /* enabled & internal clock */\n\t\t\tm_sio_count = 16;\n\t\t\tbreak;\n\t\t}\nlogerror(\"m_gb_io[0x02] write, serial clock is %04x\\n\", m_internal_serial_clock);\n\t\tdata |= 0x7E; // unused bits stay high\n\t\tbreak;\n\tcase 0x03:\n\t\treturn;\n\tcase 0x04:                      /* DIV - Divider register */\n\t\t/* Force increment of m_gb_io[0x05] register when the 'highest' bit is set */\n\t\tif ((m_divcount >> (m_shift - 1)) & 1)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t}\n\t\tLOG(\"DIV write\\n\");\n\t\tm_divcount = 0;\n\t\treturn;\n\tcase 0x05:                      /* TIMA - Timer counter */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tdata = m_gb_io[0x06];\n\t\t}\n\t\tbreak;\n\tcase 0x06:                      /* TMA - Timer module */\n\t\t/* Check if the counter is being reloaded in this cycle */\n\t\tif ((m_gb_io[0x07] & 0x04) && m_gb_io[0x05] == m_gb_io[0x06] && (m_divcount & (m_shift_cycles - 1)) == 4)\n\t\t{\n\t\t\tm_gb_io[0x05] = data;\n\t\t}\n\t\tbreak;\n\tcase 0x07:                      /* TAC - Timer control */\n\t\tdata |= 0xF8;\n\t\t/* Check if timer is just disabled or the timer frequency is changing */\n\t\tif ((!(data & 0x04) && (m_gb_io[0x07] & 0x04)) || ((data & 0x04) && (m_gb_io[0x07] & 0x04) && (data & 0x03) != (m_gb_io[0x07] & 0x03)))\n\t\t{\n\t\t\t/* Check if m_gb_io[0x05] should be incremented */\n\t\t\tif ((m_divcount & (m_shift_cycles - 1)) >= (m_shift_cycles >> 1))\n\t\t\t{\n\t\t\t\tgb_timer_increment();\n\t\t\t}\n\t\t}\n\t\tm_shift = TABLE(data & 0x03, 10, 4, 6, 8);\n\t\tm_shift_cycles = 1 << m_shift;\n\t\tbreak;\n\tcase 0x0F:                      /* IF - Interrupt flag */\n\t\tm_ppu->update_state();\n\t\tLOG(\"write if\\n\");\n\t\tdata &= 0x1F;\n\t\tm_maincpu->set_if(data);\n\t\tbreak;\n\t}\n\n\tm_gb_io[offset] = data;",
+        "inputMembers": [
+          "m_inputs=INPUTS"
+        ]
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 65296,
+        "end": 65311,
+        "raw": "map(0xff10, 0xff1f).rw(FUNC(megaduck_state::megaduck_video_r), FUNC(megaduck_state::megaduck_video_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 952,
+        "sourceColumn": 2,
+        "sourceEndLine": 952
+      }
+    },
+    {
+      "id": "handler:megaduck_state.megaduck_video_r",
+      "label": "Handler",
+      "props": {
+        "method": "megaduck_video_r",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 832,
+        "sourceColumn": 1,
+        "sourceEndLine": 844,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "uint8_t data;\n\n\tif ((offset & 0x0C) && ((offset & 0x0C) ^ 0x0C))\n\t{\n\t\toffset ^= 0x0C;\n\t}\n\tdata = m_ppu->video_r(offset);\n\tif (offset)\n\t\treturn data;\n\treturn bitswap<8>(data,7,0,5,4,6,3,2,1);"
+      }
+    },
+    {
+      "id": "handler:megaduck_state.megaduck_video_w",
+      "label": "Handler",
+      "props": {
+        "method": "megaduck_video_w",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 846,
+        "sourceColumn": 1,
+        "sourceEndLine": 857,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (!offset)\n\t{\n\t\tdata = bitswap<8>(data,7,3,5,4,2,1,0,6);\n\t}\n\tif ((offset & 0x0C) && ((offset & 0x0C) ^ 0x0C))\n\t{\n\t\toffset ^= 0x0C;\n\t}\n\tm_ppu->video_w(offset, data);"
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 65312,
+        "end": 65327,
+        "raw": "map(0xff20, 0xff2f).rw(FUNC(megaduck_state::megaduck_sound_r1), FUNC(megaduck_state::megaduck_sound_w1))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 953,
+        "sourceColumn": 2,
+        "sourceEndLine": 953
+      }
+    },
+    {
+      "id": "handler:megaduck_state.megaduck_sound_r1",
+      "label": "Handler",
+      "props": {
+        "method": "megaduck_sound_r1",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 872,
+        "sourceColumn": 1,
+        "sourceEndLine": 879,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "uint8_t data = m_apu->sound_r(TABLE(offset, 0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F));\n\tif ((offset == 0x01) || (offset == 0x07))\n\t\treturn ((data & 0x0f)<<4) | ((data & 0xf0)>>4);\n\telse\n\t\treturn data;"
+      }
+    },
+    {
+      "id": "handler:megaduck_state.megaduck_sound_w1",
+      "label": "Handler",
+      "props": {
+        "method": "megaduck_sound_w1",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 864,
+        "sourceColumn": 1,
+        "sourceEndLine": 870,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if ((offset == 0x01) || (offset == 0x07))\n\t\tm_apu->sound_w(TABLE(offset, 0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F), ((data & 0x0f)<<4) | ((data & 0xf0)>>4));\n\telse\n\t\tm_apu->sound_w(TABLE(offset, 0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F), data);"
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 65328,
+        "end": 65343,
+        "raw": "map(0xff30, 0xff3f).rw(m_apu, FUNC(gameboy_sound_device::wave_r), FUNC(gameboy_sound_device::wave_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 65344,
+        "end": 65350,
+        "raw": "map(0xff40, 0xff46).rw(FUNC(megaduck_state::megaduck_sound_r2), FUNC(megaduck_state::megaduck_sound_w2))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 955,
+        "sourceColumn": 2,
+        "sourceEndLine": 955
+      }
+    },
+    {
+      "id": "handler:megaduck_state.megaduck_sound_r2",
+      "label": "Handler",
+      "props": {
+        "method": "megaduck_sound_r2",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 889,
+        "sourceColumn": 1,
+        "sourceEndLine": 896,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "uint8_t data = m_apu->sound_r(0x10 + TABLE(offset, 0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F));\n\tif ((offset == 0x01) || (offset == 0x02))\n\t\treturn ((data & 0x0f)<<4) | ((data & 0xf0)>>4);\n\telse\n\t\treturn data;"
+      }
+    },
+    {
+      "id": "handler:megaduck_state.megaduck_sound_w2",
+      "label": "Handler",
+      "props": {
+        "method": "megaduck_sound_w2",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 881,
+        "sourceColumn": 1,
+        "sourceEndLine": 887,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if ((offset == 0x01) || (offset == 0x02))\n\t\tm_apu->sound_w(0x10 + TABLE(offset, 0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F), ((data & 0x0f)<<4) | ((data & 0xf0)>>4));\n\telse\n\t\tm_apu->sound_w(0x10 + TABLE(offset, 0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F), data);"
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 65351,
+        "end": 65407,
+        "raw": "map(0xff47, 0xff7f).noprw()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 956,
+        "sourceColumn": 2,
+        "sourceEndLine": 956
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 65408,
+        "end": 65534,
+        "raw": "map(0xff80, 0xfffe).ram()",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 957,
+        "sourceColumn": 2,
+        "sourceEndLine": 957,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:megaduck_state.megaduck_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 65535,
+        "end": 65535,
+        "raw": "map(0xffff, 0xffff).rw(FUNC(megaduck_state::gb_ie_r), FUNC(megaduck_state::gb_ie_w))",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 958,
+        "sourceColumn": 2,
+        "sourceEndLine": 958
+      }
+    },
+    {
+      "id": "handler:megaduck_state.gb_ie_r",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_r",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 1,
+        "sourceEndLine": 609,
+        "sourceParameters": "",
+        "sourceBody": "return m_maincpu->get_ie();"
+      }
+    },
+    {
+      "id": "handler:megaduck_state.gb_ie_w",
+      "label": "Handler",
+      "props": {
+        "method": "gb_ie_w",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 1,
+        "sourceEndLine": 614,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_maincpu->set_ie(data);"
+      }
+    },
+    {
+      "id": "machine:gb_state.gameboy",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gb_state",
+        "name": "gameboy",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_gb_io\",\"bits\":8,\"arrayLength\":16}",
+          "{\"name\":\"m_divcount\",\"bits\":16}",
+          "{\"name\":\"m_shift\",\"bits\":8}",
+          "{\"name\":\"m_shift_cycles\",\"bits\":16}",
+          "{\"name\":\"m_triggering_irq\",\"bits\":8}",
+          "{\"name\":\"m_reloading\",\"bits\":8}",
+          "{\"name\":\"m_internal_serial_clock\",\"bits\":16}",
+          "{\"name\":\"m_internal_serial_frequency\",\"bits\":16}",
+          "{\"name\":\"m_sio_count\",\"bits\":32}"
+        ],
+        "resetHandlers": [
+          "base_state.machine_reset",
+          "gb_state.machine_reset"
+        ],
+        "installedHandlers": [
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"start\":0,\"end\":255,\"viewTag\":\"m_boot_view\",\"viewEntry\":0,\"className\":\"gb_state\",\"method\":\"boot_r\"}"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1042,
+        "sourceColumn": 1,
+        "sourceEndLine": 1074
+      }
+    },
+    {
+      "id": "handler:base_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 300,
+        "sourceColumn": 1,
+        "sourceEndLine": 317,
+        "sourceParameters": "",
+        "sourceBody": "m_apu->sound_w(0x16, 0x00); // Initialize sound hardware\n\n\tm_divcount = 8;\n\tm_internal_serial_clock = 0;\n\tm_internal_serial_frequency = 512 / 2;\n\tm_triggering_irq = 0;\n\tm_shift = 10; // slowest timer?\n\tm_shift_cycles = 1 << m_shift;\n\n\t// Set registers to default/startup values\n\tm_gb_io[0x00] = 0xcf;\n\tm_gb_io[0x01] = 0x00;\n\tm_gb_io[0x02] = 0x7e;\n\tm_gb_io[0x03] = 0xff;\n\tm_gb_io[0x07] = 0xf8;       // Upper bits of m_gb_io[0x07] register are set to 1"
+      }
+    },
+    {
+      "id": "handler:gb_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 319,
+        "sourceColumn": 1,
+        "sourceEndLine": 324,
+        "sourceParameters": "",
+        "sourceBody": "base_state::machine_reset();\n\n\tm_boot_view.select(0);"
+      }
+    },
+    {
+      "id": "handler:sgb_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "sgb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 335,
+        "sourceColumn": 1,
+        "sourceEndLine": 340,
+        "sourceParameters": "",
+        "sourceBody": "gb_state::machine_reset();\n\n\tgb_init_regs();"
+      }
+    },
+    {
+      "id": "handler:base_state.gb_init_regs",
+      "label": "Handler",
+      "props": {
+        "method": "gb_init_regs",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 243,
+        "sourceColumn": 1,
+        "sourceEndLine": 251,
+        "sourceParameters": "",
+        "sourceBody": "/* Initialize the registers */\n\tm_gb_io[0x01] = 0x00;\n\tm_gb_io[0x02] = 0x7E;\n\n\tgb_io_w(0x05, 0x00);       /* m_gb_io[0x05] */\n\tgb_io_w(0x06, 0x00);       /* m_gb_io[0x06] */"
+      }
+    },
+    {
+      "id": "handler:gbc_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 326,
+        "sourceColumn": 1,
+        "sourceEndLine": 333,
+        "sourceParameters": "",
+        "sourceBody": "gb_state::machine_reset();\n\n\tgb_init_regs();\n\n\tstd::fill_n(&m_bankedram[0], m_bankedram.length(), 0);"
+      }
+    },
+    {
+      "id": "handler:gb_state.boot_r",
+      "label": "Handler",
+      "props": {
+        "method": "boot_r",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 439,
+        "sourceColumn": 1,
+        "sourceEndLine": 451,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (m_bios_hack->read())\n\t{\n\t\t// patch out logo and checksum checks\n\t\t// useful to run some pirate carts until properly emulated, or to test homebrew\n\t\tif (offset == 0xe9 || offset == 0xea)\n\t\t\treturn 0x00;\n\t\tif (offset == 0xfa || offset == 0xfb)\n\t\t\treturn 0x00;\n\t}\n\treturn m_region_boot[offset];",
+        "inputMembers": [
+          "m_bios_hack=SKIP_CHECK"
+        ]
+      }
+    },
+    {
+      "id": "softlist:gb_state.gameboy/gameboy",
+      "label": "SoftwareList",
+      "props": {
+        "name": "gameboy",
+        "tag": "cart_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:gb_state.gameboy/gbcolor",
+      "label": "SoftwareList",
+      "props": {
+        "name": "gbcolor",
+        "tag": "gbc_list",
+        "status": "compatible"
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "LR35902",
+        "tag": "maincpu",
+        "clock": 4194304,
+        "config": [
+          "LR35902(config, m_maincpu, MASTER_CLOCK)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &gb_state::gameboy_map)",
+          "m_maincpu->timer_cb().set(FUNC(gb_state::gb_timer_callback))",
+          "m_maincpu->set_halt_bug(true)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1045,
+        "sourceColumn": 2,
+        "sourceEndLine": 1045
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "timer_cb",
+        "operation": "set",
+        "raw": "m_maincpu->timer_cb().set(FUNC(gb_state::gb_timer_callback))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1047,
+        "sourceColumn": 2,
+        "sourceEndLine": 1047,
+        "targetClass": "gb_state",
+        "targetMethod": "gb_timer_callback"
+      }
+    },
+    {
+      "id": "handler:gb_state.gb_timer_callback",
+      "label": "Handler",
+      "props": {
+        "method": "gb_timer_callback",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 1,
+        "sourceEndLine": 737,
+        "sourceConstants": [
+          "SIO_INTERNAL_CLOCK=1"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint16_t old_gb_divcount = m_divcount;\n\tuint16_t old_internal_serial_clock = m_internal_serial_clock;\n\tm_divcount += data;\n\tm_internal_serial_clock += data;\n\n\tif ((old_gb_divcount >> 8) != (m_divcount >> 8))\n\t{\n\t\t//LOG(\"DIV became %02x\\n\", m_divcount >> 8);\n\t}\n\tgb_timer_check_irq();\n\n\tif (m_gb_io[0x07] & 0x04)\n\t{\n\t\tuint16_t old_count = old_gb_divcount >> m_shift;\n\t\tuint16_t new_count = m_divcount >> m_shift;\n\t\tif (data > m_shift_cycles)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\told_count++;\n\t\t}\n\t\tif (new_count != old_count)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\tif (new_count << m_shift < m_divcount)\n\t\t\t{\n\t\t\t\tgb_timer_check_irq();\n\t\t\t}\n\t\t}\n\t}\n\n\tif (((m_internal_serial_clock ^ old_internal_serial_clock) & m_internal_serial_frequency) && (m_gb_io[0x02] & SIO_INTERNAL_CLOCK))\n\t{\n\t\tgb_serial_timer_tick();\n\t}"
+      }
+    },
+    {
+      "id": "handler:base_state.gb_serial_timer_tick",
+      "label": "Handler",
+      "props": {
+        "method": "gb_serial_timer_tick",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 646,
+        "sourceColumn": 1,
+        "sourceEndLine": 668,
+        "sourceConstants": [
+          "SIO_INT=3",
+          "SIO_ENABLED=128"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "if (m_gb_io[0x02] & SIO_ENABLED)\n\t{\n\t\tif (m_sio_count & 1)\n\t\t{\n\t\t\t/* Shift in a received bit */\n\t\t\tm_gb_io[0x01] = (m_gb_io[0x01] << 1) | 0x01;\n\t\t}\n\t\t/* Decrement number of handled bits */\n\t\tm_sio_count--;\n\n\t\tLOG(\"%04x - gb_serial_timer_proc: m_gb_io[0x01] = %02x, sio_count = %u\\n\", m_maincpu->pc(), m_gb_io[0x01], m_sio_count);\n\t\t/* If all bits done, stop timer and trigger interrupt */\n\t\tif (m_sio_count == 0)\n\t\t{\n\t\t\tm_gb_io[0x02] &= ~SIO_ENABLED;\n\t\t\tm_maincpu->set_input_line(lr35902_cpu_device::SIO_INT, ASSERT_LINE);\n\t\t\t// Make sure the state is updated during the current timeslice in case it is read.\n\t\t\tm_maincpu->execute_set_input(lr35902_cpu_device::SIO_INT, ASSERT_LINE);\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_LCD))",
+          "screen.set_raw(MASTER_CLOCK, 456, 0, 20 * 8, 154, 0, 18 * 8)",
+          "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1051,
+        "sourceColumn": 2,
+        "sourceEndLine": 1051,
+        "configCalls": [
+          "set_raw(4194304,456,0,160,154,0,144)"
+        ],
+        "clockExpr": "SCREEN_TYPE_LCD",
+        "screenRaw": [
+          4194304,
+          456,
+          0,
+          160,
+          154,
+          0,
+          144
+        ],
+        "screenRawExpr": [
+          "MASTER_CLOCK",
+          "456",
+          "0",
+          "20 * 8",
+          "154",
+          "0",
+          "18 * 8"
+        ]
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1053,
+        "sourceColumn": 2,
+        "sourceEndLine": 1053,
+        "targetClass": "dmg_ppu_device",
+        "targetMethod": "screen_update",
+        "targetTag": "ppu",
+        "indexed": 1
+      }
+    },
+    {
+      "id": "handler:dmg_ppu_device.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "dmg_ppu_device",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1188,
+        "sourceColumn": 2,
+        "sourceEndLine": 1188
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, \"gfxdecode\", m_palette, gfxdecode_device::empty)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1056,
+        "sourceColumn": 2,
+        "sourceEndLine": 1056,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(gb_state::gb_palette), 4)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1057,
+        "sourceColumn": 2,
+        "sourceEndLine": 1057,
+        "clockExpr": "FUNC(gb_state::gb_palette)"
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/ppu",
+      "label": "Device",
+      "props": {
+        "type": "DMG_PPU",
+        "tag": "ppu",
+        "clock": null,
+        "config": [
+          "DMG_PPU(config, m_ppu, m_maincpu)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1059,
+        "sourceColumn": 2,
+        "sourceEndLine": 1059,
+        "clockExpr": "m_maincpu"
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1062,
+        "sourceColumn": 2,
+        "sourceEndLine": 1062
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/apu",
+      "label": "Device",
+      "props": {
+        "type": "DMG_APU",
+        "tag": "apu",
+        "clock": 4194304,
+        "config": [
+          "DMG_APU(config, m_apu, MASTER_CLOCK)",
+          "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+          "m_apu->add_route(1, \"speaker\", 0.50, 1)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1064,
+        "sourceColumn": 2,
+        "sourceEndLine": 1064
+      }
+    },
+    {
+      "id": "audioroute:device:gb_state.gameboy/apu/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 0,
+        "raw": "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1065,
+        "sourceColumn": 2,
+        "sourceEndLine": 1065
+      }
+    },
+    {
+      "id": "audioroute:device:gb_state.gameboy/apu/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 1,
+        "raw": "m_apu->add_route(1, \"speaker\", 0.50, 1)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1066,
+        "sourceColumn": 2,
+        "sourceEndLine": 1066
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/cartslot",
+      "label": "Device",
+      "props": {
+        "type": "GB_CART_SLOT",
+        "tag": "cartslot",
+        "clock": null,
+        "config": [
+          "GB_CART_SLOT(config, m_cartslot, gameboy_cartridges, nullptr)",
+          "m_cartslot->set_space(m_maincpu, AS_PROGRAM)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1069,
+        "sourceColumn": 2,
+        "sourceEndLine": 1069,
+        "clockExpr": "gameboy_cartridges"
+      }
+    },
+    {
+      "id": "machine:sgb_state.supergb",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "sgb_state",
+        "name": "supergb",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_gb_io\",\"bits\":8,\"arrayLength\":16}",
+          "{\"name\":\"m_divcount\",\"bits\":16}",
+          "{\"name\":\"m_shift\",\"bits\":8}",
+          "{\"name\":\"m_shift_cycles\",\"bits\":16}",
+          "{\"name\":\"m_triggering_irq\",\"bits\":8}",
+          "{\"name\":\"m_reloading\",\"bits\":8}",
+          "{\"name\":\"m_internal_serial_clock\",\"bits\":16}",
+          "{\"name\":\"m_internal_serial_frequency\",\"bits\":16}",
+          "{\"name\":\"m_sio_count\",\"bits\":32}",
+          "{\"name\":\"m_sgb_packets\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_sgb_bitcount\",\"bits\":8}",
+          "{\"name\":\"m_sgb_bytecount\",\"bits\":8}",
+          "{\"name\":\"m_sgb_start\",\"bits\":8}",
+          "{\"name\":\"m_sgb_rest\",\"bits\":8}",
+          "{\"name\":\"m_sgb_controller_no\",\"bits\":8}",
+          "{\"name\":\"m_sgb_controller_mode\",\"bits\":8}",
+          "{\"name\":\"m_sgb_data\",\"bits\":8,\"arrayLength\":256}"
+        ],
+        "resetHandlers": [
+          "base_state.machine_reset",
+          "gb_state.machine_reset",
+          "sgb_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1076,
+        "sourceColumn": 1,
+        "sourceEndLine": 1112
+      }
+    },
+    {
+      "id": "softlist:sgb_state.supergb/gameboy",
+      "label": "SoftwareList",
+      "props": {
+        "name": "gameboy",
+        "tag": "cart_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:sgb_state.supergb/gbcolor",
+      "label": "SoftwareList",
+      "props": {
+        "name": "gbcolor",
+        "tag": "gbc_list",
+        "status": "compatible"
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "LR35902",
+        "tag": "maincpu",
+        "clock": 4295454,
+        "config": [
+          "LR35902(config, m_maincpu, 4'295'454)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &sgb_state::sgb_map)",
+          "m_maincpu->timer_cb().set(FUNC(sgb_state::gb_timer_callback))",
+          "m_maincpu->set_halt_bug(true)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1079,
+        "sourceColumn": 2,
+        "sourceEndLine": 1079
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "timer_cb",
+        "operation": "set",
+        "raw": "m_maincpu->timer_cb().set(FUNC(sgb_state::gb_timer_callback))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1081,
+        "sourceColumn": 2,
+        "sourceEndLine": 1081,
+        "targetClass": "sgb_state",
+        "targetMethod": "gb_timer_callback"
+      }
+    },
+    {
+      "id": "handler:sgb_state.gb_timer_callback",
+      "label": "Handler",
+      "props": {
+        "method": "gb_timer_callback",
+        "ownerClass": "sgb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 1,
+        "sourceEndLine": 737,
+        "sourceConstants": [
+          "SIO_INTERNAL_CLOCK=1"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint16_t old_gb_divcount = m_divcount;\n\tuint16_t old_internal_serial_clock = m_internal_serial_clock;\n\tm_divcount += data;\n\tm_internal_serial_clock += data;\n\n\tif ((old_gb_divcount >> 8) != (m_divcount >> 8))\n\t{\n\t\t//LOG(\"DIV became %02x\\n\", m_divcount >> 8);\n\t}\n\tgb_timer_check_irq();\n\n\tif (m_gb_io[0x07] & 0x04)\n\t{\n\t\tuint16_t old_count = old_gb_divcount >> m_shift;\n\t\tuint16_t new_count = m_divcount >> m_shift;\n\t\tif (data > m_shift_cycles)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\told_count++;\n\t\t}\n\t\tif (new_count != old_count)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\tif (new_count << m_shift < m_divcount)\n\t\t\t{\n\t\t\t\tgb_timer_check_irq();\n\t\t\t}\n\t\t}\n\t}\n\n\tif (((m_internal_serial_clock ^ old_internal_serial_clock) & m_internal_serial_frequency) && (m_gb_io[0x02] & SIO_INTERNAL_CLOCK))\n\t{\n\t\tgb_serial_timer_tick();\n\t}"
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_LCD))",
+          "screen.set_physical_aspect(4, 3)",
+          "screen.set_refresh_hz(SGB_FRAMES_PER_SECOND)",
+          "screen.set_vblank_time(0)",
+          "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+          "screen.set_palette(m_palette)",
+          "screen.set_size(32*8, 28*8)",
+          "screen.set_visarea(0*8, 32*8-1, 0*8, 28*8-1)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1085,
+        "sourceColumn": 2,
+        "sourceEndLine": 1085,
+        "configCalls": [
+          "set_physical_aspect(4,3)",
+          "set_refresh_hz(61.17)",
+          "set_vblank_time(0)",
+          "set_size(256,224)",
+          "set_visarea(0,255,0,223)"
+        ],
+        "clockExpr": "SCREEN_TYPE_LCD",
+        "screenRefreshHz": 61.17,
+        "screenSize": [
+          256,
+          224
+        ],
+        "screenVisarea": [
+          0,
+          255,
+          0,
+          223
+        ]
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1089,
+        "sourceColumn": 2,
+        "sourceEndLine": 1089,
+        "targetClass": "dmg_ppu_device",
+        "targetMethod": "screen_update",
+        "targetTag": "ppu",
+        "indexed": 1
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, \"gfxdecode\", m_palette, gfxdecode_device::empty)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1094,
+        "sourceColumn": 2,
+        "sourceEndLine": 1094,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, palette_device::BGR_555)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1095,
+        "sourceColumn": 2,
+        "sourceEndLine": 1095,
+        "clockExpr": "palette_device::BGR_555"
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/ppu",
+      "label": "Device",
+      "props": {
+        "type": "SGB_PPU",
+        "tag": "ppu",
+        "clock": null,
+        "config": [
+          "SGB_PPU(config, m_ppu, m_maincpu)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1097,
+        "sourceColumn": 2,
+        "sourceEndLine": 1097,
+        "clockExpr": "m_maincpu"
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1100,
+        "sourceColumn": 2,
+        "sourceEndLine": 1100
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/apu",
+      "label": "Device",
+      "props": {
+        "type": "DMG_APU",
+        "tag": "apu",
+        "clock": 4295454,
+        "config": [
+          "DMG_APU(config, m_apu, 4'295'454)",
+          "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+          "m_apu->add_route(1, \"speaker\", 0.50, 1)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1102,
+        "sourceColumn": 2,
+        "sourceEndLine": 1102
+      }
+    },
+    {
+      "id": "audioroute:device:sgb_state.supergb/apu/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 0,
+        "raw": "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1103,
+        "sourceColumn": 2,
+        "sourceEndLine": 1103
+      }
+    },
+    {
+      "id": "audioroute:device:sgb_state.supergb/apu/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 1,
+        "raw": "m_apu->add_route(1, \"speaker\", 0.50, 1)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1104,
+        "sourceColumn": 2,
+        "sourceEndLine": 1104
+      }
+    },
+    {
+      "id": "device:sgb_state.supergb/cartslot",
+      "label": "Device",
+      "props": {
+        "type": "GB_CART_SLOT",
+        "tag": "cartslot",
+        "clock": null,
+        "config": [
+          "GB_CART_SLOT(config, m_cartslot, gameboy_cartridges, nullptr)",
+          "m_cartslot->set_space(m_maincpu, AS_PROGRAM)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1107,
+        "sourceColumn": 2,
+        "sourceEndLine": 1107,
+        "clockExpr": "gameboy_cartridges"
+      }
+    },
+    {
+      "id": "machine:sgb_state.supergb2",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "sgb_state",
+        "name": "supergb2",
+        "calls": [
+          "gameboy"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_gb_io\",\"bits\":8,\"arrayLength\":16}",
+          "{\"name\":\"m_divcount\",\"bits\":16}",
+          "{\"name\":\"m_shift\",\"bits\":8}",
+          "{\"name\":\"m_shift_cycles\",\"bits\":16}",
+          "{\"name\":\"m_triggering_irq\",\"bits\":8}",
+          "{\"name\":\"m_reloading\",\"bits\":8}",
+          "{\"name\":\"m_internal_serial_clock\",\"bits\":16}",
+          "{\"name\":\"m_internal_serial_frequency\",\"bits\":16}",
+          "{\"name\":\"m_sio_count\",\"bits\":32}",
+          "{\"name\":\"m_sgb_packets\",\"bits\":8,\"signed\":true}",
+          "{\"name\":\"m_sgb_bitcount\",\"bits\":8}",
+          "{\"name\":\"m_sgb_bytecount\",\"bits\":8}",
+          "{\"name\":\"m_sgb_start\",\"bits\":8}",
+          "{\"name\":\"m_sgb_rest\",\"bits\":8}",
+          "{\"name\":\"m_sgb_controller_no\",\"bits\":8}",
+          "{\"name\":\"m_sgb_controller_mode\",\"bits\":8}",
+          "{\"name\":\"m_sgb_data\",\"bits\":8,\"arrayLength\":256}"
+        ],
+        "resetHandlers": [
+          "base_state.machine_reset",
+          "gb_state.machine_reset",
+          "sgb_state.machine_reset"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"palette\",\"config\":[\"m_palette->set_entries(32'768)\",\"m_palette->set_init(FUNC(sgb_state::sgb_palette))\"]}",
+          "{\"tag\":\"ppu\",\"config\":[\"SGB_PPU(config.replace(), m_ppu, m_maincpu)\"],\"replacementType\":\"SGB_PPU\"}"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1114,
+        "sourceColumn": 1,
+        "sourceEndLine": 1131
+      }
+    },
+    {
+      "id": "machine:gb_state.gbpocket",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gb_state",
+        "name": "gbpocket",
+        "calls": [
+          "gameboy"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_gb_io\",\"bits\":8,\"arrayLength\":16}",
+          "{\"name\":\"m_divcount\",\"bits\":16}",
+          "{\"name\":\"m_shift\",\"bits\":8}",
+          "{\"name\":\"m_shift_cycles\",\"bits\":16}",
+          "{\"name\":\"m_triggering_irq\",\"bits\":8}",
+          "{\"name\":\"m_reloading\",\"bits\":8}",
+          "{\"name\":\"m_internal_serial_clock\",\"bits\":16}",
+          "{\"name\":\"m_internal_serial_frequency\",\"bits\":16}",
+          "{\"name\":\"m_sio_count\",\"bits\":32}"
+        ],
+        "resetHandlers": [
+          "base_state.machine_reset",
+          "gb_state.machine_reset"
+        ],
+        "installedHandlers": [
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"start\":0,\"end\":255,\"viewTag\":\"m_boot_view\",\"viewEntry\":0,\"className\":\"gb_state\",\"method\":\"boot_r\"}"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"palette\",\"config\":[\"m_palette->set_init(FUNC(gb_state::gbp_palette))\"]}",
+          "{\"tag\":\"ppu\",\"config\":[\"MGB_PPU(config.replace(), m_ppu, m_maincpu)\"],\"replacementType\":\"MGB_PPU\"}"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1133,
+        "sourceColumn": 1,
+        "sourceEndLine": 1141
+      }
+    },
+    {
+      "id": "machine:gbc_state.gbcolor",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gbc_state",
+        "name": "gbcolor",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_gb_io\",\"bits\":8,\"arrayLength\":16}",
+          "{\"name\":\"m_divcount\",\"bits\":16}",
+          "{\"name\":\"m_shift\",\"bits\":8}",
+          "{\"name\":\"m_shift_cycles\",\"bits\":16}",
+          "{\"name\":\"m_triggering_irq\",\"bits\":8}",
+          "{\"name\":\"m_reloading\",\"bits\":8}",
+          "{\"name\":\"m_internal_serial_clock\",\"bits\":16}",
+          "{\"name\":\"m_internal_serial_frequency\",\"bits\":16}",
+          "{\"name\":\"m_sio_count\",\"bits\":32}"
+        ],
+        "resetHandlers": [
+          "base_state.machine_reset",
+          "gb_state.machine_reset",
+          "gbc_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1143,
+        "sourceColumn": 1,
+        "sourceEndLine": 1174
+      }
+    },
+    {
+      "id": "softlist:gbc_state.gbcolor/gbcolor",
+      "label": "SoftwareList",
+      "props": {
+        "name": "gbcolor",
+        "tag": "cart_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:gbc_state.gbcolor/gameboy",
+      "label": "SoftwareList",
+      "props": {
+        "name": "gameboy",
+        "tag": "gb_list",
+        "status": "compatible"
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "LR35902",
+        "tag": "maincpu",
+        "clock": 4194000,
+        "config": [
+          "LR35902(config, m_maincpu, GBC_CLOCK / 2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &gbc_state::gbc_map)",
+          "m_maincpu->timer_cb().set(FUNC(gbc_state::gb_timer_callback))"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1146,
+        "sourceColumn": 2,
+        "sourceEndLine": 1146
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "timer_cb",
+        "operation": "set",
+        "raw": "m_maincpu->timer_cb().set(FUNC(gbc_state::gb_timer_callback))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1148,
+        "sourceColumn": 2,
+        "sourceEndLine": 1148,
+        "targetClass": "gbc_state",
+        "targetMethod": "gb_timer_callback"
+      }
+    },
+    {
+      "id": "handler:gbc_state.gb_timer_callback",
+      "label": "Handler",
+      "props": {
+        "method": "gb_timer_callback",
+        "ownerClass": "gbc_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 1,
+        "sourceEndLine": 737,
+        "sourceConstants": [
+          "SIO_INTERNAL_CLOCK=1"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint16_t old_gb_divcount = m_divcount;\n\tuint16_t old_internal_serial_clock = m_internal_serial_clock;\n\tm_divcount += data;\n\tm_internal_serial_clock += data;\n\n\tif ((old_gb_divcount >> 8) != (m_divcount >> 8))\n\t{\n\t\t//LOG(\"DIV became %02x\\n\", m_divcount >> 8);\n\t}\n\tgb_timer_check_irq();\n\n\tif (m_gb_io[0x07] & 0x04)\n\t{\n\t\tuint16_t old_count = old_gb_divcount >> m_shift;\n\t\tuint16_t new_count = m_divcount >> m_shift;\n\t\tif (data > m_shift_cycles)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\told_count++;\n\t\t}\n\t\tif (new_count != old_count)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\tif (new_count << m_shift < m_divcount)\n\t\t\t{\n\t\t\t\tgb_timer_check_irq();\n\t\t\t}\n\t\t}\n\t}\n\n\tif (((m_internal_serial_clock ^ old_internal_serial_clock) & m_internal_serial_frequency) && (m_gb_io[0x02] & SIO_INTERNAL_CLOCK))\n\t{\n\t\tgb_serial_timer_tick();\n\t}"
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_LCD))",
+          "screen.set_raw(GBC_CLOCK / 2, 456, 0, 20 * 8, 154, 0, 18 * 8)",
+          "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1151,
+        "sourceColumn": 2,
+        "sourceEndLine": 1151,
+        "configCalls": [
+          "set_raw(4194000,456,0,160,154,0,144)"
+        ],
+        "clockExpr": "SCREEN_TYPE_LCD",
+        "screenRaw": [
+          4194000,
+          456,
+          0,
+          160,
+          154,
+          0,
+          144
+        ],
+        "screenRawExpr": [
+          "GBC_CLOCK / 2",
+          "456",
+          "0",
+          "20 * 8",
+          "154",
+          "0",
+          "18 * 8"
+        ]
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1153,
+        "sourceColumn": 2,
+        "sourceEndLine": 1153,
+        "targetClass": "dmg_ppu_device",
+        "targetMethod": "screen_update",
+        "targetTag": "ppu",
+        "indexed": 1
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, \"gfxdecode\", m_palette, gfxdecode_device::empty)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1156,
+        "sourceColumn": 2,
+        "sourceEndLine": 1156,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, palette_device::BGR_555)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1157,
+        "sourceColumn": 2,
+        "sourceEndLine": 1157,
+        "clockExpr": "palette_device::BGR_555"
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/ppu",
+      "label": "Device",
+      "props": {
+        "type": "CGB_PPU",
+        "tag": "ppu",
+        "clock": null,
+        "config": [
+          "CGB_PPU(config, m_ppu, m_maincpu)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1159,
+        "sourceColumn": 2,
+        "sourceEndLine": 1159,
+        "clockExpr": "m_maincpu"
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1162,
+        "sourceColumn": 2,
+        "sourceEndLine": 1162
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/apu",
+      "label": "Device",
+      "props": {
+        "type": "CGB04_APU",
+        "tag": "apu",
+        "clock": 4194000,
+        "config": [
+          "CGB04_APU(config, m_apu, GBC_CLOCK / 2)",
+          "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+          "m_apu->add_route(1, \"speaker\", 0.50, 1)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1164,
+        "sourceColumn": 2,
+        "sourceEndLine": 1164
+      }
+    },
+    {
+      "id": "audioroute:device:gbc_state.gbcolor/apu/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 0,
+        "raw": "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1165,
+        "sourceColumn": 2,
+        "sourceEndLine": 1165
+      }
+    },
+    {
+      "id": "audioroute:device:gbc_state.gbcolor/apu/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 1,
+        "raw": "m_apu->add_route(1, \"speaker\", 0.50, 1)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1166,
+        "sourceColumn": 2,
+        "sourceEndLine": 1166
+      }
+    },
+    {
+      "id": "device:gbc_state.gbcolor/cartslot",
+      "label": "Device",
+      "props": {
+        "type": "GB_CART_SLOT",
+        "tag": "cartslot",
+        "clock": null,
+        "config": [
+          "GB_CART_SLOT(config, m_cartslot, gameboy_cartridges, nullptr)",
+          "m_cartslot->set_space(m_maincpu, AS_PROGRAM)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1169,
+        "sourceColumn": 2,
+        "sourceEndLine": 1169,
+        "clockExpr": "gameboy_cartridges"
+      }
+    },
+    {
+      "id": "machine:megaduck_state.megaduck",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "megaduck_state",
+        "name": "megaduck",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_gb_io\",\"bits\":8,\"arrayLength\":16}",
+          "{\"name\":\"m_divcount\",\"bits\":16}",
+          "{\"name\":\"m_shift\",\"bits\":8}",
+          "{\"name\":\"m_shift_cycles\",\"bits\":16}",
+          "{\"name\":\"m_triggering_irq\",\"bits\":8}",
+          "{\"name\":\"m_reloading\",\"bits\":8}",
+          "{\"name\":\"m_internal_serial_clock\",\"bits\":16}",
+          "{\"name\":\"m_internal_serial_frequency\",\"bits\":16}",
+          "{\"name\":\"m_sio_count\",\"bits\":32}"
+        ],
+        "resetHandlers": [
+          "base_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1176,
+        "sourceColumn": 1,
+        "sourceEndLine": 1209
+      }
+    },
+    {
+      "id": "softlist:megaduck_state.megaduck/megaduck",
+      "label": "SoftwareList",
+      "props": {
+        "name": "megaduck",
+        "tag": "cart_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "LR35902",
+        "tag": "maincpu",
+        "clock": 4194304,
+        "config": [
+          "LR35902(config, m_maincpu, XTAL(4'194'304))",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &megaduck_state::megaduck_map)",
+          "m_maincpu->timer_cb().set(FUNC(megaduck_state::gb_timer_callback))",
+          "m_maincpu->set_halt_bug(true)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1179,
+        "sourceColumn": 2,
+        "sourceEndLine": 1179
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "timer_cb",
+        "operation": "set",
+        "raw": "m_maincpu->timer_cb().set(FUNC(megaduck_state::gb_timer_callback))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1181,
+        "sourceColumn": 2,
+        "sourceEndLine": 1181,
+        "targetClass": "megaduck_state",
+        "targetMethod": "gb_timer_callback"
+      }
+    },
+    {
+      "id": "handler:megaduck_state.gb_timer_callback",
+      "label": "Handler",
+      "props": {
+        "method": "gb_timer_callback",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 1,
+        "sourceEndLine": 737,
+        "sourceConstants": [
+          "SIO_INTERNAL_CLOCK=1"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint16_t old_gb_divcount = m_divcount;\n\tuint16_t old_internal_serial_clock = m_internal_serial_clock;\n\tm_divcount += data;\n\tm_internal_serial_clock += data;\n\n\tif ((old_gb_divcount >> 8) != (m_divcount >> 8))\n\t{\n\t\t//LOG(\"DIV became %02x\\n\", m_divcount >> 8);\n\t}\n\tgb_timer_check_irq();\n\n\tif (m_gb_io[0x07] & 0x04)\n\t{\n\t\tuint16_t old_count = old_gb_divcount >> m_shift;\n\t\tuint16_t new_count = m_divcount >> m_shift;\n\t\tif (data > m_shift_cycles)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\told_count++;\n\t\t}\n\t\tif (new_count != old_count)\n\t\t{\n\t\t\tgb_timer_increment();\n\t\t\tif (new_count << m_shift < m_divcount)\n\t\t\t{\n\t\t\t\tgb_timer_check_irq();\n\t\t\t}\n\t\t}\n\t}\n\n\tif (((m_internal_serial_clock ^ old_internal_serial_clock) & m_internal_serial_frequency) && (m_gb_io[0x02] & SIO_INTERNAL_CLOCK))\n\t{\n\t\tgb_serial_timer_tick();\n\t}"
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_LCD))",
+          "screen.set_refresh_hz(DMG_FRAMES_PER_SECOND)",
+          "screen.set_vblank_time(0)",
+          "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+          "screen.set_palette(m_palette)",
+          "screen.set_size(20*8, 18*8)",
+          "screen.set_visarea(0*8, 20*8-1, 0*8, 18*8-1)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1185,
+        "sourceColumn": 2,
+        "sourceEndLine": 1185,
+        "configCalls": [
+          "set_refresh_hz(59.732155)",
+          "set_vblank_time(0)",
+          "set_size(160,144)",
+          "set_visarea(0,159,0,143)"
+        ],
+        "clockExpr": "SCREEN_TYPE_LCD",
+        "screenRefreshHz": 59.732155,
+        "screenSize": [
+          160,
+          144
+        ],
+        "screenVisarea": [
+          0,
+          159,
+          0,
+          143
+        ]
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1188,
+        "sourceColumn": 2,
+        "sourceEndLine": 1188,
+        "targetClass": "dmg_ppu_device",
+        "targetMethod": "screen_update",
+        "targetTag": "ppu",
+        "indexed": 1
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, \"gfxdecode\", m_palette, gfxdecode_device::empty)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1193,
+        "sourceColumn": 2,
+        "sourceEndLine": 1193,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(megaduck_state::megaduck_palette), 4)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1194,
+        "sourceColumn": 2,
+        "sourceEndLine": 1194,
+        "clockExpr": "FUNC(megaduck_state::megaduck_palette)"
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/ppu",
+      "label": "Device",
+      "props": {
+        "type": "DMG_PPU",
+        "tag": "ppu",
+        "clock": null,
+        "config": [
+          "DMG_PPU(config, m_ppu, m_maincpu)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1196,
+        "sourceColumn": 2,
+        "sourceEndLine": 1196,
+        "clockExpr": "m_maincpu"
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1199,
+        "sourceColumn": 2,
+        "sourceEndLine": 1199
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/apu",
+      "label": "Device",
+      "props": {
+        "type": "DMG_APU",
+        "tag": "apu",
+        "clock": 4194304,
+        "config": [
+          "DMG_APU(config, m_apu, XTAL(4'194'304))",
+          "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+          "m_apu->add_route(1, \"speaker\", 0.50, 1)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1200,
+        "sourceColumn": 2,
+        "sourceEndLine": 1200
+      }
+    },
+    {
+      "id": "audioroute:device:megaduck_state.megaduck/apu/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 0,
+        "raw": "m_apu->add_route(0, \"speaker\", 0.50, 0)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1201,
+        "sourceColumn": 2,
+        "sourceEndLine": 1201
+      }
+    },
+    {
+      "id": "audioroute:device:megaduck_state.megaduck/apu/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "speaker",
+        "gain": 0.5,
+        "input": 1,
+        "raw": "m_apu->add_route(1, \"speaker\", 0.50, 1)",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1202,
+        "sourceColumn": 2,
+        "sourceEndLine": 1202
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/cartslot",
+      "label": "Device",
+      "props": {
+        "type": "MEGADUCK_CART_SLOT",
+        "tag": "cartslot",
+        "clock": null,
+        "config": [
+          "MEGADUCK_CART_SLOT(config, m_cartslot, megaduck_cartridges, nullptr)",
+          "m_cartslot->set_space(m_maincpu, AS_PROGRAM)"
+        ],
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1205,
+        "sourceColumn": 2,
+        "sourceEndLine": 1205,
+        "clockExpr": "megaduck_cartridges"
+      }
+    },
+    {
+      "id": "inputs:megaduck",
+      "label": "InputPorts",
+      "props": {
+        "name": "megaduck",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 962,
+        "sourceColumn": 8,
+        "sourceEndLine": 962
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS",
+      "label": "Port",
+      "props": {
+        "tag": "INPUTS",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_NAME(\"Left\")"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_NAME(\"Right\")"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_NAME(\"Up\")"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_NAME(\"Down\")"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"Button A\")"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"Button B\")"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_START",
+        "modifiers": [
+          "PORT_NAME(\"Start\")"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:megaduck/INPUTS/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_SELECT",
+        "modifiers": [
+          "PORT_NAME(\"Select\")"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gameboy",
+      "label": "InputPorts",
+      "props": {
+        "name": "gameboy",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 974,
+        "sourceColumn": 8,
+        "sourceEndLine": 974
+      }
+    },
+    {
+      "id": "inputs:gameboy/SKIP_CHECK",
+      "label": "Port",
+      "props": {
+        "tag": "SKIP_CHECK",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gameboy/SKIP_CHECK/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "[HACK] Skip BIOS Logo check",
+        "defaultValue": 0,
+        "settings": [
+          "0=Off",
+          "1=On"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x1",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x1",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 1,
+        "planeOffsets": [
+          "RGN_FRAC(0,1)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x3_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x3_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x5_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x5_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,5)",
+        "planes": 5,
+        "planeOffsets": [
+          "RGN_FRAC(4,5)",
+          "RGN_FRAC(3,5)",
+          "RGN_FRAC(2,5)",
+          "RGN_FRAC(1,5)",
+          "RGN_FRAC(0,5)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x6_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x6_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,6)",
+        "planes": 6,
+        "planeOffsets": [
+          "RGN_FRAC(5,6)",
+          "RGN_FRAC(4,6)",
+          "RGN_FRAC(3,6)",
+          "RGN_FRAC(2,6)",
+          "RGN_FRAC(1,6)",
+          "RGN_FRAC(0,6)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_planar",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_msb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_lsb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          36,
+          32,
+          44,
+          40,
+          52,
+          48,
+          60,
+          56
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          256,
+          260,
+          264,
+          268,
+          272,
+          276,
+          280,
+          284
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          260,
+          256,
+          268,
+          264,
+          276,
+          272,
+          284,
+          280
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          512,
+          516,
+          520,
+          524,
+          528,
+          532,
+          536,
+          540
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          516,
+          512,
+          524,
+          520,
+          532,
+          528,
+          540,
+          536
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "device:gb_state.gameboy/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(gb_state::gb_palette), 4)",
+        "ownerTag": "palette",
+        "targetClass": "gb_state",
+        "targetMethod": "gb_palette",
+        "entries": 4,
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1057
+      }
+    },
+    {
+      "id": "handler:gb_state.gb_palette",
+      "label": "Handler",
+      "props": {
+        "method": "gb_palette",
+        "ownerClass": "gb_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1011,
+        "sourceColumn": 1,
+        "sourceEndLine": 1015,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "for (int i = 0; i < 4; i++)\n\t\tpalette.set_pen_color(i, TABLE(i, 4287101951, 4283346609, 4283334788, 4283321934, 4288794564, 4285371787, 4283659115, 4282466625));"
+      }
+    },
+    {
+      "id": "device:megaduck_state.megaduck/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(megaduck_state::megaduck_palette), 4)",
+        "ownerTag": "palette",
+        "targetClass": "megaduck_state",
+        "targetMethod": "megaduck_palette",
+        "entries": 4,
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1194
+      }
+    },
+    {
+      "id": "handler:megaduck_state.megaduck_palette",
+      "label": "Handler",
+      "props": {
+        "method": "megaduck_palette",
+        "ownerClass": "megaduck_state",
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1035,
+        "sourceColumn": 1,
+        "sourceEndLine": 1039,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "for (int i = 0; i < 4; i++)\n\t\tpalette.set_pen_color(i, TABLE(i, 4283082347, 4284709443, 4283783461, 4283187730));"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:bus/gameboy/carts.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:bus/gameboy/gbslot.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:bus/gameboy/mdslot.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:cpu/lr35902/lr35902.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:machine/ram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:sound/gb.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:video/gb_lcd.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:softlist_dev.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/gb.cpp",
+      "to": "file:logmacro.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:gameboy",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1293,
+        "sourceColumn": 1,
+        "sourceEndLine": 1293
+      }
+    },
+    {
+      "from": "game:gameboy",
+      "to": "machine:gb_state.gameboy",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gameboy",
+      "to": "inputs:gameboy",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gameboy",
+      "to": "romset:gameboy",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:supergb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1294,
+        "sourceColumn": 1,
+        "sourceEndLine": 1294
+      }
+    },
+    {
+      "from": "game:supergb",
+      "to": "game:gameboy",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:supergb",
+      "to": "machine:sgb_state.supergb",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:supergb",
+      "to": "inputs:gameboy",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:supergb",
+      "to": "romset:supergb",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:supergb2",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1295,
+        "sourceColumn": 1,
+        "sourceEndLine": 1295
+      }
+    },
+    {
+      "from": "game:supergb2",
+      "to": "game:gameboy",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:supergb2",
+      "to": "machine:sgb_state.supergb2",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:supergb2",
+      "to": "inputs:gameboy",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:supergb2",
+      "to": "romset:supergb2",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:gbpocket",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1296,
+        "sourceColumn": 1,
+        "sourceEndLine": 1296
+      }
+    },
+    {
+      "from": "game:gbpocket",
+      "to": "game:gameboy",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:gbpocket",
+      "to": "machine:gb_state.gbpocket",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gbpocket",
+      "to": "inputs:gameboy",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gbpocket",
+      "to": "romset:gbpocket",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:gbcolor",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1297,
+        "sourceColumn": 1,
+        "sourceEndLine": 1297
+      }
+    },
+    {
+      "from": "game:gbcolor",
+      "to": "machine:gbc_state.gbcolor",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gbcolor",
+      "to": "inputs:gameboy",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gbcolor",
+      "to": "romset:gbcolor",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:megaduck",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1300,
+        "sourceColumn": 1,
+        "sourceEndLine": 1300
+      }
+    },
+    {
+      "from": "game:megaduck",
+      "to": "machine:megaduck_state.megaduck",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:megaduck",
+      "to": "inputs:megaduck",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:megaduck",
+      "to": "romset:megaduck",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:mduckspa",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1302,
+        "sourceColumn": 1,
+        "sourceEndLine": 1302
+      }
+    },
+    {
+      "from": "game:mduckspa",
+      "to": "machine:megaduck_state.megaduck",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mduckspa",
+      "to": "inputs:megaduck",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mduckspa",
+      "to": "romset:mduckspa",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:gamefgtr",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1306,
+        "sourceColumn": 1,
+        "sourceEndLine": 1306
+      }
+    },
+    {
+      "from": "game:gamefgtr",
+      "to": "game:gameboy",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:gamefgtr",
+      "to": "machine:gb_state.gameboy",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gamefgtr",
+      "to": "inputs:gameboy",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gamefgtr",
+      "to": "romset:gamefgtr",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "romset:gameboy",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1217,
+        "sourceColumn": 1,
+        "sourceEndLine": 1217
+      }
+    },
+    {
+      "from": "romset:gameboy",
+      "to": "region:gameboy/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gameboy/maincpu",
+      "to": "rom:gameboy/maincpu/dmg_boot.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:supergb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1225,
+        "sourceColumn": 1,
+        "sourceEndLine": 1225
+      }
+    },
+    {
+      "from": "romset:supergb",
+      "to": "region:supergb/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:supergb/maincpu",
+      "to": "rom:supergb/maincpu/sgb_boot.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:supergb2",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1230,
+        "sourceColumn": 1,
+        "sourceEndLine": 1230
+      }
+    },
+    {
+      "from": "romset:supergb2",
+      "to": "region:supergb2/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:supergb2/maincpu",
+      "to": "rom:supergb2/maincpu/sgb2_boot.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gbpocket",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1235,
+        "sourceColumn": 1,
+        "sourceEndLine": 1235
+      }
+    },
+    {
+      "from": "romset:gbpocket",
+      "to": "region:gbpocket/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gbpocket/maincpu",
+      "to": "rom:gbpocket/maincpu/mgb_boot.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:gbcolor",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1240,
+        "sourceColumn": 1,
+        "sourceEndLine": 1240
+      }
+    },
+    {
+      "from": "romset:gbcolor",
+      "to": "region:gbcolor/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gbcolor/maincpu",
+      "to": "rom:gbcolor/maincpu/gbc_boot.1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gbcolor/maincpu",
+      "to": "rom:gbcolor/maincpu/gbc_boot.2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:megaduck",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1246,
+        "sourceColumn": 1,
+        "sourceEndLine": 1246
+      }
+    },
+    {
+      "from": "romset:gamefgtr",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1249,
+        "sourceColumn": 1,
+        "sourceEndLine": 1249
+      }
+    },
+    {
+      "from": "romset:gamefgtr",
+      "to": "region:gamefgtr/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:gamefgtr/maincpu",
+      "to": "rom:gamefgtr/maincpu/gamefgtr.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mduckspa",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1281,
+        "sourceColumn": 1,
+        "sourceEndLine": 1281
+      }
+    },
+    {
+      "from": "romset:mduckspa",
+      "to": "region:mduckspa/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mduckspa/maincpu",
+      "to": "rom:mduckspa/maincpu/megaducksp.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:mduckspa",
+      "to": "region:mduckspa/81x00",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:mduckspa/81x00",
+      "to": "rom:mduckspa/81x00/81x00.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 899,
+        "sourceColumn": 1,
+        "sourceEndLine": 912
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range0",
+      "to": "handler:dmg_ppu_device.vram_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range0",
+      "to": "handler:dmg_ppu_device.vram_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range2",
+      "to": "handler:dmg_ppu_device.oam_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range2",
+      "to": "handler:dmg_ppu_device.oam_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range3",
+      "to": "handler:gb_state.gb_io_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:base_state.gb_timer_increment",
+      "to": "handler:base_state.gb_timer_check_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gb_state.gb_io_w",
+      "to": "handler:base_state.gb_timer_increment",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range3",
+      "to": "handler:gb_state.gb_io_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range4",
+      "to": "handler:gameboy_sound_device.sound_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range4",
+      "to": "handler:gameboy_sound_device.sound_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range6",
+      "to": "handler:gameboy_sound_device.wave_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range6",
+      "to": "handler:gameboy_sound_device.wave_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range7",
+      "to": "handler:dmg_ppu_device.video_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "handler:gb_state.gb_io2_w",
+      "to": "handler:gb_state.disable_boot",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range7",
+      "to": "handler:gb_state.gb_io2_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map",
+      "to": "map:gb_state.gameboy_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range9",
+      "to": "handler:gb_state.gb_ie_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:gb_state.gameboy_map/range9",
+      "to": "handler:gb_state.gb_ie_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 914,
+        "sourceColumn": 1,
+        "sourceEndLine": 927
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range0",
+      "to": "handler:sgb_ppu_device.vram_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range0",
+      "to": "handler:sgb_ppu_device.vram_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range2",
+      "to": "handler:sgb_ppu_device.oam_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range2",
+      "to": "handler:sgb_ppu_device.oam_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range3",
+      "to": "handler:sgb_state.gb_io_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:base_state.gb_io_w",
+      "to": "handler:base_state.gb_timer_increment",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:sgb_state.sgb_io_w",
+      "to": "handler:base_state.gb_io_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range3",
+      "to": "handler:sgb_state.sgb_io_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range4",
+      "to": "handler:gameboy_sound_device.sound_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range4",
+      "to": "handler:gameboy_sound_device.sound_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range6",
+      "to": "handler:gameboy_sound_device.wave_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range6",
+      "to": "handler:gameboy_sound_device.wave_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range7",
+      "to": "handler:sgb_ppu_device.video_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "handler:sgb_state.gb_io2_w",
+      "to": "handler:gb_state.disable_boot",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range7",
+      "to": "handler:sgb_state.gb_io2_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map",
+      "to": "map:sgb_state.sgb_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range9",
+      "to": "handler:sgb_state.gb_ie_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:sgb_state.sgb_map/range9",
+      "to": "handler:sgb_state.gb_ie_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 929,
+        "sourceColumn": 1,
+        "sourceEndLine": 943
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range0",
+      "to": "handler:cgb_ppu_device.vram_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range0",
+      "to": "handler:cgb_ppu_device.vram_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range3",
+      "to": "handler:cgb_ppu_device.oam_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range3",
+      "to": "handler:cgb_ppu_device.oam_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range4",
+      "to": "handler:gbc_state.gb_io_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:gbc_state.gbc_io_w",
+      "to": "handler:base_state.gb_io_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range4",
+      "to": "handler:gbc_state.gbc_io_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range5",
+      "to": "handler:gameboy_sound_device.sound_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range5",
+      "to": "handler:gameboy_sound_device.sound_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range7",
+      "to": "handler:gameboy_sound_device.wave_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range7",
+      "to": "handler:gameboy_sound_device.wave_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range8",
+      "to": "handler:gbc_state.gbc_io2_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:gbc_state.gbc_io2_w",
+      "to": "handler:gb_state.disable_boot",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range8",
+      "to": "handler:gbc_state.gbc_io2_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map",
+      "to": "map:gbc_state.gbc_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range10",
+      "to": "handler:gbc_state.gb_ie_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:gbc_state.gbc_map/range10",
+      "to": "handler:gbc_state.gb_ie_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 945,
+        "sourceColumn": 1,
+        "sourceEndLine": 959
+      }
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range0",
+      "to": "handler:dmg_ppu_device.vram_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range0",
+      "to": "handler:dmg_ppu_device.vram_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range2",
+      "to": "handler:dmg_ppu_device.oam_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range2",
+      "to": "handler:dmg_ppu_device.oam_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range3",
+      "to": "handler:megaduck_state.gb_io_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:megaduck_state.gb_io_w",
+      "to": "handler:base_state.gb_timer_increment",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range3",
+      "to": "handler:megaduck_state.gb_io_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range4",
+      "to": "handler:megaduck_state.megaduck_video_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range4",
+      "to": "handler:megaduck_state.megaduck_video_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range5",
+      "to": "handler:megaduck_state.megaduck_sound_r1",
+      "rel": "READS"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range5",
+      "to": "handler:megaduck_state.megaduck_sound_w1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range6",
+      "to": "handler:gameboy_sound_device.wave_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range6",
+      "to": "handler:gameboy_sound_device.wave_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "apu"
+      }
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range7",
+      "to": "handler:megaduck_state.megaduck_sound_r2",
+      "rel": "READS"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range7",
+      "to": "handler:megaduck_state.megaduck_sound_w2",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map",
+      "to": "map:megaduck_state.megaduck_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range10",
+      "to": "handler:megaduck_state.gb_ie_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:megaduck_state.megaduck_map/range10",
+      "to": "handler:megaduck_state.gb_ie_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1042,
+        "sourceColumn": 1,
+        "sourceEndLine": 1074
+      }
+    },
+    {
+      "from": "handler:sgb_state.machine_reset",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.gb_init_regs",
+      "to": "handler:base_state.gb_io_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:sgb_state.machine_reset",
+      "to": "handler:base_state.gb_init_regs",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gb_state.machine_reset",
+      "to": "handler:sgb_state.machine_reset",
+      "rel": "OVERRIDDEN_BY",
+      "props": {
+        "class": "sgb_state"
+      }
+    },
+    {
+      "from": "handler:gbc_state.machine_reset",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gbc_state.machine_reset",
+      "to": "handler:base_state.gb_init_regs",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gb_state.machine_reset",
+      "to": "handler:gbc_state.machine_reset",
+      "rel": "OVERRIDDEN_BY",
+      "props": {
+        "class": "gbc_state"
+      }
+    },
+    {
+      "from": "handler:gb_state.machine_reset",
+      "to": "handler:base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.machine_reset",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "OVERRIDDEN_BY",
+      "props": {
+        "class": "gb_state"
+      }
+    },
+    {
+      "from": "handler:base_state.machine_reset",
+      "to": "handler:sgb_state.machine_reset",
+      "rel": "OVERRIDDEN_BY",
+      "props": {
+        "class": "sgb_state"
+      }
+    },
+    {
+      "from": "handler:base_state.machine_reset",
+      "to": "handler:gbc_state.machine_reset",
+      "rel": "OVERRIDDEN_BY",
+      "props": {
+        "class": "gbc_state"
+      }
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "handler:base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "handler:gb_state.boot_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "softlist:gb_state.gameboy/gameboy",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "softlist:gb_state.gameboy/gbcolor",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gb_state.gameboy/maincpu",
+      "to": "device:gb_state.gameboy/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:gb_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_check_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gb_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_increment",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gb_state.gb_timer_callback",
+      "to": "handler:base_state.gb_serial_timer_tick",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gb_state.gameboy/maincpu/callback:maincpu:0",
+      "to": "handler:gb_state.gb_timer_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gb_state.gameboy/maincpu",
+      "to": "map:gb_state.gameboy_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gb_state.gameboy/screen",
+      "to": "device:gb_state.gameboy/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gb_state.gameboy/screen/callback:screen:0",
+      "to": "handler:dmg_ppu_device.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "gfxdecode:gfxdecode_device::empty",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/ppu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/apu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gb_state.gameboy/apu",
+      "to": "audioroute:device:gb_state.gameboy/apu/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gb_state.gameboy/apu",
+      "to": "audioroute:device:gb_state.gameboy/apu/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:gb_state.gameboy",
+      "to": "device:gb_state.gameboy/cartslot",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1076,
+        "sourceColumn": 1,
+        "sourceEndLine": 1112
+      }
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "handler:base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "handler:sgb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "softlist:sgb_state.supergb/gameboy",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "softlist:sgb_state.supergb/gbcolor",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:sgb_state.supergb/maincpu",
+      "to": "device:sgb_state.supergb/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:sgb_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_check_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:sgb_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_increment",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:sgb_state.gb_timer_callback",
+      "to": "handler:base_state.gb_serial_timer_tick",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:sgb_state.supergb/maincpu/callback:maincpu:0",
+      "to": "handler:sgb_state.gb_timer_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:sgb_state.supergb/maincpu",
+      "to": "map:sgb_state.sgb_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:sgb_state.supergb/screen",
+      "to": "device:sgb_state.supergb/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:sgb_state.supergb/screen/callback:screen:0",
+      "to": "handler:dmg_ppu_device.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "gfxdecode:gfxdecode_device::empty",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/ppu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/apu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:sgb_state.supergb/apu",
+      "to": "audioroute:device:sgb_state.supergb/apu/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:sgb_state.supergb/apu",
+      "to": "audioroute:device:sgb_state.supergb/apu/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:sgb_state.supergb",
+      "to": "device:sgb_state.supergb/cartslot",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:sgb_state.supergb2",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1114,
+        "sourceColumn": 1,
+        "sourceEndLine": 1131
+      }
+    },
+    {
+      "from": "machine:sgb_state.supergb2",
+      "to": "handler:base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:sgb_state.supergb2",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:sgb_state.supergb2",
+      "to": "handler:sgb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:sgb_state.supergb2",
+      "to": "machine:gb_state.gameboy",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:sgb_state.supergb2",
+      "to": "map:sgb_state.sgb_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:gb_state.gbpocket",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1133,
+        "sourceColumn": 1,
+        "sourceEndLine": 1141
+      }
+    },
+    {
+      "from": "machine:gb_state.gbpocket",
+      "to": "handler:base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gb_state.gbpocket",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gb_state.gbpocket",
+      "to": "handler:gb_state.boot_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gb_state.gbpocket",
+      "to": "machine:gb_state.gameboy",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1143,
+        "sourceColumn": 1,
+        "sourceEndLine": 1174
+      }
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "handler:base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "handler:gb_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "handler:gbc_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "softlist:gbc_state.gbcolor/gbcolor",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "softlist:gbc_state.gbcolor/gameboy",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gbc_state.gbcolor/maincpu",
+      "to": "device:gbc_state.gbcolor/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:gbc_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_check_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gbc_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_increment",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gbc_state.gb_timer_callback",
+      "to": "handler:base_state.gb_serial_timer_tick",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gbc_state.gbcolor/maincpu/callback:maincpu:0",
+      "to": "handler:gbc_state.gb_timer_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gbc_state.gbcolor/maincpu",
+      "to": "map:gbc_state.gbc_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gbc_state.gbcolor/screen",
+      "to": "device:gbc_state.gbcolor/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gbc_state.gbcolor/screen/callback:screen:0",
+      "to": "handler:dmg_ppu_device.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "gfxdecode:gfxdecode_device::empty",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/ppu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/apu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:gbc_state.gbcolor/apu",
+      "to": "audioroute:device:gbc_state.gbcolor/apu/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gbc_state.gbcolor/apu",
+      "to": "audioroute:device:gbc_state.gbcolor/apu/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:gbc_state.gbcolor",
+      "to": "device:gbc_state.gbcolor/cartslot",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 1176,
+        "sourceColumn": 1,
+        "sourceEndLine": 1209
+      }
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "handler:base_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "softlist:megaduck_state.megaduck/megaduck",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/maincpu",
+      "to": "device:megaduck_state.megaduck/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:megaduck_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_check_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:megaduck_state.gb_timer_callback",
+      "to": "handler:base_state.gb_timer_increment",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:megaduck_state.gb_timer_callback",
+      "to": "handler:base_state.gb_serial_timer_tick",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/maincpu/callback:maincpu:0",
+      "to": "handler:megaduck_state.gb_timer_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/maincpu",
+      "to": "map:megaduck_state.megaduck_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/screen",
+      "to": "device:megaduck_state.megaduck/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/screen/callback:screen:0",
+      "to": "handler:dmg_ppu_device.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "gfxdecode:gfxdecode_device::empty",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/ppu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/apu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/apu",
+      "to": "audioroute:device:megaduck_state.megaduck/apu/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/apu",
+      "to": "audioroute:device:megaduck_state.megaduck/apu/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:megaduck_state.megaduck",
+      "to": "device:megaduck_state.megaduck/cartslot",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:megaduck",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 962,
+        "sourceColumn": 8,
+        "sourceEndLine": 962
+      }
+    },
+    {
+      "from": "inputs:megaduck",
+      "to": "inputs:megaduck/INPUTS",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:megaduck/INPUTS",
+      "to": "inputs:megaduck/INPUTS/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gameboy",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/gb.cpp",
+        "sourceLine": 974,
+        "sourceColumn": 8,
+        "sourceEndLine": 974
+      }
+    },
+    {
+      "from": "inputs:gameboy",
+      "to": "inputs:megaduck",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:gameboy",
+      "to": "inputs:gameboy/SKIP_CHECK",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gameboy/SKIP_CHECK",
+      "to": "inputs:gameboy/SKIP_CHECK/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x1",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x3_planar",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_planar",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x5_planar",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x6_planar",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_planar",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_msb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_msb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "to": "file:src/mame/nintendo/gb.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "device:gb_state.gameboy/palette",
+      "to": "device:gb_state.gameboy/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gb_state.gameboy/palette/callback:palette_init",
+      "to": "handler:gb_state.gb_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/palette",
+      "to": "device:megaduck_state.megaduck/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:megaduck_state.megaduck/palette/callback:palette_init",
+      "to": "handler:megaduck_state.megaduck_palette",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

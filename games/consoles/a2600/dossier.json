@@ -1,0 +1,466 @@
+{
+  "game": "a2600",
+  "title": "Atari 2600 (NTSC) (Atari, 1977)",
+  "fullname": "Atari 2600 (NTSC)",
+  "year": "1977",
+  "company": "Atari",
+  "family": "a2600",
+  "driverFile": "src/mame/atari/a2600.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nathan Woods, Wilbert Pol, David Shah",
+  "cpus": [
+    {
+      "tag": "^maincpu",
+      "type": "m6507",
+      "clock": 1193191.6666666667,
+      "region": "^maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 127,
+          "kind": "handler",
+          "mirror": 3840,
+          "read": "tia_video.read",
+          "write": "tia_video.write",
+          "handlerWidth": 8
+        },
+        {
+          "start": 128,
+          "end": 255,
+          "kind": "ram",
+          "mirror": 3328,
+          "share": "riot_ram"
+        },
+        {
+          "start": 640,
+          "end": 640,
+          "kind": "handler",
+          "mirror": 3352,
+          "read": "riot.pa_data_r",
+          "write": "riot.pa_data_w"
+        },
+        {
+          "start": 641,
+          "end": 641,
+          "kind": "handler",
+          "mirror": 3352,
+          "read": "riot.pa_ddr_r",
+          "write": "riot.pa_ddr_w"
+        },
+        {
+          "start": 642,
+          "end": 642,
+          "kind": "handler",
+          "mirror": 3352,
+          "read": "riot.pb_data_r",
+          "write": "riot.pb_data_w"
+        },
+        {
+          "start": 643,
+          "end": 643,
+          "kind": "handler",
+          "mirror": 3352,
+          "read": "riot.pb_ddr_r",
+          "write": "riot.pb_ddr_w"
+        },
+        {
+          "start": 660,
+          "end": 663,
+          "kind": "handler",
+          "mirror": 3328,
+          "write": "riot.timer_off_w"
+        },
+        {
+          "start": 668,
+          "end": 671,
+          "kind": "handler",
+          "mirror": 3328,
+          "write": "riot.timer_on_w"
+        },
+        {
+          "start": 644,
+          "end": 644,
+          "kind": "handler",
+          "mirror": 3346,
+          "read": "riot.timer_off_r"
+        },
+        {
+          "start": 652,
+          "end": 652,
+          "kind": "handler",
+          "mirror": 3346,
+          "read": "riot.timer_on_r"
+        },
+        {
+          "start": 645,
+          "end": 645,
+          "kind": "handler",
+          "mirror": 3354,
+          "read": "riot.irq_r"
+        },
+        {
+          "start": 644,
+          "end": 647,
+          "kind": "handler",
+          "mirror": 3336,
+          "write": "riot.edge_w"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "tia",
+    "clock": 31399.780701754386,
+    "deviceTag": "tia",
+    "masterGain": 0.9,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 176,
+    "height": 223,
+    "xOffset": 26,
+    "yOffset": 24,
+    "refresh": 59.92324561403509,
+    "htotal": 228,
+    "vtotal": 262,
+    "vbstart": 247,
+    "vbend": 24,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 8192,
+      "fill": 255,
+      "loads": []
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SWB",
+      "mask": 1,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "Reset Game",
+      "activeLow": true
+    },
+    {
+      "port": "SWB",
+      "mask": 2,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "Select Game",
+      "activeLow": true
+    },
+    {
+      "port": "SWB",
+      "mask": 8,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "TV Type",
+      "activeLow": true,
+      "activeValue": 0,
+      "toggle": true
+    },
+    {
+      "port": "SWB",
+      "mask": 64,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "Left Diff. Switch",
+      "activeLow": true,
+      "activeValue": 64,
+      "toggle": true
+    },
+    {
+      "port": "SWB",
+      "mask": 128,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "Right Diff. Switch",
+      "activeLow": true,
+      "activeValue": 128,
+      "toggle": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SWB",
+      "mask": 8,
+      "value": 8,
+      "name": "TV Type"
+    },
+    {
+      "port": "SWB",
+      "mask": 64,
+      "value": 0,
+      "name": "Left Diff. Switch"
+    },
+    {
+      "port": "SWB",
+      "mask": 128,
+      "value": 0,
+      "name": "Right Diff. Switch"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2026-05-29",
+    "commits": 153,
+    "contributors": 27,
+    "topAuthors": [
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Wilbert Pol",
+      "AJR",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 38,
+        "firstCommit": "2012-08-21",
+        "lastCommit": "2016-11-06"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 18,
+        "firstCommit": "2016-11-21",
+        "lastCommit": "2024-08-25"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 18,
+        "firstCommit": "2012-10-02",
+        "lastCommit": "2015-08-10"
+      },
+      {
+        "name": "AJR",
+        "commits": 10,
+        "firstCommit": "2018-05-28",
+        "lastCommit": "2026-05-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 8,
+        "firstCommit": "2017-02-26",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 7,
+        "firstCommit": "2012-10-07",
+        "lastCommit": "2023-03-24"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 6,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-11-05"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2014-03-13",
+        "lastCommit": "2020-06-14"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 5,
+        "firstCommit": "2013-05-29",
+        "lastCommit": "2014-09-28"
+      },
+      {
+        "name": "Aaron Giles",
+        "commits": 4,
+        "firstCommit": "2012-09-11",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 4,
+        "firstCommit": "2013-07-15",
+        "lastCommit": "2014-03-24"
+      },
+      {
+        "name": "0kmg",
+        "commits": 3,
+        "firstCommit": "2022-07-15",
+        "lastCommit": "2022-08-08"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2018-12-18"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 3,
+        "firstCommit": "2018-04-12",
+        "lastCommit": "2019-06-29"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 3,
+        "firstCommit": "2021-12-14",
+        "lastCommit": "2022-08-06"
+      },
+      {
+        "name": "hap",
+        "commits": 2,
+        "firstCommit": "2021-03-29",
+        "lastCommit": "2023-07-25"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2012-10-07",
+        "lastCommit": "2012-10-07"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2013-05-29",
+        "lastCommit": "2016-11-19"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-02-02",
+        "lastCommit": "2013-02-02"
+      },
+      {
+        "name": "arbee",
+        "commits": 1,
+        "firstCommit": "2015-09-26",
+        "lastCommit": "2015-09-26"
+      },
+      {
+        "name": "David Shah",
+        "commits": 1,
+        "firstCommit": "2018-01-25",
+        "lastCommit": "2018-01-25"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mahlemiut",
+        "commits": 1,
+        "firstCommit": "2012-09-23",
+        "lastCommit": "2012-09-23"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2024-08-15",
+        "lastCommit": "2024-08-15"
+      },
+      {
+        "name": "Osso13",
+        "commits": 1,
+        "firstCommit": "2015-01-16",
+        "lastCommit": "2015-01-16"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      }
+    ]
+  },
+  "historyText": "Console published 49 years ago:\n\nAtari 2600 (c) 1977 Atari, Incorporated.\n\n- TECHNICAL -\n\nModel No. CX-2600 A.\n\nResolution: 160 x 260 (horz.) at 60.00 Hz\nCPU: 6507\nCpu Clock: 1.19 MHz\nGraphics Clock: 1.19 MHz\nBits: 8\nROM: 4k max\nRAM: 128 bytes, in VLSI\nVideo Display Processor: Stella\nSprites: 32\nColors: 256 (static)\nSound Processor: Two Channel Square or Noise (TIA)\nCartridge ROM: 2k up to 64k\n\n- TRIVIA -\n\nThe Atari 2600 was released on October 14, 1977 (Friday) in North America at a retail price of 199.95 USD, it was shipped with two joysticks and a Combat cartridge (eight additional games were available at launch and sold separately).\n\nThe console was originally sold as the Atari VCS (for Video Computer System). Following the release of the Atari 5200 in 1982, the VCS was renamed Atari 2600, after the unit's Atari part number CX2600.\n\nThe Atari VCS was developed under the project codename 'Stella'.\n\nIt is rumored that the number 2600 was chosen because 2600 cycles was a prominent long distance access tone, and that one of the developers had created devices that would trick pay phones into granting long distance access as a hobby.\n\nExport releases:\n[JP] \"Atari 2800\"\n\n- STAFF -\n\nDesigned by: Joe Decuir, Steve Mayer, Ron Milner\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/54858/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)",
+  "cart": {
+    "list": "a2600",
+    "entries": 1591,
+    "slots": [
+      "a26_2k_4k",
+      "a26_f8",
+      "a26_f8sw",
+      "a26_f6",
+      "a26_f4",
+      "a26_fa",
+      "a26_3f",
+      "a26_ua",
+      "a26_fv",
+      "a26_8in1",
+      "a26_dpc"
+    ]
+  }
+}

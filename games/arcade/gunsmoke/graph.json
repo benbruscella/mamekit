@@ -1,0 +1,3364 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/capcom/gunsmoke.cpp",
+    "generatedAt": "2026-09-05T03:49:39.593Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Paul Leaman"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/capcom/gunsmoke.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/capcom/gunsmoke.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopn.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopn.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/bufsprite.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/bufsprite.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:gunsmoke",
+      "label": "Game",
+      "props": {
+        "name": "gunsmoke",
+        "year": "1985",
+        "company": "Capcom",
+        "fullname": "Gun.Smoke (World, 1985-11-15)",
+        "monitor": "ROT270",
+        "cls": "gunsmoke_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 1005,
+        "sourceColumn": 1,
+        "sourceEndLine": 1005
+      }
+    },
+    {
+      "id": "romset:gunsmoke",
+      "label": "RomSet",
+      "props": {
+        "name": "gunsmoke",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 1,
+        "sourceEndLine": 605
+      }
+    },
+    {
+      "id": "region:gunsmoke/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 98304,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 2,
+        "sourceEndLine": 606
+      }
+    },
+    {
+      "id": "rom:gunsmoke/maincpu/gs03.09n",
+      "label": "Rom",
+      "props": {
+        "file": "gs03.09n",
+        "offset": 0,
+        "size": 32768,
+        "crc": "40a06cef",
+        "sha1": "3e2a52d476298b7252f0adaefdb42090351e921c",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 607,
+        "sourceColumn": 2,
+        "sourceEndLine": 607
+      }
+    },
+    {
+      "id": "rom:gunsmoke/maincpu/gs04.10n",
+      "label": "Rom",
+      "props": {
+        "file": "gs04.10n",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "8d4b423f",
+        "sha1": "149274c2ed1526ca1f419fdf8a24059ff138f7f2",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 2,
+        "sourceEndLine": 608
+      }
+    },
+    {
+      "id": "rom:gunsmoke/maincpu/gs05.12n",
+      "label": "Rom",
+      "props": {
+        "file": "gs05.12n",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "2b5667fb",
+        "sha1": "5b689bca1e76d803b4cae22feaa7744fa528e93f",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 609,
+        "sourceColumn": 2,
+        "sourceEndLine": 609
+      }
+    },
+    {
+      "id": "region:gunsmoke/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 2,
+        "sourceEndLine": 611
+      }
+    },
+    {
+      "id": "rom:gunsmoke/audiocpu/gs02.14h",
+      "label": "Rom",
+      "props": {
+        "file": "gs02.14h",
+        "offset": 0,
+        "size": 32768,
+        "crc": "cd7a2c38",
+        "sha1": "c76c471f694b76015370f0eacf5350e652f526ff",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 612,
+        "sourceColumn": 2,
+        "sourceEndLine": 612
+      }
+    },
+    {
+      "id": "region:gunsmoke/chars",
+      "label": "RomRegion",
+      "props": {
+        "tag": "chars",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 614,
+        "sourceColumn": 2,
+        "sourceEndLine": 614
+      }
+    },
+    {
+      "id": "rom:gunsmoke/chars/gs01.11f",
+      "label": "Rom",
+      "props": {
+        "file": "gs01.11f",
+        "offset": 0,
+        "size": 16384,
+        "crc": "b61ece9b",
+        "sha1": "eb3fc62644cc5b5a2b9cbe67c393d4a0e2a59ca9",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 615,
+        "sourceColumn": 2,
+        "sourceEndLine": 615
+      }
+    },
+    {
+      "id": "region:gunsmoke/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 262144,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 2,
+        "sourceEndLine": 617
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs13.06c",
+      "label": "Rom",
+      "props": {
+        "file": "gs13.06c",
+        "offset": 0,
+        "size": 32768,
+        "crc": "f6769fc5",
+        "sha1": "d192ec176425327ca4b7e25fc8432fc47837ba29",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs12.05c",
+      "label": "Rom",
+      "props": {
+        "file": "gs12.05c",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "d997b78c",
+        "sha1": "3b4a9b6f9e57ecfb4ab9734379bd0ee765fd6daa",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 619,
+        "sourceColumn": 2,
+        "sourceEndLine": 619
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs11.04c",
+      "label": "Rom",
+      "props": {
+        "file": "gs11.04c",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "125ba58e",
+        "sha1": "cf6931653cebd051564bed8121ab8713a55095c5",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 620,
+        "sourceColumn": 2,
+        "sourceEndLine": 620
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs10.02c",
+      "label": "Rom",
+      "props": {
+        "file": "gs10.02c",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "f469c13c",
+        "sha1": "54eda52d6fce58771c0adfe2c88292a41d5a9b99",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 621,
+        "sourceColumn": 2,
+        "sourceEndLine": 621
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs09.06a",
+      "label": "Rom",
+      "props": {
+        "file": "gs09.06a",
+        "offset": 131072,
+        "size": 32768,
+        "crc": "539f182d",
+        "sha1": "4190c0adbecc57b92f4d002e121acb77e8c5d8d8",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 2,
+        "sourceEndLine": 623
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs08.05a",
+      "label": "Rom",
+      "props": {
+        "file": "gs08.05a",
+        "offset": 163840,
+        "size": 32768,
+        "crc": "e87e526d",
+        "sha1": "d10068addf30322424a85bbc6382cb762ae3fbe2",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 624,
+        "sourceColumn": 2,
+        "sourceEndLine": 624
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs07.04a",
+      "label": "Rom",
+      "props": {
+        "file": "gs07.04a",
+        "offset": 196608,
+        "size": 32768,
+        "crc": "4382c0d2",
+        "sha1": "8615e62bc57b40d082f6ca211d64f22185bed1fd",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 625,
+        "sourceColumn": 2,
+        "sourceEndLine": 625
+      }
+    },
+    {
+      "id": "rom:gunsmoke/tiles/gs06.02a",
+      "label": "Rom",
+      "props": {
+        "file": "gs06.02a",
+        "offset": 229376,
+        "size": 32768,
+        "crc": "4cafe7a6",
+        "sha1": "fe501f3a5e9ce9e82e9708f1cd297f4c94ef0f81",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 626,
+        "sourceColumn": 2,
+        "sourceEndLine": 626
+      }
+    },
+    {
+      "id": "region:gunsmoke/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 262144,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 628,
+        "sourceColumn": 2,
+        "sourceEndLine": 628
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs22.06n",
+      "label": "Rom",
+      "props": {
+        "file": "gs22.06n",
+        "offset": 0,
+        "size": 32768,
+        "crc": "dc9c508c",
+        "sha1": "920505dd4c63b177918feb4e54cca8a7948ec9d9",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 629,
+        "sourceColumn": 2,
+        "sourceEndLine": 629
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs21.04n",
+      "label": "Rom",
+      "props": {
+        "file": "gs21.04n",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "68883749",
+        "sha1": "c7bf2bf49c53feddf8f30b4001dc2d59b52b1c28",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 630,
+        "sourceColumn": 2,
+        "sourceEndLine": 630
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs20.03n",
+      "label": "Rom",
+      "props": {
+        "file": "gs20.03n",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "0be932ed",
+        "sha1": "1c5af5884a23112dbc36579515d1cb497992da2f",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 631,
+        "sourceColumn": 2,
+        "sourceEndLine": 631
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs19.01n",
+      "label": "Rom",
+      "props": {
+        "file": "gs19.01n",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "63072f93",
+        "sha1": "cb3a2729782cf2855558d081fe92d28366228b8e",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 632,
+        "sourceColumn": 2,
+        "sourceEndLine": 632
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs18.06l",
+      "label": "Rom",
+      "props": {
+        "file": "gs18.06l",
+        "offset": 131072,
+        "size": 32768,
+        "crc": "f69a3c7c",
+        "sha1": "e9eb9dfa7d53aa7b728150f91d05bfc3bf6f1e75",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 633,
+        "sourceColumn": 2,
+        "sourceEndLine": 633
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs17.04l",
+      "label": "Rom",
+      "props": {
+        "file": "gs17.04l",
+        "offset": 163840,
+        "size": 32768,
+        "crc": "4e98562a",
+        "sha1": "0341b8a79be1d71a57d0d76ed890e15f9f92259e",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 634,
+        "sourceColumn": 2,
+        "sourceEndLine": 634
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs16.03l",
+      "label": "Rom",
+      "props": {
+        "file": "gs16.03l",
+        "offset": 196608,
+        "size": 32768,
+        "crc": "0d99c3b3",
+        "sha1": "436c566b76f632242448671e3b6319f7d9f65322",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 635,
+        "sourceColumn": 2,
+        "sourceEndLine": 635
+      }
+    },
+    {
+      "id": "rom:gunsmoke/sprites/gs15.01l",
+      "label": "Rom",
+      "props": {
+        "file": "gs15.01l",
+        "offset": 229376,
+        "size": 32768,
+        "crc": "7f14270e",
+        "sha1": "dd06c333c2ea097e25185a1423cd61e1b7afc42b",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 2,
+        "sourceEndLine": 636
+      }
+    },
+    {
+      "id": "region:gunsmoke/bgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bgtiles",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 2,
+        "sourceEndLine": 638
+      }
+    },
+    {
+      "id": "rom:gunsmoke/bgtiles/gs14.11c",
+      "label": "Rom",
+      "props": {
+        "file": "gs14.11c",
+        "offset": 0,
+        "size": 32768,
+        "crc": "0af4f7eb",
+        "sha1": "24a98fdeedeeaf1035b4af52d5a8dd5e47a5e62d",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 639,
+        "sourceColumn": 2,
+        "sourceEndLine": 639
+      }
+    },
+    {
+      "id": "region:gunsmoke/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 2560,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 641,
+        "sourceColumn": 2,
+        "sourceEndLine": 641
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-01.03b",
+      "label": "Rom",
+      "props": {
+        "file": "g-01.03b",
+        "offset": 0,
+        "size": 256,
+        "crc": "02f55589",
+        "sha1": "8a3f98304aedf3aba1c08b615bf457752a480edc",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 642,
+        "sourceColumn": 2,
+        "sourceEndLine": 642
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-02.04b",
+      "label": "Rom",
+      "props": {
+        "file": "g-02.04b",
+        "offset": 256,
+        "size": 256,
+        "crc": "e1e36dd9",
+        "sha1": "5bd88a35898a2d973045bdde8311aac3a12826de",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 643,
+        "sourceColumn": 2,
+        "sourceEndLine": 643
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-03.05b",
+      "label": "Rom",
+      "props": {
+        "file": "g-03.05b",
+        "offset": 512,
+        "size": 256,
+        "crc": "989399c0",
+        "sha1": "e408e391f49ed0c7b9e16479fea44b809440fefc",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 644,
+        "sourceColumn": 2,
+        "sourceEndLine": 644
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-04.09d",
+      "label": "Rom",
+      "props": {
+        "file": "g-04.09d",
+        "offset": 768,
+        "size": 256,
+        "crc": "906612b5",
+        "sha1": "7b727a6200c088538180758320ede84aa7e5b96d",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 645,
+        "sourceColumn": 2,
+        "sourceEndLine": 645
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-06.14a",
+      "label": "Rom",
+      "props": {
+        "file": "g-06.14a",
+        "offset": 1024,
+        "size": 256,
+        "crc": "4a9da18b",
+        "sha1": "fed3b81b56aab2ed0a21ed1fcebe3f1ae095a13b",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 646,
+        "sourceColumn": 2,
+        "sourceEndLine": 646
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-07.15a",
+      "label": "Rom",
+      "props": {
+        "file": "g-07.15a",
+        "offset": 1280,
+        "size": 256,
+        "crc": "cb9394fc",
+        "sha1": "8ad0fde6a8ef8326d2da4b6dbf3b51f5f6c668c8",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 647,
+        "sourceColumn": 2,
+        "sourceEndLine": 647
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-09.09f",
+      "label": "Rom",
+      "props": {
+        "file": "g-09.09f",
+        "offset": 1536,
+        "size": 256,
+        "crc": "3cee181e",
+        "sha1": "3f95bdb12391cb9b3673191bda8d09c84b36b4d3",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 648,
+        "sourceColumn": 2,
+        "sourceEndLine": 648
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-08.08f",
+      "label": "Rom",
+      "props": {
+        "file": "g-08.08f",
+        "offset": 1792,
+        "size": 256,
+        "crc": "ef91cdd2",
+        "sha1": "90b9191c9f10a153d64055a4238eb6e15b8c12bc",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 649,
+        "sourceColumn": 2,
+        "sourceEndLine": 649
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-10.02j",
+      "label": "Rom",
+      "props": {
+        "file": "g-10.02j",
+        "offset": 2048,
+        "size": 256,
+        "crc": "0eaf5158",
+        "sha1": "bafd4108708f66cd7b280e47152b108f3e254fc9",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 2,
+        "sourceEndLine": 650
+      }
+    },
+    {
+      "id": "rom:gunsmoke/proms/g-05.01f",
+      "label": "Rom",
+      "props": {
+        "file": "g-05.01f",
+        "offset": 2304,
+        "size": 256,
+        "crc": "25c90c2a",
+        "sha1": "42893572bab757ec01e181fc418cb911638d37e0",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 651,
+        "sourceColumn": 2,
+        "sourceEndLine": 651
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gunsmoke_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 364,
+        "sourceColumn": 1,
+        "sourceEndLine": 384
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 366,
+        "sourceColumn": 2,
+        "sourceEndLine": 366,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 49151,
+        "raw": "map(0x8000, 0xbfff).bankr(m_mainbank)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 367,
+        "sourceColumn": 2,
+        "sourceEndLine": 367,
+        "bankRead": "mainbank"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49152,
+        "raw": "map(0xc000, 0xc000).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 368,
+        "sourceColumn": 2,
+        "sourceEndLine": 368,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 49153,
+        "end": 49153,
+        "raw": "map(0xc001, 0xc001).portr(\"P1\")",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 369,
+        "sourceColumn": 2,
+        "sourceEndLine": 369,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 49154,
+        "end": 49154,
+        "raw": "map(0xc002, 0xc002).portr(\"P2\")",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 370,
+        "sourceColumn": 2,
+        "sourceEndLine": 370,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 49155,
+        "end": 49155,
+        "raw": "map(0xc003, 0xc003).portr(\"DSW1\")",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 371,
+        "sourceColumn": 2,
+        "sourceEndLine": 371,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 49156,
+        "end": 49156,
+        "raw": "map(0xc004, 0xc004).portr(\"DSW2\")",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 372,
+        "sourceColumn": 2,
+        "sourceEndLine": 372,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 50377,
+        "end": 50379,
+        "raw": "map(0xc4c9, 0xc4cb).r(FUNC(gunsmoke_state::protection_r))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 373,
+        "sourceColumn": 2,
+        "sourceEndLine": 373
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.protection_r",
+      "label": "Handler",
+      "props": {
+        "method": "protection_r",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 341,
+        "sourceColumn": 1,
+        "sourceEndLine": 360,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "/*\n\t    The routine at 0x0e69 tries to read data starting at 0xc4c9.\n\t    If this value is zero, it interprets the next two bytes as a\n\t    jump address.\n\n\t    This was resulting in a reboot which happens at the end of level 3\n\t    if you go too far to the right of the screen when fighting the level boss.\n\n\t    A non-zero for the first byte seems to be harmless\n\t    (although it may not be the correct behaviour).\n\n\t    This could be some devious protection or it could be a bug in the\n\t    arcade game.  It's hard to tell without pulling the code apart.\n\t*/\n\n\t\n\treturn TABLE(offset, 0xff, 0x00, 0x00);"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 51200,
+        "raw": "map(0xc800, 0xc800).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 374,
+        "sourceColumn": 2,
+        "sourceEndLine": 374
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 374,
+        "sourceColumn": 2,
+        "sourceEndLine": 374
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 51204,
+        "end": 51204,
+        "raw": "map(0xc804, 0xc804).w(FUNC(gunsmoke_state::control_w))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 375,
+        "sourceColumn": 2,
+        "sourceEndLine": 375
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.control_w",
+      "label": "Handler",
+      "props": {
+        "method": "control_w",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 225,
+        "sourceColumn": 1,
+        "sourceEndLine": 241,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// bits 0 and 1 are for coin counters\n\tmachine().bookkeeping().coin_counter_w(1, data & 0x01);\n\tmachine().bookkeeping().coin_counter_w(0, data & 0x02);\n\n\t// bits 2 and 3 select the ROM bank\n\tm_mainbank->set_entry((data & 0x0c) >> 2);\n\n\t// bit 5 resets the sound CPU? - we ignore it\n\n\t// bit 6 flips screen\n\tflip_screen_set(data & 0x40);\n\n\t// bit 7 enables characters?\n\tm_chon = data & 0x80;"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 51206,
+        "end": 51206,
+        "raw": "map(0xc806, 0xc806).w(m_spriteram, FUNC(buffered_spriteram8_device::write))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 376,
+        "sourceColumn": 2,
+        "sourceEndLine": 376
+      }
+    },
+    {
+      "id": "handler:buffered_spriteram8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "buffered_spriteram8_device",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 376,
+        "sourceColumn": 2,
+        "sourceEndLine": 376
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 54271,
+        "raw": "map(0xd000, 0xd3ff).ram().w(FUNC(gunsmoke_state::videoram_w)).share(m_videoram)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 377,
+        "sourceColumn": 2,
+        "sourceEndLine": 377,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 213,
+        "sourceColumn": 1,
+        "sourceEndLine": 217,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 54272,
+        "end": 55295,
+        "raw": "map(0xd400, 0xd7ff).ram().w(FUNC(gunsmoke_state::colorram_w)).share(m_colorram)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 2,
+        "sourceEndLine": 378,
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 219,
+        "sourceColumn": 1,
+        "sourceEndLine": 223,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 55296,
+        "end": 55297,
+        "raw": "map(0xd800, 0xd801).ram().share(m_scrollx)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 379,
+        "sourceColumn": 2,
+        "sourceEndLine": 379,
+        "ram": true,
+        "share": "scrollx"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 55298,
+        "end": 55298,
+        "raw": "map(0xd802, 0xd802).ram().share(m_scrolly)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 380,
+        "sourceColumn": 2,
+        "sourceEndLine": 380,
+        "ram": true,
+        "share": "scrolly"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 55302,
+        "end": 55302,
+        "raw": "map(0xd806, 0xd806).w(FUNC(gunsmoke_state::layer_w))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 381,
+        "sourceColumn": 2,
+        "sourceEndLine": 381
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.layer_w",
+      "label": "Handler",
+      "props": {
+        "method": "layer_w",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 243,
+        "sourceColumn": 1,
+        "sourceEndLine": 253,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// bits 0-2 select the sprite 3 bank\n\tm_sprite3bank = data & 0x07;\n\n\t// bit 4 enables bg 1?\n\tm_bgon = data & 0x10;\n\n\t// bit 5 enables sprites?\n\tm_objon = data & 0x20;"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 61439,
+        "raw": "map(0xe000, 0xefff).ram()",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 382,
+        "sourceColumn": 2,
+        "sourceEndLine": 382,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.main_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 65535,
+        "raw": "map(0xf000, 0xffff).ram().share(\"spriteram\")",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 383,
+        "sourceColumn": 2,
+        "sourceEndLine": 383,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gunsmoke_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 386,
+        "sourceColumn": 1,
+        "sourceEndLine": 393
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 388,
+        "sourceColumn": 2,
+        "sourceEndLine": 388,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 51199,
+        "raw": "map(0xc000, 0xc7ff).ram()",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 389,
+        "sourceColumn": 2,
+        "sourceEndLine": 389,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 51200,
+        "raw": "map(0xc800, 0xc800).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 390,
+        "sourceColumn": 2,
+        "sourceEndLine": 390
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 390,
+        "sourceColumn": 2,
+        "sourceEndLine": 390
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57345,
+        "raw": "map(0xe000, 0xe001).w(\"ym1\", FUNC(ym2203_device::write))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 391,
+        "sourceColumn": 2,
+        "sourceEndLine": 391
+      }
+    },
+    {
+      "id": "handler:ym2203_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2203_device",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 392,
+        "sourceColumn": 2,
+        "sourceEndLine": 392
+      }
+    },
+    {
+      "id": "map:gunsmoke_state.sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 57346,
+        "end": 57347,
+        "raw": "map(0xe002, 0xe003).w(\"ym2\", FUNC(ym2203_device::write))",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 392,
+        "sourceColumn": 2,
+        "sourceEndLine": 392
+      }
+    },
+    {
+      "id": "machine:gunsmoke_state.gunsmoke",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gunsmoke_state",
+        "name": "gunsmoke",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_chon\",\"bits\":8}",
+          "{\"name\":\"m_objon\",\"bits\":8}",
+          "{\"name\":\"m_bgon\",\"bits\":8}",
+          "{\"name\":\"m_sprite3bank\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "gunsmoke_state.machine_reset"
+        ],
+        "startHandlers": [
+          "gunsmoke_state.video_start"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 560,
+        "sourceColumn": 1,
+        "sourceEndLine": 601
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 552,
+        "sourceColumn": 1,
+        "sourceEndLine": 558,
+        "sourceParameters": "",
+        "sourceBody": "m_chon = 0;\n\tm_objon = 0;\n\tm_bgon = 0;\n\tm_sprite3bank = 0;"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 279,
+        "sourceColumn": 1,
+        "sourceEndLine": 285,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gunsmoke_state::get_bg_tile_info)), TILEMAP_SCAN_COLS, 32, 32, 2048, 8);\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gunsmoke_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\n\tm_fg_tilemap->configure_groups(*m_gfxdecode->gfx(0), 0x4f);"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 255,
+        "sourceColumn": 1,
+        "sourceEndLine": 266,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t *tilerom = memregion(\"bgtiles\")->base();\n\n\tint offs = tile_index * 2;\n\tint attr = tilerom[offs + 1];\n\tint code = tilerom[offs] + ((attr & 0x01) << 8);\n\tint color = (attr & 0x3c) >> 2;\n\tint flags = TILE_FLIPYX((attr & 0xc0) >> 6);\n\n\ttileinfo.set(1, code, color, flags);"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 268,
+        "sourceColumn": 1,
+        "sourceEndLine": 277,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int attr = m_colorram[tile_index];\n\tint code = m_videoram[tile_index] + ((attr & 0xe0) << 2);\n\tint color = attr & 0x1f;\n\n\ttileinfo.group = color;\n\n\ttileinfo.set(0, code, color, 0);"
+      }
+    },
+    {
+      "id": "bank:gunsmoke_state.gunsmoke/mainbank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "mainbank",
+        "member": "m_mainbank",
+        "startEntry": 0,
+        "entries": 4,
+        "region": "maincpu",
+        "offset": 32768,
+        "stride": 16384,
+        "raw": "m_mainbank->configure_entries(0, 4, &rombase[0x8000], 0x4000)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 550
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3000000,
+        "config": [
+          "Z80(config, m_maincpu, 12_MHz_XTAL / 4)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &gunsmoke_state::main_map)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(gunsmoke_state::irq0_line_hold))"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 563,
+        "sourceColumn": 2,
+        "sourceEndLine": 563
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_vblank_int",
+        "operation": "set_vblank_int",
+        "raw": "m_maincpu->set_vblank_int(\"screen\", FUNC(gunsmoke_state::irq0_line_hold))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 565,
+        "sourceColumn": 2,
+        "sourceEndLine": 565,
+        "targetTag": "screen",
+        "targetClass": "gunsmoke_state",
+        "targetMethod": "irq0_line_hold"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.irq0_line_hold",
+      "label": "Handler",
+      "props": {
+        "method": "irq0_line_hold",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 571,
+        "sourceColumn": 2,
+        "sourceEndLine": 571
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3000000,
+        "config": [
+          "Z80(config, m_audiocpu, 12_MHz_XTAL / 4)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &gunsmoke_state::sound_map)",
+          "m_audiocpu->set_periodic_int(FUNC(gunsmoke_state::irq0_line_hold), audio_irq_period)"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 567,
+        "sourceColumn": 2,
+        "sourceEndLine": 567
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_periodic_int",
+        "operation": "set_periodic_int",
+        "raw": "m_audiocpu->set_periodic_int(FUNC(gunsmoke_state::irq0_line_hold), audio_irq_period)",
+        "ownerTag": "audiocpu",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 571,
+        "sourceColumn": 2,
+        "sourceEndLine": 571,
+        "periodHz": 238.54961832061068,
+        "periodExpr": "attotime::from_ticks(384 * 262 / 4, 12_MHz_XTAL / 2)",
+        "targetClass": "gunsmoke_state",
+        "targetMethod": "irq0_line_hold"
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/spriteram",
+      "label": "Device",
+      "props": {
+        "type": "BUFFERED_SPRITERAM8",
+        "tag": "spriteram",
+        "clock": null,
+        "config": [
+          "BUFFERED_SPRITERAM8(config, m_spriteram)"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 574,
+        "sourceColumn": 2,
+        "sourceEndLine": 574
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(12_MHz_XTAL / 2, 384, 0, 256, 262, 16, 240)",
+          "screen.set_screen_update(FUNC(gunsmoke_state::screen_update))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 576,
+        "sourceColumn": 2,
+        "sourceEndLine": 576,
+        "configCalls": [
+          "set_raw(6000000,384,0,256,262,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          256,
+          262,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "12_MHz_XTAL / 2",
+          "384",
+          "0",
+          "256",
+          "262",
+          "16",
+          "240"
+        ]
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(gunsmoke_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 2,
+        "sourceEndLine": 578,
+        "targetClass": "gunsmoke_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 319,
+        "sourceColumn": 1,
+        "sourceEndLine": 336,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_bg_tilemap->set_scrollx(0, m_scrollx[0] + 256 * m_scrollx[1]);\n\tm_bg_tilemap->set_scrolly(0, m_scrolly[0]);\n\n\tif (m_bgon)\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\telse\n\t\tbitmap.fill(m_palette->black_pen(), cliprect);\n\n\tif (m_objon)\n\t\tdraw_sprites(bitmap, cliprect);\n\n\tif (m_chon)\n\t\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 287,
+        "sourceColumn": 1,
+        "sourceEndLine": 317,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "const u8 *spriteram = m_spriteram->buffer();\n\n\tfor (int offs = m_spriteram->bytes() - 32; offs >= 0; offs -= 32)\n\t{\n\t\tint attr = spriteram[offs + 1];\n\t\tint bank = (attr & 0xc0) >> 6;\n\t\tint code = spriteram[offs];\n\t\tint color = attr & 0x0f;\n\t\tint flipx = 0;\n\t\tint flipy = attr & 0x10;\n\t\tint sx = spriteram[offs + 3] - ((attr & 0x20) << 3);\n\t\tint sy = spriteram[offs + 2];\n\n\t\tif (bank == 3)\n\t\t\tbank += m_sprite3bank;\n\n\t\tcode += 256 * bank;\n\n\t\tif (flip_screen())\n\t\t{\n\t\t\tsx = 240 - sx;\n\t\t\tsy = 240 - sy;\n\t\t\tflipx = !flipx;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\tm_gfxdecode->gfx(2)->transpen(bitmap, cliprect, code, color, flipx, flipy, sx, sy, 0);\n\t}"
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_gunsmoke)"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(gunsmoke_state::palette), 32*4 + 16*16 + 16*16, 256)"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 583,
+        "sourceColumn": 2,
+        "sourceEndLine": 583,
+        "clockExpr": "FUNC(gunsmoke_state::palette)"
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch\")"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 588,
+        "sourceColumn": 2,
+        "sourceEndLine": 588
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/ym1",
+      "label": "Device",
+      "props": {
+        "type": "YM2203",
+        "tag": "ym1",
+        "clock": 1500000,
+        "config": [
+          "ym2203_device &ym1(YM2203(config, \"ym1\", 12_MHz_XTAL / 8))",
+          "ym1.add_route(0, \"mono\", 0.22)",
+          "ym1.add_route(1, \"mono\", 0.22)",
+          "ym1.add_route(2, \"mono\", 0.22)",
+          "ym1.add_route(3, \"mono\", 0.14)"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 590,
+        "sourceColumn": 2,
+        "sourceEndLine": 590
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.22,
+        "raw": "ym1.add_route(0, \"mono\", 0.22)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym1/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.22,
+        "raw": "ym1.add_route(1, \"mono\", 0.22)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym1/2",
+      "label": "AudioRoute",
+      "props": {
+        "output": "2",
+        "target": "mono",
+        "gain": 0.22,
+        "raw": "ym1.add_route(2, \"mono\", 0.22)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym1/3",
+      "label": "AudioRoute",
+      "props": {
+        "output": "3",
+        "target": "mono",
+        "gain": 0.14,
+        "raw": "ym1.add_route(3, \"mono\", 0.14)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 2,
+        "sourceEndLine": 594
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/ym2",
+      "label": "Device",
+      "props": {
+        "type": "YM2203",
+        "tag": "ym2",
+        "clock": 1500000,
+        "config": [
+          "ym2203_device &ym2(YM2203(config, \"ym2\", 12_MHz_XTAL / 8))",
+          "ym2.add_route(0, \"mono\", 0.22)",
+          "ym2.add_route(1, \"mono\", 0.22)",
+          "ym2.add_route(2, \"mono\", 0.22)",
+          "ym2.add_route(3, \"mono\", 0.14)"
+        ],
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym2/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.22,
+        "raw": "ym2.add_route(0, \"mono\", 0.22)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 597,
+        "sourceColumn": 2,
+        "sourceEndLine": 597
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym2/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.22,
+        "raw": "ym2.add_route(1, \"mono\", 0.22)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 598,
+        "sourceColumn": 2,
+        "sourceEndLine": 598
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym2/2",
+      "label": "AudioRoute",
+      "props": {
+        "output": "2",
+        "target": "mono",
+        "gain": 0.22,
+        "raw": "ym2.add_route(2, \"mono\", 0.22)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 599,
+        "sourceColumn": 2,
+        "sourceEndLine": 599
+      }
+    },
+    {
+      "id": "audioroute:device:gunsmoke_state.gunsmoke/ym2/3",
+      "label": "AudioRoute",
+      "props": {
+        "output": "3",
+        "target": "mono",
+        "gain": 0.14,
+        "raw": "ym2.add_route(3, \"mono\", 0.14)",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 600,
+        "sourceColumn": 2,
+        "sourceEndLine": 600
+      }
+    },
+    {
+      "id": "inputs:gunsmoke",
+      "label": "InputPorts",
+      "props": {
+        "name": "gunsmoke",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 397,
+        "sourceColumn": 8,
+        "sourceEndLine": 397
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Bonus Life",
+        "defaultValue": 3,
+        "settings": [
+          "1=30K 80K 80K+",
+          "3=30K 100K 100K+",
+          "0=30K 100K 150K+",
+          "2=30K 100K"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Demo",
+        "defaultValue": 4,
+        "settings": [
+          "0=Off",
+          "4=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "settings": [
+          "0=Upright",
+          "8=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "name": "Difficulty",
+        "defaultValue": 48,
+        "settings": [
+          "32=Easy",
+          "48=Normal",
+          "16=Difficult",
+          "0=Very Difficult"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Freeze",
+        "defaultValue": 64,
+        "settings": [
+          "64=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 128,
+        "activeLow": true,
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 7,
+        "name": "Coin A",
+        "defaultValue": 7,
+        "settings": [
+          "0=4C 1C",
+          "1=3C 1C",
+          "2=2C 1C",
+          "7=1C 1C",
+          "6=1C 2C",
+          "5=1C 3C",
+          "4=1C 4C",
+          "3=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 56,
+        "name": "Coin B",
+        "defaultValue": 56,
+        "settings": [
+          "0=4C 1C",
+          "8=3C 1C",
+          "16=2C 1C",
+          "56=1C 1C",
+          "48=1C 2C",
+          "40=1C 3C",
+          "32=1C 4C",
+          "24=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Allow Continue",
+        "defaultValue": 64,
+        "settings": [
+          "0=No",
+          "64=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:gunsmoke/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Demo Sounds",
+        "defaultValue": 128,
+        "settings": [
+          "0=Off",
+          "128=On"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 1024,
+        "planes": 2,
+        "planeOffsets": [
+          4,
+          0
+        ],
+        "xOffsets": [
+          11,
+          10,
+          9,
+          8,
+          3,
+          2,
+          1,
+          0
+        ],
+        "yOffsets": [
+          112,
+          96,
+          80,
+          64,
+          48,
+          32,
+          16,
+          0
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:tilelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "tilelayout",
+        "width": 32,
+        "height": 32,
+        "total": 512,
+        "planes": 4,
+        "planeOffsets": [
+          1048580,
+          1048576,
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          512,
+          513,
+          514,
+          515,
+          520,
+          521,
+          522,
+          523,
+          1024,
+          1025,
+          1026,
+          1027,
+          1032,
+          1033,
+          1034,
+          1035,
+          1536,
+          1537,
+          1538,
+          1539,
+          1544,
+          1545,
+          1546,
+          1547
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240,
+          256,
+          272,
+          288,
+          304,
+          320,
+          336,
+          352,
+          368,
+          384,
+          400,
+          416,
+          432,
+          448,
+          464,
+          480,
+          496
+        ],
+        "charIncrement": 2048
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": 2048,
+        "planes": 4,
+        "planeOffsets": [
+          1048580,
+          1048576,
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          256,
+          257,
+          258,
+          259,
+          264,
+          265,
+          266,
+          267
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gunsmoke",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_gunsmoke",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 532,
+        "sourceColumn": 8,
+        "sourceEndLine": 532
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gunsmoke/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "chars",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gunsmoke/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "tilelayout",
+        "colorBase": 128,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gunsmoke/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 384,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:gunsmoke_state.gunsmoke/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(gunsmoke_state::palette), 32*4 + 16*16 + 16*16, 256)",
+        "ownerTag": "palette",
+        "targetClass": "gunsmoke_state",
+        "targetMethod": "palette",
+        "entries": 256,
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 583
+      }
+    },
+    {
+      "id": "handler:gunsmoke_state.palette",
+      "label": "Handler",
+      "props": {
+        "method": "palette",
+        "ownerClass": "gunsmoke_state",
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 174,
+        "sourceColumn": 1,
+        "sourceEndLine": 211,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "const uint8_t *color_prom = memregion(\"proms\")->base();\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x100; i++)\n\t{\n\t\tint const r = pal4bit(color_prom[i + 0x000]);\n\t\tint const g = pal4bit(color_prom[i + 0x100]);\n\t\tint const b = pal4bit(color_prom[i + 0x200]);\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x300;\n\n\t// characters use colors 0x40-0x4f\n\tfor (int i = 0; i < 0x80; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] | 0x40;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\t// background tiles use colors 0-0x3f\n\tfor (int i = 0x100; i < 0x200; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] | ((color_prom[i + 0x100] & 0x03) << 4);\n\t\tpalette.set_pen_indirect(i - 0x80, ctabentry);\n\t}\n\n\t// sprites use colors 0x80-0xff\n\tfor (int i = 0x300; i < 0x400; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] | ((color_prom[i + 0x100] & 0x07) << 4) | 0x80;\n\t\tpalette.set_pen_indirect(i - 0x180, ctabentry);\n\t}"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:gunsmoke",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 1005,
+        "sourceColumn": 1,
+        "sourceEndLine": 1005
+      }
+    },
+    {
+      "from": "game:gunsmoke",
+      "to": "machine:gunsmoke_state.gunsmoke",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gunsmoke",
+      "to": "inputs:gunsmoke",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gunsmoke",
+      "to": "romset:gunsmoke",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:sound/ymopn.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:video/bufsprite.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/gunsmoke.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 560,
+        "sourceColumn": 1,
+        "sourceEndLine": 601
+      }
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "handler:gunsmoke_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "handler:gunsmoke_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "bank:gunsmoke_state.gunsmoke/mainbank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/spriteram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "gfxdecode:gfx_gunsmoke",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/ym1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gunsmoke_state.gunsmoke",
+      "to": "device:gunsmoke_state.gunsmoke/ym2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:gunsmoke",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 397,
+        "sourceColumn": 8,
+        "sourceEndLine": 397
+      }
+    },
+    {
+      "from": "inputs:gunsmoke",
+      "to": "inputs:gunsmoke/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gunsmoke",
+      "to": "inputs:gunsmoke/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gunsmoke",
+      "to": "inputs:gunsmoke/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gunsmoke",
+      "to": "inputs:gunsmoke/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gunsmoke",
+      "to": "inputs:gunsmoke/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 1,
+        "sourceEndLine": 605
+      }
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "region:gunsmoke/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "region:gunsmoke/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "region:gunsmoke/chars",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "region:gunsmoke/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "region:gunsmoke/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "region:gunsmoke/bgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gunsmoke",
+      "to": "region:gunsmoke/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:gunsmoke_state.video_start",
+      "to": "handler:gunsmoke_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:gunsmoke_state.video_start",
+      "to": "handler:gunsmoke_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:gunsmoke_state.gunsmoke/mainbank",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 550
+      }
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/maincpu",
+      "to": "device:gunsmoke_state.gunsmoke/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/maincpu",
+      "to": "map:gunsmoke_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/audiocpu",
+      "to": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/audiocpu",
+      "to": "map:gunsmoke_state.sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/screen",
+      "to": "device:gunsmoke_state.gunsmoke/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_gunsmoke",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 532,
+        "sourceColumn": 8,
+        "sourceEndLine": 532
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_gunsmoke",
+      "to": "gfxdecode:gfx_gunsmoke/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gunsmoke",
+      "to": "gfxdecode:gfx_gunsmoke/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gunsmoke",
+      "to": "gfxdecode:gfx_gunsmoke/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/palette",
+      "to": "device:gunsmoke_state.gunsmoke/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym1",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym1",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym1/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym1",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym1/2",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym1",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym1/3",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym2",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym2/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym2",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym2/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym2",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym2/2",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/ym2",
+      "to": "audioroute:device:gunsmoke_state.gunsmoke/ym2/3",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/SYSTEM",
+      "to": "inputs:gunsmoke/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P1",
+      "to": "inputs:gunsmoke/P1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/P2",
+      "to": "inputs:gunsmoke/P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW1",
+      "to": "inputs:gunsmoke/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW1",
+      "to": "inputs:gunsmoke/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW1",
+      "to": "inputs:gunsmoke/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW1",
+      "to": "inputs:gunsmoke/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW1",
+      "to": "inputs:gunsmoke/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW1",
+      "to": "inputs:gunsmoke/DSW1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW2",
+      "to": "inputs:gunsmoke/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW2",
+      "to": "inputs:gunsmoke/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW2",
+      "to": "inputs:gunsmoke/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gunsmoke/DSW2",
+      "to": "inputs:gunsmoke/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:gunsmoke/maincpu",
+      "to": "rom:gunsmoke/maincpu/gs03.09n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/maincpu",
+      "to": "rom:gunsmoke/maincpu/gs04.10n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/maincpu",
+      "to": "rom:gunsmoke/maincpu/gs05.12n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/audiocpu",
+      "to": "rom:gunsmoke/audiocpu/gs02.14h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/chars",
+      "to": "rom:gunsmoke/chars/gs01.11f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs13.06c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs12.05c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs11.04c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs10.02c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs09.06a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs08.05a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs07.04a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/tiles",
+      "to": "rom:gunsmoke/tiles/gs06.02a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs22.06n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs21.04n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs20.03n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs19.01n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs18.06l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs17.04l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs16.03l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/sprites",
+      "to": "rom:gunsmoke/sprites/gs15.01l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/bgtiles",
+      "to": "rom:gunsmoke/bgtiles/gs14.11c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-01.03b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-02.04b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-03.05b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-04.09d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-06.14a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-07.15a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-09.09f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-08.08f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-10.02j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gunsmoke/proms",
+      "to": "rom:gunsmoke/proms/g-05.01f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/maincpu/callback:maincpu:0",
+      "to": "handler:gunsmoke_state.irq0_line_hold",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 364,
+        "sourceColumn": 1,
+        "sourceEndLine": 384
+      }
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map",
+      "to": "map:gunsmoke_state.main_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/audiocpu/callback:audiocpu:0",
+      "to": "handler:gunsmoke_state.irq0_line_hold",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/gunsmoke.cpp",
+        "sourceLine": 386,
+        "sourceColumn": 1,
+        "sourceEndLine": 393
+      }
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map",
+      "to": "map:gunsmoke_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map",
+      "to": "map:gunsmoke_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map",
+      "to": "map:gunsmoke_state.sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map",
+      "to": "map:gunsmoke_state.sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map",
+      "to": "map:gunsmoke_state.sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/screen/callback:screen:0",
+      "to": "handler:gunsmoke_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_gunsmoke/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gunsmoke/e1",
+      "to": "gfxlayout:tilelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gunsmoke/e2",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:gunsmoke_state.gunsmoke/palette/callback:palette_init",
+      "to": "handler:gunsmoke_state.palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map/range7",
+      "to": "handler:gunsmoke_state.protection_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map/range8",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:gunsmoke_state.main_map/range9",
+      "to": "handler:gunsmoke_state.control_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map/range10",
+      "to": "handler:buffered_spriteram8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "spriteram"
+      }
+    },
+    {
+      "from": "map:gunsmoke_state.main_map/range11",
+      "to": "handler:gunsmoke_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map/range12",
+      "to": "handler:gunsmoke_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gunsmoke_state.main_map/range15",
+      "to": "handler:gunsmoke_state.layer_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map/range2",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map/range3",
+      "to": "handler:ym2203_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ym1"
+      }
+    },
+    {
+      "from": "map:gunsmoke_state.sound_map/range4",
+      "to": "handler:ym2203_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ym2"
+      }
+    },
+    {
+      "from": "handler:gunsmoke_state.screen_update",
+      "to": "handler:gunsmoke_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:tilelayout",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/capcom/gunsmoke.cpp",
+      "rel": "DEFINED_IN"
+    }
+  ]
+}

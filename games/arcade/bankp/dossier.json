@@ -1,0 +1,653 @@
+{
+  "game": "bankp",
+  "title": "Bank Panic (Sanritsu / Sega, 1984)",
+  "fullname": "Bank Panic",
+  "year": "1984",
+  "company": "Sanritsu / Sega",
+  "family": "bankp",
+  "driverFile": "src/mame/sanritsu/bankp.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 2578080,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 57343,
+          "kind": "rom"
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "ram"
+        },
+        {
+          "start": 61440,
+          "end": 62463,
+          "kind": "ram",
+          "share": "videoram[0]",
+          "write": "bankp_state.videoram_w_0",
+          "handlerWidth": 8
+        },
+        {
+          "start": 62464,
+          "end": 63487,
+          "kind": "ram",
+          "share": "colorram[0]",
+          "write": "bankp_state.colorram_w_0",
+          "handlerWidth": 8
+        },
+        {
+          "start": 63488,
+          "end": 64511,
+          "kind": "ram",
+          "share": "videoram[1]",
+          "write": "bankp_state.videoram_w_1",
+          "handlerWidth": 8
+        },
+        {
+          "start": 64512,
+          "end": 65535,
+          "kind": "ram",
+          "share": "colorram[1]",
+          "write": "bankp_state.colorram_w_1",
+          "handlerWidth": 8
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "write": "sn1.write",
+            "read": "port.IN0"
+          },
+          {
+            "start": 1,
+            "end": 1,
+            "kind": "handler",
+            "write": "sn2.write",
+            "read": "port.IN1"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "kind": "handler",
+            "write": "sn3.write",
+            "read": "port.IN2"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "kind": "handler",
+            "write": "bankp_state.scroll_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "kind": "handler",
+            "write": "bankp_state.video_control_w",
+            "handlerWidth": 8
+          }
+        ],
+        "globalMask": 255
+      }
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 2578080,
+    "chips": 3,
+    "deviceTypes": [
+      "SN76489A",
+      "SN76489A",
+      "SN76489A"
+    ],
+    "clocks": [
+      2578080,
+      2578080,
+      2578080
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 2,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 2,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 2,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 224,
+    "height": 224,
+    "xOffset": 24,
+    "yOffset": 16,
+    "refresh": 61.03409090909091,
+    "htotal": 330,
+    "vtotal": 256,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-6175.7e",
+          "offset": 0,
+          "size": 16384,
+          "crc": "044552b8",
+          "alt": [
+            {
+              "file": "11.bin",
+              "crc": "056755ce"
+            }
+          ]
+        },
+        {
+          "file": "epr-6174.7f",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "d29b1598"
+        },
+        {
+          "file": "epr-6173.7h",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "b8405d38",
+          "alt": [
+            {
+              "file": "9.bin",
+              "crc": "08a8137b"
+            }
+          ]
+        },
+        {
+          "file": "epr-6176.7d",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "c98ac200"
+        }
+      ]
+    },
+    {
+      "region": "fgtiles",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "epr-6165.5l",
+          "offset": 0,
+          "size": 8192,
+          "crc": "aef34a93"
+        },
+        {
+          "file": "epr-6166.5k",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "ca13cb11"
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "epr-6172.5b",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c4c4878b"
+        },
+        {
+          "file": "epr-6171.5d",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "a18165a1"
+        },
+        {
+          "file": "epr-6170.5e",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "b58aa8fa"
+        },
+        {
+          "file": "epr-6169.5f",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "1aa37fce"
+        },
+        {
+          "file": "epr-6168.5h",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "05f3a867"
+        },
+        {
+          "file": "epr-6167.5i",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "3fa337e1"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "pr-6177.8a",
+          "offset": 0,
+          "size": 32,
+          "crc": "eb70c5ae"
+        },
+        {
+          "file": "pr-6178.6f",
+          "offset": 32,
+          "size": 256,
+          "crc": "0acca001"
+        },
+        {
+          "file": "pr-6179.5a",
+          "offset": 288,
+          "size": 256,
+          "crc": "e53bafdb"
+        }
+      ]
+    },
+    {
+      "region": "user1",
+      "size": 604,
+      "loads": [
+        {
+          "file": "315-5074.2c.bin",
+          "offset": 0,
+          "size": 603,
+          "crc": "2e57bbba",
+          "alt": [
+            {
+              "file": "82s153.bin",
+              "crc": ""
+            }
+          ]
+        },
+        {
+          "file": "315-5073.pal16l4",
+          "offset": 603,
+          "size": 1,
+          "crc": "",
+          "status": "nodump"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 0,
+      "name": "Coin Switch 1"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 0,
+      "name": "Coin Switch 2"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 16,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 0,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-16",
+    "commits": 94,
+    "contributors": 24,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "hap",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 30,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 20,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2015-11-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 11,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2025-08-01"
+      },
+      {
+        "name": "hap",
+        "commits": 4,
+        "firstCommit": "2022-10-05",
+        "lastCommit": "2026-03-16"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 3,
+        "firstCommit": "2016-05-10",
+        "lastCommit": "2022-09-09"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2012-06-10"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2012-08-07",
+        "lastCommit": "2012-08-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2014-02-11"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2018-05-18",
+        "lastCommit": "2018-05-18"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-11-29",
+        "lastCommit": "2011-11-29"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2023-01-03",
+        "lastCommit": "2023-01-03"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2009-11-19",
+        "lastCommit": "2009-11-19"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "negunma",
+        "commits": 1,
+        "firstCommit": "2025-06-27",
+        "lastCommit": "2025-06-27"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-02-29"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 42 years ago:\n\nBank Panic (c) 1984 Sega.\n\nA reaction-based shoot-em-up in which the player takes on the role of a gun-slinging Deputy, who has been charged with protecting the town bank from outlaws. \n\nEach stage contains twelve numbered doors, with three doors visible on-screen at any one time. The player must scroll the screen left or right to bring other doors into view. At regular intervals, one or more doors will open to reveal either a bank customer or an outlaw. The customers must be allowed to deposit their money unharmed while the outlaws must be shot before they have a chance to shoot the deputy. Some of the outlaws must be shot twice before they are killed. If the player kills an innocent citizen, a player life is lost. \n\nDoors will only open when they are on-screen and a level is only completed once cash has been deposited safely into the bank via each of the twelve doors. Each level has a tight time limit, so it's important to ensure that the player reaches the doors that are about to be opened as quickly as possible. Imminent visitors are indicated by a bar graph situated above each door, with a moving red marker showing the approach of either a customer or robber. \n\nIn addition to the outlaws, players must also be wary of time bombs that occasionally appear on one of the doors; this is indicated by both a timer and an icon above the door with the bomb. The bomb must be reached and its fuse shot before the timer runs out. As well as the outlaws and customers, a small, bow-legged cowboy occasionally appears holding gifts above his head, these can be shot for bonus points. Occasionally, an open door will reveal a town citizen bound by ropes. The player must shoot the ropes with a single shot to free the citizen. \n\nBonus points are awarded for the completion of a level, with the amount determined by remaining level time and the number of moneybags deposited. Players can choose to start the game on either level one, three or six, with the harder levels earning higher bonus points for stage completion.\n\n- TECHNICAL -\n\nCabinet dimensions : 69,5inch. high x 27inch. wide x 32,25inch. deep.\n\nMain CPU : Zilog Z80 (@ 3.86712 Mhz)\nSound Chips : (3x) Texas Instruments SN76496 (@ 3.86712 Mhz)\n\nPlayers : 2\nControl : 2-way joystick\nButtons : 3\n=> [A] Left fire, [B] Center fire, [C] Right fire\n\n- TRIVIA -\n\nBank Panic was released on September 28, 1984.\n\nSanritsu is the actual developer of this game, and Sega produced and distributed it. In fact, if you look through the graphical data, you can see Sanritsu's logo amongst the different tiles and sprites.\n\nThe character's names are John, Sam (with a robber behind him), Hope (tied up with rope), Mary and Ann (with a robber behind her). Your character is simply referred to as the Hero.\n\nAlessandro Giuriato and Gary Hatt share the official record for this game with 9,999,999 points on March 5, 1985 and May 27, 1987, respectively.\n\n- SCORING -\n\nKilling a gunman :\nBefore he draws his gun : 100 or 200 points.\nWith the timer on 0.00 : 5,000 points for red shirt gunman (may also earn EXTRA letter).\nWith the timer on 0.00 : 3,000 points for green shirt gunman.\nWith the timer on 0.00 : 2,000 points for brown shirt gunman.\nWith the timer on 0.01-0.10 : 1,000 points.\nWith the timer on 0.11-0.15 : 800 points.\nWith the timer on 0.16-0.20 : 700 points.\nWith the timer on 0.21-0.25 : 600 points.\nWith the timer on 0.26-0.33 : 300 points.\n\nShooting the bomb : 100 points.\n\nDeposits :\nFirst bag of money : 200 points.\nSecond bag of money through the same door : 400 points.\nThird bag of money through the same door : 600 points.\nFourth or more bag of money through the same door : 1,000 points.\nA money bag deposited at a door with a cashier present: 1000 points bonus.\nRegaining a stolen money bag : 1000 points.\n\nShooting the rope on a customer who is tied up: 3 bags of money worth 1,000 points each (3,000 points total).\n\nShooting the hats: 100 points for the first one, 200 points for the second, 300 points for the third, etc...\nShooting the bag of money after all the hats : 1,000 points bonus.\nThere are only three and four hats on rounds 1 and 2 respectively.\n\nSometimes after a woman is help up and the gunman is killed, a 500 points bonus is awarded (woman peeks in the door before it closes, winks and a red heart is shown).\n\nSometimes after a man is help up and the gunman is killed, a 200 points bonus is awarded (man peeks in the door before it closes, smiles and waves).\n\nIf EXTRA is spelled, the player earns an extra life plus 20,000 bonus points, and the game advances to the next level.\n\nEnd of level bonuses :\nMoney bags 1-12 : 50 points each\nMoney bags 13-24 : 100 points each\nMoney bags 25-36 : 150 points each\nMoney bags 37-48 : 200 points each\n\nFair average bonus :\n0:00 awards 10,000 points.\n0:01 awards 9,000 points.\n0:02 awards 8,000 points.\n0:03 awards 7,000 points.\n0:04 awards 6,000 points.\n0:05 awards 5,000 points.\n0:06 awards 4,000 points.\n0:07 awards 3,000 points.\n0:08 awards 2,000 points.\n0:09 awards 1,000 points.\n0:10 and above awards no points (game displays 'non points').\n\nTimer bonus : 100 points per click of time remaining.\n\nStarting on Level 3 : 20,000 points bonus for clearing level 3.\nStarting on Level 6 : 60,000 points bonus for clearing level 6.\n\nRobber Bosses must be shot twice to be killed - you get two scores based on the time of each hit.\n\n- TIPS AND TRICKS -\n\n* Try to always allow a gunman to draw, as you only score 100 points if he doesn't. If two or more gunmen appear take one out straight away, as it is a lot more difficult to kill more than one when they draw.\n\n* You don't have to shoot the little guy with the hat an exact number of times, just once for each hat or more. So fire as many times as you can and you will get the bonus points.\n\n* You should try to defuse bombs as soon as possible.\n\n* Doors cannot be opened while you are moving, so move directly to the door you require without stopping.\n\n* Watch the indicators above the door numbers to see which doors will be opening soon. If there are two next to each other, try to get only one of them on screen so you do not have to possibly contend with more than one gunman simultaneously.\n\n* Sometimes after depositing money, the departing customer has a wanted poster with a number on it on their back.  This indicates that the next customer at this door number will be a robber.\n\n- STAFF -\n\nDeveloped by Sanritsu.\n\n- PORTS -\n\n* CONSOLES:\n[JP] Sega SG-1000 (1985)\nSega Master System (1987)\n\n* COMPUTERS:\nSinclair ZX Spectrum (1985, \"West Bank\")\nAmstrad CPC (1986, \"West Bank\")\nCommodore C64 (1986, \"West Bank\")\nMSX\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/182/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

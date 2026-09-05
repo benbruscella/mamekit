@@ -1,0 +1,1898 @@
+{
+  "type": "TMS36XX",
+  "uses": [
+    {
+      "game": "phoenix",
+      "tags": [
+        "tms"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TMS36XX",
+    "className": "tms36xx_device",
+    "shortName": "tms36xx",
+    "description": "TMS36XX",
+    "sourceFile": "src/devices/sound/tms36xx.cpp",
+    "sourceLine": 312,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TMS36XX, tms36xx_device, \"tms36xx\", \"TMS36XX\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/tms36xx.cpp",
+      "sourceLine": 354,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "enable",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 64
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_samplerate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "clock"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 64
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_basefreq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "j",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "j"
+              },
+              "right": {
+                "kind": "number",
+                "value": 6
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "j"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_decay_time"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "j"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_decay"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "j"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "assignment",
+                      "target": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_decay"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "j"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 6
+                          }
+                        }
+                      },
+                      "operator": "=",
+                      "value": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "TMS36XX_VMAX"
+                        },
+                        "right": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_decay_time"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "j"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "enable"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 65
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "j"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "tms3617_enable"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "TMS36xx samplerate    %d\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_samplerate"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "TMS36xx basefreq      %d\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_basefreq"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "TMS36xx decay         %d,%d,%d,%d,%d,%d\n"
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_decay"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_decay"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_decay"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_decay"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_decay"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_decay"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 5
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "TMS36xx speed         %d\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_speed"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_octave"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_tune_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_note_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_voices"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_shift"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vol"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vol_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_frequency"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_output"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_enable"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_tune_num"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_tune_ofs"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_tune_max"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/tms36xx.cpp",
+      "sourceLine": 400,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "samplerate",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "m_samplerate"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "tunes"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "m_tune_num"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_voices"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sampindex",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sampindex"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sampindex"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "sum",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_tune_counter"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "n",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "m_tune_counter"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "samplerate"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_tune_counter"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "n"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "samplerate"
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<=",
+                      "left": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_note_counter"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "n"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_note_counter"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "TMS36XX_VMAX"
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_tune_ofs"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_tune_max"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_shift"
+                            },
+                            "operator": "^=",
+                            "value": {
+                              "kind": "number",
+                              "value": 6
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": [
+          "unsupported expression statement at byte 232",
+          "unsupported expression statement at byte 756",
+          "unsupported expression statement at byte 897"
+        ]
+      }
+    },
+    {
+      "name": "mm6221aa_tune_w",
+      "parameters": "int tune",
+      "sourceFile": "src/devices/sound/tms36xx.cpp",
+      "sourceLine": 451,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "tune"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 3
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "tune"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_tune_num"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%s tune:%X\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_subtype"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "tune"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tune_num"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "tune"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tune_ofs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tune_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 96
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tms36xx_note_w",
+      "parameters": "int octave, int note",
+      "sourceFile": "src/devices/sound/tms36xx.cpp",
+      "sourceLine": 473,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "octave"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 3
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "note"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 15
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "note"
+              },
+              "right": {
+                "kind": "number",
+                "value": 12
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%s octave:%X note:%X\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_subtype"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "octave"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "note"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "tms36xx_reset_counters"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_octave"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "octave"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tune_num"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 4
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tune_ofs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "note"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tune_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "note"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tms3617_enable_w",
+      "parameters": "int enable",
+      "sourceFile": "src/devices/sound/tms36xx.cpp",
+      "sourceLine": 499,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "tms3617_enable"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tms36xx_reset_counters",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/tms36xx.cpp",
+      "sourceLine": 509,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tune_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_note_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_vol_counter"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vol_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_counter"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tms3617_enable",
+      "parameters": "int enable",
+      "sourceFile": "src/devices/sound/tms36xx.cpp",
+      "sourceLine": 518,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "i",
+            "valueType": "int"
+          },
+          {
+            "op": "declare",
+            "name": "bits",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "enable"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 63
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "enable"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 63
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 6
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "enable"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_enable"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%s enable voices"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_subtype"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 6
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "enable"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bits"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  {
+                    "op": "switch",
+                    "expression": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "cases": [
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "LOG"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": " 16'"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "LOG"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": " 8'"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "LOG"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": " 5 1/3'"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "LOG"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": " 4'"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "LOG"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": " 2 2/3'"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 5
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "LOG"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": " 2'"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "enable"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_voices"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bits"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOG"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%s\n"
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "bits"
+                  },
+                  "whenTrue": {
+                    "kind": "string",
+                    "value": ""
+                  },
+                  "whenFalse": {
+                    "kind": "string",
+                    "value": " none"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/tms36xx.cpp",
+    "src/devices/sound/tms36xx.h"
+  ]
+}

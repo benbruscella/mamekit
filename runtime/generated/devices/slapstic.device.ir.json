@@ -1,0 +1,5210 @@
+{
+  "schemaVersion": 1,
+  "type": "SLAPSTIC",
+  "className": "atari_slapstic_device",
+  "hierarchy": [
+    "atari_slapstic_device"
+  ],
+  "sourceFiles": [
+    "src/mame/atari/slapstic.cpp",
+    "src/mame/atari/slapstic.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "UNKNOWN": 65535,
+    "S_IDLE": 0,
+    "S_ACTIVE": 1,
+    "S_ALT_VALID": 2,
+    "S_ALT_SELECT": 3,
+    "S_ALT_COMMIT": 4,
+    "S_BIT_LOAD": 5,
+    "S_BIT_SET_ODD": 6,
+    "S_BIT_SET_EVEN": 7,
+    "S_ADD_LOAD": 8,
+    "S_ADD_SET": 9,
+    "SLAPSTIC_FIRST_CHIP": 101,
+    "SLAPSTIC_MV_COUNT": 16,
+    "SLAPSTIC_ADDRESS_MASK": 16777215,
+    "MV_ALT1": 0,
+    "MV_ALT2": 1,
+    "MV_ALT3": 2,
+    "MV_ALT4": 3,
+    "MV_BIT1": 4,
+    "MV_BIT2": 5,
+    "MV_BIT3C0": 6,
+    "MV_BIT3S0": 7,
+    "MV_BIT3C1": 8,
+    "MV_BIT3S1": 9,
+    "MV_BIT4": 10,
+    "MV_ADD1": 11,
+    "MV_ADD2": 12,
+    "MV_ADDPLUS1": 13,
+    "MV_ADDPLUS2": 14,
+    "MV_ADD3": 15,
+    "T_RESET": 0,
+    "T_INSIDE": 1,
+    "T_BANK0": 2,
+    "T_BANK1": 3,
+    "T_BANK2": 4,
+    "T_BANK3": 5,
+    "T_ACT_ALT": 6,
+    "T_ACT_BIT": 7,
+    "T_ACT_ADD": 8,
+    "T_AV_VALID": 9,
+    "T_AV_ADD": 10,
+    "T_AS_SELECT": 11,
+    "T_AC_COMMIT": 12,
+    "T_BL_LOAD": 13,
+    "T_BSO_C0": 14,
+    "T_BSO_S0": 15,
+    "T_BSO_C1": 16,
+    "T_BSO_S1": 17,
+    "T_BSE_C0": 18,
+    "T_BSE_S0": 19,
+    "T_BSE_C1": 20,
+    "T_BSE_S1": 21,
+    "T_BS_COMMIT": 22,
+    "T_AL_LOAD": 23,
+    "T_AD_ADD1": 24,
+    "T_AD_ADD2": 25,
+    "T_AD_END": 26
+  },
+  "members": [
+    {
+      "name": "m_m",
+      "valueType": "offs_t"
+    },
+    {
+      "name": "m_v",
+      "valueType": "offs_t"
+    },
+    {
+      "name": "m_range_mask",
+      "valueType": "offs_t"
+    },
+    {
+      "name": "m_range_value",
+      "valueType": "offs_t"
+    },
+    {
+      "name": "m_shift",
+      "valueType": "offs_t"
+    },
+    {
+      "name": "m_input_mask",
+      "valueType": "offs_t"
+    },
+    {
+      "name": "m_start",
+      "valueType": "offs_t",
+      "initial": 0
+    },
+    {
+      "name": "m_end",
+      "valueType": "offs_t",
+      "initial": 0
+    },
+    {
+      "name": "m_mirror",
+      "valueType": "offs_t",
+      "initial": 0
+    },
+    {
+      "name": "m_reset",
+      "valueType": "test"
+    },
+    {
+      "name": "mask_value",
+      "valueType": "struct"
+    },
+    {
+      "name": "slapstic_data",
+      "valueType": "struct"
+    },
+    {
+      "name": "checker",
+      "valueType": "struct"
+    },
+    {
+      "name": "m_is_odd",
+      "valueType": "bool",
+      "bits": 1
+    },
+    {
+      "name": "m_chipnum",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_bank",
+      "valueType": "optional_memory_bank"
+    },
+    {
+      "name": "m_space",
+      "valueType": "optional_address_space"
+    },
+    {
+      "name": "m_saved_state",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_current_bank",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_loaded_bank",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_s_idle",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_active",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_alt_valid",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_alt_select",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_alt_commit",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_bit_load",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_bit_set_odd",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_bit_set_even",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_add_load",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_s_add_set",
+      "valueType": "std::unique_ptr<state>"
+    },
+    {
+      "name": "m_sl",
+      "valueType": "atari_slapstic_device*"
+    },
+    {
+      "name": "m_view",
+      "valueType": "memory_view*",
+      "initial": 0
+    },
+    {
+      "name": "m_state",
+      "valueType": "u8"
+    },
+    {
+      "name": "m_data_width",
+      "valueType": "int",
+      "initial": 16
+    },
+    {
+      "name": "m_alt_shift",
+      "valueType": "int",
+      "initial": 0
+    },
+    {
+      "name": "m_has_bit",
+      "valueType": "int",
+      "initial": 0
+    },
+    {
+      "name": "m_has_add",
+      "valueType": "int",
+      "initial": 0
+    },
+    {
+      "name": "m_alt_valid_outside",
+      "valueType": "int",
+      "initial": 0
+    },
+    {
+      "name": "m_t_m",
+      "valueType": "offs_t",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "m_t_v",
+      "valueType": "offs_t",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "m_tbl_bankstart",
+      "valueType": "u8",
+      "values": [
+        3,
+        0,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "m_tbl_bank",
+      "valueType": "u16",
+      "values": [
+        128,
+        144,
+        160,
+        176,
+        0,
+        0,
+        0,
+        0,
+        64,
+        80,
+        96,
+        112,
+        32,
+        40,
+        48,
+        56,
+        16,
+        20,
+        24,
+        28,
+        8,
+        10,
+        12,
+        14,
+        24,
+        26,
+        28,
+        30,
+        40,
+        42,
+        44,
+        46,
+        8,
+        10,
+        12,
+        14,
+        64,
+        80,
+        96,
+        112,
+        66,
+        82,
+        98,
+        114,
+        44,
+        60,
+        108,
+        124,
+        8,
+        24,
+        40,
+        56,
+        64,
+        72,
+        80,
+        88,
+        32,
+        34,
+        36,
+        38,
+        68,
+        76,
+        84,
+        92,
+        8,
+        26,
+        44,
+        62,
+        20,
+        52,
+        84,
+        116
+      ]
+    },
+    {
+      "name": "m_tbl_altshift",
+      "valueType": "int",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        3,
+        1,
+        1,
+        0,
+        1,
+        3
+      ]
+    },
+    {
+      "name": "m_tbl_mask",
+      "valueType": "u16",
+      "values": [
+        7936,
+        8191,
+        8188,
+        8143,
+        8176,
+        8143,
+        8179,
+        8179,
+        8179,
+        8179,
+        8184,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16335,
+        16368,
+        16335,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16359,
+        16368,
+        16359,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16371,
+        16368,
+        16371,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16377,
+        16368,
+        16377,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16377,
+        16368,
+        16377,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16377,
+        16368,
+        16377,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16377,
+        16368,
+        16377,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        16380,
+        16335,
+        16368,
+        16335,
+        16371,
+        16371,
+        16371,
+        16371,
+        16376,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        127,
+        16383,
+        1924,
+        16335,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        15439,
+        14943,
+        16376,
+        127,
+        16383,
+        115,
+        16303,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        15855,
+        16319,
+        16380,
+        127,
+        16383,
+        2144,
+        16335,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        16335,
+        16095,
+        16383,
+        127,
+        16383,
+        14449,
+        16359,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        16227,
+        16345,
+        16383,
+        127,
+        16383,
+        14457,
+        16377,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        16358,
+        16308,
+        16383,
+        127,
+        16383,
+        14460,
+        16359,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        15794,
+        16355,
+        16383,
+        127,
+        16383,
+        121,
+        16329,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        15970,
+        15925,
+        16383,
+        127,
+        16383,
+        103,
+        16287,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16383,
+        16383,
+        16243,
+        16231,
+        16376
+      ]
+    },
+    {
+      "name": "m_tbl_value",
+      "valueType": "u16",
+      "values": [
+        7680,
+        8191,
+        7004,
+        128,
+        5440,
+        128,
+        5440,
+        5441,
+        5442,
+        5443,
+        5456,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        45,
+        15636,
+        15652,
+        64,
+        13504,
+        64,
+        13504,
+        13505,
+        13506,
+        13507,
+        13520,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        105,
+        14133,
+        14180,
+        32,
+        15760,
+        32,
+        15760,
+        15761,
+        15762,
+        15763,
+        15776,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        61,
+        146,
+        164,
+        16,
+        13744,
+        16,
+        13744,
+        13745,
+        13746,
+        13747,
+        13760,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        43,
+        82,
+        100,
+        8,
+        15776,
+        8,
+        15776,
+        15777,
+        15778,
+        15779,
+        15792,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        107,
+        15698,
+        15716,
+        24,
+        160,
+        24,
+        160,
+        161,
+        162,
+        163,
+        176,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        31,
+        14194,
+        14180,
+        40,
+        96,
+        40,
+        96,
+        97,
+        98,
+        99,
+        112,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        43,
+        82,
+        100,
+        8,
+        15776,
+        8,
+        15776,
+        15777,
+        15778,
+        15779,
+        15792,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        45,
+        15636,
+        15652,
+        64,
+        13504,
+        64,
+        13504,
+        13505,
+        13506,
+        13507,
+        13520,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        10,
+        10404,
+        128,
+        66,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        161,
+        162,
+        10317,
+        10333,
+        10240,
+        20,
+        10656,
+        16,
+        44,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        11726,
+        11727,
+        5602,
+        5538,
+        5200,
+        89,
+        4517,
+        2048,
+        8,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        1179,
+        1180,
+        16071,
+        16087,
+        16306,
+        22,
+        9438,
+        0,
+        64,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        2743,
+        2744,
+        3392,
+        3528,
+        2736,
+        84,
+        15873,
+        41,
+        32,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        9617,
+        9618,
+        13314,
+        13328,
+        13474,
+        105,
+        11179,
+        2056,
+        68,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        16252,
+        16253,
+        15378,
+        15939,
+        11176,
+        125,
+        13696,
+        32,
+        8,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        1654,
+        1655,
+        6722,
+        6673,
+        6722,
+        2,
+        6480,
+        32,
+        20,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        6488,
+        6489,
+        12370,
+        12354,
+        12512
+      ]
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_validity_check",
+      "parameters": "validity_checker &valid",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "||",
+                "left": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_chipnum"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 101
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_chipnum"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 118
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "slapstic_table"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_chipnum"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 101
+                    }
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_error"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unknown slapstic number: %d\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_chipnum"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 742,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chipnum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 756,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "void",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "S_IDLE"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "change_bank"
+              },
+              "args": [
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_tbl_bankstart"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_chipnum"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "SLAPSTIC_FIRST_CHIP"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 813,
+        "column": 1
+      }
+    },
+    {
+      "name": "change_bank",
+      "parameters": "int bank",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_current_bank"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bank"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_bank_entry"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_current_bank"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 822,
+        "column": 1
+      }
+    },
+    {
+      "name": "commit_bank",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "change_bank"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_loaded_bank"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 832,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_pre_save",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_saved_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 1264,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_saved_state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 1284,
+        "column": 1
+      }
+    },
+    {
+      "name": "atari_slapstic_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, int chipnum",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chipnum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "chipnum"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 29,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_bank",
+      "parameters": "auto &&tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bank"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 38,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_view",
+      "parameters": "memory_view &view",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_view"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "identifier",
+                "name": "view"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 40,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_range",
+      "parameters": "auto &&tag, int index, offs_t start, offs_t end, offs_t mirror",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_space"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "index"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_start"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "start"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_end"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "end"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mirror"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mirror"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 41,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_chipnum",
+      "parameters": "int chipnum",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chipnum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "chipnum"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "atari_slapstic_device::atari_slapstic_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, int chipnum",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chipnum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "chipnum"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 30,
+        "column": 1
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_bank",
+      "parameters": "auto &&tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bank"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 38,
+        "column": 99
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_view",
+      "parameters": "memory_view &view",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_view"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "identifier",
+                "name": "view"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 41,
+        "column": 1
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_range",
+      "parameters": "auto &&tag, int index, offs_t start, offs_t end, offs_t mirror",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_space"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "index"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_start"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "start"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_end"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "end"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mirror"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mirror"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 42,
+        "column": 1
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_chipnum",
+      "parameters": "int chipnum",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chipnum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "chipnum"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 49,
+        "column": 1
+      }
+    },
+    {
+      "name": "operator",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "a"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_m"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_v"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.h",
+        "line": 115,
+        "column": 1
+      }
+    },
+    {
+      "name": "tmatch",
+      "parameters": "int slot, offs_t addr",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "addr"
+                },
+                "right": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_t_m"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "slot"
+                  }
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_t_v"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "slot"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 204,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_test_in",
+      "parameters": "int slot, int field",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "at",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_chipnum"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "SLAPSTIC_FIRST_CHIP"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "SLAPSTIC_MV_COUNT"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "field"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_m"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "slot"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "identifier",
+                "name": "m_range_mask"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_tbl_mask"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "at"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_shift"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_v"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "slot"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "identifier",
+                "name": "m_range_value"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_tbl_value"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "at"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_shift"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 204,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_test_any",
+      "parameters": "int slot, int field",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "at",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_chipnum"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "SLAPSTIC_FIRST_CHIP"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "SLAPSTIC_MV_COUNT"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "field"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_m"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "slot"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_tbl_mask"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "at"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_shift"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_v"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "slot"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_tbl_value"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "at"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_shift"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 204,
+        "column": 1
+      }
+    },
+    {
+      "name": "compute_tests",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "chip",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_chipnum"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "SLAPSTIC_FIRST_CHIP"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "unary",
+                "operator": "~",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_end"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_start"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_mirror"
+                  }
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "SLAPSTIC_ADDRESS_MASK"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_start"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_shift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_data_width"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "lines",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_chipnum"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 101
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 13
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 14
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_input_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "lines"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_shift"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_has_bit"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "<=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_chipnum"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 110
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_has_add"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": ">=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_chipnum"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 111
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_alt_valid_outside"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "<=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_chipnum"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 102
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_alt_shift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_shift"
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_tbl_altshift"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "chip"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_m"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "T_RESET"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "identifier",
+                "name": "m_range_mask"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_input_mask"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_v"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "T_RESET"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_range_value"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_m"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "T_INSIDE"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_range_mask"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_t_v"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "T_INSIDE"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_range_value"
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_t_m"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "T_BANK0"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_range_mask"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_input_mask"
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_t_v"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "T_BANK0"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_range_value"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_tbl_bank"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "chip"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_shift"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_alt_valid_outside"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_test_in"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "T_ACT_ALT"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MV_ALT1"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_test_any"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "T_AV_VALID"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MV_ALT2"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_test_any"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "T_ACT_ALT"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MV_ALT1"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_test_in"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "T_AV_VALID"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MV_ALT2"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_chipnum"
+              },
+              "right": {
+                "kind": "number",
+                "value": 110
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_test_in"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "T_AS_SELECT"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MV_ALT3"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_test_any"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "T_AS_SELECT"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MV_ALT3"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_ACT_BIT"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_ACT_ADD"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_ADD1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_AV_ADD"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_ADD1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_AC_COMMIT"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_ALT4"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BL_LOAD"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSO_C0"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3C0"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSO_S0"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3S0"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSO_C1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3C1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSO_S1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3S1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSE_C0"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3S1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSE_S0"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3C1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSE_C1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3S0"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BSE_S1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT3C0"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_BS_COMMIT"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_BIT4"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_AL_LOAD"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_ADD2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_AD_ADD1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_ADDPLUS1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_AD_ADD2"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_ADDPLUS2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_test_in"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "T_AD_END"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MV_ADD3"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 204,
+        "column": 1
+      }
+    },
+    {
+      "name": "configure_range",
+      "parameters": "offs_t start, offs_t end, offs_t mirror, int data_width",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_start"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "start"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_end"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "end"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mirror"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mirror"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data_width"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data_width"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_tests"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "device_reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 204,
+        "column": 1
+      }
+    },
+    {
+      "name": "test",
+      "parameters": "offs_t addr",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "S_IDLE"
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "tmatch"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "T_RESET"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "addr"
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "S_ACTIVE"
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "S_ACTIVE"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "tmatch"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "T_BANK0"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "addr"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "change_bank"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_state"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "S_IDLE"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "tmatch"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "T_BANK1"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "addr"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "change_bank"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_state"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "S_IDLE"
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "tmatch"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "T_BANK2"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "addr"
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "change_bank"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "number",
+                                      "value": 2
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_state"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "S_IDLE"
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "tmatch"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "T_BANK3"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "addr"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "change_bank"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "number",
+                                          "value": 3
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "m_state"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "S_IDLE"
+                                    }
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "tmatch"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "identifier",
+                                          "name": "T_ACT_ALT"
+                                        },
+                                        {
+                                          "kind": "identifier",
+                                          "name": "addr"
+                                        }
+                                      ]
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "m_state"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "S_ALT_VALID"
+                                        }
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "binary",
+                                          "operator": "&&",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "m_has_bit"
+                                          },
+                                          "right": {
+                                            "kind": "call",
+                                            "callee": {
+                                              "kind": "identifier",
+                                              "name": "tmatch"
+                                            },
+                                            "args": [
+                                              {
+                                                "kind": "identifier",
+                                                "name": "T_ACT_BIT"
+                                              },
+                                              {
+                                                "kind": "identifier",
+                                                "name": "addr"
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "m_state"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "identifier",
+                                              "name": "S_BIT_LOAD"
+                                            }
+                                          }
+                                        ],
+                                        "else": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "binary",
+                                              "operator": "&&",
+                                              "left": {
+                                                "kind": "identifier",
+                                                "name": "m_has_add"
+                                              },
+                                              "right": {
+                                                "kind": "call",
+                                                "callee": {
+                                                  "kind": "identifier",
+                                                  "name": "tmatch"
+                                                },
+                                                "args": [
+                                                  {
+                                                    "kind": "identifier",
+                                                    "name": "T_ACT_ADD"
+                                                  },
+                                                  {
+                                                    "kind": "identifier",
+                                                    "name": "addr"
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "m_state"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "S_ADD_LOAD"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_state"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "S_ALT_VALID"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "tmatch"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "T_RESET"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "addr"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_state"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "S_ACTIVE"
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_alt_valid_outside"
+                              },
+                              "right": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "tmatch"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "T_INSIDE"
+                                  },
+                                  {
+                                    "kind": "identifier",
+                                    "name": "addr"
+                                  }
+                                ]
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_state"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "S_ACTIVE"
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "tmatch"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "T_AV_VALID"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "addr"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "m_state"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "S_ALT_SELECT"
+                                    }
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "m_has_add"
+                                      },
+                                      "right": {
+                                        "kind": "call",
+                                        "callee": {
+                                          "kind": "identifier",
+                                          "name": "tmatch"
+                                        },
+                                        "args": [
+                                          {
+                                            "kind": "identifier",
+                                            "name": "T_AV_ADD"
+                                          },
+                                          {
+                                            "kind": "identifier",
+                                            "name": "addr"
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "m_state"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "S_ADD_LOAD"
+                                        }
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "m_state"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "S_ACTIVE"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "S_ALT_SELECT"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "tmatch"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "T_RESET"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "addr"
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_state"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "S_ACTIVE"
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "tmatch"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "T_AS_SELECT"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "addr"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "m_loaded_bank"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "addr"
+                                        },
+                                        "right": {
+                                          "kind": "identifier",
+                                          "name": "m_alt_shift"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "m_state"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "S_ALT_COMMIT"
+                                    }
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "m_state"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "S_ACTIVE"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_state"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "S_ALT_COMMIT"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "tmatch"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "T_RESET"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "addr"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "m_state"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "S_ACTIVE"
+                                    }
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "tmatch"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "identifier",
+                                          "name": "T_AC_COMMIT"
+                                        },
+                                        {
+                                          "kind": "identifier",
+                                          "name": "addr"
+                                        }
+                                      ]
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "call",
+                                        "expression": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "commit_bank"
+                                          },
+                                          "args": []
+                                        }
+                                      },
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "m_state"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "S_IDLE"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_state"
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "S_BIT_LOAD"
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "tmatch"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "identifier",
+                                          "name": "T_RESET"
+                                        },
+                                        {
+                                          "kind": "identifier",
+                                          "name": "addr"
+                                        }
+                                      ]
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "m_state"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "S_ACTIVE"
+                                        }
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "tmatch"
+                                          },
+                                          "args": [
+                                            {
+                                              "kind": "identifier",
+                                              "name": "T_BL_LOAD"
+                                            },
+                                            {
+                                              "kind": "identifier",
+                                              "name": "addr"
+                                            }
+                                          ]
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "m_loaded_bank"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "identifier",
+                                              "name": "m_current_bank"
+                                            }
+                                          },
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "m_state"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "identifier",
+                                              "name": "S_BIT_SET_ODD"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "==",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "m_state"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "S_BIT_SET_ODD"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "tmatch"
+                                          },
+                                          "args": [
+                                            {
+                                              "kind": "identifier",
+                                              "name": "T_RESET"
+                                            },
+                                            {
+                                              "kind": "identifier",
+                                              "name": "addr"
+                                            }
+                                          ]
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "m_state"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "identifier",
+                                              "name": "S_ACTIVE"
+                                            }
+                                          }
+                                        ],
+                                        "else": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "call",
+                                              "callee": {
+                                                "kind": "identifier",
+                                                "name": "tmatch"
+                                              },
+                                              "args": [
+                                                {
+                                                  "kind": "identifier",
+                                                  "name": "T_BSO_C0"
+                                                },
+                                                {
+                                                  "kind": "identifier",
+                                                  "name": "addr"
+                                                }
+                                              ]
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "m_loaded_bank"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "binary",
+                                                  "operator": "&",
+                                                  "left": {
+                                                    "kind": "identifier",
+                                                    "name": "m_loaded_bank"
+                                                  },
+                                                  "right": {
+                                                    "kind": "unary",
+                                                    "operator": "~",
+                                                    "operand": {
+                                                      "kind": "number",
+                                                      "value": 1
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "m_state"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "S_BIT_SET_EVEN"
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "if",
+                                                "condition": {
+                                                  "kind": "call",
+                                                  "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "tmatch"
+                                                  },
+                                                  "args": [
+                                                    {
+                                                      "kind": "identifier",
+                                                      "name": "T_BSO_S0"
+                                                    },
+                                                    {
+                                                      "kind": "identifier",
+                                                      "name": "addr"
+                                                    }
+                                                  ]
+                                                },
+                                                "then": [
+                                                  {
+                                                    "op": "assign",
+                                                    "target": {
+                                                      "kind": "identifier",
+                                                      "name": "m_loaded_bank"
+                                                    },
+                                                    "operator": "=",
+                                                    "value": {
+                                                      "kind": "binary",
+                                                      "operator": "|",
+                                                      "left": {
+                                                        "kind": "identifier",
+                                                        "name": "m_loaded_bank"
+                                                      },
+                                                      "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "op": "assign",
+                                                    "target": {
+                                                      "kind": "identifier",
+                                                      "name": "m_state"
+                                                    },
+                                                    "operator": "=",
+                                                    "value": {
+                                                      "kind": "identifier",
+                                                      "name": "S_BIT_SET_EVEN"
+                                                    }
+                                                  }
+                                                ],
+                                                "else": [
+                                                  {
+                                                    "op": "if",
+                                                    "condition": {
+                                                      "kind": "call",
+                                                      "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "tmatch"
+                                                      },
+                                                      "args": [
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "T_BSO_C1"
+                                                        },
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "addr"
+                                                        }
+                                                      ]
+                                                    },
+                                                    "then": [
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_loaded_bank"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "binary",
+                                                          "operator": "&",
+                                                          "left": {
+                                                            "kind": "identifier",
+                                                            "name": "m_loaded_bank"
+                                                          },
+                                                          "right": {
+                                                            "kind": "unary",
+                                                            "operator": "~",
+                                                            "operand": {
+                                                              "kind": "number",
+                                                              "value": 2
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_state"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "identifier",
+                                                          "name": "S_BIT_SET_EVEN"
+                                                        }
+                                                      }
+                                                    ],
+                                                    "else": [
+                                                      {
+                                                        "op": "if",
+                                                        "condition": {
+                                                          "kind": "call",
+                                                          "callee": {
+                                                            "kind": "identifier",
+                                                            "name": "tmatch"
+                                                          },
+                                                          "args": [
+                                                            {
+                                                              "kind": "identifier",
+                                                              "name": "T_BSO_S1"
+                                                            },
+                                                            {
+                                                              "kind": "identifier",
+                                                              "name": "addr"
+                                                            }
+                                                          ]
+                                                        },
+                                                        "then": [
+                                                          {
+                                                            "op": "assign",
+                                                            "target": {
+                                                              "kind": "identifier",
+                                                              "name": "m_loaded_bank"
+                                                            },
+                                                            "operator": "=",
+                                                            "value": {
+                                                              "kind": "binary",
+                                                              "operator": "|",
+                                                              "left": {
+                                                                "kind": "identifier",
+                                                                "name": "m_loaded_bank"
+                                                              },
+                                                              "right": {
+                                                                "kind": "number",
+                                                                "value": 2
+                                                              }
+                                                            }
+                                                          },
+                                                          {
+                                                            "op": "assign",
+                                                            "target": {
+                                                              "kind": "identifier",
+                                                              "name": "m_state"
+                                                            },
+                                                            "operator": "=",
+                                                            "value": {
+                                                              "kind": "identifier",
+                                                              "name": "S_BIT_SET_EVEN"
+                                                            }
+                                                          }
+                                                        ],
+                                                        "else": [
+                                                          {
+                                                            "op": "if",
+                                                            "condition": {
+                                                              "kind": "call",
+                                                              "callee": {
+                                                                "kind": "identifier",
+                                                                "name": "tmatch"
+                                                              },
+                                                              "args": [
+                                                                {
+                                                                  "kind": "identifier",
+                                                                  "name": "T_BS_COMMIT"
+                                                                },
+                                                                {
+                                                                  "kind": "identifier",
+                                                                  "name": "addr"
+                                                                }
+                                                              ]
+                                                            },
+                                                            "then": [
+                                                              {
+                                                                "op": "call",
+                                                                "expression": {
+                                                                  "kind": "call",
+                                                                  "callee": {
+                                                                    "kind": "identifier",
+                                                                    "name": "commit_bank"
+                                                                  },
+                                                                  "args": []
+                                                                }
+                                                              },
+                                                              {
+                                                                "op": "assign",
+                                                                "target": {
+                                                                  "kind": "identifier",
+                                                                  "name": "m_state"
+                                                                },
+                                                                "operator": "=",
+                                                                "value": {
+                                                                  "kind": "identifier",
+                                                                  "name": "S_IDLE"
+                                                                }
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "binary",
+                                          "operator": "==",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "m_state"
+                                          },
+                                          "right": {
+                                            "kind": "identifier",
+                                            "name": "S_BIT_SET_EVEN"
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "call",
+                                              "callee": {
+                                                "kind": "identifier",
+                                                "name": "tmatch"
+                                              },
+                                              "args": [
+                                                {
+                                                  "kind": "identifier",
+                                                  "name": "T_RESET"
+                                                },
+                                                {
+                                                  "kind": "identifier",
+                                                  "name": "addr"
+                                                }
+                                              ]
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "m_state"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "S_ACTIVE"
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "if",
+                                                "condition": {
+                                                  "kind": "call",
+                                                  "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "tmatch"
+                                                  },
+                                                  "args": [
+                                                    {
+                                                      "kind": "identifier",
+                                                      "name": "T_BSE_C0"
+                                                    },
+                                                    {
+                                                      "kind": "identifier",
+                                                      "name": "addr"
+                                                    }
+                                                  ]
+                                                },
+                                                "then": [
+                                                  {
+                                                    "op": "assign",
+                                                    "target": {
+                                                      "kind": "identifier",
+                                                      "name": "m_loaded_bank"
+                                                    },
+                                                    "operator": "=",
+                                                    "value": {
+                                                      "kind": "binary",
+                                                      "operator": "&",
+                                                      "left": {
+                                                        "kind": "identifier",
+                                                        "name": "m_loaded_bank"
+                                                      },
+                                                      "right": {
+                                                        "kind": "unary",
+                                                        "operator": "~",
+                                                        "operand": {
+                                                          "kind": "number",
+                                                          "value": 1
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "op": "assign",
+                                                    "target": {
+                                                      "kind": "identifier",
+                                                      "name": "m_state"
+                                                    },
+                                                    "operator": "=",
+                                                    "value": {
+                                                      "kind": "identifier",
+                                                      "name": "S_BIT_SET_ODD"
+                                                    }
+                                                  }
+                                                ],
+                                                "else": [
+                                                  {
+                                                    "op": "if",
+                                                    "condition": {
+                                                      "kind": "call",
+                                                      "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "tmatch"
+                                                      },
+                                                      "args": [
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "T_BSE_S0"
+                                                        },
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "addr"
+                                                        }
+                                                      ]
+                                                    },
+                                                    "then": [
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_loaded_bank"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "binary",
+                                                          "operator": "|",
+                                                          "left": {
+                                                            "kind": "identifier",
+                                                            "name": "m_loaded_bank"
+                                                          },
+                                                          "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_state"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "identifier",
+                                                          "name": "S_BIT_SET_ODD"
+                                                        }
+                                                      }
+                                                    ],
+                                                    "else": [
+                                                      {
+                                                        "op": "if",
+                                                        "condition": {
+                                                          "kind": "call",
+                                                          "callee": {
+                                                            "kind": "identifier",
+                                                            "name": "tmatch"
+                                                          },
+                                                          "args": [
+                                                            {
+                                                              "kind": "identifier",
+                                                              "name": "T_BSE_C1"
+                                                            },
+                                                            {
+                                                              "kind": "identifier",
+                                                              "name": "addr"
+                                                            }
+                                                          ]
+                                                        },
+                                                        "then": [
+                                                          {
+                                                            "op": "assign",
+                                                            "target": {
+                                                              "kind": "identifier",
+                                                              "name": "m_loaded_bank"
+                                                            },
+                                                            "operator": "=",
+                                                            "value": {
+                                                              "kind": "binary",
+                                                              "operator": "&",
+                                                              "left": {
+                                                                "kind": "identifier",
+                                                                "name": "m_loaded_bank"
+                                                              },
+                                                              "right": {
+                                                                "kind": "unary",
+                                                                "operator": "~",
+                                                                "operand": {
+                                                                  "kind": "number",
+                                                                  "value": 2
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          {
+                                                            "op": "assign",
+                                                            "target": {
+                                                              "kind": "identifier",
+                                                              "name": "m_state"
+                                                            },
+                                                            "operator": "=",
+                                                            "value": {
+                                                              "kind": "identifier",
+                                                              "name": "S_BIT_SET_ODD"
+                                                            }
+                                                          }
+                                                        ],
+                                                        "else": [
+                                                          {
+                                                            "op": "if",
+                                                            "condition": {
+                                                              "kind": "call",
+                                                              "callee": {
+                                                                "kind": "identifier",
+                                                                "name": "tmatch"
+                                                              },
+                                                              "args": [
+                                                                {
+                                                                  "kind": "identifier",
+                                                                  "name": "T_BSE_S1"
+                                                                },
+                                                                {
+                                                                  "kind": "identifier",
+                                                                  "name": "addr"
+                                                                }
+                                                              ]
+                                                            },
+                                                            "then": [
+                                                              {
+                                                                "op": "assign",
+                                                                "target": {
+                                                                  "kind": "identifier",
+                                                                  "name": "m_loaded_bank"
+                                                                },
+                                                                "operator": "=",
+                                                                "value": {
+                                                                  "kind": "binary",
+                                                                  "operator": "|",
+                                                                  "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_loaded_bank"
+                                                                  },
+                                                                  "right": {
+                                                                    "kind": "number",
+                                                                    "value": 2
+                                                                  }
+                                                                }
+                                                              },
+                                                              {
+                                                                "op": "assign",
+                                                                "target": {
+                                                                  "kind": "identifier",
+                                                                  "name": "m_state"
+                                                                },
+                                                                "operator": "=",
+                                                                "value": {
+                                                                  "kind": "identifier",
+                                                                  "name": "S_BIT_SET_ODD"
+                                                                }
+                                                              }
+                                                            ],
+                                                            "else": [
+                                                              {
+                                                                "op": "if",
+                                                                "condition": {
+                                                                  "kind": "call",
+                                                                  "callee": {
+                                                                    "kind": "identifier",
+                                                                    "name": "tmatch"
+                                                                  },
+                                                                  "args": [
+                                                                    {
+                                                                      "kind": "identifier",
+                                                                      "name": "T_BS_COMMIT"
+                                                                    },
+                                                                    {
+                                                                      "kind": "identifier",
+                                                                      "name": "addr"
+                                                                    }
+                                                                  ]
+                                                                },
+                                                                "then": [
+                                                                  {
+                                                                    "op": "call",
+                                                                    "expression": {
+                                                                      "kind": "call",
+                                                                      "callee": {
+                                                                        "kind": "identifier",
+                                                                        "name": "commit_bank"
+                                                                      },
+                                                                      "args": []
+                                                                    }
+                                                                  },
+                                                                  {
+                                                                    "op": "assign",
+                                                                    "target": {
+                                                                      "kind": "identifier",
+                                                                      "name": "m_state"
+                                                                    },
+                                                                    "operator": "=",
+                                                                    "value": {
+                                                                      "kind": "identifier",
+                                                                      "name": "S_IDLE"
+                                                                    }
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        "else": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "binary",
+                                              "operator": "==",
+                                              "left": {
+                                                "kind": "identifier",
+                                                "name": "m_state"
+                                              },
+                                              "right": {
+                                                "kind": "identifier",
+                                                "name": "S_ADD_LOAD"
+                                              }
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "if",
+                                                "condition": {
+                                                  "kind": "call",
+                                                  "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "tmatch"
+                                                  },
+                                                  "args": [
+                                                    {
+                                                      "kind": "identifier",
+                                                      "name": "T_RESET"
+                                                    },
+                                                    {
+                                                      "kind": "identifier",
+                                                      "name": "addr"
+                                                    }
+                                                  ]
+                                                },
+                                                "then": [
+                                                  {
+                                                    "op": "assign",
+                                                    "target": {
+                                                      "kind": "identifier",
+                                                      "name": "m_state"
+                                                    },
+                                                    "operator": "=",
+                                                    "value": {
+                                                      "kind": "identifier",
+                                                      "name": "S_ACTIVE"
+                                                    }
+                                                  }
+                                                ],
+                                                "else": [
+                                                  {
+                                                    "op": "if",
+                                                    "condition": {
+                                                      "kind": "call",
+                                                      "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "tmatch"
+                                                      },
+                                                      "args": [
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "T_AL_LOAD"
+                                                        },
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "addr"
+                                                        }
+                                                      ]
+                                                    },
+                                                    "then": [
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_loaded_bank"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "identifier",
+                                                          "name": "m_current_bank"
+                                                        }
+                                                      },
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_state"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "identifier",
+                                                          "name": "S_ADD_SET"
+                                                        }
+                                                      }
+                                                    ],
+                                                    "else": [
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_state"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "identifier",
+                                                          "name": "S_ACTIVE"
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "if",
+                                                "condition": {
+                                                  "kind": "binary",
+                                                  "operator": "==",
+                                                  "left": {
+                                                    "kind": "identifier",
+                                                    "name": "m_state"
+                                                  },
+                                                  "right": {
+                                                    "kind": "identifier",
+                                                    "name": "S_ADD_SET"
+                                                  }
+                                                },
+                                                "then": [
+                                                  {
+                                                    "op": "if",
+                                                    "condition": {
+                                                      "kind": "call",
+                                                      "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "tmatch"
+                                                      },
+                                                      "args": [
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "T_RESET"
+                                                        },
+                                                        {
+                                                          "kind": "identifier",
+                                                          "name": "addr"
+                                                        }
+                                                      ]
+                                                    },
+                                                    "then": [
+                                                      {
+                                                        "op": "assign",
+                                                        "target": {
+                                                          "kind": "identifier",
+                                                          "name": "m_state"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                          "kind": "identifier",
+                                                          "name": "S_ACTIVE"
+                                                        }
+                                                      }
+                                                    ],
+                                                    "else": [
+                                                      {
+                                                        "op": "if",
+                                                        "condition": {
+                                                          "kind": "call",
+                                                          "callee": {
+                                                            "kind": "identifier",
+                                                            "name": "tmatch"
+                                                          },
+                                                          "args": [
+                                                            {
+                                                              "kind": "identifier",
+                                                              "name": "T_AD_ADD1"
+                                                            },
+                                                            {
+                                                              "kind": "identifier",
+                                                              "name": "addr"
+                                                            }
+                                                          ]
+                                                        },
+                                                        "then": [
+                                                          {
+                                                            "op": "assign",
+                                                            "target": {
+                                                              "kind": "identifier",
+                                                              "name": "m_loaded_bank"
+                                                            },
+                                                            "operator": "=",
+                                                            "value": {
+                                                              "kind": "binary",
+                                                              "operator": "&",
+                                                              "left": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                  "kind": "identifier",
+                                                                  "name": "m_loaded_bank"
+                                                                },
+                                                                "right": {
+                                                                  "kind": "number",
+                                                                  "value": 1
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "kind": "number",
+                                                                "value": 3
+                                                              }
+                                                            }
+                                                          }
+                                                        ],
+                                                        "else": [
+                                                          {
+                                                            "op": "if",
+                                                            "condition": {
+                                                              "kind": "call",
+                                                              "callee": {
+                                                                "kind": "identifier",
+                                                                "name": "tmatch"
+                                                              },
+                                                              "args": [
+                                                                {
+                                                                  "kind": "identifier",
+                                                                  "name": "T_AD_ADD2"
+                                                                },
+                                                                {
+                                                                  "kind": "identifier",
+                                                                  "name": "addr"
+                                                                }
+                                                              ]
+                                                            },
+                                                            "then": [
+                                                              {
+                                                                "op": "assign",
+                                                                "target": {
+                                                                  "kind": "identifier",
+                                                                  "name": "m_loaded_bank"
+                                                                },
+                                                                "operator": "=",
+                                                                "value": {
+                                                                  "kind": "binary",
+                                                                  "operator": "&",
+                                                                  "left": {
+                                                                    "kind": "binary",
+                                                                    "operator": "+",
+                                                                    "left": {
+                                                                      "kind": "identifier",
+                                                                      "name": "m_loaded_bank"
+                                                                    },
+                                                                    "right": {
+                                                                      "kind": "number",
+                                                                      "value": 2
+                                                                    }
+                                                                  },
+                                                                  "right": {
+                                                                    "kind": "number",
+                                                                    "value": 3
+                                                                  }
+                                                                }
+                                                              }
+                                                            ],
+                                                            "else": [
+                                                              {
+                                                                "op": "if",
+                                                                "condition": {
+                                                                  "kind": "call",
+                                                                  "callee": {
+                                                                    "kind": "identifier",
+                                                                    "name": "tmatch"
+                                                                  },
+                                                                  "args": [
+                                                                    {
+                                                                      "kind": "identifier",
+                                                                      "name": "T_AD_END"
+                                                                    },
+                                                                    {
+                                                                      "kind": "identifier",
+                                                                      "name": "addr"
+                                                                    }
+                                                                  ]
+                                                                },
+                                                                "then": [
+                                                                  {
+                                                                    "op": "assign",
+                                                                    "target": {
+                                                                      "kind": "identifier",
+                                                                      "name": "m_state"
+                                                                    },
+                                                                    "operator": "=",
+                                                                    "value": {
+                                                                      "kind": "identifier",
+                                                                      "name": "S_ALT_COMMIT"
+                                                                    }
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/slapstic.cpp",
+        "line": 204,
+        "column": 1
+      }
+    }
+  ],
+  "structs": {
+    "slapstic_data": [
+      {
+        "name": "bankstart",
+        "bits": 8
+      },
+      {
+        "name": "bank",
+        "length": 4,
+        "bits": 16
+      },
+      {
+        "name": "alt1",
+        "bits": 32
+      },
+      {
+        "name": "alt2",
+        "bits": 32
+      },
+      {
+        "name": "alt3",
+        "bits": 32
+      },
+      {
+        "name": "alt4",
+        "bits": 32
+      },
+      {
+        "name": "altshift",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "bit1",
+        "bits": 32
+      },
+      {
+        "name": "bit2",
+        "bits": 32
+      },
+      {
+        "name": "bit3c0",
+        "bits": 32
+      },
+      {
+        "name": "bit3s0",
+        "bits": 32
+      },
+      {
+        "name": "bit3c1",
+        "bits": 32
+      },
+      {
+        "name": "bit3s1",
+        "bits": 32
+      },
+      {
+        "name": "bit4",
+        "bits": 32
+      },
+      {
+        "name": "add1",
+        "bits": 32
+      },
+      {
+        "name": "add2",
+        "bits": 32
+      },
+      {
+        "name": "addplus1",
+        "bits": 32
+      },
+      {
+        "name": "addplus2",
+        "bits": 32
+      },
+      {
+        "name": "add3",
+        "bits": 32
+      }
+    ]
+  },
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 24,
+    "compiledMethods": 24,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "test",
+    "tmatch"
+  ]
+}

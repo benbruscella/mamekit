@@ -1,0 +1,788 @@
+{
+  "game": "tutankhm",
+  "title": "Tutankham (Konami, 1982)",
+  "fullname": "Tutankham",
+  "year": "1982",
+  "company": "Konami",
+  "family": "tutankhm",
+  "driverFile": "src/mame/konami/tutankhm.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mirko Buffoni",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "mc6809e",
+      "clock": 1536000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 32768,
+          "end": 32783,
+          "kind": "ram",
+          "mirror": 240,
+          "share": "palette",
+          "write": "palette.write8"
+        },
+        {
+          "start": 33024,
+          "end": 33024,
+          "kind": "ram",
+          "mirror": 15,
+          "share": "scroll"
+        },
+        {
+          "start": 33056,
+          "end": 33056,
+          "kind": "handler",
+          "mirror": 15,
+          "read": "watchdog.reset_r"
+        },
+        {
+          "start": 33120,
+          "end": 33120,
+          "kind": "handler",
+          "mirror": 15,
+          "read": "port.DSW2"
+        },
+        {
+          "start": 33152,
+          "end": 33152,
+          "kind": "handler",
+          "mirror": 15,
+          "read": "port.IN0"
+        },
+        {
+          "start": 33184,
+          "end": 33184,
+          "kind": "handler",
+          "mirror": 15,
+          "read": "port.IN1"
+        },
+        {
+          "start": 33216,
+          "end": 33216,
+          "kind": "handler",
+          "mirror": 15,
+          "read": "port.IN2"
+        },
+        {
+          "start": 33248,
+          "end": 33248,
+          "kind": "handler",
+          "mirror": 15,
+          "read": "port.DSW1"
+        },
+        {
+          "start": 33280,
+          "end": 33287,
+          "kind": "handler",
+          "mirror": 248,
+          "writeOnly": true,
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 33536,
+          "end": 33536,
+          "kind": "handler",
+          "mirror": 255,
+          "write": "tutankhm_state.bankselect_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 34304,
+          "end": 34304,
+          "kind": "handler",
+          "mirror": 255,
+          "write": "tutankhm_state.sound_on_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 34560,
+          "end": 34560,
+          "kind": "handler",
+          "mirror": 255,
+          "write": "timeplt_audio.sound_data_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 34816,
+          "end": 36863,
+          "kind": "ram"
+        },
+        {
+          "start": 36864,
+          "end": 40959,
+          "kind": "handler",
+          "read": "bank.mainbank",
+          "bank": "mainbank"
+        },
+        {
+          "start": 40960,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "timeplt_audio:tpsound",
+      "type": "z80",
+      "clock": 1789772.625,
+      "region": "timeplt_audio:tpsound",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 12287,
+          "kind": "rom"
+        },
+        {
+          "start": 12288,
+          "end": 13311,
+          "kind": "ram",
+          "mirror": 3072
+        },
+        {
+          "start": 16384,
+          "end": 16384,
+          "kind": "handler",
+          "mirror": 4095,
+          "read": "timeplt_audio:ay1.data_r",
+          "write": "timeplt_audio:ay1.data_w"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "handler",
+          "mirror": 4095,
+          "write": "timeplt_audio:ay1.address_w"
+        },
+        {
+          "start": 24576,
+          "end": 24576,
+          "kind": "handler",
+          "mirror": 4095,
+          "read": "timeplt_audio:ay2.data_r",
+          "write": "timeplt_audio:ay2.data_w"
+        },
+        {
+          "start": 28672,
+          "end": 28672,
+          "kind": "handler",
+          "mirror": 4095,
+          "write": "timeplt_audio:ay2.address_w"
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "handler",
+          "write": "timeplt_audio_device.filter_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 2,
+    "deviceTags": [
+      "timeplt_audio:ay1",
+      "timeplt_audio:ay2"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "filter.0.0",
+        "filter": {
+          "index": 0,
+          "bank": 0,
+          "channel": 0
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "filter.0.1",
+        "filter": {
+          "index": 1,
+          "bank": 0,
+          "channel": 1
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "filter.0.2",
+        "filter": {
+          "index": 2,
+          "bank": 0,
+          "channel": 2
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "filter.1.0",
+        "filter": {
+          "index": 3,
+          "bank": 1,
+          "channel": 0
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "filter.1.1",
+        "filter": {
+          "index": 4,
+          "bank": 1,
+          "channel": 1
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "filter.1.2",
+        "filter": {
+          "index": 5,
+          "bank": 1,
+          "channel": 2
+        }
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "htotal": 1152,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "partial",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "m1.1h",
+          "offset": 40960,
+          "size": 4096,
+          "crc": "da18679f",
+          "alt": [
+            {
+              "file": "t1.1h",
+              "crc": "37794533"
+            }
+          ]
+        },
+        {
+          "file": "m2.2h",
+          "offset": 45056,
+          "size": 4096,
+          "crc": "a0f02c85"
+        },
+        {
+          "file": "3j.3h",
+          "offset": 49152,
+          "size": 4096,
+          "crc": "ea03a1ab",
+          "alt": [
+            {
+              "file": "3a.3h",
+              "crc": "2d62d7b1"
+            },
+            {
+              "file": "t3.3h",
+              "crc": "0c41e644"
+            }
+          ]
+        },
+        {
+          "file": "m4.4h",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "bd06fad0"
+        },
+        {
+          "file": "m5.5h",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "bf9fd9b0"
+        },
+        {
+          "file": "j6.6h",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "fe079c5b",
+          "alt": [
+            {
+              "file": "a6.6h",
+              "crc": "c43b3865"
+            },
+            {
+              "file": "t6.6h",
+              "crc": "39cd1b22"
+            }
+          ]
+        },
+        {
+          "file": "c1.1i",
+          "offset": 65536,
+          "size": 4096,
+          "crc": "7eb59b21",
+          "alt": [
+            {
+              "file": "t7.1i",
+              "crc": "55deafe2"
+            }
+          ]
+        },
+        {
+          "file": "c2.2i",
+          "offset": 69632,
+          "size": 4096,
+          "crc": "6615eff3"
+        },
+        {
+          "file": "c3.3i",
+          "offset": 73728,
+          "size": 4096,
+          "crc": "a10d4444"
+        },
+        {
+          "file": "c4.4i",
+          "offset": 77824,
+          "size": 4096,
+          "crc": "58cd143c"
+        },
+        {
+          "file": "c5.5i",
+          "offset": 81920,
+          "size": 4096,
+          "crc": "d7e7ae95"
+        },
+        {
+          "file": "c6.6i",
+          "offset": 86016,
+          "size": 4096,
+          "crc": "91f62b82",
+          "alt": [
+            {
+              "file": "t12.6i",
+              "crc": "dcde1109"
+            }
+          ]
+        },
+        {
+          "file": "c7.7i",
+          "offset": 90112,
+          "size": 4096,
+          "crc": "afd0a81f",
+          "alt": [
+            {
+              "file": "t13.7i",
+              "crc": "c7250b9a"
+            }
+          ]
+        },
+        {
+          "file": "c8.8i",
+          "offset": 94208,
+          "size": 4096,
+          "crc": "dabb609b",
+          "alt": [
+            {
+              "file": "t14.8i",
+              "crc": "685a623e"
+            }
+          ]
+        },
+        {
+          "file": "c9.9i",
+          "offset": 98304,
+          "size": 4096,
+          "crc": "8ea9c6a6"
+        }
+      ]
+    },
+    {
+      "region": "timeplt_audio:tpsound",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "s1.7a",
+          "offset": 0,
+          "size": 4096,
+          "crc": "b52d01fa"
+        },
+        {
+          "file": "s2.8a",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "9db5c0ce"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "KeyJ"
+      ],
+      "label": "IPT_JOYSTICKRIGHT_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "KeyL"
+      ],
+      "label": "IPT_JOYSTICKRIGHT_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "P1 Flash Bomb",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW2",
+      "mask": 48,
+      "value": 32,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Flash Bomb"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "STARS",
+      "mask": 1,
+      "value": 1,
+      "name": "Starfield selection"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-08-05",
+    "commits": 125,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "AJR",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 49,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 21,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-01-10"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 9,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2018-03-28"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 5,
+        "firstCommit": "2016-06-01",
+        "lastCommit": "2021-02-11"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 5,
+        "firstCommit": "2010-05-12",
+        "lastCommit": "2014-01-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "couriersud",
+        "commits": 2,
+        "firstCommit": "2019-05-07",
+        "lastCommit": "2019-05-09"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 2,
+        "firstCommit": "2009-03-01",
+        "lastCommit": "2010-05-13"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2013-07-12",
+        "lastCommit": "2020-07-09"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2019-04-09",
+        "lastCommit": "2019-04-09"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2025-02-07",
+        "lastCommit": "2025-02-07"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2025-08-05",
+        "lastCommit": "2025-08-05"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2015-07-31",
+        "lastCommit": "2015-07-31"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2019-05-30",
+        "lastCommit": "2019-05-30"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2013-01-11"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-02-29"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nTutankham (c) 1982 Konami.\n\nInside King Tut's tomb are treasures beyond your wildest dreams. They can be yours... if you dare to take them. Supernatural creatures roam the mazes of the tomb guarding the treasures at all costs. Your only defenses against them are your laser gun... and your wits. Blast away, snatch the loot, escape through secret passageway before it's too late! And when you see a key, take that, too. It will unlock the door to the next chamber and the next adventure. Enter King Tut's tomb and see what awaits you... if you dare.\n\n- TECHNICAL -\n\nGame ID : GX350\n\nMain CPU : Motorola M6809 (@ 1.5 Mhz)\nSound CPU : Zilog Z80 (@ ~1.79 Mhz)\nSound Chips : (2x) General Instrument AY8910 (@ ~1.79 Mhz), (6x) RC (@ ~1.79 Mhz)\n\nPlayers : 2\nControl : 4-way joystick\nButtons : 3\n\n- TRIVIA -\n\nTutankham was released in June 1982 in Japan.\n\nThe game was originally to be called 'Tutankhamon'. However, when programmers decided to change the monitor position from horizontal to vertical, they had to cut the -ON suffix from 'Tutankhamon' to make the title fit the screen width.\n\nLicensed to Stern for manufacture and distribution in USA as \"Tutankham\".\n\n- SCORING -\n\nKilling a Snake : 20 points.\nKilling a Monster : 40 points.\nKilling a Bat : 60 points.\nCollecting a Ring : Mystery Score (From 500 points).\nCollecting a Lantern : Mystery Score (Up to 4,000 points).\nCollecting a key : 500 points.\nOpening a door : 1,000 points.\n\nBonus points are awarded at the end of each level for the time remaining.\n\n- TIPS AND TRICKS -\n\n* Flash bombs can only be used once per level, and remember you only have 3 available for the whole game. Use them sparingly, preferably only in a life-threatening situation.\n\n* You can sit in a safe place close to a monster generator and simply pick the monsters off as they appear. Most monsters follow a set pattern of movement so it is quite easy to predict which way they will turn and wait in a place where it is easy to kill them as they appear in front or behind you. Remember to watch the timer though!\n\n* The lanterns and rings are quite often a deadly diversion as they are sometimes placed in dead end vertical passages. Assess the risks carefully before collecting them.\n\n* Be careful when entering vertical tunnels as you cannot shoot monsters on the other side until they are level with you in a horizontal direction.\n\n* A carefully timed shot can kill a monster in a vertical tunnel, but only when fired exactly when the monster moves into the square in which you are stood.\n\n- STAFF -\n\nProgrammed by : H. Tanigaki\n\n- PORTS -\n\n* CONSOLES:\nCasio PV-1000 [JP] \n\n* HANDHELDS: \n[JP] Nintendo DS (mar.15, 2007) \"Konami Arcade Collection [Model NTR-A5KJ-JPN]\" \n[EU] Nintendo DS (oct.26, 2007) \"Konami Arcade Classics [Model NTR-ACXP-EUR]\" \n[AU] Nintendo DS (oct.29, 2007) \"Konami Arcade Classics\" \n\n* COMPUTERS:\n[EU] Sinclair ZX Spectrum (1984)\n\n* OTHERS:\nLCD handheld game by Konami.\nVFD handheld game (1983) by Bandai.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2998/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,300 @@
+# Berzerk (revision RC31A)
+
+**Stern Electronics · 1980** — transpiled from the MAME driver `src/mame/stern/berzerk.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/berzerk.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/berzerk.webp) | ![cabinet](/artwork/media/cabinets/berzerk.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | Z80 | 2.500 MHz | 7 |
+
+- **Sound:** berzerk @ 2.500 MHz
+- **Screen:** 256×224 @ 59.64 Hz
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `berzerk_rc31_1c.rom0.1c` | 0x0 | 0x800 | `ca566dbc` |
+| `maincpu` | `berzerk_rc31_1d.rom1.1d` | 0x1000 | 0x800 | `7ba69fde` |
+| `maincpu` | `berzerk_rc31_3d.rom2.3d` | 0x1800 | 0x800 | `a1d5248b` |
+| `maincpu` | `berzerk_rc31_5d.rom3.5d` | 0x2000 | 0x800 | `fcaefa95` |
+| `maincpu` | `berzerk_rc31_6d.rom4.6d` | 0x2800 | 0x800 | `1e35b9a0` |
+| `maincpu` | `berzerk_rc31a_5c.rom5.5c` | 0x3000 | 0x800 | `e0fab8f5` |
+| `speech` | `berzerk_r_vo_1c.1c` | 0x0 | 0x800 | `2cfe825d` |
+| `speech` | `berzerk_r_vo_2c.2c` | 0x800 | 0x800 | `d2b6324e` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| Left | joystick left | `P1` | 0x1 |
+| Right | joystick right | `P1` | 0x2 |
+| Up | joystick up | `P1` | 0x4 |
+| Down | joystick down | `P1` | 0x8 |
+| Space / X | button1 | `P1` | 0x10 |
+| 1 | start1 | `SYSTEM` | 0x1 |
+| 2 | start2 | `SYSTEM` | 0x2 |
+| 6 | coin2 | `SYSTEM` | 0x40 |
+| 5 | coin1 | `SYSTEM` | 0x80 |
+| 9 | free game (not logged in bookkeeping) | `SW2` | 0x1 |
+| 8 | bookkeeping | `SW2` | 0x80 |
+| F5 | color test | `F2` | 0x3 |
+| F2 | input test mode | `F3` | 0x1 |
+| F4 | crosshair pattern | `F3` | 0x2 |
+
+## DIP switches (factory defaults)
+
+| Setting | Port | Mask | Default |
+| --- | --- | --- | --- |
+| Cabinet | `P2` | 0x80 | 0x80 |
+| Monitor Type | `MONITOR_TYPE` | 0x1 | 0x0 |
+| Color Test | `F2` | 0x3 | 0x0 |
+| Bonus Life | `F2` | 0xc0 | 0xc0 |
+| Input Test Mode | `F3` | 0x1 | 0x0 |
+| Crosshair Pattern | `F3` | 0x2 | 0x0 |
+| Language | `F3` | 0xc0 | 0x0 |
+| "Coin "#1 | `F4` | 0xf | 0x0 |
+| "Coin "#2 | `F5` | 0xf | 0x0 |
+| "Coin "#3 | `F6` | 0xf | 0x0 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/stern/berzerk.cpp`
+- **Written by:** Zsolt Vasvari, Aaron Giles, R. Belmont, Jonathan Gevaryahu
+- **License:** BSD-3-Clause
+- **Development:** 209 commits by 33 contributors, 2007–2026
+- **Top contributors:** Aaron Giles, Miodrag Milanovic, Vas Crabb, Jonathan Gevaryahu, hap
+
+## The story
+
+Arcade Video game published 46 years ago:
+
+Berzerk (c) 1980 Stern Electronics.
+
+The player controls the 'Humanoid' and must navigate a number of robot-filled rooms; each with up to as many as eleven, laser-firing enemy robots. The Humanoid can be killed either by a single shot from a robot, by running into a robot, by running into a wall of the maze, or by being touched by the player's nemesis, 'Evil Otto'.
+
+To advance through the game, players must fight their way through each room to an opening at one of the far walls. Each robot destroyed is worth 50 points and while it's possible to progress without killing every robot in each room, destroying all of them will earn the player a per-maze bonus (worth ten points per robot). The game has an impressive 64,000 mazes, with each level designed to be more difficult than the last.
+
+### Technical
+The Berzerk cabinet was the first in a series of cabinets from Stern that had a patented pull out drawer that allowed access to the games circuit boards from the front of the cabinet. This title features rather primitive painted side-art that only uses two colors, but it makes up for it with the awesome comic book style art on the control panel and monitor bezel. The marquee is only a 'Berzerk' logo, and it kind of looks like something that someone might have done in their high school airbrush class.
+
+Berzerk is technically a monochrome game. It uses a special 'color overlay' circuit board to add color to the games graphics before they go to the monitor. A side effect of this is that walking very close to a wall will cause that section of the wall to change to your color.
+
+Berzerk, in common with other machines commonly thought to have used samples (such as Atari's "Star Wars", "Paperboy" and "Gauntlet") used LPC encoded speech and a dedicated speech synthesizer. So the speech is technically encoded data for this speech synth, rather than the now far simpler, digitized audio 'samples' for play back via a DAC.
+
+Here is all of the robots' speech in the game:
+
+During certain in-game events:
+"Coin detected in pocket!" - heard randomly during attract mode, especially while showing the high score list.
+"Intruder alert! Intruder alert!" - when Evil Otto appears.
+"The Humanoid must not escape!" OR "The intruder must not escape!" - when the Humanoid escapes the room after destroying every robot.
+"Chicken! Fight like a robot!" - when the Humanoid escapes the room without destroying every robot first.
+"Got the Humanoid! Got the intruder!" - when the Humanoid is killed. ("Got the intruder!" is a minor third higher in pitch than "Got the Humanoid!")
+
+Random chatter during gameplay:
+"Charge...", "Attack...", "Shoot...", "Kill...", "Destroy...", OR "Get...", followed by "the Humanoid", "the intruder", "it", or "the chicken".
+NOTE: In this case, you'll only hear "the chicken" if you escaped the previous maze without first destroying every robot, resulting in the "Chicken! Fight like a robot!" message.
+
+The speed and pitch of some of the phrases vary from deep and slow to high and fast.
+
+Main CPU : Zilog Z80
+Sound Chips : Custom tone generator, custom LPC speech synthesis chip
+
+Control : 8-way joystick
+Buttons : 1 (FIRE)
+
+### Trivia
+Berzerk was released on November 12, 1980 (Wednesday) in the USA.
+
+Alan McNeil, an employee of Universal Research Laboratories (a division of Stern Electronics), had a dream one night involving a black-and-white video game in which he had to fight robots. This dream, with heavy borrowing from the BASIC game 'Robots' ('Daleks' in the UK), was the basis for Berzerk. The idea for a black-and-white game was abandoned when the color game "Defender" was released earlier the same year to significant success. At that point Stern decided to use a color overlay board for Berzerk. A quick conversion was made, and all but the earliest versions of the game shipped with a color CRT display. The game was test-marketed successfully at a Chicago singles bar before general release.
+
+The title of the game comes from the series of books called 'The Berzerker Stories' by Fred Saberhagen. It's a novel about robots which go Berzerk and kill everybody.
+
+Berzerk is the first robot killing game but the big selling point of Berzerk was speech.
+From Tony Miller : "The speech was done using LPC coding that I believe was invented by T.I., although I remember we used a National Speech chip in it.  This was when speech and memory was expensive, so we didn't just digitize sounds and dump them out through a DAC. I remember it cost something like $1,000 per word to have the compression done, so we tried to come up with a limited vocabulary which could be rearranged and reused as much as possible. There was some guy up in Silicon Gulch who did this stuff for a living - so it is possible to make money while talking in a monotone.".
+
+The Artist Richard D. James, using his alter ego Caustic Window, has the sample : 'Humanoid must not escape' from this game in his song with the same name as the sample. It's from the album 'Caustic Window Compilation'.
+
+Berzerk was also the first game to attempt a bit of on-screen comedy. Your robot opponents often fell foul of slapstick misfortune, shooting each other in the head or walking into walls and exploding in their attempts to kill you. And if you legged it out of a room without killing them all, the survivors would taunt you in their Speak & Spell voices : "Chicken! Fight like a robot!". Okay, it's not hilarious, but even Bob Monkhouse had to start somewhere. Sometimes when you escape as above, it will just utter "Chicken".
+
+'Evil Otto' was named for 'Dave Otto', who worked for Dave Nutting's Arcade Engineering group as R & D director at the time Alan McNeil did. 'Evil Otto' can be considered one of the most intimidating video game villains of all time. He is, and even travels through walls, preventing a player from loafing in the room. He resembles a bouncing smiley face, and has been called a 'Malicious basketball' by some.
+
+Berzerk was Stern's first major video game success. It was made in both upright (approx. 37,500 units) and cocktail (approx. 1,200 units) models. Berzerk suffered a bit in sales due to frequent breakdowns of it's original giant sized optical 8-way joystick. Approximately 4,200 orders were canceled by distributors and operators whose machines were frequently down from the opto-stick. Stern issued free WICO leaf switch sticks to operators after they had so much trouble with the optical stick, but this still hurt sales.
+
+Berzerk shares a rather chilling distinction of being the first known game to be blamed for an actual player's death. In January 1981, Jeff Dailey was the first person to die playing a video game, a 19-year old Berzerk player, died of a massive heart attack right after playing his favorite game. His score was 16,660 (a very respectable score but disturbing for obvious reasons). On an equally distressing note, in October 1982 at the 'Friar Tuck Game Room' in Calumet City, Illinois : 18-year old Peter Burkowski, a physically healthy person who was alcohol-free and drug-free, inscribed his initials in Berzerk's top ten list twice in a matter of only 15 minutes. A few seconds after that, he collapsed and died of a heart attack.
+In Retrogamer Issue #47, Alan McNeil addressed these legends, and has a different perspective: "...one player did die while playing the game (Alan refutes reports that claim two died). The unfortunate fellow was obese and had run upstairs to play the game", Alan explains: "The legend is he set a high score and died, but the owner of the arcade said he didn’t finish the game – he was out of breath from the moment he arrived until he dropped. The legend is way better than reality: the excitement of playing a game killing a player after setting a high score..."
+
+Steve Wagner holds the official record for this game on the 'Fast Bullets' setting with 350,340 points on March 12, 2009.
+Phil Younger holds the official record for this game on the 'Slow Bullets' setting with 304,570 points on August 12, 2007.
+
+A Berzerk unit appears in the 1982 movie 'Tron' and in the 1983 movie 'Joysticks'.
+
+A Berzerk unit appears in the ZZ Top music video 'Legs'.
+
+A Berzerk unit appears in April Wine's concert video 'Live in London (1981)'
+
+Milton Bradley (MB) released a board game based on this video game (same name) in 1983. 'Can You Survive the Frenzied Attack of the Robot Army?' In this board game version, two players face off. One player controls the Humanoid and the other player controls Evil Otto and the robots. Players alternate sides for a maximum of three rounds or until both have been zapped three times and destroyed as the Humanoid. Humanoid lives are represented by chips placed in front of the player. Each time a player's Humanoid is zapped, the player surrenders one chip. Once a player loses all three chips, that player's Humanoid is destroyed, and therefore he/she cannot control the Humanoid for the rest of the game. The object of the game is to zap more robots while controlling the Humanoid than your opponent.
+
+Berzerk inspired a catchy hit song by Buckner and Garcia called 'Goin' Berzerk' released on the 'Pac-Man Fever' album, here are the full lyrics! :
+
+Verse 1: (Humanoid - This is me.)
+I can move in eight directions.
+Once I start I'm never done.
+I can go from room to room,
+I can crawl or I can run.
+I can wander through the maze.
+It's a wonderland at night,
+I can stop and aim my gun when,
+there's a robot in my sight.
+I can wander through the maze.
+It's a wonderland at night,
+I can stop and aim my gun when,
+there's a robot in my sight.
+
+Chorus: (Robots - The various colored robots.)
+I think I'm going berzerk.
+I think I'm losing my mind.
+I'm getting lost in the shuffle.
+It happens every time.
+I think I'm going berzerk.
+Would you like to come to?
+I can't stop now - I'm addicted!
+I'm berzerk over you.
+
+Verse 2: (Evil Otto - The bouncing smiley face.)
+If we fight this thing together,
+there's a chance that we might win.
+Now here comes Evil Otto,
+push the fire buttons in.
+I'm sure he's crazy too because, 
+he's bouncing off the floor.
+There's no way to destroy him,
+let him bounce right out the door.
+Now here comes Evil Otto,
+push the fire buttons in.
+If we fight this thing together,
+there's a chance that we might win.
+
+(Repeat chorus)
+
+Berzerk, berzerk, berzerk over you (3x),
+Berzerk, berzerk over you.
+
+(Repeat and fade)
+
+The speech, 'Humanoid' and 'Intruder Alert!' featured heavily in 1988's seminal UK Acid track, 'Stakker Humanoid' by later Future Sound of London member Brian Dougans. His use of distortion and slightly lower pitch, leaves the game sounding quite tame by comparison...
+
+### Updates
+Two different versions of the game were released. As a player's score increases, the colors of the enemy robots change, and the robots can have more bullets on the screen at the same time (once they reach the limit, they cannot fire again until one or more of their bullets detonates; the limit applies to the robots as a group, not as individuals). In the original version, the sequence goes :
+* Yellow robots that don't fire
+* Red robots that can fire one bullet
+* Light blue robots that can fire two bullets
+After 5,000 points Evil Otto doubles his speed, moving as fast as the player while robots remain in the maze, and twice as fast as the player after all the robots are destroyed.
+
+The revised version, which had the much larger production run of the two, features a longer color sequence that also included green, purple, gray, and white robots. In this version, the robot sequence went up to five normal speed bullets, then they began firing fast bullets, starting with one fast bullet, and eventually going as high as five bullets, both normal speed and fast speed, at once. After 19,000 points the robots stay light blue and may have up to five bullets on screen for the remainder of play. To balance the greatly increased threat from the robots in this version, Evil Otto's pursuit speed remains at its normal (half or equal the player's speed) level throughout.
+
+### Scoring
+You get 50 points per robot destroyed. It doesn't matter whether you destroy them or they get destroyed some other way.
+
+You get a bonus of 10 times the number of robots in a maze if you clear it For example, if you destroyed all 7 robots in a maze, then your bonus would be 10 X 7 or 70 points.
+
+### Tips and tricks
+* Here is how the rounds progress in the revised version :
+(Points - Robot Color - Shots fired )
+0-260 - Yellow - 0
+260-1,200 - Red - 1
+1,200-3,000 - Light Blue - 2
+3,000-4,500 - Green - 3
+4,500-6,000 - Purple - 4
+6,000-8,000 - Yellow - 5
+8,000-10,000 - White - One fast shot (2x speed)
+10,000-11,000 - Light Blue - Two fast shots
+11,000-13,000 - Purple - Three shots, both normal and fast
+13,000-15,000 - Gray - Four shots, both normal and fast
+15,000-17,000 - Yellow - Five shots, both normal and fast
+17,000-19,000 - Red - Five shots, both normal and fast
+19,000+ - Light Blue - Five shots, both normal and fast
+
+Starting at about 10,000 points, Berzerk becomes largely a game of luck. If you get an open maze with a lot of robots, there is not much you can do.
+
+* In a 1-player game, the Humanoid is always colored green.
+
+* In a 2-player game, the players alternate turns. The Humanoid's color indicates whose turn it is - green for player 1, purple for player 2.
+
+* When you start the game, the Humanoid will be put at the left entrance. (In a 2-player game, player 2's Humanoid will be put at the right entrance.) You will face anywhere from 1 to 11 robots. Quickly assess where the Humanoid is at and destroy the closest robots. The first 3 sets of robots are pretty easy. It's when they start firing those 3+ shots at you or the supershots things can get bad.
+
+* Remember, the Humanoid is longer then he is wide; use this to your advantage. Always try to exit the maze from the left or right exit so that the Humanoid presents a small profile for the next maze. If the Humanoid enters from the top or bottom, you presents a bigger target. Of course, there is no defense against being put right next to a robot.
+
+* There is a 1-2 second delay after you enter a maze before the robots come after you; use that to your advantage. 
+
+* You cannot run and shoot at the same time in this game. You have to stop and shoot. Use the joystick to aim and press the FIRE button. The Humanoid may move a little in that direction so don't try to shoot robots point-blank or you will destroy the robot while the robot vaporizes you.
+
+* When you get into the later rounds, luck will be as much a factor as skill. This is especially true when the robots are firing supershots at you (these shots travel twice the speed of normal shots). 
+
+* Evil Otto (the bouncing happy face) will appear from where the Humanoid entered the maze. Evil Otto's appearance is directly related to how many robots you start with. The lower the number, the sooner Evil Otto appears. Evil Otto cannot be destroyed.
+
+* Because the robots are attracted to you 'as the crow flies', they will tend to clump together and smash into each other. The best way to kill robots is to stand safely behind a wall and let them shoot and smash each other. The ball (Evil Otto) will also kill them. You can ignore some robots in the maze and let Otto kill them for you. Otto follows your position like the robots, so as he comes across the screen, lead him up and down into any remaining robots before you exit.
+
+* If the robot cannot hit you with laser fire, they will still try to kill the Humanoid by attempting to run him over. 
+
+* The walls in the maze are deadly. If the Humanoid or a robot runs into a wall, he is vaporized. (You score the points if a robot is destroyed by running into a wall). The wall will light up if the Humanoid is too close to it. 
+
+* If you and a robot are in line and firing at each other, your shots will negate themselves out. In the later levels, this could prove deadly since they can keep up with your firepower. 
+
+* An Interesting Quirk : There is a one pixel space between the Humanoid's head and shoulders. The game doesn't register it as existing so if a robot's shot goes through that space, the Humanoid doesn't die. 
+
+* The robots always walk toward you unless you're in their line of fire; then they will pause to shoot. There are eight directions you and they can shoot. The only way to survive the higher levels (10,000 points +) is to learn the blind spots of the robots. If you are in a robot's blind spot he poses no threat, and you can concentrate on blasting the others. The angle shots are almost never necessary. It is very difficult to hit a robot with an angle shot. When you shoot, the Humanoid stops moving, when you can't move, you are vulnerable. Make your shots count and don't bother wasting your time with angles unless you are on an early level and need the practice. 
+
+* Because the robots are shorter than you, try to avoid robots at the bottom edge of the screen. By the time you move low enough to get a shot they will have already fired. In contrast, if you come 'up' on robots from the bottom, you can shoot their feet and duck back down before their shot reaches you. 
+
+* Because the Humanoid is a lot taller than he is wide, it is very easy to avoid shots from above and below. Take out the robots to the sides of you first. 
+
+* If you poke your head above a wall just far enough to shoot above it, the robots on the other side of it can't shoot you. They will only hit the wall. ALWAYS use this tactic to kill most of the robots in a maze. When you are in the right position, just hold down the fire button. This will make the Humanoid stand still. You can inch your way very close to the deadly walls without fear of running into them. When shooting up or down, that trick doesn't work. If there is a wall between you and a robot above you, run to the right and start shooting up just past the wall. If you are lucky, the robot will walk into your fire before he gets a shot off. By design, if a robot is above you, he will lock into position directly in-line with your shots, and you will shoot each other's bullets. In early rounds you can overpower a robot and outgun him, but later the robots can keep up with you and you will be in a deadlock. To defeat him, shoot up and immediately walk to the right and he will walk into your bullet. 
+
+* The robots are programmed to avoid colliding into the sides of the deadly walls, but they can't detect the start or end of a wall. If a robot is below the end of a wall, you can move up and direct him into the wall end. 
+
+* In later rounds, all of the real action takes place in the first two or three seconds of a round. If you survive the initial shots from the robots, you are as good as done with the maze. When a new maze comes on screen, you are very vulnerable. Often you are in the line of fire of five robots. As the new maze slides on-screen, you can see it before the robots appear. Use this time to decide which way to run. Assume that there will be a robot in each 'room' or 'nook'. Shoot the robot right in front of you first, and then run toward his position. By running ahead, you will exit the line of fire of any robots above/below you and also the dreaded angle shots. Once you are out of their line of fire, you can re-enter their line of fire selectively and shoot them. Get to a safe barrier as soon as possible and wait for the robots to move into easy positions.
+
+### Staff
+Designed & programmed by: Alan McNeil
+
+### Ports
+* CONSOLES:
+[US] GCE Vectrex (1982) "Berzerk [Model HS-4020]" 
+[US] Atari 2600 (1982) "Berzerk [Model CX2650]" 
+[JP] Atari 2600 (1983) 
+[US] Atari 5200 (1983) "Berzerk [Model CX5221]" 
+[BR] DynaVision (198?) "Berzerk"
+[US] Emerson Arcadia (1982) "Escape [Model 1015]" 
+
+* COMPUTERS:
+[US] Tandy Color Computer (1981) "Berserk"
+[US] Tandy Color Computer (1981) "Robot Battle" 
+[US] Tandy Color Computer (1982) "Android Attack" 
+[US] Tandy Color Computer (1982) "Haywire" 
+[US] Tandy Color Computer (198?) "Monster Maze" 
+[US] PC [Booter] (1983) "Robot War" : A part of the "Friendlyware PC Arcade" suite.
+[EU] Tangerine Microtan 65 (1984)
+
+* OTHERS:
+[US] VFD handheld game (1982) by Coleco: Unfortunately, this game was never released.
+
+### Series
+1. Berzerk (1980)
+2. Frenzy (1982)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/236/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `berzerk`. Play it at [../../../app/g/berzerk/](../../../app/g/berzerk/) or [explore the knowledge graph](viewer.html).*

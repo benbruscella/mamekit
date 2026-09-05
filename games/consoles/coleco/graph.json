@@ -1,0 +1,3561 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/coleco/coleco.cpp",
+    "generatedAt": "2026-09-05T03:50:50.431Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Mike Balfour, Ben Bruscella, Sean Young, Frank Palazzolo"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/coleco/coleco.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/coleco/coleco.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:coleco.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "coleco.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/coleco/expansion/expansion.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/coleco/expansion/expansion.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:softlist_dev.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "softlist_dev.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:logmacro.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "logmacro.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:coleco_m.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "coleco_m.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/coleco/coleco_m.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/coleco/coleco_m.cpp"
+      }
+    },
+    {
+      "id": "game:coleco",
+      "label": "Game",
+      "props": {
+        "name": "coleco",
+        "year": "1982",
+        "company": "Coleco",
+        "fullname": "ColecoVision (NTSC)",
+        "monitor": "ROT0",
+        "cls": "coleco_state",
+        "init": "empty_init",
+        "flags": "0",
+        "kind": "console",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 1,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "id": "romset:coleco",
+      "label": "RomSet",
+      "props": {
+        "name": "coleco",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 670,
+        "sourceColumn": 1,
+        "sourceEndLine": 670
+      }
+    },
+    {
+      "id": "region:coleco/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 671,
+        "sourceColumn": 2,
+        "sourceEndLine": 671
+      }
+    },
+    {
+      "id": "rom:coleco/maincpu/313_10031-4005_73108a.u2",
+      "label": "Rom",
+      "props": {
+        "file": "313_10031-4005_73108a.u2",
+        "offset": 0,
+        "size": 8192,
+        "crc": "3aa93ef3",
+        "sha1": "45bedc4cbdeac66c7df59e9e599195c778d86a92",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 672,
+        "sourceColumn": 2,
+        "sourceEndLine": 672
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "coleco_state",
+        "name": "coleco_map",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 163,
+        "sourceColumn": 1,
+        "sourceEndLine": 168
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 8191,
+        "raw": "map(0x0000, 0x1fff).rom()",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 165,
+        "sourceColumn": 2,
+        "sourceEndLine": 165,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 25599,
+        "raw": "map(0x6000, 0x63ff).ram().mirror(0x1c00)",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 2,
+        "sourceEndLine": 166,
+        "mirror": 7168,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).rw(FUNC(coleco_state::cart_r), FUNC(coleco_state::cart_w))",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 167,
+        "sourceColumn": 2,
+        "sourceEndLine": 167
+      }
+    },
+    {
+      "id": "handler:coleco_state.cart_r",
+      "label": "Handler",
+      "props": {
+        "method": "cart_r",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 408,
+        "sourceColumn": 1,
+        "sourceEndLine": 411,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "return m_cart->read(offset, 0, 0, 0, 0);"
+      }
+    },
+    {
+      "id": "handler:coleco_state.cart_w",
+      "label": "Handler",
+      "props": {
+        "method": "cart_w",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 413,
+        "sourceColumn": 1,
+        "sourceEndLine": 416,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_cart->write(offset, data, 0, 0, 0, 0);"
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "coleco_state",
+        "name": "coleco_io_map",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 179,
+        "sourceColumn": 1,
+        "sourceEndLine": 189,
+        "globalMask": 255,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 128,
+        "end": 128,
+        "raw": "map(0x80, 0x80).mirror(0x1f).w(FUNC(coleco_state::paddle_off_w))",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 183,
+        "sourceColumn": 2,
+        "sourceEndLine": 183,
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:coleco_state.paddle_off_w",
+      "label": "Handler",
+      "props": {
+        "method": "paddle_off_w",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 97,
+        "sourceColumn": 1,
+        "sourceEndLine": 100,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_joy_mode = 0;"
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_io_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 160,
+        "end": 161,
+        "raw": "map(0xa0, 0xa1).mirror(0x1e).rw(\"tms9928a\", FUNC(tms9928a_device::read), FUNC(tms9928a_device::write))",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 184,
+        "sourceColumn": 2,
+        "sourceEndLine": 184,
+        "mirror": 30
+      }
+    },
+    {
+      "id": "handler:tms9928a_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "tms9928a_device",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 197,
+        "sourceColumn": 2,
+        "sourceEndLine": 197
+      }
+    },
+    {
+      "id": "handler:tms9928a_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "tms9928a_device",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 197,
+        "sourceColumn": 2,
+        "sourceEndLine": 197
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_io_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 192,
+        "end": 192,
+        "raw": "map(0xc0, 0xc0).mirror(0x1f).w(FUNC(coleco_state::paddle_on_w))",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 185,
+        "sourceColumn": 2,
+        "sourceEndLine": 185,
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:coleco_state.paddle_on_w",
+      "label": "Handler",
+      "props": {
+        "method": "paddle_on_w",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 102,
+        "sourceColumn": 1,
+        "sourceEndLine": 105,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_joy_mode = 1;"
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_io_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 224,
+        "end": 224,
+        "raw": "map(0xe0, 0xe0).mirror(0x1f).w(\"sn76489a\", FUNC(sn76489a_device::write))",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 186,
+        "sourceColumn": 2,
+        "sourceEndLine": 186,
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:sn76489a_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "sn76489a_device",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 203,
+        "sourceColumn": 2,
+        "sourceEndLine": 203
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_io_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 224,
+        "end": 224,
+        "raw": "map(0xe0, 0xe0).mirror(0x1d).r(FUNC(coleco_state::paddle_1_r))",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 187,
+        "sourceColumn": 2,
+        "sourceEndLine": 187,
+        "mirror": 29
+      }
+    },
+    {
+      "id": "handler:coleco_state.paddle_1_r",
+      "label": "Handler",
+      "props": {
+        "method": "paddle_1_r",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 84,
+        "sourceColumn": 1,
+        "sourceEndLine": 87,
+        "sourceParameters": "",
+        "sourceBody": "return m_joy_d7_state[0] | coleco_paddle_read(0, m_joy_mode, m_joy_analog_state[0]);"
+      }
+    },
+    {
+      "id": "handler:coleco_state.coleco_paddle_read",
+      "label": "Handler",
+      "props": {
+        "method": "coleco_paddle_read",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 447,
+        "sourceColumn": 1,
+        "sourceEndLine": 507,
+        "sourceParameters": "int port, int joy_mode, uint8_t joy_status",
+        "sourceBody": "uint8_t ctrl_sel = m_ctrlsel.read_safe(0);\n\tuint8_t ctrl_extra = ctrl_sel & 0x80;\n\tctrl_sel = ctrl_sel >> (port*4) & 7;\n\n\t/* Keypad and fire 1 (SAC Yellow Button) */\n\tif (joy_mode == 0)\n\t{\n\t\t/* No key pressed by default */\n\t\tuint8_t data = 0x0f;\n\t\tuint16_t ipt = 0xffff;\n\n\t\tif (ctrl_sel == 0)          // ColecoVision Controller\n\t\t\tipt = port ? m_std_keypad2->read() : m_std_keypad1->read();\n\t\telse if (ctrl_sel == 2)     // Super Action Controller\n\t\t\tipt = port ? m_sac_keypad2->read() : m_sac_keypad1->read();\n\n\t\t/* Numeric pad buttons are not independent on a real ColecoVision, if you push more\n\t\t   than one, a real ColecoVision think that it is a third button, so we are going to emulate\n\t\t   the right behaviour */\n\t\t/* Super Action Controller additional buttons are read in the same way */\n\t\tif (!(ipt & 0x0001)) data &= 0x0a; /* 0 */\n\t\tif (!(ipt & 0x0002)) data &= 0x0d; /* 1 */\n\t\tif (!(ipt & 0x0004)) data &= 0x07; /* 2 */\n\t\tif (!(ipt & 0x0008)) data &= 0x0c; /* 3 */\n\t\tif (!(ipt & 0x0010)) data &= 0x02; /* 4 */\n\t\tif (!(ipt & 0x0020)) data &= 0x03; /* 5 */\n\t\tif (!(ipt & 0x0040)) data &= 0x0e; /* 6 */\n\t\tif (!(ipt & 0x0080)) data &= 0x05; /* 7 */\n\t\tif (!(ipt & 0x0100)) data &= 0x01; /* 8 */\n\t\tif (!(ipt & 0x0200)) data &= 0x0b; /* 9 */\n\t\tif (!(ipt & 0x0400)) data &= 0x06; /* # */\n\t\tif (!(ipt & 0x0800)) data &= 0x09; /* * */\n\t\tif (!(ipt & 0x1000)) data &= 0x04; /* Blue Action Button */\n\t\tif (!(ipt & 0x2000)) data &= 0x08; /* Purple Action Button */\n\n\t\treturn ((ipt & 0x4000) >> 8) | 0x30 | data;\n\t}\n\t/* Joystick and fire 2 (SAC Red Button) */\n\telse\n\t{\n\t\tuint8_t data = 0x7f;\n\n\t\tif (ctrl_sel == 0)          // ColecoVision Controller\n\t\t\tdata = port ? m_std_joy2->read() : m_std_joy1->read();\n\t\telse if (ctrl_sel == 2)     // Super Action Controller\n\t\t\tdata = port ? m_sac_joy2->read() : m_sac_joy1->read();\n\t\telse if (ctrl_sel == 3)     // Driving Controller\n\t\t\tdata = port ? m_driv_pedal2->read() : m_driv_pedal1->read();\n\n\t\t/* If any extra analog contoller enabled */\n\t\tif (ctrl_extra || ctrl_sel == 2 || ctrl_sel == 3)\n\t\t{\n\t\t\tif (joy_status & 0x80) data ^= 0x30;\n\t\t\telse if (joy_status) data ^= 0x10;\n\t\t}\n\n\t\treturn data & 0x7f;\n\t}",
+        "inputMembers": [
+          "m_ctrlsel=CTRLSEL",
+          "m_std_keypad1=STD_KEYPAD1",
+          "m_std_joy1=STD_JOY1",
+          "m_std_keypad2=STD_KEYPAD2",
+          "m_std_joy2=STD_JOY2",
+          "m_sac_keypad1=SAC_KEYPAD1",
+          "m_sac_joy1=SAC_JOY1",
+          "m_sac_keypad2=SAC_KEYPAD2",
+          "m_sac_joy2=SAC_JOY2",
+          "m_driv_pedal1=DRIV_PEDAL1",
+          "m_driv_pedal2=DRIV_PEDAL2"
+        ]
+      }
+    },
+    {
+      "id": "map:coleco_state.coleco_io_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 226,
+        "end": 226,
+        "raw": "map(0xe2, 0xe2).mirror(0x1d).r(FUNC(coleco_state::paddle_2_r))",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 188,
+        "sourceColumn": 2,
+        "sourceEndLine": 188,
+        "mirror": 29
+      }
+    },
+    {
+      "id": "handler:coleco_state.paddle_2_r",
+      "label": "Handler",
+      "props": {
+        "method": "paddle_2_r",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 89,
+        "sourceColumn": 1,
+        "sourceEndLine": 95,
+        "sourceParameters": "",
+        "sourceBody": "// Tape notes:\n\t//     Signal is averaged to set the threshold voltage for a comparator\n\t//     Output of the comparator goes to bit 7\n\treturn m_joy_d7_state[1] | coleco_paddle_read(1, m_joy_mode, m_joy_analog_state[1]);"
+      }
+    },
+    {
+      "id": "machine:coleco_state.coleco",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "coleco_state",
+        "name": "coleco",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_joy_mode\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_joy_irq_state\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_joy_d7_state\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_joy_analog_state\",\"bits\":8,\"arrayLength\":2}",
+          "{\"name\":\"m_joy_analog_reload\",\"bits\":8,\"arrayLength\":2}"
+        ],
+        "resetHandlers": [
+          "coleco_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 563,
+        "sourceColumn": 1,
+        "sourceEndLine": 599
+      }
+    },
+    {
+      "id": "handler:coleco_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "coleco_state",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 537,
+        "sourceColumn": 1,
+        "sourceEndLine": 539,
+        "sourceParameters": "",
+        "sourceBody": ""
+      }
+    },
+    {
+      "id": "softlist:coleco_state.coleco/coleco",
+      "label": "SoftwareList",
+      "props": {
+        "name": "coleco",
+        "tag": "cart_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:coleco_state.coleco/coleco_homebrew",
+      "label": "SoftwareList",
+      "props": {
+        "name": "coleco_homebrew",
+        "tag": "homebrew_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3579545,
+        "config": [
+          "Z80(config, m_maincpu, XTAL(7'159'090)/2)",
+          "m_maincpu->z80_set_m1_cycles(4+1)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &coleco_state::coleco_map)",
+          "m_maincpu->set_addrmap(AS_IO, &coleco_state::coleco_io_map)"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 566,
+        "sourceColumn": 2,
+        "sourceEndLine": 566,
+        "configCalls": [
+          "z80_set_m1_cycles(5)"
+        ]
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/tms9928a",
+      "label": "Device",
+      "props": {
+        "type": "TMS9928A",
+        "tag": "tms9928a",
+        "clock": 10738635,
+        "config": [
+          "tms9928a_device &vdp(TMS9928A(config, \"tms9928a\", XTAL(10'738'635)))",
+          "vdp.set_screen(\"screen\")",
+          "vdp.set_vram_size(0x4000)",
+          "vdp.int_callback().set_inputline(m_maincpu, INPUT_LINE_NMI)"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 572,
+        "sourceColumn": 2,
+        "sourceEndLine": 572,
+        "configCalls": [
+          "set_vram_size(16384)"
+        ]
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/tms9928a/callback:tms9928a:0",
+      "label": "Callback",
+      "props": {
+        "signal": "int_callback",
+        "operation": "set_inputline",
+        "raw": "vdp.int_callback().set_inputline(m_maincpu, INPUT_LINE_NMI)",
+        "ownerTag": "tms9928a",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 575,
+        "sourceColumn": 2,
+        "sourceEndLine": 575,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, \"screen\", SCREEN_TYPE_RASTER)"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 576,
+        "sourceColumn": 2,
+        "sourceEndLine": 576,
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          5369317,
+          342,
+          25,
+          305,
+          262,
+          28,
+          244
+        ]
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 2,
+        "sourceEndLine": 579
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/sn76489a",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "sn76489a",
+        "clock": 3579545,
+        "config": [
+          "sn76489a_device &psg(SN76489A(config, \"sn76489a\", XTAL(7'159'090)/2))",
+          "psg.add_route(ALL_OUTPUTS, \"mono\", 1.00)",
+          "psg.ready_cb().set_inputline(\"maincpu\", Z80_INPUT_LINE_WAIT).invert()"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 580,
+        "sourceColumn": 2,
+        "sourceEndLine": 580
+      }
+    },
+    {
+      "id": "audioroute:device:coleco_state.coleco/sn76489a/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "psg.add_route(ALL_OUTPUTS, \"mono\", 1.00)",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/sn76489a/callback:sn76489a:0",
+      "label": "Callback",
+      "props": {
+        "signal": "ready_cb",
+        "operation": "set_inputline",
+        "raw": "psg.ready_cb().set_inputline(\"maincpu\", Z80_INPUT_LINE_WAIT).invert()",
+        "ownerTag": "sn76489a",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 2,
+        "sourceEndLine": 582,
+        "transforms": [
+          "invert"
+        ],
+        "targetTag": "maincpu",
+        "inputLine": "Z80_INPUT_LINE_WAIT"
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/cart",
+      "label": "Device",
+      "props": {
+        "type": "COLECOVISION_CARTRIDGE_SLOT",
+        "tag": "cart",
+        "clock": null,
+        "config": [
+          "COLECOVISION_CARTRIDGE_SLOT(config, m_cart, colecovision_cartridges, nullptr)"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 585,
+        "sourceColumn": 2,
+        "sourceEndLine": 585,
+        "clockExpr": "colecovision_cartridges"
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/paddle_timer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "paddle_timer",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"paddle_timer\").configure_periodic(FUNC(coleco_state::paddle_update_callback), attotime::from_msec(20))"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/exp",
+      "label": "Device",
+      "props": {
+        "type": "COLECO_EXPANSION",
+        "tag": "exp",
+        "clock": null,
+        "config": [
+          "coleco_expansion_device &exp(COLECO_EXPANSION(config, \"exp\", nullptr))",
+          "exp.set_program_space(m_maincpu, AS_PROGRAM)",
+          "exp.set_io_space(m_maincpu, AS_IO)",
+          "exp.int_handler().set_inputline(m_maincpu, INPUT_LINE_IRQ0)",
+          "exp.nmi_handler().set_inputline(m_maincpu, INPUT_LINE_NMI)",
+          "exp.add_route(ALL_OUTPUTS, \"mono\", 1.00)"
+        ],
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593,
+        "clockExpr": "nullptr"
+      }
+    },
+    {
+      "id": "audioroute:device:coleco_state.coleco/exp/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "exp.add_route(ALL_OUTPUTS, \"mono\", 1.00)",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 598,
+        "sourceColumn": 2,
+        "sourceEndLine": 598
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/exp/callback:exp:0",
+      "label": "Callback",
+      "props": {
+        "signal": "int_handler",
+        "operation": "set_inputline",
+        "raw": "exp.int_handler().set_inputline(m_maincpu, INPUT_LINE_IRQ0)",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596,
+        "inputLine": "INPUT_LINE_IRQ0",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/exp/callback:exp:1",
+      "label": "Callback",
+      "props": {
+        "signal": "nmi_handler",
+        "operation": "set_inputline",
+        "raw": "exp.nmi_handler().set_inputline(m_maincpu, INPUT_LINE_NMI)",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 597,
+        "sourceColumn": 2,
+        "sourceEndLine": 597,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "inputs:ctrl1",
+      "label": "InputPorts",
+      "props": {
+        "name": "ctrl1",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 7,
+        "sourceColumn": 8,
+        "sourceEndLine": 7
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1",
+      "label": "Port",
+      "props": {
+        "tag": "STD_KEYPAD1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"0 (pad 1)\")",
+          "PORT_CODE(KEYCODE_0_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"1 (pad 1)\")",
+          "PORT_CODE(KEYCODE_1_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"2 (pad 1)\")",
+          "PORT_CODE(KEYCODE_2_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"3 (pad 1)\")",
+          "PORT_CODE(KEYCODE_3_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"4 (pad 1)\")",
+          "PORT_CODE(KEYCODE_4_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"5 (pad 1)\")",
+          "PORT_CODE(KEYCODE_5_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"6 (pad 1)\")",
+          "PORT_CODE(KEYCODE_6_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"7 (pad 1)\")",
+          "PORT_CODE(KEYCODE_7_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"8 (pad 1)\")",
+          "PORT_CODE(KEYCODE_8_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"9 (pad 1)\")",
+          "PORT_CODE(KEYCODE_9_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"# (pad 1)\")",
+          "PORT_CODE(KEYCODE_MINUS_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"* (pad 1)\")",
+          "PORT_CODE(KEYCODE_PLUS_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_KEYPAD1/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 45056,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 45056
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_JOY1",
+      "label": "Port",
+      "props": {
+        "tag": "STD_JOY1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_JOY1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_JOY1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_JOY1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_JOY1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_JOY1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:ctrl1/STD_JOY1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 176,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x00)"
+        ],
+        "defaultValue": 176
+      }
+    },
+    {
+      "id": "inputs:ctrl2",
+      "label": "InputPorts",
+      "props": {
+        "name": "ctrl2",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 33,
+        "sourceColumn": 8,
+        "sourceEndLine": 33
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2",
+      "label": "Port",
+      "props": {
+        "tag": "STD_KEYPAD2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"0 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"1 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"2 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"3 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"4 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"5 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"6 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"7 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"8 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"9 (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"# (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"* (pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_KEYPAD2/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 45056,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 45056
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_JOY2",
+      "label": "Port",
+      "props": {
+        "tag": "STD_JOY2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_JOY2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_JOY2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_JOY2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_JOY2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_JOY2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:ctrl2/STD_JOY2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 176,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x00)"
+        ],
+        "defaultValue": 176
+      }
+    },
+    {
+      "id": "inputs:sac1",
+      "label": "InputPorts",
+      "props": {
+        "name": "sac1",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 61,
+        "sourceColumn": 8,
+        "sourceEndLine": 61
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1",
+      "label": "Port",
+      "props": {
+        "tag": "SAC_KEYPAD1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"0 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_0_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"1 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_1_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"2 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_2_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"3 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_3_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"4 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_4_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"5 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_5_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"6 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_6_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"7 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_7_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"8 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_8_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"9 (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_9_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"# (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_MINUS_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"* (SAC pad 1)\")",
+          "PORT_CODE(KEYCODE_PLUS_PAD)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4096,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_NAME(\"Blue Action Button P1\")",
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 4096
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8192,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_NAME(\"Purple Action Button P1\")",
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 8192
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f14",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"Orange Action Button P1\")",
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_KEYPAD1/f15",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32768,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_JOY1",
+      "label": "Port",
+      "props": {
+        "tag": "SAC_JOY1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_JOY1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_JOY1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_JOY1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_JOY1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_JOY1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"Yellow Action Button P1\")",
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_JOY1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 176,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 176
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_SLIDE1",
+      "label": "Port",
+      "props": {
+        "tag": "SAC_SLIDE1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:sac1/SAC_SLIDE1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_DIAL",
+        "modifiers": [
+          "PORT_SENSITIVITY(100)",
+          "PORT_KEYDELTA(25)",
+          "PORT_CODE_DEC(KEYCODE_J)",
+          "PORT_CODE_INC(KEYCODE_L)",
+          "PORT_REVERSE",
+          "PORT_RESET",
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x02)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:sac2",
+      "label": "InputPorts",
+      "props": {
+        "name": "sac2",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 92,
+        "sourceColumn": 8,
+        "sourceEndLine": 92
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2",
+      "label": "Port",
+      "props": {
+        "tag": "SAC_KEYPAD2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"0 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"1 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"2 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"3 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"4 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"5 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"6 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"7 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"8 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"9 (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"# (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_KEYPAD",
+        "modifiers": [
+          "PORT_NAME(\"* (SAC pad 2)\")",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4096,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_NAME(\"Blue Action Button P2\")",
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 4096
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8192,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_NAME(\"Purple Action Button P2\")",
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 8192
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f14",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"Orange Action Button P2\")",
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_KEYPAD2/f15",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32768,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_JOY2",
+      "label": "Port",
+      "props": {
+        "tag": "SAC_JOY2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_JOY2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_JOY2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_JOY2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_JOY2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_JOY2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"Yellow Action Button P2\")",
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_JOY2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 176,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 176
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_SLIDE2",
+      "label": "Port",
+      "props": {
+        "tag": "SAC_SLIDE2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:sac2/SAC_SLIDE2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_DIAL",
+        "modifiers": [
+          "PORT_SENSITIVITY(100)",
+          "PORT_KEYDELTA(25)",
+          "PORT_CODE_DEC(KEYCODE_I)",
+          "PORT_CODE_INC(KEYCODE_K)",
+          "PORT_RESET",
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x20)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:driv1",
+      "label": "InputPorts",
+      "props": {
+        "name": "driv1",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 125,
+        "sourceColumn": 8,
+        "sourceEndLine": 125
+      }
+    },
+    {
+      "id": "inputs:driv1/DRIV_WHEEL1",
+      "label": "Port",
+      "props": {
+        "tag": "DRIV_WHEEL1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:driv1/DRIV_WHEEL1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_DIAL",
+        "modifiers": [
+          "PORT_SENSITIVITY(100)",
+          "PORT_KEYDELTA(25)",
+          "PORT_CODE_DEC(KEYCODE_J)",
+          "PORT_CODE_INC(KEYCODE_L)",
+          "PORT_REVERSE",
+          "PORT_RESET",
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x03)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:driv1/DRIV_PEDAL1",
+      "label": "Port",
+      "props": {
+        "tag": "DRIV_PEDAL1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:driv1/DRIV_PEDAL1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x03)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:driv1/DRIV_PEDAL1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 191,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x07, EQUALS, 0x03)"
+        ],
+        "defaultValue": 191
+      }
+    },
+    {
+      "id": "inputs:driv2",
+      "label": "InputPorts",
+      "props": {
+        "name": "driv2",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 134,
+        "sourceColumn": 8,
+        "sourceEndLine": 134
+      }
+    },
+    {
+      "id": "inputs:driv2/DRIV_WHEEL2",
+      "label": "Port",
+      "props": {
+        "tag": "DRIV_WHEEL2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:driv2/DRIV_WHEEL2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_DIAL",
+        "modifiers": [
+          "PORT_SENSITIVITY(100)",
+          "PORT_KEYDELTA(25)",
+          "PORT_CODE_DEC(KEYCODE_I)",
+          "PORT_CODE_INC(KEYCODE_K)",
+          "PORT_RESET",
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x30)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:driv2/DRIV_PEDAL2",
+      "label": "Port",
+      "props": {
+        "tag": "DRIV_PEDAL2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:driv2/DRIV_PEDAL2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)",
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x30)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:driv2/DRIV_PEDAL2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 191,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "modifiers": [
+          "PORT_CONDITION(\"CTRLSEL\", 0x70, EQUALS, 0x30)"
+        ],
+        "defaultValue": 191
+      }
+    },
+    {
+      "id": "inputs:roller",
+      "label": "InputPorts",
+      "props": {
+        "name": "roller",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 8,
+        "sourceEndLine": 145
+      }
+    },
+    {
+      "id": "inputs:roller/ROLLER_X",
+      "label": "Port",
+      "props": {
+        "tag": "ROLLER_X",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:roller/ROLLER_X/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_X",
+        "modifiers": [
+          "PORT_SENSITIVITY(100)",
+          "PORT_KEYDELTA(25)",
+          "PORT_CODE_DEC(KEYCODE_J)",
+          "PORT_CODE_INC(KEYCODE_L)",
+          "PORT_REVERSE",
+          "PORT_RESET",
+          "PORT_CONDITION(\"CTRLSEL\", 0x80, EQUALS, 0x80)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:roller/ROLLER_Y",
+      "label": "Port",
+      "props": {
+        "tag": "ROLLER_Y",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:roller/ROLLER_Y/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_Y",
+        "modifiers": [
+          "PORT_SENSITIVITY(100)",
+          "PORT_KEYDELTA(25)",
+          "PORT_CODE_DEC(KEYCODE_I)",
+          "PORT_CODE_INC(KEYCODE_K)",
+          "PORT_RESET",
+          "PORT_CONDITION(\"CTRLSEL\", 0x80, EQUALS, 0x80)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:coleco",
+      "label": "InputPorts",
+      "props": {
+        "name": "coleco",
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 154,
+        "sourceColumn": 1,
+        "sourceEndLine": 154
+      }
+    },
+    {
+      "id": "inputs:coleco/CTRLSEL",
+      "label": "Port",
+      "props": {
+        "tag": "CTRLSEL",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:coleco/CTRLSEL/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 7,
+        "name": "Port 1 Controller",
+        "defaultValue": 0,
+        "settings": [
+          "1=None",
+          "0=ColecoVision Controller",
+          "2=Super Action Controller",
+          "3=Driving Controller"
+        ]
+      }
+    },
+    {
+      "id": "inputs:coleco/CTRLSEL/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 112,
+        "name": "Port 2 Controller",
+        "defaultValue": 0,
+        "settings": [
+          "16=None",
+          "0=ColecoVision Controller",
+          "32=Super Action Controller",
+          "48=Driving Controller"
+        ]
+      }
+    },
+    {
+      "id": "inputs:coleco/CTRLSEL/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Extra Controller",
+        "defaultValue": 0,
+        "settings": [
+          "0=None",
+          "128=Roller Controller"
+        ]
+      }
+    },
+    {
+      "id": "device:coleco_state.coleco/screen/callback:screen:device",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen().set_screen_update(*this, FUNC(tms9928a_device::screen_update))",
+        "ownerTag": "screen",
+        "deviceTag": "tms9928a",
+        "targetClass": "tms9928a_device",
+        "targetMethod": "screen_update",
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 572
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:coleco",
+      "to": "file:src/mame/coleco/coleco.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 1,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "from": "game:coleco",
+      "to": "machine:coleco_state.coleco",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:coleco",
+      "to": "inputs:coleco",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:coleco",
+      "to": "romset:coleco",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco.cpp",
+      "to": "file:coleco.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco.cpp",
+      "to": "file:bus/coleco/expansion/expansion.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco.cpp",
+      "to": "file:softlist_dev.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco.cpp",
+      "to": "file:logmacro.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "file:src/mame/coleco/coleco.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 563,
+        "sourceColumn": 1,
+        "sourceEndLine": 599
+      }
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "handler:coleco_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "softlist:coleco_state.coleco/coleco",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "softlist:coleco_state.coleco/coleco_homebrew",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/tms9928a",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/sn76489a",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/cart",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/paddle_timer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:coleco_state.coleco",
+      "to": "device:coleco_state.coleco/exp",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 154,
+        "sourceColumn": 1,
+        "sourceEndLine": 154
+      }
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:ctrl1",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:ctrl2",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:sac1",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:sac2",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:driv1",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:driv2",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:roller",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:coleco",
+      "to": "inputs:coleco/CTRLSEL",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:coleco",
+      "to": "file:src/mame/coleco/coleco.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 670,
+        "sourceColumn": 1,
+        "sourceEndLine": 670
+      }
+    },
+    {
+      "from": "romset:coleco",
+      "to": "region:coleco/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:coleco_state.coleco/maincpu",
+      "to": "map:coleco_state.coleco_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:coleco_state.coleco/maincpu",
+      "to": "map:coleco_state.coleco_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:coleco_state.coleco/tms9928a",
+      "to": "device:coleco_state.coleco/tms9928a/callback:tms9928a:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:coleco_state.coleco/screen",
+      "to": "device:coleco_state.coleco/screen/callback:screen:device",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:coleco_state.coleco/sn76489a",
+      "to": "audioroute:device:coleco_state.coleco/sn76489a/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:coleco_state.coleco/sn76489a",
+      "to": "device:coleco_state.coleco/sn76489a/callback:sn76489a:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:coleco_state.coleco/exp",
+      "to": "audioroute:device:coleco_state.coleco/exp/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:coleco_state.coleco/exp",
+      "to": "device:coleco_state.coleco/exp/callback:exp:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:coleco_state.coleco/exp",
+      "to": "device:coleco_state.coleco/exp/callback:exp:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco_m.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/coleco/coleco_m.cpp",
+      "to": "file:coleco_m.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "inputs:ctrl1",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 7,
+        "sourceColumn": 8,
+        "sourceEndLine": 7
+      }
+    },
+    {
+      "from": "inputs:ctrl1",
+      "to": "inputs:ctrl1/STD_KEYPAD1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ctrl1",
+      "to": "inputs:ctrl1/STD_JOY1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ctrl2",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 33,
+        "sourceColumn": 8,
+        "sourceEndLine": 33
+      }
+    },
+    {
+      "from": "inputs:ctrl2",
+      "to": "inputs:ctrl2/STD_KEYPAD2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ctrl2",
+      "to": "inputs:ctrl2/STD_JOY2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:sac1",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 61,
+        "sourceColumn": 8,
+        "sourceEndLine": 61
+      }
+    },
+    {
+      "from": "inputs:sac1",
+      "to": "inputs:sac1/SAC_KEYPAD1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:sac1",
+      "to": "inputs:sac1/SAC_JOY1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:sac1",
+      "to": "inputs:sac1/SAC_SLIDE1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:sac2",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 92,
+        "sourceColumn": 8,
+        "sourceEndLine": 92
+      }
+    },
+    {
+      "from": "inputs:sac2",
+      "to": "inputs:sac2/SAC_KEYPAD2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:sac2",
+      "to": "inputs:sac2/SAC_JOY2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:sac2",
+      "to": "inputs:sac2/SAC_SLIDE2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:driv1",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 125,
+        "sourceColumn": 8,
+        "sourceEndLine": 125
+      }
+    },
+    {
+      "from": "inputs:driv1",
+      "to": "inputs:driv1/DRIV_WHEEL1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:driv1",
+      "to": "inputs:driv1/DRIV_PEDAL1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:driv2",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 134,
+        "sourceColumn": 8,
+        "sourceEndLine": 134
+      }
+    },
+    {
+      "from": "inputs:driv2",
+      "to": "inputs:driv2/DRIV_WHEEL2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:driv2",
+      "to": "inputs:driv2/DRIV_PEDAL2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:roller",
+      "to": "file:src/mame/coleco/coleco_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco_m.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 8,
+        "sourceEndLine": 145
+      }
+    },
+    {
+      "from": "inputs:roller",
+      "to": "inputs:roller/ROLLER_X",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:roller",
+      "to": "inputs:roller/ROLLER_Y",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:coleco/CTRLSEL",
+      "to": "inputs:coleco/CTRLSEL/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:coleco/CTRLSEL",
+      "to": "inputs:coleco/CTRLSEL/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:coleco/CTRLSEL",
+      "to": "inputs:coleco/CTRLSEL/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:coleco/maincpu",
+      "to": "rom:coleco/maincpu/313_10031-4005_73108a.u2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:coleco_state.coleco_map",
+      "to": "file:src/mame/coleco/coleco.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 163,
+        "sourceColumn": 1,
+        "sourceEndLine": 168
+      }
+    },
+    {
+      "from": "map:coleco_state.coleco_map",
+      "to": "map:coleco_state.coleco_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_map",
+      "to": "map:coleco_state.coleco_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_map",
+      "to": "map:coleco_state.coleco_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map",
+      "to": "file:src/mame/coleco/coleco.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/coleco/coleco.cpp",
+        "sourceLine": 179,
+        "sourceColumn": 1,
+        "sourceEndLine": 189
+      }
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map",
+      "to": "map:coleco_state.coleco_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map",
+      "to": "map:coleco_state.coleco_io_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map",
+      "to": "map:coleco_state.coleco_io_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map",
+      "to": "map:coleco_state.coleco_io_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map",
+      "to": "map:coleco_state.coleco_io_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map",
+      "to": "map:coleco_state.coleco_io_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:coleco_state.coleco/tms9928a/callback:tms9928a:0",
+      "to": "device:coleco_state.coleco/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:coleco_state.coleco/sn76489a/callback:sn76489a:0",
+      "to": "device:coleco_state.coleco/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:coleco_state.coleco/exp/callback:exp:0",
+      "to": "device:coleco_state.coleco/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:coleco_state.coleco/exp/callback:exp:1",
+      "to": "device:coleco_state.coleco/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_KEYPAD1",
+      "to": "inputs:ctrl1/STD_KEYPAD1/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_JOY1",
+      "to": "inputs:ctrl1/STD_JOY1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_JOY1",
+      "to": "inputs:ctrl1/STD_JOY1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_JOY1",
+      "to": "inputs:ctrl1/STD_JOY1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_JOY1",
+      "to": "inputs:ctrl1/STD_JOY1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_JOY1",
+      "to": "inputs:ctrl1/STD_JOY1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl1/STD_JOY1",
+      "to": "inputs:ctrl1/STD_JOY1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_KEYPAD2",
+      "to": "inputs:ctrl2/STD_KEYPAD2/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_JOY2",
+      "to": "inputs:ctrl2/STD_JOY2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_JOY2",
+      "to": "inputs:ctrl2/STD_JOY2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_JOY2",
+      "to": "inputs:ctrl2/STD_JOY2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_JOY2",
+      "to": "inputs:ctrl2/STD_JOY2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_JOY2",
+      "to": "inputs:ctrl2/STD_JOY2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ctrl2/STD_JOY2",
+      "to": "inputs:ctrl2/STD_JOY2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f14",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_KEYPAD1",
+      "to": "inputs:sac1/SAC_KEYPAD1/f15",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_JOY1",
+      "to": "inputs:sac1/SAC_JOY1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_JOY1",
+      "to": "inputs:sac1/SAC_JOY1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_JOY1",
+      "to": "inputs:sac1/SAC_JOY1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_JOY1",
+      "to": "inputs:sac1/SAC_JOY1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_JOY1",
+      "to": "inputs:sac1/SAC_JOY1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_JOY1",
+      "to": "inputs:sac1/SAC_JOY1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac1/SAC_SLIDE1",
+      "to": "inputs:sac1/SAC_SLIDE1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f14",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_KEYPAD2",
+      "to": "inputs:sac2/SAC_KEYPAD2/f15",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_JOY2",
+      "to": "inputs:sac2/SAC_JOY2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_JOY2",
+      "to": "inputs:sac2/SAC_JOY2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_JOY2",
+      "to": "inputs:sac2/SAC_JOY2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_JOY2",
+      "to": "inputs:sac2/SAC_JOY2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_JOY2",
+      "to": "inputs:sac2/SAC_JOY2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_JOY2",
+      "to": "inputs:sac2/SAC_JOY2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:sac2/SAC_SLIDE2",
+      "to": "inputs:sac2/SAC_SLIDE2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:driv1/DRIV_WHEEL1",
+      "to": "inputs:driv1/DRIV_WHEEL1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:driv1/DRIV_PEDAL1",
+      "to": "inputs:driv1/DRIV_PEDAL1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:driv1/DRIV_PEDAL1",
+      "to": "inputs:driv1/DRIV_PEDAL1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:driv2/DRIV_WHEEL2",
+      "to": "inputs:driv2/DRIV_WHEEL2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:driv2/DRIV_PEDAL2",
+      "to": "inputs:driv2/DRIV_PEDAL2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:driv2/DRIV_PEDAL2",
+      "to": "inputs:driv2/DRIV_PEDAL2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:roller/ROLLER_X",
+      "to": "inputs:roller/ROLLER_X/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:roller/ROLLER_Y",
+      "to": "inputs:roller/ROLLER_Y/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "map:coleco_state.coleco_map/range2",
+      "to": "handler:coleco_state.cart_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:coleco_state.coleco_map/range2",
+      "to": "handler:coleco_state.cart_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map/range0",
+      "to": "handler:coleco_state.paddle_off_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map/range1",
+      "to": "handler:tms9928a_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "tms9928a"
+      }
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map/range1",
+      "to": "handler:tms9928a_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "tms9928a"
+      }
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map/range2",
+      "to": "handler:coleco_state.paddle_on_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map/range3",
+      "to": "handler:sn76489a_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "sn76489a"
+      }
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map/range4",
+      "to": "handler:coleco_state.paddle_1_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:coleco_state.coleco_io_map/range5",
+      "to": "handler:coleco_state.paddle_2_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:coleco_state.paddle_1_r",
+      "to": "handler:coleco_state.coleco_paddle_read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:coleco_state.paddle_2_r",
+      "to": "handler:coleco_state.coleco_paddle_read",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

@@ -1,0 +1,1973 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/phoenix/phoenix.cpp",
+    "generatedAt": "2026-09-05T03:49:56.459Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Richard Davies"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/phoenix/phoenix.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/phoenix/phoenix.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:phoenix.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "phoenix.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:phoenix_a.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "phoenix_a.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/i8085/i8085.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/i8085/i8085.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/phoenix/phoenix_v.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/phoenix/phoenix_v.cpp"
+      }
+    },
+    {
+      "id": "file:video/resnet.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/resnet.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:phoenix",
+      "label": "Game",
+      "props": {
+        "name": "phoenix",
+        "year": "1980",
+        "company": "Amstar",
+        "fullname": "Phoenix (Amstar, set 1)",
+        "monitor": "ROT90",
+        "cls": "phoenix_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 1848,
+        "sourceColumn": 1,
+        "sourceEndLine": 1848
+      }
+    },
+    {
+      "id": "romset:phoenix",
+      "label": "RomSet",
+      "props": {
+        "name": "phoenix",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 562,
+        "sourceColumn": 1,
+        "sourceEndLine": 562
+      }
+    },
+    {
+      "id": "region:phoenix/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 563,
+        "sourceColumn": 2,
+        "sourceEndLine": 563
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/ic45",
+      "label": "Rom",
+      "props": {
+        "file": "ic45",
+        "offset": 0,
+        "size": 2048,
+        "crc": "9f68086b",
+        "sha1": "fc3cef299bf03bf0586c4047c6b96ca666846220",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 564,
+        "sourceColumn": 2,
+        "sourceEndLine": 564
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/ic46",
+      "label": "Rom",
+      "props": {
+        "file": "ic46",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "273a4a82",
+        "sha1": "6f3019a074e73ff50ceb92f655fcf15659f34919",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 565,
+        "sourceColumn": 2,
+        "sourceEndLine": 565
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/ic47",
+      "label": "Rom",
+      "props": {
+        "file": "ic47",
+        "offset": 4096,
+        "size": 2048,
+        "crc": "3d4284b9",
+        "sha1": "6e69f8f0d537fe89140cd95d2398531d7e93d102",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 566,
+        "sourceColumn": 2,
+        "sourceEndLine": 566
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/ic48",
+      "label": "Rom",
+      "props": {
+        "file": "ic48",
+        "offset": 6144,
+        "size": 2048,
+        "crc": "cb5d9915",
+        "sha1": "49bcf55a5721cfcc02c3b811a4b601e35ea576db",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 567,
+        "sourceColumn": 2,
+        "sourceEndLine": 567
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/h5-ic49.5a",
+      "label": "Rom",
+      "props": {
+        "file": "h5-ic49.5a",
+        "offset": 8192,
+        "size": 2048,
+        "crc": "a105e4e7",
+        "sha1": "b35142a91b6b7fdf7535202671793393c9f4685f",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 568,
+        "sourceColumn": 2,
+        "sourceEndLine": 568
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/h6-ic50.6a",
+      "label": "Rom",
+      "props": {
+        "file": "h6-ic50.6a",
+        "offset": 10240,
+        "size": 2048,
+        "crc": "ac5e9ec1",
+        "sha1": "0402e5241d99759d804291998efd43f37ce99917",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 569,
+        "sourceColumn": 2,
+        "sourceEndLine": 569
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/h7-ic51.7a",
+      "label": "Rom",
+      "props": {
+        "file": "h7-ic51.7a",
+        "offset": 12288,
+        "size": 2048,
+        "crc": "2eab35b4",
+        "sha1": "849bf8273317cc869bdd67e50c68399ee8ece81d",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 570,
+        "sourceColumn": 2,
+        "sourceEndLine": 570
+      }
+    },
+    {
+      "id": "rom:phoenix/maincpu/h8-ic52.8a",
+      "label": "Rom",
+      "props": {
+        "file": "h8-ic52.8a",
+        "offset": 14336,
+        "size": 2048,
+        "crc": "aff8e9c5",
+        "sha1": "e4164f85ec12d4d9bcbffba27ab1f51b3599f6d0",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 571,
+        "sourceColumn": 2,
+        "sourceEndLine": 571
+      }
+    },
+    {
+      "id": "region:phoenix/bgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bgtiles",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 573,
+        "sourceColumn": 2,
+        "sourceEndLine": 573
+      }
+    },
+    {
+      "id": "rom:phoenix/bgtiles/ic23.3d",
+      "label": "Rom",
+      "props": {
+        "file": "ic23.3d",
+        "offset": 0,
+        "size": 2048,
+        "crc": "3c7e623f",
+        "sha1": "e7ff5fc371664af44785c079e92eeb2d8530187b",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 574,
+        "sourceColumn": 2,
+        "sourceEndLine": 574
+      }
+    },
+    {
+      "id": "rom:phoenix/bgtiles/ic24.4d",
+      "label": "Rom",
+      "props": {
+        "file": "ic24.4d",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "59916d3b",
+        "sha1": "71aec70a8e096ed1f0c2297b3ae7dca1b8ecc38d",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 575,
+        "sourceColumn": 2,
+        "sourceEndLine": 575
+      }
+    },
+    {
+      "id": "region:phoenix/fgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fgtiles",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 2,
+        "sourceEndLine": 577
+      }
+    },
+    {
+      "id": "rom:phoenix/fgtiles/b1-ic39.3b",
+      "label": "Rom",
+      "props": {
+        "file": "b1-ic39.3b",
+        "offset": 0,
+        "size": 2048,
+        "crc": "53413e8f",
+        "sha1": "d772358505b973b10da840d204afb210c0c746ec",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 2,
+        "sourceEndLine": 578
+      }
+    },
+    {
+      "id": "rom:phoenix/fgtiles/b2-ic40.4b",
+      "label": "Rom",
+      "props": {
+        "file": "b2-ic40.4b",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "0be2ba91",
+        "sha1": "af9243ee23377b632b9b7d0b84d341d06bf22480",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 2,
+        "sourceEndLine": 579
+      }
+    },
+    {
+      "id": "region:phoenix/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581
+      }
+    },
+    {
+      "id": "rom:phoenix/proms/mmi6301.ic40",
+      "label": "Rom",
+      "props": {
+        "file": "mmi6301.ic40",
+        "offset": 0,
+        "size": 256,
+        "crc": "79350b25",
+        "sha1": "57411be4c1d89677f7919ae295446da90612c8a8",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 2,
+        "sourceEndLine": 582
+      }
+    },
+    {
+      "id": "rom:phoenix/proms/mmi6301.ic41",
+      "label": "Rom",
+      "props": {
+        "file": "mmi6301.ic41",
+        "offset": 256,
+        "size": 256,
+        "crc": "e176b768",
+        "sha1": "e2184dd495ed579f10b6da0b78379e02d7a6229f",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 583,
+        "sourceColumn": 2,
+        "sourceEndLine": 583
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "phoenix_state",
+        "name": "phoenix_memory_map",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 65,
+        "sourceColumn": 1,
+        "sourceEndLine": 75
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rom()",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 67,
+        "sourceColumn": 2,
+        "sourceEndLine": 67,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 20479,
+        "raw": "map(0x4000, 0x4fff).bankr(\"bank1\").w(FUNC(phoenix_state::phoenix_videoram_w))",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 68,
+        "sourceColumn": 2,
+        "sourceEndLine": 68,
+        "bankRead": "bank1"
+      }
+    },
+    {
+      "id": "handler:phoenix_state.phoenix_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "phoenix_videoram_w",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 214,
+        "sourceColumn": 1,
+        "sourceEndLine": 230,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "uint8_t *rom = memregion(\"maincpu\")->base();\n\n\tm_videoram_pg[m_videoram_pg_index][offset] = data;\n\n\tif ((offset & 0x7ff) < 0x340)\n\t{\n\t\tif (offset & 0x800)\n\t\t\tm_bg_tilemap->mark_tile_dirty(offset & 0x3ff);\n\t\telse\n\t\t\tm_fg_tilemap->mark_tile_dirty(offset & 0x3ff);\n\t}\n\n\t/* as part of the protection, Survival executes code from $43a4 */\n\trom[offset + 0x4000] = data;"
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 21503,
+        "raw": "map(0x5000, 0x53ff).w(FUNC(phoenix_state::phoenix_videoreg_w))",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 69,
+        "sourceColumn": 2,
+        "sourceEndLine": 69
+      }
+    },
+    {
+      "id": "handler:phoenix_state.phoenix_videoreg_w",
+      "label": "Handler",
+      "props": {
+        "method": "phoenix_videoreg_w",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 233,
+        "sourceColumn": 1,
+        "sourceEndLine": 253,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "if (m_videoram_pg_index != (data & 1))\n\t{\n\t\t/* set memory bank */\n\t\tm_videoram_pg_index = data & 1;\n\t\tmembank(\"bank1\")->set_entry(m_videoram_pg_index);\n\n\t\tm_cocktail_mode = m_videoram_pg_index && (ioport(\"CAB\")->read() & 0x01);\n\n\t\tmachine().tilemap().set_flip_all(m_cocktail_mode ? (TILEMAP_FLIPX | TILEMAP_FLIPY) : 0);\n\t\tmachine().tilemap().mark_all_dirty();\n\t}\n\n\t/* Phoenix has only one palette select effecting both layers */\n\tif (m_palette_bank != ((data >> 1) & 1))\n\t{\n\t\tm_palette_bank = (data >> 1) & 1;\n\t\tmachine().tilemap().mark_all_dirty();\n\t}"
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 22528,
+        "end": 23551,
+        "raw": "map(0x5800, 0x5bff).w(FUNC(phoenix_state::phoenix_scroll_w))",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 70,
+        "sourceColumn": 2,
+        "sourceEndLine": 70
+      }
+    },
+    {
+      "id": "handler:phoenix_state.phoenix_scroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "phoenix_scroll_w",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 286,
+        "sourceColumn": 1,
+        "sourceEndLine": 289,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_bg_tilemap->set_scrollx(0,data);"
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 25599,
+        "raw": "map(0x6000, 0x63ff).w(\"cust\", FUNC(phoenix_sound_device::control_a_w))",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 71,
+        "sourceColumn": 2,
+        "sourceEndLine": 71
+      }
+    },
+    {
+      "id": "handler:phoenix_sound_device.control_a_w",
+      "label": "Handler",
+      "props": {
+        "method": "control_a_w",
+        "ownerClass": "phoenix_sound_device",
+        "sourceFile": "src/mame/phoenix/phoenix_a.cpp",
+        "sourceLine": 497,
+        "sourceColumn": 1,
+        "sourceEndLine": 508,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_discrete->write(PHOENIX_EFFECT_2_DATA, data & 0x0f);\n\tm_discrete->write(PHOENIX_EFFECT_2_FREQ, (data & 0x30) >> 4);\n#if 0\n\t/* future handling of noise sounds */\n\tm_discrete->write(PHOENIX_EFFECT_3_EN  , data & 0x40);\n\tm_discrete->write(PHOENIX_EFFECT_4_EN  , data & 0x80);\n#endif\n\tm_channel->update();\n\tm_sound_latch_a = data;"
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 26624,
+        "end": 27647,
+        "raw": "map(0x6800, 0x6bff).w(\"cust\", FUNC(phoenix_sound_device::control_b_w))",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 72,
+        "sourceColumn": 2,
+        "sourceEndLine": 72
+      }
+    },
+    {
+      "id": "handler:phoenix_sound_device.control_b_w",
+      "label": "Handler",
+      "props": {
+        "method": "control_b_w",
+        "ownerClass": "phoenix_sound_device",
+        "sourceFile": "src/mame/phoenix/phoenix_a.cpp",
+        "sourceLine": 510,
+        "sourceColumn": 1,
+        "sourceEndLine": 518,
+        "sourceConstants": [
+          "MM6221AA=21"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_discrete->write(PHOENIX_EFFECT_1_DATA, data & 0x0f);\n\tm_discrete->write(PHOENIX_EFFECT_1_FILT, data & 0x20);\n\tm_discrete->write(PHOENIX_EFFECT_1_FREQ, data & 0x10);\n\n\t/* update the tune that the MM6221AA is playing */\n\tm_tms->mm6221aa_tune_w(data >> 6);"
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 29695,
+        "raw": "map(0x7000, 0x73ff).portr(\"IN0\")",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 73,
+        "sourceColumn": 2,
+        "sourceEndLine": 73,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:phoenix_state.phoenix_memory_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 30720,
+        "end": 31743,
+        "raw": "map(0x7800, 0x7bff).portr(\"DSW0\")",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 74,
+        "sourceColumn": 2,
+        "sourceEndLine": 74,
+        "portRead": "DSW0"
+      }
+    },
+    {
+      "id": "machine:phoenix_state.phoenix",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "phoenix_state",
+        "name": "phoenix",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_videoram_pg_index\",\"bits\":8}",
+          "{\"name\":\"m_palette_bank\",\"bits\":8}",
+          "{\"name\":\"m_cocktail_mode\",\"bits\":8}",
+          "{\"name\":\"m_pleiads_protection_question\",\"bits\":8}",
+          "{\"name\":\"m_survival_protection_value\",\"bits\":8}",
+          "{\"name\":\"m_survival_sid_value\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_survival_input_latches\",\"bits\":8,\"arrayLength\":2}",
+          "{\"name\":\"m_survival_input_readc\",\"bits\":8}"
+        ],
+        "startHandlers": [
+          "phoenix_state.video_start"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 455,
+        "sourceColumn": 1,
+        "sourceEndLine": 482
+      }
+    },
+    {
+      "id": "handler:phoenix_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 1,
+        "sourceEndLine": 206,
+        "sourceParameters": "",
+        "sourceBody": "m_videoram_pg[0] = std::make_unique<uint8_t[]>(0x1000);\n\tmemset(m_videoram_pg[0].get(), 0x00, 0x1000 * sizeof(uint8_t));\n\tm_videoram_pg[1] = std::make_unique<uint8_t[]>(0x1000);\n\tmemset(m_videoram_pg[1].get(), 0x00, 0x1000 * sizeof(uint8_t));\n\n\tmembank(\"bank1\")->configure_entry(0, m_videoram_pg[0].get());\n\tmembank(\"bank1\")->configure_entry(1, m_videoram_pg[1].get());\n\tmembank(\"bank1\")->set_entry(0);\n\n\tm_videoram_pg_index = 0;\n\tm_palette_bank = 0;\n\tm_cocktail_mode = 0;\n\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(phoenix_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(phoenix_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\n\tm_fg_tilemap->set_transparent_pen(0);\n\n\tsave_pointer(NAME(m_videoram_pg[0]), 0x1000);\n\tsave_pointer(NAME(m_videoram_pg[1]), 0x1000);\n\tsave_item(NAME(m_videoram_pg_index));\n\tsave_item(NAME(m_palette_bank));\n\tsave_item(NAME(m_cocktail_mode));\n\n\t/* some more candidates */\n\tm_pleiads_protection_question = 0;\n\tm_survival_protection_value = 0;\n\tm_survival_sid_value = 0;\n\tm_survival_input_readc = 0;\n\tm_survival_input_latches[0] = 0;\n\tm_survival_input_latches[1] = 0;\n\n\tsave_item(NAME(m_pleiads_protection_question));\n\tsave_item(NAME(m_survival_protection_value));\n\tsave_item(NAME(m_survival_sid_value));\n\tsave_item(NAME(m_survival_input_readc));\n\tsave_item(NAME(m_survival_input_latches));"
+      }
+    },
+    {
+      "id": "handler:phoenix_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 134,
+        "sourceColumn": 1,
+        "sourceEndLine": 145,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code, col;\n\n\tcode = m_videoram_pg[m_videoram_pg_index][tile_index];\n\tcol = (code >> 5);\n\tcol = col | 0x08 | (m_palette_bank << 4);\n\ttileinfo.set(1,\n\t\t\tcode,\n\t\t\tcol,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "handler:phoenix_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 147,
+        "sourceColumn": 1,
+        "sourceEndLine": 158,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code, col;\n\n\tcode = m_videoram_pg[m_videoram_pg_index][tile_index + 0x800];\n\tcol = (code >> 5);\n\tcol = col | 0x00 | (m_palette_bank << 4);\n\ttileinfo.set(0,\n\t\t\tcode,\n\t\t\tcol,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "bank:phoenix_state.phoenix/bank1/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "bank1",
+        "member": "bank1",
+        "startEntry": 0,
+        "entries": 1,
+        "entryMember": "m_videoram_pg[0]",
+        "offset": 0,
+        "stride": 0,
+        "initialEntry": 0,
+        "raw": "membank(\"bank1\")->configure_entry(0, m_videoram_pg[0].get())",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 1,
+        "sourceEndLine": 206
+      }
+    },
+    {
+      "id": "bank:phoenix_state.phoenix/bank1/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "bank1",
+        "member": "bank1",
+        "startEntry": 1,
+        "entries": 1,
+        "entryMember": "m_videoram_pg[1]",
+        "offset": 1,
+        "stride": 0,
+        "initialEntry": 0,
+        "raw": "membank(\"bank1\")->configure_entry(1, m_videoram_pg[1].get())",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 1,
+        "sourceEndLine": 206
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "I8085A",
+        "tag": "maincpu",
+        "clock": 5500000,
+        "config": [
+          "I8085A(config, m_maincpu, CPU_CLOCK)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &phoenix_state::phoenix_memory_map)"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 458,
+        "sourceColumn": 2,
+        "sourceEndLine": 458
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(PIXEL_CLOCK, HTOTAL, HBEND, HBSTART, VTOTAL, VBEND, VBSTART)",
+          "screen.set_screen_update(FUNC(phoenix_state::screen_update_phoenix))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 462,
+        "sourceColumn": 2,
+        "sourceEndLine": 462,
+        "configCalls": [
+          "set_raw(5500000,352,0,256,256,0,208)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          5500000,
+          352,
+          0,
+          256,
+          256,
+          0,
+          208
+        ],
+        "screenRawExpr": [
+          "PIXEL_CLOCK",
+          "HTOTAL",
+          "HBEND",
+          "HBSTART",
+          "VTOTAL",
+          "VBEND",
+          "VBSTART"
+        ]
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(phoenix_state::screen_update_phoenix))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 464,
+        "sourceColumn": 2,
+        "sourceEndLine": 464,
+        "targetClass": "phoenix_state",
+        "targetMethod": "screen_update_phoenix"
+      }
+    },
+    {
+      "id": "handler:phoenix_state.screen_update_phoenix",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_phoenix",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 1,
+        "sourceEndLine": 439,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_bg_tilemap->draw(screen, bitmap, cliprect, 0,0);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0,0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_phoenix)"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 467,
+        "sourceColumn": 2,
+        "sourceEndLine": 467,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(phoenix_state::phoenix_palette), 256)"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 2,
+        "sourceEndLine": 468,
+        "clockExpr": "FUNC(phoenix_state::phoenix_palette)"
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 471,
+        "sourceColumn": 2,
+        "sourceEndLine": 471
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/tms",
+      "label": "Device",
+      "props": {
+        "type": "TMS36XX",
+        "tag": "tms",
+        "clock": 372,
+        "config": [
+          "tms36xx_device &tms(TMS36XX(config, \"tms\", 372))",
+          "tms.set_subtype(tms36xx_device::subtype::MM6221AA)",
+          "tms.set_decays(0.50, 0, 0, 1.05, 0, 0)",
+          "tms.set_tune_speed(0.21)",
+          "tms.add_route(ALL_OUTPUTS, \"mono\", 0.5)"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 473,
+        "sourceColumn": 2,
+        "sourceEndLine": 473,
+        "configCalls": [
+          "set_decays(0.5,0,0,1.05,0,0)",
+          "set_tune_speed(0.21)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:phoenix_state.phoenix/tms/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.5,
+        "raw": "tms.add_route(ALL_OUTPUTS, \"mono\", 0.5)",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 477,
+        "sourceColumn": 2,
+        "sourceEndLine": 477
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/cust",
+      "label": "Device",
+      "props": {
+        "type": "PHOENIX_SOUND",
+        "tag": "cust",
+        "clock": 0,
+        "config": [
+          "PHOENIX_SOUND(config, \"cust\").add_route(ALL_OUTPUTS, \"mono\", 0.4)"
+        ],
+        "cls": "phoenix_sound_device",
+        "clsHierarchy": [
+          "phoenix_sound_device"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 2,
+        "sourceEndLine": 479
+      }
+    },
+    {
+      "id": "audioroute:device:phoenix_state.phoenix/cust/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.4,
+        "raw": "PHOENIX_SOUND(config, \"cust\").add_route(ALL_OUTPUTS, \"mono\", 0.4)",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 2,
+        "sourceEndLine": 479
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/discrete",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "discrete",
+        "clock": 120000,
+        "config": [
+          "DISCRETE(config, \"discrete\", 120000, phoenix_discrete).add_route(ALL_OUTPUTS, \"mono\", 0.6)"
+        ],
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 481,
+        "sourceColumn": 2,
+        "sourceEndLine": 481
+      }
+    },
+    {
+      "id": "audioroute:device:phoenix_state.phoenix/discrete/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.6,
+        "raw": "DISCRETE(config, \"discrete\", 120000, phoenix_discrete).add_route(ALL_OUTPUTS, \"mono\", 0.6)",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 481,
+        "sourceColumn": 2,
+        "sourceEndLine": 481
+      }
+    },
+    {
+      "id": "inputs:phoenix",
+      "label": "InputPorts",
+      "props": {
+        "name": "phoenix",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 103,
+        "sourceColumn": 8,
+        "sourceEndLine": 103
+      }
+    },
+    {
+      "id": "inputs:phoenix/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:phoenix/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:phoenix/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:phoenix/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:phoenix/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:phoenix/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 240,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(phoenix_state::player_input_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "handler:phoenix_state.player_input_r",
+      "label": "Handler",
+      "props": {
+        "method": "player_input_r",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 292,
+        "sourceColumn": 1,
+        "sourceEndLine": 298,
+        "sourceParameters": "",
+        "sourceBody": "if (m_cocktail_mode)\n\t\treturn (ioport(\"CTRL\")->read() & 0xf0) >> 4;\n\telse\n\t\treturn (ioport(\"CTRL\")->read() & 0x0f) >> 0;"
+      }
+    },
+    {
+      "id": "inputs:phoenix/DSW0",
+      "label": "Port",
+      "props": {
+        "tag": "DSW0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:phoenix/DSW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:1,2\" )"
+        ],
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW1:1,2",
+        "settings": [
+          "0=3",
+          "1=4",
+          "2=5",
+          "3=6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:phoenix/DSW0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:3,4\" )"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW1:3,4",
+        "settings": [
+          "0=3K 30K",
+          "4=4K 40K",
+          "8=5K 50K",
+          "12=6K 60K"
+        ]
+      }
+    },
+    {
+      "id": "inputs:phoenix/DSW0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:5\" )"
+        ],
+        "name": "Coinage",
+        "defaultValue": 0,
+        "location": "SW1:5",
+        "settings": [
+          "16=2C 1C",
+          "0=1C 1C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:phoenix/DSW0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:6\" )"
+        ],
+        "name": "Unknown",
+        "defaultValue": 32,
+        "location": "SW1:6",
+        "settings": [
+          "32=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:phoenix/DSW0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:7\" )"
+        ],
+        "name": "Unknown",
+        "defaultValue": 64,
+        "location": "SW1:7",
+        "settings": [
+          "64=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:phoenix/DSW0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"screen\", FUNC(screen_device::vblank))"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:phoenix/CAB",
+      "label": "Port",
+      "props": {
+        "tag": "CAB",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:phoenix/CAB/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_DIPLOCATION( \"SW1:!8\" )"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW1:!8",
+        "settings": [
+          "0=Upright",
+          "1=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL",
+      "label": "Port",
+      "props": {
+        "tag": "CTRL",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL",
+          "PORT_CONDITION(\"CAB\",0x01,EQUALS,0x01)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL",
+          "PORT_CONDITION(\"CAB\",0x01,EQUALS,0x01)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL",
+          "PORT_CONDITION(\"CAB\",0x01,EQUALS,0x01)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:phoenix/CTRL/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL",
+          "PORT_CONDITION(\"CAB\",0x01,EQUALS,0x01)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 256,
+        "planes": 2,
+        "planeOffsets": [
+          16384,
+          0
+        ],
+        "xOffsets": [
+          7,
+          6,
+          5,
+          4,
+          3,
+          2,
+          1,
+          0
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_phoenix",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_phoenix",
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 444,
+        "sourceColumn": 8,
+        "sourceEndLine": 444
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_phoenix/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "bgtiles",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_phoenix/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "fgtiles",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:phoenix_state.phoenix/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(phoenix_state::phoenix_palette), 256)",
+        "ownerTag": "palette",
+        "targetClass": "phoenix_state",
+        "targetMethod": "phoenix_palette",
+        "entries": 256,
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 468
+      }
+    },
+    {
+      "id": "handler:phoenix_state.phoenix_palette",
+      "label": "Handler",
+      "props": {
+        "method": "phoenix_palette",
+        "ownerClass": "phoenix_state",
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 80,
+        "sourceColumn": 1,
+        "sourceEndLine": 94,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "uint8_t const *const color_prom = memregion(\"proms\")->base();\n\n\tstd::vector<rgb_t> rgb;\n\tcompute_res_net_all(rgb, color_prom, phoenix_decode_info, phoenix_net_info);\n\n\t// native order\n\tfor (int i = 0; i < 256; i++)\n\t{\n\t\tint const col = bitswap<7>(i, 6, 5, 1, 0, 4, 3, 2);\n\t\tpalette.set_pen_color(i, rgb[col]);\n\t}\n\tpalette.palette()->normalize_range(0, 255);"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:phoenix",
+      "to": "file:src/mame/phoenix/phoenix.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 1848,
+        "sourceColumn": 1,
+        "sourceEndLine": 1848
+      }
+    },
+    {
+      "from": "game:phoenix",
+      "to": "machine:phoenix_state.phoenix",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:phoenix",
+      "to": "inputs:phoenix",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:phoenix",
+      "to": "romset:phoenix",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:phoenix.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:phoenix_a.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:cpu/i8085/i8085.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "file:src/mame/phoenix/phoenix.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 455,
+        "sourceColumn": 1,
+        "sourceEndLine": 482
+      }
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "handler:phoenix_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "bank:phoenix_state.phoenix/bank1/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "bank:phoenix_state.phoenix/bank1/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "gfxdecode:gfx_phoenix",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/tms",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/cust",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:phoenix_state.phoenix",
+      "to": "device:phoenix_state.phoenix/discrete",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:phoenix",
+      "to": "file:src/mame/phoenix/phoenix.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 103,
+        "sourceColumn": 8,
+        "sourceEndLine": 103
+      }
+    },
+    {
+      "from": "inputs:phoenix",
+      "to": "inputs:phoenix/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:phoenix",
+      "to": "inputs:phoenix/DSW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:phoenix",
+      "to": "inputs:phoenix/CAB",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:phoenix",
+      "to": "inputs:phoenix/CTRL",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:phoenix",
+      "to": "file:src/mame/phoenix/phoenix.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 562,
+        "sourceColumn": 1,
+        "sourceEndLine": 562
+      }
+    },
+    {
+      "from": "romset:phoenix",
+      "to": "region:phoenix/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:phoenix",
+      "to": "region:phoenix/bgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:phoenix",
+      "to": "region:phoenix/fgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:phoenix",
+      "to": "region:phoenix/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:phoenix_state.video_start",
+      "to": "handler:phoenix_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:phoenix_state.video_start",
+      "to": "handler:phoenix_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:phoenix_state.phoenix/bank1/0",
+      "to": "file:src/mame/phoenix/phoenix_v.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 1,
+        "sourceEndLine": 206
+      }
+    },
+    {
+      "from": "bank:phoenix_state.phoenix/bank1/1",
+      "to": "file:src/mame/phoenix/phoenix_v.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix_v.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 1,
+        "sourceEndLine": 206
+      }
+    },
+    {
+      "from": "device:phoenix_state.phoenix/maincpu",
+      "to": "map:phoenix_state.phoenix_memory_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:phoenix_state.phoenix/screen",
+      "to": "device:phoenix_state.phoenix/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_phoenix",
+      "to": "file:src/mame/phoenix/phoenix.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 444,
+        "sourceColumn": 8,
+        "sourceEndLine": 444
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_phoenix",
+      "to": "gfxdecode:gfx_phoenix/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_phoenix",
+      "to": "gfxdecode:gfx_phoenix/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:phoenix_state.phoenix/palette",
+      "to": "device:phoenix_state.phoenix/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:phoenix_state.phoenix/tms",
+      "to": "audioroute:device:phoenix_state.phoenix/tms/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:phoenix_state.phoenix/cust",
+      "to": "audioroute:device:phoenix_state.phoenix/cust/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:phoenix_state.phoenix/discrete",
+      "to": "audioroute:device:phoenix_state.phoenix/discrete/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:phoenix/IN0",
+      "to": "inputs:phoenix/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/IN0",
+      "to": "inputs:phoenix/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/IN0",
+      "to": "inputs:phoenix/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/IN0",
+      "to": "inputs:phoenix/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/IN0",
+      "to": "inputs:phoenix/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/DSW0",
+      "to": "inputs:phoenix/DSW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/DSW0",
+      "to": "inputs:phoenix/DSW0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/DSW0",
+      "to": "inputs:phoenix/DSW0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/DSW0",
+      "to": "inputs:phoenix/DSW0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/DSW0",
+      "to": "inputs:phoenix/DSW0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/DSW0",
+      "to": "inputs:phoenix/DSW0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CAB",
+      "to": "inputs:phoenix/CAB/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:phoenix/CTRL",
+      "to": "inputs:phoenix/CTRL/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/ic45",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/ic46",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/ic47",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/ic48",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/h5-ic49.5a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/h6-ic50.6a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/h7-ic51.7a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/maincpu",
+      "to": "rom:phoenix/maincpu/h8-ic52.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/bgtiles",
+      "to": "rom:phoenix/bgtiles/ic23.3d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/bgtiles",
+      "to": "rom:phoenix/bgtiles/ic24.4d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/fgtiles",
+      "to": "rom:phoenix/fgtiles/b1-ic39.3b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/fgtiles",
+      "to": "rom:phoenix/fgtiles/b2-ic40.4b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/proms",
+      "to": "rom:phoenix/proms/mmi6301.ic40",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:phoenix/proms",
+      "to": "rom:phoenix/proms/mmi6301.ic41",
+      "rel": "LOADS"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix_v.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix_v.cpp",
+      "to": "file:phoenix.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/phoenix/phoenix_v.cpp",
+      "to": "file:video/resnet.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "file:src/mame/phoenix/phoenix.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+        "sourceLine": 65,
+        "sourceColumn": 1,
+        "sourceEndLine": 75
+      }
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map",
+      "to": "map:phoenix_state.phoenix_memory_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:phoenix_state.phoenix/screen/callback:screen:0",
+      "to": "handler:phoenix_state.screen_update_phoenix",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_phoenix/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_phoenix/e1",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:phoenix_state.phoenix/palette/callback:palette_init",
+      "to": "handler:phoenix_state.phoenix_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:phoenix/IN0/f4",
+      "to": "handler:phoenix_state.player_input_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map/range1",
+      "to": "handler:phoenix_state.phoenix_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map/range2",
+      "to": "handler:phoenix_state.phoenix_videoreg_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map/range3",
+      "to": "handler:phoenix_state.phoenix_scroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map/range4",
+      "to": "handler:phoenix_sound_device.control_a_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "cust"
+      }
+    },
+    {
+      "from": "map:phoenix_state.phoenix_memory_map/range5",
+      "to": "handler:phoenix_sound_device.control_b_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "cust"
+      }
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/phoenix/phoenix.cpp",
+      "rel": "DEFINED_IN"
+    }
+  ]
+}

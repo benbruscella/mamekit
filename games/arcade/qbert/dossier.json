@@ -1,0 +1,871 @@
+{
+  "game": "qbert",
+  "title": "Q*bert (US set 1) (Gottlieb, 1982)",
+  "fullname": "Q*bert (US set 1)",
+  "year": "1982",
+  "company": "Gottlieb",
+  "family": "gottlieb",
+  "driverFile": "src/mame/gottlieb/gottlieb.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Fabrice Frances, Nicola Salmoria, Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "i8088",
+      "clock": 5000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "ram",
+          "share": "nvram"
+        },
+        {
+          "start": 12288,
+          "end": 12543,
+          "kind": "ram",
+          "mirror": 1792,
+          "share": "spriteram",
+          "writeOnly": true
+        },
+        {
+          "start": 14336,
+          "end": 15359,
+          "kind": "ram",
+          "mirror": 1024,
+          "share": "videoram",
+          "write": "gottlieb_state.videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 20479,
+          "kind": "ram",
+          "share": "charram",
+          "write": "gottlieb_state.charram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 20480,
+          "end": 20511,
+          "kind": "handler",
+          "mirror": 2016,
+          "share": "paletteram",
+          "write": "gottlieb_state.palette_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 22528,
+          "end": 22528,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 22529,
+          "end": 22529,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "gottlieb_state.analog_reset_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 22530,
+          "end": 22530,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "gottlieb_state.sound_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 22531,
+          "end": 22531,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "gottlieb_state.general_output_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 22528,
+          "end": 22528,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.DSW"
+        },
+        {
+          "start": 22529,
+          "end": 22529,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.IN1"
+        },
+        {
+          "start": 22530,
+          "end": 22530,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.IN2"
+        },
+        {
+          "start": 22531,
+          "end": 22531,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.IN3"
+        },
+        {
+          "start": 22532,
+          "end": 22532,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.IN4"
+        },
+        {
+          "start": 24576,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 4096,
+          "end": 12287,
+          "kind": "ram"
+        },
+        {
+          "start": 22531,
+          "end": 22531,
+          "kind": "handler",
+          "mirror": 2040,
+          "write": "gottlieb_state.qbert_output_w"
+        }
+      ],
+      "mask": 65535
+    },
+    {
+      "tag": "r1sound:audiocpu",
+      "type": "m6502",
+      "clock": 894886.25,
+      "region": "r1sound:audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 127,
+          "kind": "handler",
+          "mirror": 3456,
+          "read": "r1sound:riot.ram_r",
+          "write": "r1sound:riot.ram_w"
+        },
+        {
+          "start": 512,
+          "end": 512,
+          "kind": "handler",
+          "mirror": 3576,
+          "read": "r1sound:riot.pa_data_r",
+          "write": "r1sound:riot.pa_data_w"
+        },
+        {
+          "start": 513,
+          "end": 513,
+          "kind": "handler",
+          "mirror": 3576,
+          "read": "r1sound:riot.pa_ddr_r",
+          "write": "r1sound:riot.pa_ddr_w"
+        },
+        {
+          "start": 514,
+          "end": 514,
+          "kind": "handler",
+          "mirror": 3576,
+          "read": "r1sound:riot.pb_data_r",
+          "write": "r1sound:riot.pb_data_w"
+        },
+        {
+          "start": 515,
+          "end": 515,
+          "kind": "handler",
+          "mirror": 3576,
+          "read": "r1sound:riot.pb_ddr_r",
+          "write": "r1sound:riot.pb_ddr_w"
+        },
+        {
+          "start": 532,
+          "end": 535,
+          "kind": "handler",
+          "mirror": 3552,
+          "write": "r1sound:riot.timer_off_w"
+        },
+        {
+          "start": 540,
+          "end": 543,
+          "kind": "handler",
+          "mirror": 3552,
+          "write": "r1sound:riot.timer_on_w"
+        },
+        {
+          "start": 516,
+          "end": 516,
+          "kind": "handler",
+          "mirror": 3570,
+          "read": "r1sound:riot.timer_off_r"
+        },
+        {
+          "start": 524,
+          "end": 524,
+          "kind": "handler",
+          "mirror": 3570,
+          "read": "r1sound:riot.timer_on_r"
+        },
+        {
+          "start": 517,
+          "end": 517,
+          "kind": "handler",
+          "mirror": 3578,
+          "read": "r1sound:riot.irq_r"
+        },
+        {
+          "start": 516,
+          "end": 519,
+          "kind": "handler",
+          "mirror": 3560,
+          "write": "r1sound:riot.edge_w"
+        },
+        {
+          "start": 4096,
+          "end": 4096,
+          "kind": "handler",
+          "mirror": 4095,
+          "write": "r1sound:dac.data_w"
+        },
+        {
+          "start": 24576,
+          "end": 32767,
+          "kind": "rom"
+        }
+      ],
+      "mask": 32767
+    }
+  ],
+  "sound": {
+    "kind": "dac",
+    "clock": 894886.25,
+    "chips": 1,
+    "deviceTypes": [
+      "MC1408"
+    ],
+    "dacs": [
+      {
+        "deviceTag": "r1sound:dac",
+        "bits": 8,
+        "mapper": "unsigned",
+        "gain": 1
+      }
+    ],
+    "routes": [],
+    "auxiliaryDevices": [
+      {
+        "type": "SAMPLES",
+        "deviceTag": "knocker_sam",
+        "member": "m_knocker_sample",
+        "clock": 0,
+        "gain": 1,
+        "target": "knocker",
+        "writeMethods": [
+          "start",
+          "start_raw",
+          "stop",
+          "set_volume"
+        ]
+      }
+    ],
+    "masterGain": 0.65,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 240,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 61.4190251572327,
+    "htotal": 318,
+    "vtotal": 256,
+    "vbstart": 240,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qb-rom2.bin",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "fe434526",
+          "alt": [
+            {
+              "file": "qrom_2.bin",
+              "crc": "b54a8ffc"
+            },
+            {
+              "file": "qbj-rom2.bin",
+              "crc": "67bb1cb2"
+            },
+            {
+              "file": "mqb-rom2.bin",
+              "crc": "6860f957"
+            },
+            {
+              "file": "qbtst2.bin",
+              "crc": "55307b02"
+            }
+          ]
+        },
+        {
+          "file": "qb-rom1.bin",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "55635447",
+          "alt": [
+            {
+              "file": "qrom_1.bin",
+              "crc": "19d924e3"
+            },
+            {
+              "file": "qbj-rom1.bin",
+              "crc": "c61216e7"
+            },
+            {
+              "file": "mqb-rom1.bin",
+              "crc": "11f0a4e4"
+            },
+            {
+              "file": "qbtst1.bin",
+              "crc": "e97fdd78"
+            }
+          ]
+        },
+        {
+          "file": "qb-rom0.bin",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "8e318641",
+          "alt": [
+            {
+              "file": "qrom_0.bin",
+              "crc": "2e7fad1b"
+            },
+            {
+              "file": "qbj-rom0.bin",
+              "crc": "69679d5c"
+            },
+            {
+              "file": "mqb-rom0.bin",
+              "crc": "12a90cb2"
+            },
+            {
+              "file": "qbtst0.bin",
+              "crc": "94c9f588"
+            },
+            {
+              "file": "gv103_t-ball-test_rom0_2764.c11c12",
+              "crc": "5d390cd2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "r1sound:audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qb-snd1.bin",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "15787c07",
+          "alt": [
+            {
+              "file": "mqb-snd1.bin",
+              "crc": "495ffcd2"
+            }
+          ]
+        },
+        {
+          "file": "qb-snd2.bin",
+          "offset": 30720,
+          "size": 2048,
+          "crc": "58437508",
+          "alt": [
+            {
+              "file": "mqb-snd2.bin",
+              "crc": "9bbaa945"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "qb-bg0.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "7a9ba824"
+        },
+        {
+          "file": "qb-bg1.bin",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "22e5b891"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "qb-fg3.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dd436d3a",
+          "alt": [
+            {
+              "file": "mqb-fg3.bin",
+              "crc": "8b5d0852"
+            }
+          ]
+        },
+        {
+          "file": "qb-fg2.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "f69b9483",
+          "alt": [
+            {
+              "file": "mqb-fg2.bin",
+              "crc": "823f1e57"
+            }
+          ]
+        },
+        {
+          "file": "qb-fg1.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "224e8356",
+          "alt": [
+            {
+              "file": "mqb-fg1.bin",
+              "crc": "05343ae6"
+            }
+          ]
+        },
+        {
+          "file": "qb-fg0.bin",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "2f695b85",
+          "alt": [
+            {
+              "file": "mqb-fg0.bin",
+              "crc": "abc71bdd"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Select in Service Mode",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "P1 Right (Down-Right)",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "P1 Left (Up-Left)",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "P1 Up (Up-Right)",
+      "activeLow": false
+    },
+    {
+      "port": "IN4",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "P1 Down (Down-Left)",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW",
+      "mask": 1,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW",
+      "mask": 2,
+      "value": 2,
+      "name": "Kicker"
+    },
+    {
+      "port": "DSW",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW",
+      "mask": 8,
+      "value": 0,
+      "name": "Demo Mode (Unlim Lives, Start=Adv (Cheat)"
+    },
+    {
+      "port": "DSW",
+      "mask": 16,
+      "value": 0,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSW",
+      "mask": 32,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 64,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 128,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "value": 64,
+      "name": "Service Mode"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-06",
+    "commits": 274,
+    "contributors": 37,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 110,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2015-05-25"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 38,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-11-06"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 22,
+        "firstCommit": "2015-11-02",
+        "lastCommit": "2026-06-06"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 11,
+        "firstCommit": "2013-09-07",
+        "lastCommit": "2025-09-04"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 11,
+        "firstCommit": "2016-06-05",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "hap",
+        "commits": 10,
+        "firstCommit": "2023-07-24",
+        "lastCommit": "2026-03-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 7,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2024-12-20"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 5,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2022-06-04"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 5,
+        "firstCommit": "2014-10-11",
+        "lastCommit": "2022-04-07"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 4,
+        "firstCommit": "2012-10-12",
+        "lastCommit": "2014-09-09"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-08",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 3,
+        "firstCommit": "2011-10-23",
+        "lastCommit": "2012-03-11"
+      },
+      {
+        "name": "davidhay",
+        "commits": 3,
+        "firstCommit": "2008-05-26",
+        "lastCommit": "2009-03-15"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-05-02",
+        "lastCommit": "2009-11-17"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 3,
+        "firstCommit": "2009-08-05",
+        "lastCommit": "2012-04-02"
+      },
+      {
+        "name": "briantro",
+        "commits": 2,
+        "firstCommit": "2017-06-14",
+        "lastCommit": "2017-12-07"
+      },
+      {
+        "name": "cam900",
+        "commits": 2,
+        "firstCommit": "2018-10-29",
+        "lastCommit": "2025-01-19"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2016-03-28"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 2,
+        "firstCommit": "2008-05-09",
+        "lastCommit": "2012-12-21"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-08-24",
+        "lastCommit": "2018-12-20"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 2,
+        "firstCommit": "2014-07-04",
+        "lastCommit": "2014-09-09"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 2,
+        "firstCommit": "2018-05-20",
+        "lastCommit": "2018-05-26"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-05-15",
+        "lastCommit": "2013-05-15"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2019-03-16",
+        "lastCommit": "2019-03-16"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2014-03-09",
+        "lastCommit": "2014-03-09"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-08"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 1,
+        "firstCommit": "2023-07-26",
+        "lastCommit": "2023-07-26"
+      },
+      {
+        "name": "mariuszw1",
+        "commits": 1,
+        "firstCommit": "2011-12-28",
+        "lastCommit": "2011-12-28"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Pierpaolo Prazzoli",
+        "commits": 1,
+        "firstCommit": "2009-05-05",
+        "lastCommit": "2009-05-05"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nQ*bert (c) 1982 Gottlieb.\n\nThe object of the Q*bert game is to change the color of the top of the cubes to the Destination Color indicated at the upper-left corner of the screen (below Player 1's score) by hopping onto them. When all the cubes in the pyramid have been changed to the Destination Color, the screen will advance to the next round, with the player-controlled Q*bert character starting back on the top cube. At the beginning of each level, there will be a short demonstration cycle with Q*bert hopping around four cubes to explain to the player the play action of each level. Each level consists of four rounds. The current level number and round number is displayed at the upper-right corner of the screen (below Player 2's score in a 2-player game).\n\nGameplay starts with Q*bert appearing at the top of the pyramid. The joystick will move Q*bert from cube to cube by hopping in any of four diagonal directions. Q*bert can move anywhere on the pyramid, but jumping off will kill him. Hopping onto a rotating disk will take Q*bert back to the top of the pyramid. In the first two rounds of play, Q*bert will have to avoid touching the red and purple balls. These deadly objects drop randomly onto the second-from-the-top row of the pyramid and bounce downwards. The red balls will fall off the bottom, but the purple ball will stop at the bottom and hatch into Coily, the snake which chases Q*bert. To get rid of Coily, lure him to the edge, then jump unto a disk. The disk will take Q*bert back to the top and Coily will fall off, awarding 500 points and clearing the board of all other 'nasty' characters.\n\nStarting at the third round of play, other 'nasty' characters come into play. The green characters or objects are safe to hop onto and will award points. All other 'nasty' characters are deadly to touch. In the third round the red balls will stop falling, but two purple characters named Ugg and Wrong Way will appear at the lower portion of the pyramid and travel sideways and upwards (Ugg is the one with the snout moving from right to left on the right face of the cubes, and Wrong Way is the one with the big eyes moving from left to right on the left face of the cubes). They will not chase Q*bert, but will move randomly to get in Q*bert's way. In the third round and every round after, based on an internal timer, a green ball will appear and bounce down from the top of the pyramid. Hopping Q*bert onto the green ball will award 100 points, and freeze all the 'nasty' characters on the screen for a few seconds, but 'Q*bert' will still be able to move to complete the color changes.\n\nDuring the fourth round of play, two green characters named Slick and Sam will appear, based on the internal timer (Slick is the one wearing shades; Sam does not wear shades, otherwise their function is identical). They will drop onto the second-from-the-top row of the pyramid and hop randomly downwards. If they hop onto a cube that Q*bert has already changed the color of, the cube will change to a different color to thwart Q*bert. Hopping Q*bert onto Slick or Sam will stop them and award 300 points.\n\nThroughout the remaining rounds, all the characters and objects will appear in random combinations with increasing speed.\n\nTo add variety to the game, the disks will change positions every round, and in the higher levels the number of disks will change.\n\nDuring Level 2, the play action will increase in difficulty from changing the cubes to one color, to changing the color of the cubes twice. This means that each cube would have to be hopped on twice to change the pyramid to the Destination Color, completing the Round.\n\nStarting at Level 3 and for all remaining rounds, and levels, the play action will become more difficult. The object remains to change the cubes to the Destination Color, but if Q*bert hops on any cube, that cube will change color. So even if the cube has already been changed to the Destination Color, it will change again.\n\nHere is a rundown of how all the colors change :\n\nLegend :\nS - Starting Color\nI - Intermediate Color\nD - Destination Color\n\nLEVEL 1 : When Q*bert jumps on S or I, it changes to D. When he jumps on D, it stays at D (NOTE : During the fourth round, when Slick/Sam jumps on D, it changes to I).\n\nLEVEL 2 : When Q*bert jumps on S, it changes to I. When he jumps on I, it changes to D. When he jumps on D, it stays at D.\n\nLEVEL 3 : When Q*bert jumps on S, it changes to D. When he jumps on D, it changes back to S. Q*bert must start again.\n\nLEVEL 4 : When Q*bert jumps on S, it changes to I. When he jumps on I, it changes to D. When he jumps on D, it changes back to I. Q*bert must start again.\n\nLEVEL 5 : When Q*bert jumps on S, it changes to I. When he jumps on I, it changes to D. When he jumps on D, it changes back to S. Q*bert must start again.\n\nLEVELS 6-9 : Same color pattern as Level 5. The difference is the increased speed of Q*bert and the 'nasty' characters.\n\nThere are also bonus points awarded at the end of each round for successfully completing the round. The bonus for the completion of the 1st round is 1,000 points. This Bonus will progressively increase each Round by 250 points to a maximum of 5,000 points at Level 5.\n\n- TECHNICAL -\n\nGame ID : GV-103\n\nMain CPU : I8086 (@ 5 Mhz)\nSound CPU : MOS Technology M6502 (@ 894.886 Khz)\nSound Chips : DAC, Votrax SC-01\n\nPlayers: 2\nControl : 4-way joystick (diagonal)\n\n- TRIVIA -\n\nQ*bert was released in October 1982 in the USA.\n\nLicensed to Konami for Japanese distribution (February 1983).\n\nInspired by artwork by M.C. Escher who was an artist that Jeff admired. Ron Waxman came up with the idea of Q*bert changing the color of the cubes. Q*bert's name originated by the combination of 'Cube' and 'Hubert', but the 'Cube-Bert' was changed to 'Q-bert' to make it more unique. The concept game was called 'Snots and Boogers' and then '@!#?@!' (which many of the programmers and Gottlieb VPs said would be impossible to get anyone to say) before the final version was called just 'Q*bert'. Slick and Sam were a play on the phrase 'spick and span' with Sam being named after co-worker Sam Russo. Rick Tighe came up with the idea of adding the pinball hardware which generated the very mechanical KA-CHUNK when Q*bert falls off the pyramid.\n\nA Votrax SC-01 speech synthesis chip is used to generate the incoherent speech of Q*bert swearing, Slick and Sam (high pitch), and Ugg and Wrong Way (low pitch). The only true speech ever generated is Q*bert saying 'Hello, I'm turned on' when the game is first powered up and 'Bye Bye' after the player enters his or her initials at the end of a game.\n\nApproximately 30,000 units were produced by Gottlieb.\n\nSeveral early cabinets were produced with '@!#?@!' on the marquee.\n\nBob Gerhardt holds the official records for this game in 'Marathon' setting with 33,273,520 points on November 28, 1983.\n\nTom Gault holds the official records for this game in 'Tournament' setting with 1,895,565 points.\n\nA slightly different version known as 'Mello Yello' was programmed for promotion of the Mellow-Yellow soft drink, but it was never released to the market.\n\nAs well as being a huge commercial success as a game, Q*bert also provided revenue from its many tie-in products. Toys, games, and other products bearing the hero’s likeness all sold well. There was even a Q*bert cartoon; Saturday Supercade was a CBS cartoon series which featured a number of different segments starring various video game characters. In addition to the characters from the game, the Q*Bert segment featured Q*tee (Q*bert's girlfriend), Q*bit (his little brother), and others.\n\nSuch was the character's popularity at this time that Gottlieb assigned pinball designer, John Trudeau (\"Creature From the Black Lagoon\", \"Congo\"), to devise a Q*bert pinball. It was called \"Q*bert's Quest\" and Trudeau created an innovative design pattern that should have sparked arcade goers to try it. Remarkably, the table was a commercial flop. Released in March 1983, a paltry 884 machines dribbled out of the plant and further convinced management that pinball was indeed experiencing desperate times.\n\nA Q*bert unit appears in the 1983 movie 'Koyaanisqatsi - Life out of Balance'.\n\nParker Brothers released a board game based on this videogame (same name) in 1983. The object of the game is to be one of the 'noser elite' by removing more pegs from the pyramid than your opponent. A peg plugged into a cube simulates the Starting Color; a peg removed from a cube simulates the Destination Color. One player takes on the role of the hero, Q*bert, who must make his way around the pyramid trying to remove as many pegs as he can. A second player controls the 'nasty' characters out to thwart Q*bert. This board game has Ugg and Wrong Way reversing their positions; Ugg moves from left to right on the left face of the cubes, and Wrong Way moves from right to left on the right face of the cubes. Also, Slick is featured in the board game, but not Sam.\n\nThe main characters make an appearance on the 2012 animation movie \"Wreck-It Ralph\" from Walt Disney Animation Studios.\n\n- SCORING -\n\nQ*bert changes a cube from the Starting Color to the Intermediate Color : 15 points (NOTE : In Level 4, you get no points when Q*bert changes a cube from the Destination Color back to the Intermediate Color.)\nQ*bert changes a cube to the Destination color : 25 points.\nQ*bert catches the Green Ball : 100 points\nQ*bert catches Slick/Sam : 300 points.\nQ*bert lures Coily off the pyramid : 500 points bonus.\nBonus points for every round you complete : 750 points + 250 points x round number + 50 points per remaining disk.\n\n- TIPS AND TRICKS -\n\n* Control Panel Instructions :\nGoal : Change the tops of all cubes to a new color by hopping onto them.\nJoystick moves 'Q*bert' from cube to cube. Hopping onto a disk will take you back to the top.\nAll green objects are safe to hit. All other objects are deadly.\nDestroy the snake by leading him to the edge, then jumping on a disk.\nStay on pyramid! Only jump off to use a disk.\n\n* A big part of the game is waiting to see where 'nasty' characters are going to jump. You need to make sure you always time a jump at the same time the 'nasty' characters jump, so you can always have a clear path to a new square.\n\n* Since the game only has nine levels, if you can master Level 9 then you should be able to play indefinitely since Level 9 repeats once you reach it and the game doesn't get any harder.\n\n- STAFF -\n\nDesigned and programmed by : Warren Davis\nVideo graphics by : Jeff Lee\nCabinet graphics by : Terry Doerzaph\nAudio by : David D. Thiel\n\n- PORTS -\n\n* CONSOLES:\n[US] Magnavox Odyssey 2 (1983)\n[EU] Philips Videopac G7000 (1982)\n[US] Colecovision (1983) \"Q*bert [Model 9800]\"  \n[JP] Sega SG-1000 (1983) \"Q*bert [Model OM-G001]\"  \n[US] Mattel Intellivision (1983) \"Q*bert [Model PB6360]\" \n[US] Atari 2600 (1983) \"Q*bert [Model PB5360]\" \n[US] Atari 5200 (1983) \"Q*bert [Model 9500]\" \n[US] Atari 7800 \"Bentley Bear In Q*bert\": Unreleased prototype.\nAtari XEGS\n[JP] MSX (1986) \"Q*bert [Model RC746]\" \n[EU] MSX (1987) \"Q*bert [Model RC746]\" \n[US] Nintendo NES (feb.1989) \"Q*bert [Model NES-QB-USA]\"  \n[US] Sony PlayStation 3 [PSN] (feb.22, 2007) \n[EU] Sony PlayStation 3 [PSN] (may.18, 2007) \n\n* HANDHELDS:\n[EU] Nintendo Game Boy (1992) \"Q*bert for Game Boy [Model DMG-P-QT]\"  \n[JP] Nintendo Game Boy (jan.14, 1992) \"Q*bert for Game Boy [Model DMG-QTJ]\" \n[US] Nintendo Game Boy (feb.1992) \"Q*bert for Game Boy [Model DMG-QT-USA]\" \n\n* COMPUTERS:\n[US] Atari 800 (1983) \"Q*bert [Model 1120]\"  \n[EU] BBC Micro (1983) \n[US] Commodore VIC-20 (1983)\n[EU] Commodore C64 (1983) \n[US] Commodore C64 (1983) \"Q*bert [Model PB1550]\"  \n[US] [EU] Commodore C64 (1983) \"Hexpert\" \n[US] Tandy Color Computer (1983) \"Cuber\" \n[US] Tandy Color Computer (1983) \"Cubix\" \n[EU] Sinclair ZX-Spectrum (1983) \"Pogo\" by Ocean.\n[EU] Amstrad CPC (1984) \"Er*Bert\" by Microbyte.\n[US] Texas Instruments TI-99/4A (1984) \"Q*bert [Model PB1620]\"  \n[EU] BBC B (1984) \"R*THER\" by Acornsoft \n[EU] Memotech MTX512 (1985) \"Qogo\" \n[EU] Tandy Color Computer 3 (1987) \"Pyramix\"\n[EU] Amstrad CPC (1987) \"Crazy Er*Bert\" by Alternative Software.\n[EU] Commodore Amiga (1992) \"Q.Bic\" by CodeMasters.\n[US] PC [MS Windows, CD-ROM] (2005) \"Q*bert 2005\" \n\n* OTHERS: \n[US] VFD handheld game(1983) by Parker Brothers.\n[US] Mobile Phones (june.13, 2003) \n[US] Apple iPhone/iPod (jul.28, 2009) \"Q*bert Deluxe [Model 325065512]\"\n\n- SERIES -\n\n1. Q*bert (1982, Arcade)\n2. Q*bert's Qubes (1983, Arcade)\n3. Q*bert 3 (1993, Nintendo Super NES)\n4. Q*bert (1999, PC CD-ROM, Sony PlayStation)\n5. Q*bert Rebooted (2014, Steam)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2094/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

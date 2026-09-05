@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "simpsons",
+  "family": "simpsons",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 122,
+    "total": 182,
+    "percent": 67
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:KONAMI",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/konami.cpp:86"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "eeprom:EEPROM_ER5911_8BIT",
+        "status": "declarative-host"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "k052109:K052109",
+        "status": "executable",
+        "source": "src/mame/konami/k052109.cpp:149"
+      },
+      {
+        "name": "k053246:K053246",
+        "status": "executable",
+        "source": "src/mame/konami/k053246_k053247_k055673.cpp:754"
+      },
+      {
+        "name": "k053251:K053251",
+        "status": "executable",
+        "source": "src/mame/konami/k053251.cpp:128"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ymsnd:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "k053260:K053260",
+        "status": "executable",
+        "source": "src/devices/sound/k053260.cpp:65"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.audiobank",
+        "status": "generated"
+      },
+      {
+        "name": "bank.mainbank",
+        "status": "generated"
+      },
+      {
+        "name": "k052109.read",
+        "status": "executable",
+        "source": "src/mame/konami/k052109.cpp:149"
+      },
+      {
+        "name": "k052109.write",
+        "status": "executable",
+        "source": "src/mame/konami/k052109.cpp:149"
+      },
+      {
+        "name": "k053246.k053246_r",
+        "status": "executable",
+        "source": "src/mame/konami/k053246_k053247_k055673.cpp:754"
+      },
+      {
+        "name": "k053246.k053246_w",
+        "status": "executable",
+        "source": "src/mame/konami/k053246_k053247_k055673.cpp:754"
+      },
+      {
+        "name": "k053251.write",
+        "status": "executable",
+        "source": "src/mame/konami/k053251.cpp:128"
+      },
+      {
+        "name": "k053260.main_read",
+        "status": "executable",
+        "source": "src/devices/sound/k053260.cpp:65"
+      },
+      {
+        "name": "k053260.main_write",
+        "status": "executable",
+        "source": "src/devices/sound/k053260.cpp:65"
+      },
+      {
+        "name": "k053260.read",
+        "status": "executable",
+        "source": "src/devices/sound/k053260.cpp:65"
+      },
+      {
+        "name": "k053260.write",
+        "status": "executable",
+        "source": "src/devices/sound/k053260.cpp:65"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.COIN",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.P3",
+        "status": "generated"
+      },
+      {
+        "name": "port.P4",
+        "status": "generated"
+      },
+      {
+        "name": "port.TEST",
+        "status": "generated"
+      },
+      {
+        "name": "simpsons_state.coin_counter_w",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:357"
+      },
+      {
+        "name": "simpsons_state.eeprom_w",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:337"
+      },
+      {
+        "name": "simpsons_state.k052109_r",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:246"
+      },
+      {
+        "name": "simpsons_state.k052109_w",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:251"
+      },
+      {
+        "name": "simpsons_state.k053247_r",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:256"
+      },
+      {
+        "name": "simpsons_state.k053247_w",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:266"
+      },
+      {
+        "name": "simpsons_state.sound_interrupt_r",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:370"
+      },
+      {
+        "name": "simpsons_state.z80_arm_nmi_w",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:487"
+      },
+      {
+        "name": "simpsons_state.z80_bankswitch_w",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:469"
+      },
+      {
+        "name": "watchdog.reset_r",
+        "status": "generated"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_vblank_int -> screen.periodic_irq",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:643"
+      },
+      {
+        "name": "maincpu.line -> simpsons_state.banking_callback",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:644"
+      },
+      {
+        "name": "screen.set_screen_update -> simpsons_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:659"
+      },
+      {
+        "name": "k052109.set_tile_callback -> simpsons_state.tile_callback",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:667"
+      },
+      {
+        "name": "k052109.irq_handler -> maincpu",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:668"
+      },
+      {
+        "name": "k053246.set_sprite_callback -> simpsons_state.sprite_callback",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:671"
+      },
+      {
+        "name": "k053260.sh1_cb -> simpsons_state.z80_nmi_w",
+        "status": "generated",
+        "source": "src/mame/konami/simpsons.cpp:689"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/simpsons/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 35,
+    "compiledMethods": 34,
+    "blockedMethods": 1,
+    "usedCompiledHandlers": 9,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "simpsons_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 18,
+    "generated": 26,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

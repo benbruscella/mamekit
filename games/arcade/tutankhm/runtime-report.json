@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "tutankhm",
+  "family": "tutankhm",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 114,
+    "total": 161,
+    "percent": 70.8
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:MC6809E",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:137"
+      },
+      {
+        "name": "timeplt_audio:tpsound:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mainlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "timeplt_audio:TIMEPLT_AUDIO",
+        "status": "executable",
+        "source": "src/mame/shared/timeplt_a.cpp:22"
+      },
+      {
+        "name": "stars:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "tpsound:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ay1:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay2:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.mainbank",
+        "status": "generated"
+      },
+      {
+        "name": "mainlatch.write_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN2",
+        "status": "generated"
+      },
+      {
+        "name": "timeplt_audio.sound_data_w",
+        "status": "executable",
+        "source": "src/mame/shared/timeplt_a.cpp:22"
+      },
+      {
+        "name": "timeplt_audio:ay1.address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay1.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay1.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay2.address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay2.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay2.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio_device.filter_w",
+        "status": "generated",
+        "source": "src/mame/shared/timeplt_a.cpp:109"
+      },
+      {
+        "name": "tutankhm_state.bankselect_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:129"
+      },
+      {
+        "name": "tutankhm_state.sound_on_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:153"
+      },
+      {
+        "name": "watchdog.reset_r",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "mainlatch.q_out_cb<0> -> tutankhm_state.irq_enable_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:290"
+      },
+      {
+        "name": "mainlatch.q_out_cb<1> -> set_nop",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:291"
+      },
+      {
+        "name": "mainlatch.q_out_cb<2> -> tutankhm_state.coin_counter_2_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:292"
+      },
+      {
+        "name": "mainlatch.q_out_cb<3> -> tutankhm_state.coin_counter_1_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:293"
+      },
+      {
+        "name": "mainlatch.q_out_cb<4> -> tutankhm_state.stars_enable_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:294"
+      },
+      {
+        "name": "mainlatch.q_out_cb<5> -> timeplt_audio.mute_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:295"
+      },
+      {
+        "name": "mainlatch.q_out_cb<6> -> tutankhm_state.flip_screen_x_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:296"
+      },
+      {
+        "name": "mainlatch.q_out_cb<7> -> tutankhm_state.flip_screen_y_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:297"
+      },
+      {
+        "name": "screen.set_screen_update -> tutankhm_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:306"
+      },
+      {
+        "name": "screen.screen_vblank -> tutankhm_state.vblank_irq",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:307"
+      },
+      {
+        "name": "ay1.port_a_read_callback -> soundlatch.read",
+        "status": "generated",
+        "source": "src/mame/shared/timeplt_a.cpp:201"
+      },
+      {
+        "name": "ay1.port_b_read_callback -> timeplt_audio_device.portB_r",
+        "status": "generated",
+        "source": "src/mame/shared/timeplt_a.cpp:202"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/tutankhm/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 27,
+    "compiledMethods": 27,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 3,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "tutankhm_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 16,
+    "generated": 23,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

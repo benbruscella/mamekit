@@ -1,0 +1,810 @@
+{
+  "game": "mpatrol",
+  "title": "Moon Patrol (Irem, 1982)",
+  "fullname": "Moon Patrol",
+  "year": "1982",
+  "company": "Irem",
+  "family": "m52",
+  "driverFile": "src/mame/irem/m52.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "m52_state.videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 33792,
+          "end": 34815,
+          "kind": "ram",
+          "share": "colorram",
+          "write": "m52_state.colorram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 34816,
+          "end": 34816,
+          "kind": "handler",
+          "mirror": 2047,
+          "read": "m52_state.protection_r"
+        },
+        {
+          "start": 51200,
+          "end": 52223,
+          "kind": "ram",
+          "mirror": 1024,
+          "share": "spriteram",
+          "writeOnly": true
+        },
+        {
+          "start": 53248,
+          "end": 53248,
+          "kind": "handler",
+          "mirror": 2044,
+          "write": "irem_audio.cmd_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 53249,
+          "end": 53249,
+          "kind": "handler",
+          "mirror": 2044,
+          "write": "m52_state.flipscreen_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 53248,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.IN0"
+        },
+        {
+          "start": 53249,
+          "end": 53249,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.IN1"
+        },
+        {
+          "start": 53250,
+          "end": 53250,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.IN2"
+        },
+        {
+          "start": 53251,
+          "end": 53251,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.DSW1"
+        },
+        {
+          "start": 53252,
+          "end": 53252,
+          "kind": "handler",
+          "mirror": 2040,
+          "read": "port.DSW2"
+        },
+        {
+          "start": 57344,
+          "end": 59391,
+          "kind": "ram"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "m52_state.scroll_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 64,
+            "end": 64,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "m52_state.bgxpos_w_0",
+            "handlerWidth": 8
+          },
+          {
+            "start": 96,
+            "end": 96,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "m52_state.bgypos_w_0",
+            "handlerWidth": 8
+          },
+          {
+            "start": 128,
+            "end": 128,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "m52_state.bgxpos_w_1",
+            "handlerWidth": 8
+          },
+          {
+            "start": 160,
+            "end": 160,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "m52_state.bgypos_w_1",
+            "handlerWidth": 8
+          },
+          {
+            "start": 192,
+            "end": 192,
+            "kind": "handler",
+            "mirror": 31,
+            "write": "m52_state.bgcontrol_w",
+            "handlerWidth": 8
+          }
+        ],
+        "globalMask": 255
+      }
+    },
+    {
+      "tag": "irem_audio:iremsound",
+      "type": "m6803",
+      "clock": 3579545,
+      "region": "irem_audio:iremsound",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "handler",
+          "write": "irem_audio_device.m52_adpcm_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 4096,
+          "end": 8191,
+          "kind": "handler",
+          "write": "irem_audio_device.sound_irq_ack_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8192,
+          "end": 32767,
+          "kind": "rom"
+        }
+      ],
+      "mask": 32767
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 894886.25,
+    "chips": 2,
+    "deviceTags": [
+      "irem_audio:ay_45m",
+      "irem_audio:ay_45l"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": -1,
+        "gain": 1,
+        "target": "filtermix",
+        "targetInput": 0
+      },
+      {
+        "chip": 1,
+        "channel": -1,
+        "gain": 1,
+        "target": "filtermix",
+        "targetInput": 1
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "MSM5205",
+        "deviceTag": "irem_audio:msm1",
+        "member": "m_adpcm1",
+        "clock": 384000,
+        "initialMode": "S96_4B",
+        "gain": 1,
+        "target": "filtermix",
+        "targetInput": 2,
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 240,
+    "height": 252,
+    "xOffset": 136,
+    "yOffset": 22,
+    "refresh": 56.737588652482266,
+    "htotal": 384,
+    "vtotal": 282,
+    "vbstart": 274,
+    "vbend": 22,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "mpa-1.3m",
+          "offset": 0,
+          "size": 4096,
+          "crc": "5873a860",
+          "alt": [
+            {
+              "file": "mpa-1w.3m",
+              "crc": "baa1a1d4"
+            }
+          ]
+        },
+        {
+          "file": "mpa-2.3l",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "f4b85974",
+          "alt": [
+            {
+              "file": "mpa-2w.3l",
+              "crc": "52459e51"
+            },
+            {
+              "file": "mra-2.3l",
+              "crc": "217dd431"
+            }
+          ]
+        },
+        {
+          "file": "mpa-3.3k",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "2e1a598c",
+          "alt": [
+            {
+              "file": "mpa-3w.3k",
+              "crc": "9b249fe5"
+            },
+            {
+              "file": "mra-3.3k",
+              "crc": "9f0af7b2"
+            }
+          ]
+        },
+        {
+          "file": "mpa-4.3j",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "dd05b587",
+          "alt": [
+            {
+              "file": "mpa-4w.3j",
+              "crc": "fee76972"
+            },
+            {
+              "file": "mra-4.3j",
+              "crc": "7fe8e2cd"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "irem_audio:iremsound",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "mp-s1.1a",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "561d3108"
+        }
+      ]
+    },
+    {
+      "region": "tx",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "mpe-4.3f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "cca6d023",
+          "alt": [
+            {
+              "file": "mpe-4w.3f",
+              "crc": "caaba2d9"
+            }
+          ]
+        },
+        {
+          "file": "mpe-5.3e",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "e3ee7f75",
+          "alt": [
+            {
+              "file": "mpe-5w.3e",
+              "crc": "f56e01fe"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sp",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "mpb-2.3m",
+          "offset": 0,
+          "size": 4096,
+          "crc": "707ace5e"
+        },
+        {
+          "file": "mpb-1.3n",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "9b72133a"
+        }
+      ]
+    },
+    {
+      "region": "bg0",
+      "size": 8192,
+      "fill": 255,
+      "loads": [
+        {
+          "file": "mpe-1.3l",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c46a7f72"
+        }
+      ]
+    },
+    {
+      "region": "bg1",
+      "size": 8192,
+      "fill": 255,
+      "loads": [
+        {
+          "file": "mpe-2.3k",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c7aa1fb0"
+        }
+      ]
+    },
+    {
+      "region": "bg2",
+      "size": 8192,
+      "fill": 255,
+      "loads": [
+        {
+          "file": "mpe-3.3h",
+          "offset": 0,
+          "size": 4096,
+          "crc": "a0919392"
+        }
+      ]
+    },
+    {
+      "region": "tx_pal",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mpc-4.2a",
+          "offset": 0,
+          "size": 512,
+          "crc": "07f99284",
+          "alt": [
+            {
+              "file": "mpc-4a.2a",
+              "crc": "cb0a5ff3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bg_pal",
+      "size": 32,
+      "loads": [
+        {
+          "file": "mpc-3.1m",
+          "offset": 0,
+          "size": 32,
+          "crc": "6a57eff2"
+        }
+      ]
+    },
+    {
+      "region": "spr_pal",
+      "size": 32,
+      "loads": [
+        {
+          "file": "mpc-1.1f",
+          "offset": 0,
+          "size": 32,
+          "crc": "26979b13"
+        }
+      ]
+    },
+    {
+      "region": "spr_clut",
+      "size": 256,
+      "loads": [
+        {
+          "file": "mpc-2.2h",
+          "offset": 0,
+          "size": 256,
+          "crc": "7ae4cd97"
+        }
+      ]
+    },
+    {
+      "region": "unkprom",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mp_7621-5.7h",
+          "offset": 0,
+          "size": 512,
+          "crc": "cf1fd9d0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW2",
+      "mask": 1,
+      "value": 1,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW2",
+      "mask": 2,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 4,
+      "name": "Coin Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Invulnerability (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW2",
+      "mask": 16,
+      "value": 16,
+      "name": "Stop Mode (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 32,
+      "value": 32,
+      "name": "Sector Selection (Cheat)"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 2,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 12,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 48,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 192,
+      "name": "Coin B"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 94,
+    "contributors": 22,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Olivier Galibert",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 34,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-04-15"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 19,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 10,
+        "firstCommit": "2017-05-07",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 3,
+        "firstCommit": "2019-02-26",
+        "lastCommit": "2024-06-17"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2012-10-02",
+        "lastCommit": "2012-10-20"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2018-11-01"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-29"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-03-16"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "couriersud",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-25",
+        "lastCommit": "2008-04-25"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2022-09-10",
+        "lastCommit": "2022-09-10"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2017-03-02",
+        "lastCommit": "2017-03-02"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2013-07-16",
+        "lastCommit": "2013-07-16"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-18"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-02-17",
+        "lastCommit": "2008-02-17"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nMoon Patrol (c) 1982 Irem.\n\nMoon Patrol is a horizontally-scrolling shoot-em-up in which the player takes the role of a Luna City police officer assigned to Sector Nine, home of the toughest thugs in the galaxy. \n\nThe player controls a moon buggy that travels over the moon's surface, trying to avoid or destroy any obstacles in its path, including craters, rocks and mines. UFOs attack the buggy from above by dropping bombs, some UFO bombs will create a new crater when they hit the ground, generating a new obstacle to avoid.\n\nThe buggy can jump to avoid craters, mines and rocks, it also has both front and vertically-mounted cannons that fire missiles simultaneously. The vertical cannon is to destroy UFOs while the front-cannon can take out obstacles that lie in the buggy's path.\n\nMoon Patrol has five different stages spread over 26 check-points, each designated a letter of the English alphabet. The five checkpoints that denote a new stage are E, J, O, T and Z and each new stage sees a change in background graphics as well as an increase in difficulty. One example of this is the introduction of landmines in the third stage (stage 'J').\n\nA status panel is displayed at the top of the screen that gives the player useful information. A progress bar showing the five major checkpoints and the player's current position is displayed at the bottom of the panel. Above the progress bar is an indicator of the current checkpoint, the time spent in the stage and three indicator lights: the top light indicates upcoming enemy aerial attacks, the middle one indicates an upcoming minefield and the bottom one indicates enemies approaching from behind.\n\nAt the end of each stage bonus points are awarded based on how quickly the stage was completed.\n\n*CAST OF CHARACTERS*\n\nPLAYER CHARACTER - MOON BUGGY: \nYour vehicle across the rugged lunar terrain is a specially designed moon buggy. It comes with six wheels on three specially mounted axles that contain especially absorbent shocks which allow the buggy to glide across the uneven landscape of the moon. The wheels of the buggy can be utilized to create short hops, which allow the buggy to jump over pits and other hazardous obstacles that can't be removed in time. It is also equipped with a roof mounted gun for anti-air fire and a forward mounted cannon. The anti-air gun can fire up to four bullets on the screen at one time, while the cannon can only project one bullet at a time. The buggy is destroyed by impact with an obstacle, getting hit by alien craft bombs, or falling into a lunar pit.\n\nENEMIES ON THE GROUND\n1) Craters and Rocks - Throughout the course of driving on the moon, you will encounter natural terrain obstacles that you must overcome. Nothing more can be done about craters than jumping over them. Most craters are spaced out, but a few come in rapid succession of one another, so jumps must be timed carefully. In addition to craters, you will come across rocks on the landscape. Most rocks are easily dispatched with one shot from your cannon. Sometimes, two rocks occur back to back. If you're fast enough, you can destroy them both. Otherwise, you may opt to jump over the pair. Small rocks lie below the height of your cannon fire. They can only be destroyed if the shot from your cannon detonates near the rock. Otherwise, the shot will sail harmlessly over the rock. When in doubt, jump over the rocks to be safe.\n\n2) Land Mines - These small objects which flash white and red make their first appearance after point J in the beginner course. Like pits, they can not be destroyed and must be jumped over. They tend to occur in rapid succession, so it is recommended that you travel no faster than regular speed until you are an expert player. When two mines are approximately two moon buggy lengths apart, it is important to jump over the first one considerably early so that you don't land on the second, and have enough time to jump off the ground before you reach it.\n\n3) Boulders - At certain points along your patrol, the elevation of the moon's surface rises. The first such occurrence is between points P and Q in the beginner course. While you are driving uphill, it is not uncommon to encounter boulders rolling down towards your buggy. Like rocks, these boulders can be rendered harmless with your cannon. Even the small boulders present little challenge thanks to the incline of the surface elevating them to the level of your cannon. But be prepared for a difficult jump if too many come at you at once and you don't have enough time to destroy them all.\n\n4) Tanks - These first appear after point U in the beginner course. They are stationary, and typically fire one bullet at a time in your direction. Their bullets and the shots from your cannon cancel each other out, so you must immediately fire again in order to hit the tank. Any delay on your part will result in the tank firing once more, preventing you from destroying the tank before you reach it. Tanks can be jumped over if necessary.\n\n5) Rocket Cars - The first of these appears after point A in the champion course. It will trail behind you until it is ready to strike. Stay fast, and don't do anything until it begins to approach you. When it is half-way between you and the edge of the screen, jump up and let it sail underneath you. Fire as soon as you land to destroy it for 500 points. \n\n6) Space Plants - A strange type of vegetation exists on the moon, favouring to make their homes in the craters of the lunar surface. They bob in and out of the craters in an effort to catch whatever they can grab. These space plants first appear shortly before point H in the champion course. A shot from the cannon is enough to render the space plant harmless, but the crater must still be leaped over. Attempting to leap over a crater that still contains a space plant can be a dangerous gamble if not timed perfectly.\n\nENEMIES IN THE AIR\nAlien Craft: There are three types of craft that the enemy employs when trying to defeat you from overhead. They all appear in groups ranging from two to five.\n\n1) Regular Craft - These weave back and forth dropping bombs on the buggy. The bombs can be destroyed with your anti-air gun, but they make difficult targets. If this craft is left on the screen for too long in later levels, it may fly down to collide with your buggy.\n\n2) Elliptical craft - These behave nearly identical to the regular craft. They drop bombs on you with increasing accuracy. The long you remain at a particular speed, the better their shots will get, so make sure to mix your speed up in order to confuse them. Sometimes, you can jump at the last minute and avoid getting hit if the bomb is about to hit the back of your buggy.\n\n3) Tri-orb craft - This craft, made of three circles bound together, is the deadliest of them all. Rather than dropping normal bombs at the buggy, they pitch terrain deforming grenades at the path ahead of you. You must watch the trajectory of their small flashing grenades and anticipate when you might need to jump as a result of the newly formed pit left by their grenade's impact with the ground. Like the bombs, the grenades can be shot, but they are even harder to hit.\n\n- TECHNICAL -\n\nIrem M-52 hardware\n\nMain CPU : Zilog Z80 (@ 3.072 Mhz)\nSound CPU : Motorola M6803 (@ 894.886 Khz)\nSound Chips : (2x) General Instrument AY8910 (@ 894.886 Khz), (2x) MSM5205 (@ 384 Khz)\n\nPlayers : 2\nControl: 2-way joystick (controls speed of moon buggy)\nButtons: 2\n=> [1] Fire, [2] Jump\n\n- TRIVIA -\n\nMoon Patrol was released in June 1982 in Japan.\n\nMoon Patrol was one of the earliest linear side-scrolling shoot-em-ups and the first game to feature parallax scrolling.\n\nSome graphical glitches:\n\n* Shoot an alien ship as it falls and it remains on the screen, with its point total.\n\n* Bombs dropped in pits explode on the surface.\n\n* Occasionally you'll miss an enemy you appear to hit, but it works the other way around, too.\n\n* Occasionally the enemy missiles will hit your very edge and nothing will happen. Don't get too used to this happening, though!\n\n* When you jump but still fall in a pit, you always make it halfway between the edge before falling in.\n\nThe attract mode course uses its own unique course of gameplay. The screen, however, says 'Beginner course' at the top when the moon buggy is parked at the moon base. The enemies encountered in attract mode are as follows:\n\n(Moon base)\nLarge (double) rock, Large crater, 2 space plants (the second space plant has a rock adjacent to it), Large crater, Small crater, 2 tanks\n\n(Point A)\nUphill climb with rolling boulders, Formation of 3 regular alien crafts, Formation of 3 tri-orb crafts\n\n(Point B)\nDownhill descent with formation of 3 elliptical alien crafts\n\n(Point C)\nRocket car, Large crater and small crater adjacent to each other\n(Unfortunately, the moon buggy always falls into the large crater that follows the rocket car, so technically the attract mode course ends there. Sometimes the alien craft between points A and C would defeat the moon buggy; other times the moon buggy would mistime its jump over the rocket car. The land mines do not appear in the attract mode).\n\nMark Robichek holds the official record for this game with 1,214,600 points.\n\nA Moon Patrol unit appears in the 1983 movie 'Joysticks' and in the 1984 movie 'The Karate Kid'.\n\nA Bootleg of this game is called \"Moon Ranger\".\n\nAlfa Records released a limited-edition soundtrack album for this game (R*Type: Irem Game Music - 28XA-199) on January 25, 1988.\n\n- SCORING -\n\nRegular alien craft :\nDestroying - 100 points\n\nElliptical alien craft :\nDestroying - 100 points\n\nTri-orb alien craft :\nDestroying - 200 points\n\nAlien craft formation bonus (for destroying all alien craft in a formation) :\nFormation of three - 500 points\nFormation of four - 800 points\nFormation of five - 1,000 points\n(no bonus points for a formation of two) \n\nSmall craters :\nJumping over - 50 points\n\nLarge craters :\nJumping over - 100 points\n\nSmall rocks :\nJumping over - 50 points\nDestroying - 100 points\n\nMedium rocks :\nJumping over - 80 points\nDestroying - 100 points\n\nLarge (double) rocks :\nJumping over - 100 points\nHalf destroying - 100 points\nHalf destroying and jumping over - 180 points\nDestroying - 200 points\n\nLand mines :\nJumping over - 50 points\n\nRolling boulders :\nDestroying - 50 points\nJumping over - 100 points\n\nTanks :\nJumping over - 100 points\nDestroying - 200 points\n(no points for shooting the tank's missile)\n\nRocket cars :\nDestroying - 500/800/1,000 points depending on distance\n(no points for jumping over rocket cars)\n\nSpace plants :\nJumping over - 100 points\nDestroying - 300/500/800 points depending on their height when destroyed + 100 points for jumping over the crater\n\nReaching a checkpoint in under average time : \nBeginner course - 1,000 point bonus \nChampion course - 2,000 point bonus\n\nReaching checkpoint 'Z' : \nBeginner course - 5,000 points\nChampion course - 10,000 points\n\nTime remaining at checkpoint - 100 points per second under average time\n\n- TIPS AND TRICKS -\n\nEnemies that appear in later stages also appear in the attract mode. If you watch the attract mode carefully, you'll learn how to deal with these adversaries.\n\nMoon Patrol is primarily divided into 2 courses; the Beginner course and the Champion course. Each course is divided into 26 sections labelled A through Z. Each section is organized into 4 groups of 5 and 1 group of 6 at the very end. At the end of each group, your time is compared to the average time for potential bonus points.\n\nBEGINNER COURSE\n\nA - E\n \nIn the very first stretch, you will encounter 3 small craters, and 2 rocks. Jump over all of the craters and fire your cannon at the rocks. \n\nPoint A \nBy the time you drive over point A, 2 of the first alien crafts will appear overhead. They will be joined by two of the elliptical crafts. A rock will appear towards the end. \n\nPoint B \n2 more crafts appear while a rock approaches your buggy. A few more rocks and a crater will follow. \n\nPoint C \n3 elliptical crafts will appear. Destroy them for a 500 point bonus while you jump over the 2 craters and destroy the rock. \n\nPoint D \n2 tri-orbs will introduce themselves. Be careful of the craters that their grenades might make. They are quickly followed by 2 regular crafts. One rock and one crater precedes the end.\n\nF - J\n\nPoint E \nThe section begins with 2 tri-orbs followed by 2 elliptical crafts. A crater and rock appear towards the end. \n\nPoint F \nMore difficult obstacles appear, such as large craters, double rocks that must be fired on twice, and small rocks that must be hit by the explosion of the cannon shot. \n\nPoint G \n2 craft appear while you jump over large craters and destroy a few rocks that get in your way. \n\nPoint H \nThere are simply 2 tri-orbs and 2 regular crafts in this section. \n\nPoint I \nThe first group of three tri-orbs will appear. Destroy them all for 500 points. Then a rapid succession of craters and rocks will occur, including double and small rocks. You may wish to slow down towards the end to deal with them all. \n\nK - O\n\nPoint J \nThis section introduces you to land mines, the small objects that flash white and red. Like craters, they can not be destroyed and must be jumped over. They tend to occur in rapid succession, so it is recommended that you travel no faster than regular speed until you are an expert player.\n\nPoint K \nMore land mines in this section. When 2 land mines are approximately 2 buggy lengths apart, it is important to jump over the first one considerably early so that you don't land on the second, and have enough time to jump off the ground before you reach it. \n\nPoint L \nMany of the land mines you encounter here come in pairs, but they are no more difficult to jump at regular speed than single mines. \n\nPoint M \nSpace craft resume their attack and this time 4 of the regular type appear to attack. Destroy them all for an 800 point bonus. This is followed by 3 elliptical crafts, worth 500 bonus points if they are all destroyed. \n\nPoint N \n4 tri-orbs appear, followed by 3 elliptical crafts. If you can destroy them all, you'll net a 1300 point bonus.\n\nP - T\n\nPoint O \nA quad of tri-orbs start off this section, followed by 3 regular crafts. \n\nPoint P \nThis section is the first uphill climb that you encounter. Boulders of all three sizes will fall down the hill in no larger groups than pairs. Even the smallest boulders should be easy to shoot. \n\nPoint Q \n4 elliptical craft appear. Be aware that their bombs don't need to travel as far in order to hit you. Also keep your eyes open for the large craters and double rock formations that show up. \n\nPoint R \nAs you begin to descend downhill, a pair of both regular space crafts will appear and bomb you from overhead. \n\nPoint S \n3 regular crafts appear near simultaneously with 3 tri-orb craft. Stay alert to newly formed craters. \n\nU - Z\n\nPoint T \nA rapid succession of craters and double rocks appear. Take this section at the normal speed until you feel comfortable speeding up. \n\nPoint U \nAs soon as the craters and rock end, you will encounter your first 2 tanks. 4 more tanks are waiting for you after a large crater. Fire rapidly to overcome their bullets and destroy them. \n\nPoint V \nA series of 4 large craters precedes an uphill climb, complete with rolling boulders.\n\nPoint W \n4 regular craft and 3 elliptical crafts appear while you're positioned closer to the sky.\n\nPoint X \n3 regular crafts are followed by 3 tri-orb crafts. \n\nPoint Y \n3 more tri-orb crafts and 3 elliptical crafts fire from overhead while you must avoid a final series of craters and rocks to reach the end of the beginner course.\n\n\nCHAMPION COURSE\n\nA - E\n\n3 regular craft and 3 elliptical craft bomb you from overhead at the start of the champion course. \n\nPoint A \nYour first tangle with a rocket car will occur. It will trail behind you until it is ready to strike. Stay fast, and don't do anything until it begins to approach you. When it's half way between you and the edge of the screen, jump up and let it sail underneath you. Fire as soon as you land to destroy it. \n\nPoint B \nA few tanks occur among craters and rock. The last tank in this section is positioned just after a large crater. It's difficult to destroy both the tank's bullet and the tank, so fire at the bullet and leap over the crater and the tank in one jump. \n\nPoint C \nMore tanks appear with short breaks of craters and rocks. \n\nPoint D \n4 regular crafts fly in while you must continue to navigate over several deep craters and clear the rocks in your way. Destroy all of the crafts for 800 bonus points. \n\nF - J\n\nPoint E \n3 pairs of tri-orbs appear, providing a near constant shower of grenades. No bonus points are awarded for destroying all of the crafts because they are considered pairs. \n\nPoint F \nA tricky succession of craters and rocks occur. They frequently occur back to back, requiring you to clear the rock in front of the crater before jumping, or forcing you to delay your jump so that you can destroy the rock behind the crater. Slow the buggy down if your jumps are landing too close to the next obstacle. \n\nPoint G \n4 tri-orb crafts are accompanied by 4 regular crafts for a total potential bonus of 1600 points. At the very end of this section, you will be introduced to space plants. Even if you manage to destroy them, remember to jump over the craters. \n\nPoint H \n3 of the regular and elliptical crafts appear among more craters and rocks. \n\nPoint I \n4 tri-orb crafts arrive. Destroy them as quickly as possible before the terrain gets more difficult up ahead. Among the craters and rocks are space plants that must be dealt with. Slow the buggy down towards the end.\n\nK - O\n\nPoint J \nThis section starts off with an uphill climb. Boulders now appear more frequently and groups of three are not uncommon. Do not be determined to destroy them all. Leap over a set if they prove too difficult to shoot in time. \n\nPoint K \n4 regular crafts and 3 elliptical crafts stream onto the screen during your higher elevation.\n\nPoint L \nLand mines begin to appear again, some in very close proximity to one another. Slow your speed down until you get the rhythm of the jumps. \n\nPoint M \nMore land mines appear. In this section, some land mine pairs are so close that it's actually possible to hurdle the combination at top speed, but this requires great familiarity with the mine sequence before attempting. \n\nPoint N \n5 tri-orbs appear, for a unique chance at a 1000 point bonus for clearing them all. 4 regular crafts appear as well. \n\nP - T\n\nPoint O \nAs soon as you begin your descent down the hill, five elliptical crafts swarm overhead with four regular crafts. Once you reach the bottom of the hill, a tricky combination of rocks and craters occurs, so clear the crafts as quickly as possible. \n\nPoint P \nThe craters continue to come at a relatively easy pace. A rocket car will appear while you continue to jump craters. The land will level out and eventually the rocket car will launch itself at you. Jump to avoid it, and shoot it as you land, but be ready to jump the next crater which comes up almost immediately. \n\nPoint Q \nRocks occur on either side of some craters now, some grouped in pairs. The very end of the section contains closely arranged land mines. \n\nPoint R \nMore rocks and craters show up, with the space plants occupying the later batch. \n\nPoint S \n5 tri-orbs are accompanied by 3 elliptical crafts. A few rocks show up towards the end. \n\nU - Z\n\nPoint T \nAs the section starts out, a few rocks and craters get in your way before a rocket car appears. This time, it will launch shortly after you land from a jump over a crater, so be ready to jump back up again as the car approaches. \n\nPoint U \nA number of land mines appear. In the middle, two rocks must be destroyed. Use this as a cue to speed up quite a bit, because a pair of land mines roughly one buggy's width apart must be leaped over simultaneously and you need a good bit of speed. \n\nPoint V \nA total of 5 tri-orb crafts and 5 regular crafts will appear to launch an attack over you. Continue to monitor forward for craters created by tri-orbs' grenades. \n\nPoint W \nA rapid succession of craters, rocks, and space plants occur here. It is best to travel at normal or slower speed to ensure that you have time to destroy every obstacle in your way. \n\nPoint X \n5 tri-orbs and four regular craft will dominate the sky above you. \n\nPoint Y \nA full combination of tanks, craters, rocks, and space plants will assail you during the very final section of the champion course. \n\n\n* Hint 1 : When alien ships fly over, keep adjusting your speed or they will eventually hit you with a bomb. Draw their bombs to one end of the screen, then shift to the other. \n\n* Hint 2 : Although the part of the mines seems to be the more difficult, it isn't - all you have to do is not move your tank at all, only pressing the jump button. You won't get many bonus points, but at least you'll survive. \n\n* Hint 3 : The big key to this game is memorization. After the beginner course, you go on to the champion course, which never changes no matter how many times you pass it. Memorize the two courses, and you will almost never lose a life.\n\n- PORTS -\n\nNOTE: Only ports released outside North America are listed here. For North American releases, please see the Williams Electronics entry.\n\n* CONSOLES:\n[EU] Sony PlayStation (mar.1998) \"Arcade's Greatest Hits - The Midway Collection 2 [Model SLES-00739]\" \n\n* COMPUTERS:\n[EU] Commodore C64 (1983)\nSord M5 [JP] (1983)\n[JP] MSX (1984)\n[EU] Sinclair ZX Spectrum (1984) \n[EU] Amstrad CPC (1985) \"Moon Buggy\"\n\n* OTHERS:\nLCD handheld game [JP] (1982) by Gakken.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1668/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

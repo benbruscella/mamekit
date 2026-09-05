@@ -1,0 +1,64 @@
+Arcade Video game published 44 years ago:
+
+Donkey Kong Junior (c) 1982 Nintendo of America.
+
+Export release for North America. Game developed in Japan. For more information about the game itself, please see the "Donkey Kong Jr." (Japanese version) entry.
+
+- TECHNICAL -
+
+Upright model
+Model # DJR1-UP
+
+- TRIVIA -
+
+Donkey Kong Junior was released in September 1982 in the USA.
+
+The Japanese version, as well as some bootleg versions, have the suffix abbreviated in the printed title rather than fully spelled out ("Donkey Kong Jr."). 
+
+Donkey Kong Junior spawned a cartoon series of the same name : Ruby-Spears Productions. Produced By Joe Ruby, Ken Spears. Originally aired September 17, 1983 as part of 'Saturday Supercade' on CBS.
+
+- UPDATES -
+
+In these versions featuring the suffix fully spelled out in the title screen ('Junior.') : 
+1. You are only allowed to enter a name up to three letters long in the High Score list (instead of twelve). 
+2. In the Vines and Chains stages, Red Snapjaws regenerate at Mario's feet after being killed by fruit starting in L4 (instead of L5). 
+
+The Japanese boards have all four screens displayed in their original, logical order 1-2-3-4. For the US board, it was changed to somewhat match the original Donkey Kong's 'How High Can You Try/Get?' theme with the screen order as follows : 
+L1 : 1-4 (Springboard and Mario's Hideout stages both omitted)
+L2 : 1-2-4 (Mario's Hideout stage omitted)
+L3 : 1-3-4 (Springboard stage omitted)
+From L4 onward, all four stages are displayed in order, as in the Japanese version.
+
+- PORTS -
+
+NOTE : Only ports released in North America are listed here. For ports released in other regions, please see the Japanese version's entry.
+
+* CONSOLES: 
+[US] Colecovision (1982) "Donkey Kong Junior [Model 2601]"
+[US] Mattel Intellivision (1983) "Donkey Kong Jr [Model 2671]" 
+[US] Atari 2600 (1983) "Donkey Kong Junior [Model 2653]"
+Atari XEGS 
+[US] Nintendo NES (june.1986) "Donkey Kong Jr. [Model NES-JR-USA]"
+[US] Atari 7800 (1988) "Donkey Kong Jr. [Model CX7849]" 
+
+* COMPUTERS: 
+[US] Atari 800 (june.1, 1984) "Donkey Kong Junior [Model RX8040]" 
+[US] Tandy Color Computer (1983) "Junior's Revenge" 
+[US] Tandy Color Computer 3 (1986) "Return of Junior's Revenge" 
+
+* OTHERS: 
+[US] LCD tabletop game (1983) "Donkey Kong Junior [Model 2398]"
+[US] LCD Game & Watch (1983) "Donkey Kong Jr. [Model CJ-93]"
+[US] Tabletop Game (1983) "Donkey Kong Jr [Model CJ-71]"
+
+- SERIES -
+
+1. Donkey Kong (1981)
+2. Donkey Kong Junior (1982)
+3. Donkey Kong 3 (1983)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/669/?o=2
+
+— Gaming History (arcade-history.com)

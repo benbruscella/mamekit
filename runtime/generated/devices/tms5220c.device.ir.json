@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "type": "TMS5220C",
+  "className": "tms5220c_device",
+  "hierarchy": [
+    "tms5220c_device",
+    "device_t"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/tms5220.cpp",
+    "src/devices/sound/tms5110r.hxx",
+    "src/devices/sound/tms5220.h"
+  ],
+  "constants": {
+    "FIFO_SIZE": 16,
+    "CLOCK_DIVIDER": 80,
+    "READY_CLOCKS": 16
+  },
+  "members": [],
+  "callbacks": [
+    {
+      "signal": "irq_handler",
+      "member": "m_irq_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "readyq_handler",
+      "member": "m_readyq_handler",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "data_w",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "wsq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "rsq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "readyq_r",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "intq_r",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "status_r",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "set_unscaled_clock",
+      "parameters": "uint32_t clock",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    },
+    {
+      "name": "sample_rate",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/tms5220.cpp",
+        "line": 540
+      }
+    }
+  ],
+  "summary": {
+    "methods": 9,
+    "diagnostics": 0
+  }
+}

@@ -1,0 +1,615 @@
+{
+  "game": "ladybug",
+  "title": "Lady Bug (Universal, 1981)",
+  "fullname": "Lady Bug",
+  "year": "1981",
+  "company": "Universal",
+  "family": "ladybug",
+  "driverFile": "src/mame/universal/ladybug.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 4000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 24575,
+          "kind": "rom"
+        },
+        {
+          "start": 24576,
+          "end": 28671,
+          "kind": "ram"
+        },
+        {
+          "start": 28672,
+          "end": 29695,
+          "kind": "handler",
+          "write": "video.spr_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 36863,
+          "kind": "nop",
+          "writeOnly": true
+        },
+        {
+          "start": 36864,
+          "end": 36864,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 36865,
+          "end": 36865,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 36866,
+          "end": 36866,
+          "kind": "handler",
+          "read": "port.DSW0"
+        },
+        {
+          "start": 36867,
+          "end": 36867,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 40960,
+          "end": 40967,
+          "kind": "handler",
+          "write": "videolatch.write_d0"
+        },
+        {
+          "start": 45056,
+          "end": 49151,
+          "kind": "handler",
+          "write": "sn1.write"
+        },
+        {
+          "start": 49152,
+          "end": 53247,
+          "kind": "handler",
+          "write": "sn2.write"
+        },
+        {
+          "start": 53248,
+          "end": 55295,
+          "kind": "handler",
+          "read": "video.bg_r",
+          "write": "video.bg_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 57344,
+          "end": 57344,
+          "kind": "handler",
+          "read": "port.IN2"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "sn76489",
+    "clock": 4000000,
+    "chips": 2,
+    "deviceTypes": [
+      "SN76489",
+      "SN76489"
+    ],
+    "clocks": [
+      4000000,
+      4000000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 240,
+    "height": 192,
+    "xOffset": 8,
+    "yOffset": 32,
+    "refresh": 60.11450381679389,
+    "htotal": 312,
+    "vtotal": 262,
+    "vbstart": 224,
+    "vbend": 32,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "l1.c4",
+          "offset": 0,
+          "size": 4096,
+          "crc": "d09e0adb",
+          "alt": [
+            {
+              "file": "lb1a.cpu",
+              "crc": "ec135e54"
+            },
+            {
+              "file": "lb1b.cpu",
+              "crc": "35d61e65"
+            }
+          ]
+        },
+        {
+          "file": "l2.d4",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "88bc4a0a",
+          "alt": [
+            {
+              "file": "lb2a.cpu",
+              "crc": "3049c5c6"
+            },
+            {
+              "file": "lb2b.cpu",
+              "crc": "a13e0fe4"
+            }
+          ]
+        },
+        {
+          "file": "l3.e4",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "53e9efce",
+          "alt": [
+            {
+              "file": "lb3a.cpu",
+              "crc": "b0fef837"
+            },
+            {
+              "file": "lb3b.cpu",
+              "crc": "ee8ac716"
+            }
+          ]
+        },
+        {
+          "file": "l4.h4",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "ffc424d7"
+        },
+        {
+          "file": "l5.j4",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "ad6af809"
+        },
+        {
+          "file": "l6.k4",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "cf1acca4",
+          "alt": [
+            {
+              "file": "lb6a.cpu",
+              "crc": "88c8002a"
+            },
+            {
+              "file": "lb6b.cpu",
+              "crc": "dc906e89"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "l9.f7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "77b1da1e"
+        },
+        {
+          "file": "l0.h7",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "aa82e00b"
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "l8.l7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "8b99910b"
+        },
+        {
+          "file": "l7.m7",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "86a5b448"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 96,
+      "loads": [
+        {
+          "file": "10-2.k1",
+          "offset": 0,
+          "size": 32,
+          "crc": "df091e52"
+        },
+        {
+          "file": "10-1.f4",
+          "offset": 32,
+          "size": 32,
+          "crc": "40640d8f"
+        },
+        {
+          "file": "10-3.c4",
+          "offset": 64,
+          "size": 32,
+          "crc": "27fa3a50"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "CONTP1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "CONTP1",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "CONTP1",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "CONTP1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW0",
+      "mask": 4,
+      "value": 4,
+      "name": "High Score Names"
+    },
+    {
+      "port": "DSW0",
+      "mask": 8,
+      "value": 8,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "DSW0",
+      "mask": 16,
+      "value": 16,
+      "name": "Freeze"
+    },
+    {
+      "port": "DSW0",
+      "mask": 32,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW0",
+      "mask": 64,
+      "value": 64,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSW0",
+      "mask": 128,
+      "value": 128,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin A"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-02-09",
+    "commits": 162,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 57,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 18,
+        "firstCommit": "2016-12-25",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2016-12-16",
+        "lastCommit": "2025-02-09"
+      },
+      {
+        "name": "hap",
+        "commits": 6,
+        "firstCommit": "2022-07-02",
+        "lastCommit": "2022-09-02"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-03-05"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2012-08-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 3,
+        "firstCommit": "2017-03-03",
+        "lastCommit": "2021-01-08"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2012-05-07"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 2,
+        "firstCommit": "2008-08-14",
+        "lastCommit": "2008-08-14"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 2,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2021-09-23"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-04-30",
+        "lastCommit": "2009-12-10"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-02-02",
+        "lastCommit": "2019-02-02"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Frank Palazzolo",
+        "commits": 1,
+        "firstCommit": "2021-05-19",
+        "lastCommit": "2021-05-19"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 45 years ago:\n\nLady Bug (c) 1981 Universal.\n\nIn Lady Bug you guide a lady bug through a Pac-Man style maze, eating dots, and avoiding enemy insects. You lose a life if you run into a skull or get eaten by an enemy insect. Collect letters to spell EXTRA for a bonus life (just like in Mr. Do!), and SPECIAL for an extra credit. The maze has rotating doors which are just enough to give the game a slightly different feel than the Pac-Man series.\n\n- TECHNICAL -\n\nA proper Lady Bug arcade machine will be in a dedicated cabinet (specifically one of the ultra-curvy early Universal ones, \"Mr. Do!\", and many others used this same cabinet). Most games from Universal had no specific side art, just a painted 'Universal' logo, and a couple of colored stripes. This makes it possible to actually convert one Universal title into another one, without any loss in value. The joystick is mounted in the center of the control panel. Finally, this game uses a standard resolution monitor mounted vertically.\n\nMain CPU : Zilog Z80 (@ 4 Mhz)\nSound Chips : (2x) Texas Instruments SN76496 (@ 4 Mhz)\n\nPlayers : 2\nControl : 4-way joystick\n\n- TRIVIA -\n\nLady Bug was released in October 1981 in Japan and in December 1981 in the USA.\n\nThis game contains unused graphics for a large dinosaur.\n\nAlessandro Laini holds the official record for this game with 4,102,830 points.\n\nA bootleg was made in 1983 by TAI DLI on the \"Galaxian\" hardware.\n\nA bootleg of this game is known as \"Cocinella\".\n\n- SCORING -\n\nEating a flower : 10 points x score multiplier value.\nCollecting a heart : 100 points x score multiplier value.\nCollecting a yellow letter : 300 points x score multiplier value.\nCollecting a red letter : 800 points x score multiplier value.\nBonus vegetable : 1,000 points for the cucumber on level one, increasing by 500 points per level, up to a maximum value of 9,500 for the horseradish on level 18 onwards.\n\n- TIPS AND TRICKS -\n\n* Avoid running into skulls at all costs. They represent poison and are deadly to both you and the enemy insects. Not only that, but if you die by touching a skull yourself, all other skulls in the maze are replaced by flowers. If an enemy insect is poisoned by a skull, the skull disappears and the poisoned enemy insect is returned to its base in the center of the maze.\n\n* Use the swing doors to block off the enemy insects' pursuit. Quickly flip a door as you pass it when an enemy insect is behind you and as long as the enemy insect is not too close, its route will be blocked and it will then have to find an alternative route to you. If the enemy insect is too close it will go through the door behind you and there may be no escape.\n\n* Try to collect bonus vegetables when there are still skulls available on the maze. If, after you collect a bonus vegetable, an enemy bug is poisoned by a skull and returned to its base, when it leaves the base another vegetable will appear. This is the key to high scores on later levels when the vegetables are worth anything up to 9,500 points each.\n\n* Get the score multiplier up to x5 as soon as possible. All points on the maze except bonus vegetables will then be multiplied by 5. You should get the hearts before getting ANY letters. The exception is when one of the letters is only 2 spaces above the enemy insects' base, and waiting for it to turn red may prove fatal. Alternatively you can try to collect a letter in this position when the enemy insects are frozen, when you have a few seconds to wait around for it to change.\n\n* Collect all unneeded letters when they are red with the multiplier on x5 for 4,000 points each. For example if you already have the \"X\" for EXTRA collect it again when it is on red x5.\n\n* Clear the flowers around the enemy insects' base at the start of each level from stage 5 onwards. This is especially important past stage 10 when the enemy insects' speed is much increased. You do not move any faster, and will need to have a good knowledge of the maze layout to avoid them.\n\n* Use the swing doors to force the enemy insects to go where you want them to. Example: stay to the upper right of the enemy insects' base, and let them come to you. When they are close, move the door so they have to pass your position, and when they are past you move the door again, so that they have to go the long way round to get to you again. Wait until all four enemy insects are out and then you can get the bonus vegetable when the way is clear. Watch out though, as some breeds of enemy bugs are particularly stupid (or smart) and will not follow the route you want, but will lurk near you to try and trap you.\n\n* Try to group all four enemy insects close together to increase your chances of getting the bonus vegetable.\n\n* If you quickly flip the same revolving door several times in succession you will notice you move part way through it. You can now walk through this door without spinning it. Useful if you want to wait somewhere and make a getaway without moving the door.\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600: release cancelled\n[US] Colecovision (1982) \"Lady Bug [Model 2433]\" \n[US] Mattel Intellivision (1983) \"Lady Bug [Model 2483]\" \n\n* COMPUTERS: \n[US] Tandy Color Computer (1982) \"Doodle Bug\"\n[EU] BBC B (1983) \"Bumble-Bee\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1343/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

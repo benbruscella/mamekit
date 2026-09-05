@@ -1,0 +1,3436 @@
+{
+    "schemaVersion": 4,
+    "game": "panic",
+    "family": "cosmic",
+    "driverFile": "src/mame/universal/cosmic.cpp",
+    "callbacks": [
+        {
+            "id": "machine:cosmic_state.panic/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "cosmic_state",
+            "targetMethod": "screen_update_panic",
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 843,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/scantimer/callback:scantimer:0",
+            "ownerTag": "scantimer",
+            "signal": "configure_scanline",
+            "operation": "configure_scanline",
+            "targetClass": "cosmic_state",
+            "targetMethod": "panic_scanline",
+            "scanlineStart": 0,
+            "scanlineIncrement": 1,
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 837,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/palette/callback:palette_init",
+            "ownerTag": "palette",
+            "signal": "palette_init",
+            "operation": "palette_init",
+            "targetClass": "cosmic_state",
+            "targetMethod": "panic_palette",
+            "entries": 16,
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 841
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:cosmic_state.panic/scantimer/callback:scantimer:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "cosmic_state.panic_scanline"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 837,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 1802666.6666666667,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 16383,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 24575,
+                        "kind": "ram",
+                        "share": "videoram"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 24607,
+                        "kind": "ram",
+                        "share": "spriteram",
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 26624,
+                        "end": 26624,
+                        "kind": "handler",
+                        "read": "port.P1"
+                    },
+                    {
+                        "start": 26625,
+                        "end": 26625,
+                        "kind": "handler",
+                        "read": "port.P2"
+                    },
+                    {
+                        "start": 26626,
+                        "end": 26626,
+                        "kind": "handler",
+                        "read": "port.DSW"
+                    },
+                    {
+                        "start": 26627,
+                        "end": 26627,
+                        "kind": "handler",
+                        "read": "port.SYSTEM"
+                    },
+                    {
+                        "start": 28672,
+                        "end": 28683,
+                        "kind": "handler",
+                        "write": "cosmic_state.panic_sound_output_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 28684,
+                        "end": 28686,
+                        "kind": "handler",
+                        "write": "cosmic_state.cosmic_color_register_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 28687,
+                        "end": 28687,
+                        "kind": "handler",
+                        "write": "cosmic_state.flip_screen_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 30720,
+                        "end": 30721,
+                        "kind": "handler",
+                        "write": "cosmic_state.panic_sound_output2_w",
+                        "handlerWidth": 8
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 1802666.6666666667,
+                "source": {
+                    "file": "src/mame/universal/cosmic.cpp",
+                    "line": 811,
+                    "column": 2
+                }
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 1802666.6666666667,
+                "cycleClock": 1802666.6666666667,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "resetHandlers": [
+            "cosmic_state.machine_reset"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 192,
+            "xOffset": 0,
+            "yOffset": 32,
+            "refresh": 58.639833448993755,
+            "htotal": 352,
+            "vtotal": 262,
+            "vbstart": 224,
+            "vbend": 32,
+            "updateMode": "frame",
+            "rotate": 270,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "scanlineCallback": "panic_scanline",
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 814,
+                "column": 2
+            }
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:cosmic_state.panic/scantimer/callback:scantimer:0",
+                "ownerTag": "scantimer",
+                "signal": "configure_scanline",
+                "line": 0,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/universal/cosmic.cpp",
+                    "line": 837,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:cosmic_state.panic/scantimer/callback:scantimer:0",
+                "ownerTag": "scantimer",
+                "signal": "configure_scanline",
+                "line": 224,
+                "state": 224,
+                "source": {
+                    "file": "src/mame/universal/cosmic.cpp",
+                    "line": 837,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "cosmic_state.screen_update_panic",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/universal/cosmic_v.cpp",
+                "line": 468,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:cosmic_state.cosmic/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 1802666.6666666667,
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 811,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.cosmic/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        5408000,
+                        352,
+                        0,
+                        256,
+                        262,
+                        32,
+                        224
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 814,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/scantimer",
+            "tag": "scantimer",
+            "type": "TIMER",
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 837,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 840,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 841,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 846,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/samples",
+            "tag": "samples",
+            "type": "SAMPLES",
+            "member": "m_samples",
+            "configuration": [
+                {
+                    "method": "set_channels",
+                    "args": [
+                        9
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 848,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:cosmic_state.panic/dac",
+            "tag": "dac",
+            "type": "DAC_1BIT",
+            "member": "m_dac",
+            "clock": 0,
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 853,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:cosmic_state.panic_sound_output_w",
+            "ownerClass": "cosmic_state",
+            "method": "panic_sound_output_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "// Sound Enable / Disable\n\tif (offset == 11)\n\t{\n\t\tint count;\n\t\tif (data == 0)\n\t\t\tfor (count = 0; count < 9; count++)\n\t\t\t\tm_samples->stop(count);\n\n\t\tm_sound_enabled = data;\n\t}\n\n\tif (m_sound_enabled)\n\t{\n\t\tswitch (offset)\n\t\t{\n\t\tcase 0: if (data) m_samples->start(0, 0); break;    // Walk\n\t\tcase 1: if (data) m_samples->start(0, 5); break;    // Enemy Die 1\n\t\tcase 2: if (data)                                   // Drop 1\n\t\t\t\t{\n\t\t\t\t\tif (!m_samples->playing(1))\n\t\t\t\t\t{\n\t\t\t\t\t\tm_samples->stop(2);\n\t\t\t\t\t\tm_samples->start(1, 3);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t\tm_samples->stop(1);\n\t\t\t\tbreak;\n\n\t\tcase 3: if (data && !m_samples->playing(6))         // Oxygen\n\t\t\t\t\tm_samples->start(6, 9, true);\n\t\t\t\tbreak;\n\n\t\tcase 4: break;                                      // Drop 2\n\t\tcase 5: if (data) m_samples->start(0, 5); break;    // Enemy Die 2 (use same sample as 1)\n\t\tcase 6: if (data && !m_samples->playing(1) && !m_samples->playing(3))   // Hang\n\t\t\t\t\tm_samples->start(2, 2);\n\t\t\t\tbreak;\n\n\t\tcase 7: if (data)                                   // Escape\n\t\t\t\t{\n\t\t\t\t\tm_samples->stop(2);\n\t\t\t\t\tm_samples->start(3, 4);\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t\tm_samples->stop(3);\n\t\t\t\tbreak;\n\n\t\tcase 8: if (data) m_samples->start(0, 1); break;    // Stairs\n\t\tcase 9: if (data)                                   // Extend\n\t\t\t\t\tm_samples->start(4, 8);\n\t\t\t\telse\n\t\t\t\t\tm_samples->stop(4);\n\t\t\t\tbreak;\n\n\t\tcase 10:    m_dac->write(BIT(data, 7)); break; // Bonus\n\t\t}\n\t}\n\n\t#ifdef MAME_DEBUG\n\tlogerror(\"panic_sound_output_w %x=%x\\n\", offset, data);\n\t#endif",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 11
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "declare",
+                                "name": "count",
+                                "valueType": "int"
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "for",
+                                        "initialize": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "count"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            }
+                                        ],
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "<",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "count"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 9
+                                            }
+                                        },
+                                        "iterate": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "count"
+                                                },
+                                                "operator": "+=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_samples"
+                                                        },
+                                                        "property": "stop"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "count"
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_sound_enabled"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_sound_enabled"
+                        },
+                        "then": [
+                            {
+                                "op": "switch",
+                                "expression": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "cases": [
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 5
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "if",
+                                                        "condition": {
+                                                            "kind": "unary",
+                                                            "operator": "!",
+                                                            "operand": {
+                                                                "kind": "call",
+                                                                "callee": {
+                                                                    "kind": "member",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_samples"
+                                                                    },
+                                                                    "property": "playing"
+                                                                },
+                                                                "args": [
+                                                                    {
+                                                                        "kind": "number",
+                                                                        "value": 1
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "then": [
+                                                            {
+                                                                "op": "call",
+                                                                "expression": {
+                                                                    "kind": "call",
+                                                                    "callee": {
+                                                                        "kind": "member",
+                                                                        "object": {
+                                                                            "kind": "identifier",
+                                                                            "name": "m_samples"
+                                                                        },
+                                                                        "property": "stop"
+                                                                    },
+                                                                    "args": [
+                                                                        {
+                                                                            "kind": "number",
+                                                                            "value": 2
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                "op": "call",
+                                                                "expression": {
+                                                                    "kind": "call",
+                                                                    "callee": {
+                                                                        "kind": "member",
+                                                                        "object": {
+                                                                            "kind": "identifier",
+                                                                            "name": "m_samples"
+                                                                        },
+                                                                        "property": "start"
+                                                                    },
+                                                                    "args": [
+                                                                        {
+                                                                            "kind": "number",
+                                                                            "value": 1
+                                                                        },
+                                                                        {
+                                                                            "kind": "number",
+                                                                            "value": 3
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                "else": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "stop"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": "&&",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "data"
+                                                    },
+                                                    "right": {
+                                                        "kind": "unary",
+                                                        "operator": "!",
+                                                        "operand": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "playing"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 6
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 6
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 9
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 5
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 5
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 6
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": "&&",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&&",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "right": {
+                                                            "kind": "unary",
+                                                            "operator": "!",
+                                                            "operand": {
+                                                                "kind": "call",
+                                                                "callee": {
+                                                                    "kind": "member",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_samples"
+                                                                    },
+                                                                    "property": "playing"
+                                                                },
+                                                                "args": [
+                                                                    {
+                                                                        "kind": "number",
+                                                                        "value": 1
+                                                                    }
+                                                                ]
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "unary",
+                                                        "operator": "!",
+                                                        "operand": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "playing"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 3
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 2
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 2
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 7
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "stop"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 2
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 3
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 4
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ],
+                                                "else": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "stop"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 3
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 8
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 9
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 4
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 8
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ],
+                                                "else": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "stop"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 4
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 10
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_dac"
+                                                        },
+                                                        "property": "write"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "identifier",
+                                                                "name": "BIT"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "data"
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 7
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 43,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:cosmic_state.cosmic_color_register_w",
+            "ownerClass": "cosmic_state",
+            "method": "cosmic_color_register_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_color_registers[offset] = data ? 1 : 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_color_registers"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic_v.cpp",
+                "line": 15,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:cosmic_state.flip_screen_w",
+            "ownerClass": "cosmic_state",
+            "method": "flip_screen_w",
+            "parameters": "uint8_t data",
+            "body": "flip_screen_set(data & 0x80);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "flip_screen_set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 277,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:cosmic_state.panic_sound_output2_w",
+            "ownerClass": "cosmic_state",
+            "method": "panic_sound_output2_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "if (m_sound_enabled)\n\t{\n\t\tswitch (offset)\n\t\t{\n\t\tcase 0:     if (data) m_samples->start(0, 6); break;    // Player Die\n\t\tcase 1:    if (data) m_samples->start(5, 7); break;    // Enemy Laugh\n\t\t}\n\t}\n\n#ifdef MAME_DEBUG\n\tlogerror(\"panic_sound_output2_w %x=%x\\n\", offset, data);\n#endif",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_sound_enabled"
+                        },
+                        "then": [
+                            {
+                                "op": "switch",
+                                "expression": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "cases": [
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 6
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "call",
+                                                        "expression": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_samples"
+                                                                },
+                                                                "property": "start"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 5
+                                                                },
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 7
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 109,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:cosmic_state.machine_reset",
+            "ownerClass": "cosmic_state",
+            "method": "machine_reset",
+            "body": "m_background_enable = 0;\n\tm_color_registers[0] = 0;\n\tm_color_registers[1] = 0;\n\tm_color_registers[2] = 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_background_enable"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_color_registers"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_color_registers"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_color_registers"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 800,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:cosmic_state.screen_update_panic",
+            "ownerClass": "cosmic_state",
+            "method": "screen_update_panic",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "bitmap.fill(0, cliprect);\n\tdraw_bitmap(bitmap, cliprect);\n\tdraw_sprites(bitmap, cliprect, 0x07, 1);\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                "property": "fill"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_bitmap"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 7
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic_v.cpp",
+                "line": 468,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:cosmic_state.draw_bitmap",
+            "ownerClass": "cosmic_state",
+            "method": "draw_bitmap",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "for (offs_t offs = 0; offs < m_videoram.bytes(); offs++)\n\t{\n\t\tuint8_t data = m_videoram[offs];\n\n\t\tuint8_t x = offs << 3;\n\t\tuint8_t const y = offs >> 5;\n\n\t\tpen_t pen = (this->*m_map_color)(x, y);\n\n\t\tfor (int i = 0; i < 8; i++)\n\t\t{\n\t\t\tif (data & 0x80)\n\t\t\t{\n\t\t\t\tif (flip_screen())\n\t\t\t\t\tbitmap.pix(255-y, 255-x) = pen;\n\t\t\t\telse\n\t\t\t\t\tbitmap.pix(y, x) = pen;\n\t\t\t}\n\n\t\t\tx++;\n\t\t\tdata <<= 1;\n\t\t}\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "offs_t",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram"
+                                    },
+                                    "property": "bytes"
+                                },
+                                "args": []
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "data",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "x",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "y",
+                                "valueType": "uint8_t",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 5
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "pen",
+                                "valueType": "pen_t",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "m_map_color"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "for",
+                                "initialize": [
+                                    {
+                                        "op": "declare",
+                                        "name": "i",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "<",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "i"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 8
+                                    }
+                                },
+                                "iterate": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 128
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "flip_screen"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "bitmap"
+                                                                },
+                                                                "property": "pix"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": "-",
+                                                                    "left": {
+                                                                        "kind": "number",
+                                                                        "value": 255
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "identifier",
+                                                                        "name": "y"
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": "-",
+                                                                    "left": {
+                                                                        "kind": "number",
+                                                                        "value": 255
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "identifier",
+                                                                        "name": "x"
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "identifier",
+                                                            "name": "pen"
+                                                        }
+                                                    }
+                                                ],
+                                                "else": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "bitmap"
+                                                                },
+                                                                "property": "pix"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "y"
+                                                                },
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "x"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "identifier",
+                                                            "name": "pen"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "<<=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic_v.cpp",
+                "line": 181,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:cosmic_state.draw_sprites",
+            "ownerClass": "cosmic_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, int color_mask, int extra_sprites",
+            "body": "int offs;\n\n\tfor (offs = m_spriteram.bytes() - 4;offs >= 0;offs -= 4)\n\t{\n\t\tif (m_spriteram[offs] != 0)\n\t\t{\n\t\t\tint code, color;\n\n\t\t\tcode  = ~m_spriteram[offs] & 0x3f;\n\t\t\tcolor = ~m_spriteram[offs + 3] & color_mask;\n\n\t\t\tif (extra_sprites)\n\t\t\t\tcode |= (m_spriteram[offs + 3] & 0x08) << 3;\n\n\t\t\tif (m_spriteram[offs] & 0x80)\n\t\t\t\t/* 16x16 sprite */\n\t\t\t\tm_gfxdecode->gfx(0)->transpen(bitmap,cliprect,\n\t\t\t\t\t\tcode, color,\n\t\t\t\t\t\t0, ~m_spriteram[offs] & 0x40,\n\t\t\t\t\t\t256-m_spriteram[offs + 2],m_spriteram[offs + 1],0);\n\t\t\telse\n\t\t\t\t/* 32x32 sprite */\n\t\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap,cliprect,\n\t\t\t\t\t\tcode >> 2, color,\n\t\t\t\t\t\t0, ~m_spriteram[offs] & 0x40,\n\t\t\t\t\t\t256-m_spriteram[offs + 2],m_spriteram[offs + 1],0);\n\t\t}\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "offs",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "property": "bytes"
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "-=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_spriteram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "declare",
+                                        "name": "code",
+                                        "valueType": "int"
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "color",
+                                        "valueType": "int"
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "code"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_spriteram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "identifier",
+                                                        "name": "offs"
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 63
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "color"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_spriteram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "binary",
+                                                        "operator": "+",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "offs"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 3
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "color_mask"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "extra_sprites"
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                "operator": "|=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "<<",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spriteram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "offs"
+                                                                },
+                                                                "right": {
+                                                                    "kind": "number",
+                                                                    "value": 3
+                                                                }
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 8
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 3
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_spriteram"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 128
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_gfxdecode"
+                                                                },
+                                                                "property": "gfx"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 0
+                                                                }
+                                                            ]
+                                                        },
+                                                        "property": "transpen"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "bitmap"
+                                                        },
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "cliprect"
+                                                        },
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "code"
+                                                        },
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "color"
+                                                        },
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        },
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": "&",
+                                                            "left": {
+                                                                "kind": "unary",
+                                                                "operator": "~",
+                                                                "operand": {
+                                                                    "kind": "index",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_spriteram"
+                                                                    },
+                                                                    "index": {
+                                                                        "kind": "identifier",
+                                                                        "name": "offs"
+                                                                    }
+                                                                }
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 64
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": "-",
+                                                            "left": {
+                                                                "kind": "number",
+                                                                "value": 256
+                                                            },
+                                                            "right": {
+                                                                "kind": "index",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_spriteram"
+                                                                },
+                                                                "index": {
+                                                                    "kind": "binary",
+                                                                    "operator": "+",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "offs"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "number",
+                                                                        "value": 2
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spriteram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "offs"
+                                                                },
+                                                                "right": {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ],
+                                        "else": [
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_gfxdecode"
+                                                                },
+                                                                "property": "gfx"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            ]
+                                                        },
+                                                        "property": "transpen"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "bitmap"
+                                                        },
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "cliprect"
+                                                        },
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": ">>",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "code"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 2
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "identifier",
+                                                            "name": "color"
+                                                        },
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        },
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": "&",
+                                                            "left": {
+                                                                "kind": "unary",
+                                                                "operator": "~",
+                                                                "operand": {
+                                                                    "kind": "index",
+                                                                    "object": {
+                                                                        "kind": "identifier",
+                                                                        "name": "m_spriteram"
+                                                                    },
+                                                                    "index": {
+                                                                        "kind": "identifier",
+                                                                        "name": "offs"
+                                                                    }
+                                                                }
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 64
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": "-",
+                                                            "left": {
+                                                                "kind": "number",
+                                                                "value": 256
+                                                            },
+                                                            "right": {
+                                                                "kind": "index",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_spriteram"
+                                                                },
+                                                                "index": {
+                                                                    "kind": "binary",
+                                                                    "operator": "+",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "offs"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "number",
+                                                                        "value": 2
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_spriteram"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "+",
+                                                                "left": {
+                                                                    "kind": "identifier",
+                                                                    "name": "offs"
+                                                                },
+                                                                "right": {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic_v.cpp",
+                "line": 209,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:cosmic_state.panic_scanline",
+            "ownerClass": "cosmic_state",
+            "method": "panic_scanline",
+            "parameters": "int param",
+            "body": "int scanline = param;\n\n\tif(scanline == 224) // vblank-out irq\n\t\tm_maincpu->set_input_line_and_vector(0, HOLD_LINE,0xd7); // Z80 - RST 10h\n\n\tif(scanline == 0) // vblank-in irq\n\t\tm_maincpu->set_input_line_and_vector(0, HOLD_LINE,0xcf); // Z80 - RST 08h",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "scanline",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "param"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "scanline"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 224
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line_and_vector"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "HOLD_LINE"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 215
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "scanline"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line_and_vector"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "HOLD_LINE"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 207
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 819,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:cosmic_state.panic_palette",
+            "ownerClass": "cosmic_state",
+            "method": "panic_palette",
+            "parameters": "palette_device &palette",
+            "body": "uint8_t const *const color_prom = memregion(\"proms\")->base();\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x10; i++)\n\t{\n\t\tint const r = pal1bit(i >> 0);\n\t\tint const g = pal1bit(i >> 1);\n\t\tint const b = ((i & 0x0c) == 0x08) ? 0xaa : pal1bit(i >> 2);\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// background uses colors 0x00-0x0f\n\tfor (int i = 0; i < 0x0f; i++)\n\t\tpalette.set_pen_indirect(i, i);\n\n\t// sprites use colors 0x00-0x07\n\tfor (int i = 0; i < 0x20; i++)\n\t\tpalette.set_pen_indirect(i + 0x10, color_prom[i] & 0x07);\n\n\tm_map_color = &cosmic_state::panic_map_color;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "color_prom",
+                        "valueType": "auto*",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "memregion"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "proms"
+                                        }
+                                    ]
+                                },
+                                "property": "base"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 16
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "r",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal1bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "g",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal1bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "b",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 12
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "number",
+                                        "value": 170
+                                    },
+                                    "whenFalse": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "pal1bit"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_indirect_color"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "rgb_t"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "r"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "g"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "b"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "i"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "i",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "i"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "palette"
+                                        },
+                                        "property": "set_pen_indirect"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 16
+                                            }
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "color_prom"
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "i"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 7
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_map_color"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "cosmic_state::panic_map_color"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/universal/cosmic_v.cpp",
+                "line": 67,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:cosmic_state.panic_map",
+            "className": "cosmic_state",
+            "name": "panic_map",
+            "ranges": [
+                {
+                    "id": "map:cosmic_state.panic_map/range0",
+                    "start": 0,
+                    "end": 16383,
+                    "raw": "map(0x0000, 0x3fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 16383,
+                        "raw": "map(0x0000, 0x3fff).rom()",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 285,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 285,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 285,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range1",
+                    "start": 16384,
+                    "end": 24575,
+                    "raw": "map(0x4000, 0x5fff).ram().share(\"videoram\")",
+                    "props": {
+                        "start": 16384,
+                        "end": 24575,
+                        "raw": "map(0x4000, 0x5fff).ram().share(\"videoram\")",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 286,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 286,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 286,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range2",
+                    "start": 24576,
+                    "end": 24607,
+                    "raw": "map(0x6000, 0x601f).writeonly().share(\"spriteram\")",
+                    "props": {
+                        "start": 24576,
+                        "end": 24607,
+                        "raw": "map(0x6000, 0x601f).writeonly().share(\"spriteram\")",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 287,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 287,
+                        "writeonly": true,
+                        "share": "spriteram"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 287,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range3",
+                    "start": 26624,
+                    "end": 26624,
+                    "raw": "map(0x6800, 0x6800).portr(\"P1\")",
+                    "props": {
+                        "start": 26624,
+                        "end": 26624,
+                        "raw": "map(0x6800, 0x6800).portr(\"P1\")",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 288,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 288,
+                        "portRead": "P1"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 288,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range4",
+                    "start": 26625,
+                    "end": 26625,
+                    "raw": "map(0x6801, 0x6801).portr(\"P2\")",
+                    "props": {
+                        "start": 26625,
+                        "end": 26625,
+                        "raw": "map(0x6801, 0x6801).portr(\"P2\")",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 289,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 289,
+                        "portRead": "P2"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 289,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range5",
+                    "start": 26626,
+                    "end": 26626,
+                    "raw": "map(0x6802, 0x6802).portr(\"DSW\")",
+                    "props": {
+                        "start": 26626,
+                        "end": 26626,
+                        "raw": "map(0x6802, 0x6802).portr(\"DSW\")",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 290,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 290,
+                        "portRead": "DSW"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 290,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range6",
+                    "start": 26627,
+                    "end": 26627,
+                    "raw": "map(0x6803, 0x6803).portr(\"SYSTEM\")",
+                    "props": {
+                        "start": 26627,
+                        "end": 26627,
+                        "raw": "map(0x6803, 0x6803).portr(\"SYSTEM\")",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 291,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 291,
+                        "portRead": "SYSTEM"
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 291,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range7",
+                    "start": 28672,
+                    "end": 28683,
+                    "raw": "map(0x7000, 0x700b).w(FUNC(cosmic_state::panic_sound_output_w))",
+                    "write": "cosmic_state.panic_sound_output_w",
+                    "props": {
+                        "start": 28672,
+                        "end": 28683,
+                        "raw": "map(0x7000, 0x700b).w(FUNC(cosmic_state::panic_sound_output_w))",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 292,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 292
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 292,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range8",
+                    "start": 28684,
+                    "end": 28686,
+                    "raw": "map(0x700c, 0x700e).w(FUNC(cosmic_state::cosmic_color_register_w))",
+                    "write": "cosmic_state.cosmic_color_register_w",
+                    "props": {
+                        "start": 28684,
+                        "end": 28686,
+                        "raw": "map(0x700c, 0x700e).w(FUNC(cosmic_state::cosmic_color_register_w))",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 293,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 293
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 293,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range9",
+                    "start": 28687,
+                    "end": 28687,
+                    "raw": "map(0x700f, 0x700f).w(FUNC(cosmic_state::flip_screen_w))",
+                    "write": "cosmic_state.flip_screen_w",
+                    "props": {
+                        "start": 28687,
+                        "end": 28687,
+                        "raw": "map(0x700f, 0x700f).w(FUNC(cosmic_state::flip_screen_w))",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 294,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 294
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 294,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:cosmic_state.panic_map/range10",
+                    "start": 30720,
+                    "end": 30721,
+                    "raw": "map(0x7800, 0x7801).w(FUNC(cosmic_state::panic_sound_output2_w))",
+                    "write": "cosmic_state.panic_sound_output2_w",
+                    "props": {
+                        "start": 30720,
+                        "end": 30721,
+                        "raw": "map(0x7800, 0x7801).w(FUNC(cosmic_state::panic_sound_output2_w))",
+                        "sourceFile": "src/mame/universal/cosmic.cpp",
+                        "sourceLine": 295,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 295
+                    },
+                    "source": {
+                        "file": "src/mame/universal/cosmic.cpp",
+                        "line": 295,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/universal/cosmic.cpp",
+                "line": 283,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_color_registers",
+            "bits": 32,
+            "signed": true,
+            "arrayLength": 3
+        },
+        {
+            "name": "m_background_enable",
+            "bits": 32,
+            "signed": true
+        },
+        {
+            "name": "m_magspot_pen_mask",
+            "bits": 32,
+            "signed": true
+        },
+        {
+            "name": "m_sound_enabled",
+            "bits": 32,
+            "signed": true
+        },
+        {
+            "name": "m_dive_bomb_b_select",
+            "bits": 32,
+            "signed": true
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "gfx1",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 16,
+                "colorCount": 8,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": "RGN_FRAC(1,2)",
+                    "planes": 2,
+                    "planeOffsets": [
+                        "RGN_FRAC(0,2)",
+                        "RGN_FRAC(1,2)"
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        128,
+                        129,
+                        130,
+                        131,
+                        132,
+                        133,
+                        134,
+                        135
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56,
+                        64,
+                        72,
+                        80,
+                        88,
+                        96,
+                        104,
+                        112,
+                        120
+                    ],
+                    "charIncrement": 256
+                }
+            },
+            {
+                "region": "gfx1",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 16,
+                "colorCount": 8,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 32,
+                    "height": 32,
+                    "total": "RGN_FRAC(1,2)",
+                    "planes": 2,
+                    "planeOffsets": [
+                        "RGN_FRAC(0,2)",
+                        "RGN_FRAC(1,2)"
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        256,
+                        257,
+                        258,
+                        259,
+                        260,
+                        261,
+                        262,
+                        263,
+                        512,
+                        513,
+                        514,
+                        515,
+                        516,
+                        517,
+                        518,
+                        519,
+                        768,
+                        769,
+                        770,
+                        771,
+                        772,
+                        773,
+                        774,
+                        775
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56,
+                        64,
+                        72,
+                        80,
+                        88,
+                        96,
+                        104,
+                        112,
+                        120,
+                        128,
+                        136,
+                        144,
+                        152,
+                        160,
+                        168,
+                        176,
+                        184,
+                        192,
+                        200,
+                        208,
+                        216,
+                        224,
+                        232,
+                        240,
+                        248
+                    ],
+                    "charIncrement": 1024
+                }
+            }
+        ],
+        "palette": {
+            "region": "proms",
+            "colorCount": 16,
+            "min": 0,
+            "max": 255,
+            "scaler": 1,
+            "channels": [],
+            "indexedColors": [
+                {
+                    "base": 0,
+                    "colors": [
+                        4278190080,
+                        4278190335,
+                        4278255360,
+                        4278255615,
+                        4294901760,
+                        4294902015,
+                        4294967040,
+                        4294967295,
+                        4289331200,
+                        4289331455,
+                        4289396480,
+                        4289396735,
+                        4294901760,
+                        4294902015,
+                        4294967040,
+                        4294967295
+                    ]
+                }
+            ],
+            "lookupOffset": 0,
+            "lookupCount": 15,
+            "lookupMask": 7,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 0,
+                    "lookupOffset": 0,
+                    "lookupCount": 15,
+                    "direct": true
+                },
+                {
+                    "penOffset": 16,
+                    "colorOr": 0,
+                    "lookupOffset": 0,
+                    "lookupCount": 32
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/mame/universal/cosmic_v.cpp",
+                "line": 67,
+                "column": 1
+            }
+        },
+        "tilemaps": [],
+        "initialState": {
+            "m_color_registers": [
+                0,
+                0,
+                0
+            ],
+            "m_sound_enabled": 1
+        },
+        "source": {
+            "file": "src/mame/universal/cosmic_v.cpp",
+            "line": 468,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "samples",
+        "deviceTag": "samples",
+        "deviceTags": [
+            "samples"
+        ],
+        "deviceType": "SAMPLES",
+        "writeMethods": [
+            "start",
+            "stop",
+            "set_volume"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1
+    }
+}

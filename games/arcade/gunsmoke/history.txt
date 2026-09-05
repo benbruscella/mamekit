@@ -1,0 +1,92 @@
+Arcade Video game published 41 years ago:
+
+Gun.Smoke (c) 1985 Capcom  Company, Limited.
+
+Gun.Smoke is a vertically-scrolling shoot-em-up set in the Wild West, in which the player takes the role of a Billy; a young Sheriff charged with hunting down and killing a number of infamous 'Wanted' outlaws.
+
+Each level is packed with gun-toting bandits and the Sheriff must shoot his way through the stage, before finally taking on the wanted outlaw 'boss' character at the end. Each outlaw wields a special weapon unique to them, such as a Winchester rifle, knives, darts or boomerangs.
+
+Shooting the barrels that litter the levels reveals power-ups such as boots (for extra speed), rifles (for increased range) and bullets (for rapid fire). The game's 3 directional fire buttons (for firing left, right or ahead) can be combined (pressed Simultaneously) to create a total of 8 different firing directions.
+
+- TECHNICAL -
+
+Main CPU : Zilog Z80 (@ 4 Mhz)
+Sound CPU : Zilog Z80 (@ 3 Mhz)
+Sound Chips : (2x) Yamaha YM2203 (@ 1.5 Mhz)
+
+Players : 2
+Control : 8-way joystick
+Buttons : 3
+
+- TRIVIA -
+
+Gun.Smoke was released in October 1985 in Japan. 
+
+Gun.Smoke is based on the old famous T.V. series of the same name, the first TV broadcast was on September 10, 1955, and it ran until March 31, 1975. A total of 633 episodes were aired over the 20 seasons - only the last nine seasons being made in colour. 
+
+Jaime Guzman holds the official record for this game with 1465250 points. 
+
+Alfa Records released a limited-edition soundtrack album for this game (Capcom Game Music - 28XA-94) on August 25, 1986.
+
+- UPDATES -
+
+WORLD version :
+* You can enter 3 chars for your initials.
+
+JAPAN version (but English text though) :
+* You can enter 8 chars for your initials.
+
+- TIPS AND TRICKS -
+
+* An Interesting Bug : When you're on Level 2, make sure you have a horse when you kill Roy Knife. Once he is dead, walk over his corpse and your horse will be killed. Roy raises from the dead as a sort of indestructible zombie. You can shoot him as much as you like, but he won't die. In this way you can play until you get tired of it. 
+
+* Secrect Character : If the total of inserted credit (NOT current credit) is a multiple of 16 (16, 32, 48...), the secret character 'Aka-jirou' (Red-dragonfly) appears and you can get 10000 pts when you kill it. 
+The number of dragonflies at one time is changed by current total inserted credit, for example : 64 credits = 4 dragonflies, 128 credits = 8 dragonfiles. 
+But in case of 256 credits, 50 dragonflies appear instead of 16!
+
+- STAFF -
+
+From highscore table : Shi2Kura, ?Sakura?, Ota=Big5
+Music by : Ayako Mori (Kura<3Aya)
+Character designer: Noritaka Funamizu
+Producer : Yoshiki Okamoto (Kihaji Okamoto)
+
+- PORTS -
+
+NOTE: For ports released in North America, please see the Romstar conversion kit entry.
+
+* CONSOLES: 
+Nintendo Famicom Disk System [JP] (jan.27, 1988) "Gun.Smoke [Model CAP-GUN]" 
+[EU] Nintendo NES (feb.23, 1989) "Gun.Smoke [Model NES-GK-EEC]" 
+[JP] Sega Saturn (nov.12, 1998) "Capcom Generation Dai 4 Shou Kokou no Eiyuu [Model T-1235G]" 
+[JP] Sony PlayStation (nov.12, 1998) "Capcom Generation Dai 4 Shou Kokou no Eiyuu [Model SLPS-01701]" 
+[EU] Sony PlayStation (sept.3, 1999) "Capcom Generations 4 - Blazing Guns [Capcom Generations Disc 4] [Model SLES-31881]" 
+[EU] Microsoft XBOX (nov.18, 2005) "Capcom Classics Collection" 
+[EU] Sony PS2 (nov.18, 2005) "Capcom Classics Collection [Model SLES-53661]" 
+[JP] Sony PS2 (mar.2, 2006) "Capcom Classics Collection [Model SLPM-66317]" 
+Sony PlayStation 3 [PSN] [JP] (feb.19, 2013) "Capcom Arcade Cabinet [Model NPJB-00210]" 
+Sony PlayStation 3 [PSN] [EU] (feb.20, 2013) "Capcom Arcade Cabinet" 
+Microsoft XBOX 360 [XBLA] [JP] (feb.20, 2013) "Capcom Arcade Cabinet" 
+Microsoft XBOX 360 [XBLA] [EU] (feb.20, 2013) "Capcom Arcade Cabinet" 
+Microsoft XBOX 360 [XBLA] [AU] (feb.21, 2013) "Capcom Arcade Cabinet" 
+
+* HANDHELDS: 
+[JP] Sony PSP (sept.7, 2006) "Capcom Classics Collection [Model ULJM-05104]" 
+[EU] Sony PSP (nov.10, 2006) "Capcom Classics Collection Reloaded [Model ULES-00377]" 
+[AU] Sony PSP (nov.16, 2006) "Capcom Classics Collection Reloaded" 
+
+* COMPUTERS: 
+[EU] Commodore C64 (1987) 
+[EU] Amstrad CPC (1987) "Desperado - Gun.Smoke" 
+[EU] Sinclair ZX Spectrum (1987)
+
+- SERIES -
+
+1. Gun.Smoke (1985)
+2. Desperado 2 (1989, Amstrad CPC)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/1045/?o=2
+
+— Gaming History (arcade-history.com)

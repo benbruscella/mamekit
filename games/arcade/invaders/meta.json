@@ -1,0 +1,196 @@
+{
+  "game": "invaders",
+  "title": "Space Invaders / Space Invaders M (Taito / Midway, 1978)",
+  "fullname": "Space Invaders / Space Invaders M",
+  "year": "1978",
+  "manufacturer": "Taito / Midway",
+  "family": "mw8080bw",
+  "driverFile": "src/mame/midw8080/mw8080bw.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Tormod Tjaberg, Mirko Buffoni,Lee Taylor, Valerio Verrando, Zsolt Vasvari",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 209,
+    "contributors": 28,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Michaël Banaan Ananas",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 71,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-17"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 32,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 21,
+        "firstCommit": "2016-11-27",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 17,
+        "firstCommit": "2009-08-19",
+        "lastCommit": "2012-12-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 13,
+        "firstCommit": "2014-09-25",
+        "lastCommit": "2025-11-20"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 7,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-03-15"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2025-04-04"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 6,
+        "firstCommit": "2009-10-03",
+        "lastCommit": "2011-09-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-12-13",
+        "lastCommit": "2013-05-31"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 4,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-01",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Colin Douglas Howell",
+        "commits": 3,
+        "firstCommit": "2020-04-01",
+        "lastCommit": "2020-08-11"
+      },
+      {
+        "name": "mariuszw1",
+        "commits": 3,
+        "firstCommit": "2010-09-22",
+        "lastCommit": "2010-09-22"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-09-07",
+        "lastCommit": "2018-12-20"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 2,
+        "firstCommit": "2012-12-20",
+        "lastCommit": "2017-07-23"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2019-03-31",
+        "lastCommit": "2019-03-31"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2025-09-01",
+        "lastCommit": "2025-09-01"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-06-22",
+        "lastCommit": "2008-06-22"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "eientei95",
+        "commits": 1,
+        "firstCommit": "2022-04-23",
+        "lastCommit": "2022-04-23"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2020-07-23",
+        "lastCommit": "2020-07-23"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 1,
+        "firstCommit": "2010-06-04",
+        "lastCommit": "2010-06-04"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "qwijibo",
+        "commits": 1,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2016-04-30"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2018-04-03",
+        "lastCommit": "2018-04-03"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

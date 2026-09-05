@@ -1,0 +1,4428 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/atari/gauntlet.cpp",
+    "generatedAt": "2026-09-05T03:49:34.512Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Aaron Giles"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/atari/gauntlet.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/gauntlet.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:atarimo.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "atarimo.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:slapstic.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "slapstic.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m68000/m68010.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m68000/m68010.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/eeprompar.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/eeprompar.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/timer.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/timer.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/pokey.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/pokey.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/tms5220.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/tms5220.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:gauntlet",
+      "label": "Game",
+      "props": {
+        "name": "gauntlet",
+        "year": "1985",
+        "company": "Atari Games",
+        "fullname": "Gauntlet (rev 14)",
+        "monitor": "ROT0",
+        "cls": "gauntlet_state",
+        "init": "init_gauntlet",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 2098,
+        "sourceColumn": 1,
+        "sourceEndLine": 2098
+      }
+    },
+    {
+      "id": "romset:gauntlet",
+      "label": "RomSet",
+      "props": {
+        "name": "gauntlet",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 897,
+        "sourceColumn": 1,
+        "sourceEndLine": 897
+      }
+    },
+    {
+      "id": "region:gauntlet/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 524288,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 861,
+        "sourceColumn": 2,
+        "sourceEndLine": 861
+      }
+    },
+    {
+      "id": "rom:gauntlet/maincpu/136037-1307.9a",
+      "label": "Rom",
+      "props": {
+        "file": "136037-1307.9a",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "46fe8743",
+        "sha1": "d5fa19e028a2f43658330c67c10e0c811d332780",
+        "skip": 1,
+        "continueSegments": [
+          0,
+          16384,
+          16384
+        ]
+      }
+    },
+    {
+      "id": "rom:gauntlet/maincpu/136037-1308.9b",
+      "label": "Rom",
+      "props": {
+        "file": "136037-1308.9b",
+        "offset": 32769,
+        "size": 16384,
+        "crc": "276e15c4",
+        "sha1": "7467b2ec21b1b4fcc18ff9387ce891495f4b064c",
+        "skip": 1,
+        "continueSegments": [
+          1,
+          16384,
+          16384
+        ]
+      }
+    },
+    {
+      "id": "rom:gauntlet/maincpu/136037-205.10a",
+      "label": "Rom",
+      "props": {
+        "file": "136037-205.10a",
+        "offset": 229376,
+        "size": 16384,
+        "crc": "6d99ed51",
+        "sha1": "a7bc18f32908451859ba5cdf1a5c97ecc5fe325f",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:gauntlet/maincpu/136037-206.10b",
+      "label": "Rom",
+      "props": {
+        "file": "136037-206.10b",
+        "offset": 229377,
+        "size": 16384,
+        "crc": "545ead91",
+        "sha1": "7fad5a63c6443249bb6dad5b2a1fd08ca5f11e10",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:gauntlet/maincpu/136037-1409.7a",
+      "label": "Rom",
+      "props": {
+        "file": "136037-1409.7a",
+        "offset": 294912,
+        "size": 16384,
+        "crc": "6fb8419c",
+        "sha1": "299fee0368f6027bacbb57fb469e817e64e0e41d",
+        "skip": 1,
+        "continueSegments": [
+          262144,
+          16384,
+          16384
+        ]
+      }
+    },
+    {
+      "id": "rom:gauntlet/maincpu/136037-1410.7b",
+      "label": "Rom",
+      "props": {
+        "file": "136037-1410.7b",
+        "offset": 294913,
+        "size": 16384,
+        "crc": "931bd2a0",
+        "sha1": "d69b45758d1c252a93dbc2263efa9de1f972f62e",
+        "skip": 1,
+        "continueSegments": [
+          262145,
+          16384,
+          16384
+        ]
+      }
+    },
+    {
+      "id": "region:gauntlet/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 873,
+        "sourceColumn": 2,
+        "sourceEndLine": 873
+      }
+    },
+    {
+      "id": "rom:gauntlet/audiocpu/136037-120.16r",
+      "label": "Rom",
+      "props": {
+        "file": "136037-120.16r",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "6ee7f3cc",
+        "sha1": "b86676340b06f07c164690862c1f6f75f30c080b",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 874,
+        "sourceColumn": 2,
+        "sourceEndLine": 874
+      }
+    },
+    {
+      "id": "rom:gauntlet/audiocpu/136037-119.16s",
+      "label": "Rom",
+      "props": {
+        "file": "136037-119.16s",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "fa19861f",
+        "sha1": "7568b4ab526bd5849f7ef70dfa6d1ef1f30c0abc",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 875,
+        "sourceColumn": 2,
+        "sourceEndLine": 875
+      }
+    },
+    {
+      "id": "region:gauntlet/chars",
+      "label": "RomRegion",
+      "props": {
+        "tag": "chars",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 877,
+        "sourceColumn": 2,
+        "sourceEndLine": 877
+      }
+    },
+    {
+      "id": "rom:gauntlet/chars/136037-104.6p",
+      "label": "Rom",
+      "props": {
+        "file": "136037-104.6p",
+        "offset": 0,
+        "size": 16384,
+        "crc": "6c276a1d",
+        "sha1": "ec383a8fdcb28efb86b7f6ba4a3306fea5a09d72",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 878,
+        "sourceColumn": 2,
+        "sourceEndLine": 878
+      }
+    },
+    {
+      "id": "region:gauntlet/spr_tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "spr_tiles",
+        "size": 262144,
+        "flags": "ROMREGION_INVERT",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 880,
+        "sourceColumn": 2,
+        "sourceEndLine": 880
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-111.1a",
+      "label": "Rom",
+      "props": {
+        "file": "136037-111.1a",
+        "offset": 0,
+        "size": 32768,
+        "crc": "91700f33",
+        "sha1": "fac1ce700c4cd46b643307998df781d637f193aa",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 881,
+        "sourceColumn": 2,
+        "sourceEndLine": 881
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-112.1b",
+      "label": "Rom",
+      "props": {
+        "file": "136037-112.1b",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "869330be",
+        "sha1": "5dfaaf54ee2b3c0eaf35e8c17558313db9791616",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 882,
+        "sourceColumn": 2,
+        "sourceEndLine": 882
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-113.1l",
+      "label": "Rom",
+      "props": {
+        "file": "136037-113.1l",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "d497d0a8",
+        "sha1": "bb715bcec7f783dd04151e2e3b221a72133bf17d",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 883,
+        "sourceColumn": 2,
+        "sourceEndLine": 883
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-114.1mn",
+      "label": "Rom",
+      "props": {
+        "file": "136037-114.1mn",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "29ef9882",
+        "sha1": "91e1465af6505b35cd97434c13d2b4d40a085946",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 884,
+        "sourceColumn": 2,
+        "sourceEndLine": 884
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-115.2a",
+      "label": "Rom",
+      "props": {
+        "file": "136037-115.2a",
+        "offset": 131072,
+        "size": 32768,
+        "crc": "9510b898",
+        "sha1": "e6c8c7af1898d548f0f01e4ff37c2c7b22c0b5c2",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 885,
+        "sourceColumn": 2,
+        "sourceEndLine": 885
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-116.2b",
+      "label": "Rom",
+      "props": {
+        "file": "136037-116.2b",
+        "offset": 163840,
+        "size": 32768,
+        "crc": "11e0ac5b",
+        "sha1": "729b7561d59d94ef33874a134b97bcd37573dfa6",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 886,
+        "sourceColumn": 2,
+        "sourceEndLine": 886
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-117.2l",
+      "label": "Rom",
+      "props": {
+        "file": "136037-117.2l",
+        "offset": 196608,
+        "size": 32768,
+        "crc": "29a5db41",
+        "sha1": "94f4f5dd39e724570a0f54af176ad018497697fd",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 887,
+        "sourceColumn": 2,
+        "sourceEndLine": 887
+      }
+    },
+    {
+      "id": "rom:gauntlet/spr_tiles/136037-118.2mn",
+      "label": "Rom",
+      "props": {
+        "file": "136037-118.2mn",
+        "offset": 229376,
+        "size": 32768,
+        "crc": "8bf3b263",
+        "sha1": "683d900ab7591ee661218be2406fb375a12e435c",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 888,
+        "sourceColumn": 2,
+        "sourceEndLine": 888
+      }
+    },
+    {
+      "id": "region:gauntlet/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 1280,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 890,
+        "sourceColumn": 2,
+        "sourceEndLine": 890
+      }
+    },
+    {
+      "id": "rom:gauntlet/proms/74s472-136037-101.7u",
+      "label": "Rom",
+      "props": {
+        "file": "74s472-136037-101.7u",
+        "offset": 0,
+        "size": 512,
+        "crc": "2964f76f",
+        "sha1": "da966c35557ec1b95e1c39cd950c38a19bce2d67",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 891,
+        "sourceColumn": 2,
+        "sourceEndLine": 891
+      }
+    },
+    {
+      "id": "rom:gauntlet/proms/74s472-136037-102.5l",
+      "label": "Rom",
+      "props": {
+        "file": "74s472-136037-102.5l",
+        "offset": 512,
+        "size": 512,
+        "crc": "4d4fec6c",
+        "sha1": "3541b5c6405ad5742a3121dfd6acb227933de25a",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 892,
+        "sourceColumn": 2,
+        "sourceEndLine": 892
+      }
+    },
+    {
+      "id": "rom:gauntlet/proms/74s287-136037-103.4r",
+      "label": "Rom",
+      "props": {
+        "file": "74s287-136037-103.4r",
+        "offset": 1024,
+        "size": 256,
+        "crc": "6c5ccf08",
+        "sha1": "ff5dbadd85aa2e07b383a302fa399e875db8f84f",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 893,
+        "sourceColumn": 2,
+        "sourceEndLine": 893
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gauntlet_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 571,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 229375,
+        "raw": "map(0x000000, 0x037fff).mirror(0x280000).rom()",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 543,
+        "sourceColumn": 2,
+        "sourceEndLine": 543,
+        "mirror": 2621440,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 229376,
+        "end": 237567,
+        "raw": "map(0x038000, 0x039fff).mirror(0x286000).bankr(m_slapstic_bank)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 2,
+        "sourceEndLine": 544,
+        "mirror": 2646016,
+        "bankRead": "slapstic_bank"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 262144,
+        "end": 524287,
+        "raw": "map(0x040000, 0x07ffff).mirror(0x280000).rom()",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 545,
+        "sourceColumn": 2,
+        "sourceEndLine": 545,
+        "mirror": 2621440,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388608,
+        "end": 8396799,
+        "raw": "map(0x800000, 0x801fff).mirror(0x2fc000).ram()",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 548,
+        "sourceColumn": 2,
+        "sourceEndLine": 548,
+        "mirror": 3129344,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 8396800,
+        "end": 8397823,
+        "raw": "map(0x802000, 0x8023ff).mirror(0x2fcc00).rw(\"eeprom\", FUNC(eeprom_parallel_28xx_device::read), FUNC(eeprom_parallel_28xx_device::write)).umask16(0x00ff)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 549,
+        "sourceColumn": 2,
+        "sourceEndLine": 549,
+        "mirror": 3132416,
+        "umask": 255
+      }
+    },
+    {
+      "id": "handler:eeprom_parallel_28xx_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "eeprom_parallel_28xx_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 549,
+        "sourceColumn": 2,
+        "sourceEndLine": 549
+      }
+    },
+    {
+      "id": "handler:eeprom_parallel_28xx_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "eeprom_parallel_28xx_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 549,
+        "sourceColumn": 2,
+        "sourceEndLine": 549
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 8400896,
+        "end": 8400897,
+        "raw": "map(0x803000, 0x803001).mirror(0x2fcef0).portr(\"803000\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 550,
+        "sourceColumn": 2,
+        "sourceEndLine": 550,
+        "mirror": 3133168,
+        "portRead": "803000"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 8400898,
+        "end": 8400899,
+        "raw": "map(0x803002, 0x803003).mirror(0x2fcef0).portr(\"803002\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 551,
+        "sourceColumn": 2,
+        "sourceEndLine": 551,
+        "mirror": 3133168,
+        "portRead": "803002"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 8400900,
+        "end": 8400901,
+        "raw": "map(0x803004, 0x803005).mirror(0x2fcef0).portr(\"803004\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 552,
+        "sourceColumn": 2,
+        "sourceEndLine": 552,
+        "mirror": 3133168,
+        "portRead": "803004"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 8400902,
+        "end": 8400903,
+        "raw": "map(0x803006, 0x803007).mirror(0x2fcef0).portr(\"803006\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 553,
+        "sourceColumn": 2,
+        "sourceEndLine": 553,
+        "mirror": 3133168,
+        "portRead": "803006"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 8400904,
+        "end": 8400905,
+        "raw": "map(0x803008, 0x803009).mirror(0x2fcef0).portr(\"803008\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 554,
+        "sourceColumn": 2,
+        "sourceEndLine": 554,
+        "mirror": 3133168,
+        "portRead": "803008"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 8400911,
+        "end": 8400911,
+        "raw": "map(0x80300f, 0x80300f).mirror(0x2fcef0).r(m_mainlatch, FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 555,
+        "sourceColumn": 2,
+        "sourceEndLine": 555,
+        "mirror": 3133168
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 587,
+        "sourceColumn": 2,
+        "sourceEndLine": 587
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 8401152,
+        "end": 8401153,
+        "raw": "map(0x803100, 0x803101).mirror(0x2fce8e).w(\"watchdog\", FUNC(watchdog_timer_device::reset16_w))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 556,
+        "sourceColumn": 2,
+        "sourceEndLine": 556,
+        "mirror": 3133070
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset16_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset16_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 556,
+        "sourceColumn": 2,
+        "sourceEndLine": 556
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 8401184,
+        "end": 8401199,
+        "raw": "map(0x803120, 0x80312f).mirror(0x2fce80).w(\"outlatch\", FUNC(ls259_device::write_d0)).umask16(0x00ff)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 557,
+        "sourceColumn": 2,
+        "sourceEndLine": 557,
+        "mirror": 3133056,
+        "umask": 255
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 557,
+        "sourceColumn": 2,
+        "sourceEndLine": 557
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 8401216,
+        "end": 8401217,
+        "raw": "map(0x803140, 0x803141).mirror(0x2fce8e).w(FUNC(gauntlet_state::video_int_ack_w))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 558,
+        "sourceColumn": 2,
+        "sourceEndLine": 558,
+        "mirror": 3133070
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.video_int_ack_w",
+      "label": "Handler",
+      "props": {
+        "method": "video_int_ack_w",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 1,
+        "sourceEndLine": 434,
+        "sourceParameters": "uint16_t data",
+        "sourceBody": "m_maincpu->set_input_line(M68K_IRQ_4, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 8401232,
+        "end": 8401233,
+        "raw": "map(0x803150, 0x803151).mirror(0x2fce8e).w(\"eeprom\", FUNC(eeprom_parallel_28xx_device::unlock_write16))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 559,
+        "sourceColumn": 2,
+        "sourceEndLine": 559,
+        "mirror": 3133070
+      }
+    },
+    {
+      "id": "handler:eeprom_parallel_28xx_device.unlock_write16",
+      "label": "Handler",
+      "props": {
+        "method": "unlock_write16",
+        "ownerClass": "eeprom_parallel_28xx_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 559,
+        "sourceColumn": 2,
+        "sourceEndLine": 559
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 8401265,
+        "end": 8401265,
+        "raw": "map(0x803171, 0x803171).mirror(0x2fce8e).w(m_soundlatch, FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 560,
+        "sourceColumn": 2,
+        "sourceEndLine": 560,
+        "mirror": 3133070
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 9437184,
+        "end": 9445375,
+        "raw": "map(0x900000, 0x901fff).mirror(0x2c8000).ram().w(m_playfield_tilemap, FUNC(tilemap_device::write16)).share(\"playfield\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 563,
+        "sourceColumn": 2,
+        "sourceEndLine": 563,
+        "mirror": 2916352,
+        "ram": true,
+        "share": "playfield"
+      }
+    },
+    {
+      "id": "handler:tilemap_device.write16",
+      "label": "Handler",
+      "props": {
+        "method": "write16",
+        "ownerClass": "tilemap_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 566,
+        "sourceColumn": 2,
+        "sourceEndLine": 566
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 9445376,
+        "end": 9453567,
+        "raw": "map(0x902000, 0x903fff).mirror(0x2c8000).ram().share(\"mob\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 564,
+        "sourceColumn": 2,
+        "sourceEndLine": 564,
+        "mirror": 2916352,
+        "ram": true,
+        "share": "mob"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range18",
+      "label": "AddressRange",
+      "props": {
+        "start": 9453568,
+        "end": 9457663,
+        "raw": "map(0x904000, 0x904fff).mirror(0x2c8000).ram()",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 565,
+        "sourceColumn": 2,
+        "sourceEndLine": 565,
+        "mirror": 2916352,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range19",
+      "label": "AddressRange",
+      "props": {
+        "start": 9457664,
+        "end": 9461631,
+        "raw": "map(0x905000, 0x905f7f).mirror(0x2c8000).ram().w(m_alpha_tilemap, FUNC(tilemap_device::write16)).share(\"alpha\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 566,
+        "sourceColumn": 2,
+        "sourceEndLine": 566,
+        "mirror": 2916352,
+        "ram": true,
+        "share": "alpha"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range20",
+      "label": "AddressRange",
+      "props": {
+        "start": 9461614,
+        "end": 9461615,
+        "raw": "map(0x905f6e, 0x905f6f).mirror(0x2c8000).ram().w(FUNC(gauntlet_state::yscroll_w)).share(m_yscroll)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 567,
+        "sourceColumn": 2,
+        "sourceEndLine": 567,
+        "mirror": 2916352,
+        "ram": true,
+        "share": "yscroll"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.yscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "yscroll_w",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 347,
+        "sourceColumn": 1,
+        "sourceEndLine": 368,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "uint16_t const oldyscroll = *m_yscroll;\n\tCOMBINE_DATA(m_yscroll);\n\n\t// if something changed, force a partial update\n\tif (*m_yscroll != oldyscroll)\n\t{\n\t\tm_screen->update_partial(m_screen->vpos());\n\n\t\t// if the bank changed, mark all tiles dirty\n\t\tif (m_playfield_tile_bank != (*m_yscroll & 3))\n\t\t{\n\t\t\tm_playfield_tile_bank = *m_yscroll & 3;\n\t\t\tm_playfield_tilemap->mark_all_dirty();\n\t\t}\n\n\t\t// adjust the scrolls\n\t\tm_playfield_tilemap->set_scrolly(0, *m_yscroll >> 7);\n\t\tm_mob->set_yscroll((*m_yscroll >> 7) & 0x1ff);\n\t}"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range21",
+      "label": "AddressRange",
+      "props": {
+        "start": 9461632,
+        "end": 9461759,
+        "raw": "map(0x905f80, 0x905fff).mirror(0x2c8000).ram().share(\"mob:slip\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 568,
+        "sourceColumn": 2,
+        "sourceEndLine": 568,
+        "mirror": 2916352,
+        "ram": true,
+        "share": "mob:slip"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range22",
+      "label": "AddressRange",
+      "props": {
+        "start": 9502720,
+        "end": 9504767,
+        "raw": "map(0x910000, 0x9107ff).mirror(0x2cf800).ram().w(\"palette\", FUNC(palette_device::write16)).share(\"palette\")",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 569,
+        "sourceColumn": 2,
+        "sourceEndLine": 569,
+        "mirror": 2947072,
+        "ram": true,
+        "share": "palette"
+      }
+    },
+    {
+      "id": "handler:palette_device.write16",
+      "label": "Handler",
+      "props": {
+        "method": "write16",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 569,
+        "sourceColumn": 2,
+        "sourceEndLine": 569
+      }
+    },
+    {
+      "id": "map:gauntlet_state.main_map/range23",
+      "label": "AddressRange",
+      "props": {
+        "start": 9633792,
+        "end": 9633793,
+        "raw": "map(0x930000, 0x930001).mirror(0x2cfffe).w(FUNC(gauntlet_state::xscroll_w)).share(m_xscroll)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 570,
+        "sourceColumn": 2,
+        "sourceEndLine": 570,
+        "mirror": 2949118,
+        "share": "xscroll"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.xscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "xscroll_w",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 323,
+        "sourceColumn": 1,
+        "sourceEndLine": 337,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "uint16_t const oldxscroll = *m_xscroll;\n\tCOMBINE_DATA(m_xscroll);\n\n\t// if something changed, force a partial update\n\tif (*m_xscroll != oldxscroll)\n\t{\n\t\tm_screen->update_partial(m_screen->vpos());\n\n\t\t// adjust the scrolls\n\t\tm_playfield_tilemap->set_scrollx(0, *m_xscroll);\n\t\tm_mob->set_xscroll(*m_xscroll & 0x1ff);\n\t}"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "gauntlet_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 1,
+        "sourceEndLine": 596,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).mirror(0x2000).ram()",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 585,
+        "sourceColumn": 2,
+        "sourceEndLine": 585,
+        "mirror": 8192,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 4111,
+        "raw": "map(0x1000, 0x100f).mirror(0x27c0).w(m_mainlatch, FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586,
+        "mirror": 10176
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 4112,
+        "end": 4127,
+        "raw": "map(0x1010, 0x101f).mirror(0x27c0).r(m_soundlatch, FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 587,
+        "sourceColumn": 2,
+        "sourceEndLine": 587,
+        "mirror": 10176
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 4128,
+        "end": 4143,
+        "raw": "map(0x1020, 0x102f).mirror(0x27c0).portr(\"COIN\").w(FUNC(gauntlet_state::mixer_w))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 588,
+        "sourceColumn": 2,
+        "sourceEndLine": 588,
+        "mirror": 10176,
+        "portRead": "COIN"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.mixer_w",
+      "label": "Handler",
+      "props": {
+        "method": "mixer_w",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 524,
+        "sourceColumn": 1,
+        "sourceEndLine": 529,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_ym2151->set_output_gain(ALL_OUTPUTS, (data & 7) / 7.0f);\n\tm_pokey->set_output_gain(ALL_OUTPUTS, ((data >> 3) & 3) / 3.0f);\n\tm_tms5220->set_output_gain(ALL_OUTPUTS, ((data >> 5) & 7) / 7.0f);"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 4144,
+        "end": 4144,
+        "raw": "map(0x1030, 0x1030).mirror(0x27cf).r(FUNC(gauntlet_state::switch_6502_r))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 2,
+        "sourceEndLine": 589,
+        "mirror": 10191
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.switch_6502_r",
+      "label": "Handler",
+      "props": {
+        "method": "switch_6502_r",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 485,
+        "sourceColumn": 1,
+        "sourceEndLine": 495,
+        "sourceParameters": "",
+        "sourceBody": "int temp = 0x30;\n\n\tif (m_soundlatch->pending_r()) temp ^= 0x80;\n\tif (m_mainlatch->pending_r()) temp ^= 0x40;\n\tif (!m_tms5220->readyq_r()) temp ^= 0x20;\n\tif (BIT(~m_803008->read(), 3)) temp ^= 0x10;\n\n\treturn temp;",
+        "inputMembers": [
+          "m_803008=803008"
+        ]
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 4144,
+        "end": 4151,
+        "raw": "map(0x1030, 0x1037).mirror(0x27c8).w(m_soundctl, FUNC(ls259_device::write_d7))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 590,
+        "sourceColumn": 2,
+        "sourceEndLine": 590,
+        "mirror": 10184
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d7",
+      "label": "Handler",
+      "props": {
+        "method": "write_d7",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 590,
+        "sourceColumn": 2,
+        "sourceEndLine": 590
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 6144,
+        "end": 6159,
+        "raw": "map(0x1800, 0x180f).mirror(0x27c0).rw(m_pokey, FUNC(pokey_device::read), FUNC(pokey_device::write))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591,
+        "mirror": 10176
+      }
+    },
+    {
+      "id": "handler:pokey_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "handler:pokey_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 6160,
+        "end": 6161,
+        "raw": "map(0x1810, 0x1811).mirror(0x27ce).rw(m_ym2151, FUNC(ym2151_device::read), FUNC(ym2151_device::write))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592,
+        "mirror": 10190
+      }
+    },
+    {
+      "id": "handler:ym2151_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592
+      }
+    },
+    {
+      "id": "handler:ym2151_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 6176,
+        "end": 6191,
+        "raw": "map(0x1820, 0x182f).mirror(0x27c0).w(m_tms5220, FUNC(tms5220_device::data_w))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593,
+        "mirror": 10176
+      }
+    },
+    {
+      "id": "handler:tms5220_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "tms5220_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 6192,
+        "end": 6207,
+        "raw": "map(0x1830, 0x183f).mirror(0x27c0).rw(FUNC(gauntlet_state::sound_irq_ack_r), FUNC(gauntlet_state::sound_irq_ack_w))",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 2,
+        "sourceEndLine": 594,
+        "mirror": 10176
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.sound_irq_ack_r",
+      "label": "Handler",
+      "props": {
+        "method": "sound_irq_ack_r",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 445,
+        "sourceColumn": 1,
+        "sourceEndLine": 450,
+        "sourceParameters": "",
+        "sourceBody": "if (!machine().side_effects_disabled())\n\t\tm_audiocpu->set_input_line(m6502_device::IRQ_LINE, CLEAR_LINE);\n\treturn 0xff;"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.sound_irq_ack_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_irq_ack_w",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 453,
+        "sourceColumn": 1,
+        "sourceEndLine": 456,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_audiocpu->set_input_line(m6502_device::IRQ_LINE, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:gauntlet_state.sound_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 65535,
+        "raw": "map(0x4000, 0xffff).rom()",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 595,
+        "sourceColumn": 2,
+        "sourceEndLine": 595,
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:gauntlet_state.base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gauntlet_state",
+        "name": "base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_vindctr2_screen_refresh\",\"bits\":1}",
+          "{\"name\":\"m_playfield_tile_bank\",\"bits\":8}",
+          "{\"name\":\"m_playfield_color_bank\",\"bits\":8}"
+        ],
+        "startHandlers": [
+          "gauntlet_state.video_start"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 1,
+        "sourceEndLine": 815
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 300,
+        "sourceColumn": 1,
+        "sourceEndLine": 313,
+        "sourceParameters": "",
+        "sourceBody": "// modify the motion object code lookup table to account for the code XOR\n\tstd::vector<uint32_t> &codelookup = m_mob->code_lookup();\n\tfor (auto & elem : codelookup)\n\t\telem ^= 0x800;\n\n\t// set up the base color for the playfield\n\tm_playfield_color_bank = m_vindctr2_screen_refresh ? 0 : 1;\n\n\t// save states\n\tsave_item(NAME(m_playfield_tile_bank));\n\tsave_item(NAME(m_playfield_color_bank));"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M68010",
+        "tag": "maincpu",
+        "clock": 7159090.5,
+        "config": [
+          "M68010(config, m_maincpu, 14.318181_MHz_XTAL / 2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &gauntlet_state::main_map)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 747,
+        "sourceColumn": 2,
+        "sourceEndLine": 747
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "audiocpu",
+        "clock": 1789772.625,
+        "config": [
+          "M6502(config, m_audiocpu, 14.318181_MHz_XTAL / 8)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &gauntlet_state::sound_map)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 750,
+        "sourceColumn": 2,
+        "sourceEndLine": 750
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/eeprom",
+      "label": "Device",
+      "props": {
+        "type": "EEPROM_2804",
+        "tag": "eeprom",
+        "clock": null,
+        "config": [
+          "EEPROM_2804(config, \"eeprom\").lock_after_write(true)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 753,
+        "sourceColumn": 2,
+        "sourceEndLine": 753
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/outlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "outlatch",
+        "clock": null,
+        "config": [
+          "ls259_device &outlatch(LS259(config, \"outlatch\"))",
+          "outlatch.q_out_cb<7>().set(FUNC(gauntlet_state::sound_reset_w))"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 2,
+        "sourceEndLine": 755
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/outlatch/callback:outlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "outlatch.q_out_cb<7>().set(FUNC(gauntlet_state::sound_reset_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 760,
+        "sourceColumn": 2,
+        "sourceEndLine": 760,
+        "slot": "7",
+        "targetClass": "gauntlet_state",
+        "targetMethod": "sound_reset_w"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.sound_reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_reset_w",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 1,
+        "sourceEndLine": 475,
+        "sourceParameters": "int state",
+        "sourceBody": "m_audiocpu->set_input_line(INPUT_LINE_RESET, state ? CLEAR_LINE : ASSERT_LINE);\n\tm_soundctl->clear_w(state);\n\tif (!state)\n\t{\n\t\tm_mainlatch->acknowledge_w();\n\t\tmixer_w(0);\n\t}"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/scantimer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "scantimer",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"scantimer\").configure_scanline(FUNC(gauntlet_state::scanline_update), m_screen, 0, 32)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 2,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/scantimer/callback:scantimer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_scanline",
+        "operation": "configure_scanline",
+        "raw": "TIMER(config, \"scantimer\").configure_scanline(FUNC(gauntlet_state::scanline_update), m_screen, 0, 32)",
+        "ownerTag": "scantimer",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 2,
+        "sourceEndLine": 762,
+        "scanlineStart": 0,
+        "scanlineIncrement": 32,
+        "targetClass": "gauntlet_state",
+        "targetMethod": "scanline_update",
+        "targetTag": "screen"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.scanline_update",
+      "label": "Handler",
+      "props": {
+        "method": "scanline_update",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 437,
+        "sourceColumn": 1,
+        "sourceEndLine": 442,
+        "sourceParameters": "int param",
+        "sourceBody": "// sound IRQ is on 32V\n\tif (param & 32)\n\t\tm_audiocpu->set_input_line(m6502_device::IRQ_LINE, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_vblank_count(m_screen, 8)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 764,
+        "sourceColumn": 2,
+        "sourceEndLine": 764
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, \"palette\", gfx_gauntlet)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 767,
+        "sourceColumn": 2,
+        "sourceEndLine": 767,
+        "clockExpr": "\"palette\""
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, \"palette\").set_format(palette_device::IRGB_4444, 1024)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 769,
+        "sourceColumn": 2,
+        "sourceEndLine": 769
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/playfield",
+      "label": "Device",
+      "props": {
+        "type": "TILEMAP",
+        "tag": "playfield",
+        "clock": null,
+        "config": [
+          "TILEMAP(config, m_playfield_tilemap, m_gfxdecode, 2, 8, 8, TILEMAP_SCAN_COLS, 64, 64).set_info_callback(FUNC(gauntlet_state::get_playfield_tile_info))"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 771,
+        "sourceColumn": 2,
+        "sourceEndLine": 771,
+        "clockExpr": "m_gfxdecode"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/playfield/callback:playfield:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_info_callback",
+        "delegate": 1,
+        "operation": "set_info_callback",
+        "raw": "TILEMAP(config, m_playfield_tilemap, m_gfxdecode, 2, 8, 8, TILEMAP_SCAN_COLS, 64, 64).set_info_callback(FUNC(gauntlet_state::get_playfield_tile_info))",
+        "ownerTag": "playfield",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 771,
+        "sourceColumn": 2,
+        "sourceEndLine": 771,
+        "targetClass": "gauntlet_state",
+        "targetMethod": "get_playfield_tile_info"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.get_playfield_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_playfield_tile_info",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 251,
+        "sourceColumn": 1,
+        "sourceEndLine": 257,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint16_t const data = m_playfield_tilemap->basemem_read(tile_index);\n\tint const code = ((m_playfield_tile_bank * 0x1000) + (data & 0xfff)) ^ 0x800;\n\tint const color = 0x10 + (m_playfield_color_bank * 8) + ((data >> 12) & 7);\n\ttileinfo.set(0, code, color, (data >> 15) & 1);"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/alpha",
+      "label": "Device",
+      "props": {
+        "type": "TILEMAP",
+        "tag": "alpha",
+        "clock": null,
+        "config": [
+          "TILEMAP(config, m_alpha_tilemap, m_gfxdecode, 2, 8, 8, TILEMAP_SCAN_ROWS, 64, 31, 0).set_info_callback(FUNC(gauntlet_state::get_alpha_tile_info))"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 772,
+        "sourceColumn": 2,
+        "sourceEndLine": 772,
+        "clockExpr": "m_gfxdecode"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/alpha/callback:alpha:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_info_callback",
+        "delegate": 1,
+        "operation": "set_info_callback",
+        "raw": "TILEMAP(config, m_alpha_tilemap, m_gfxdecode, 2, 8, 8, TILEMAP_SCAN_ROWS, 64, 31, 0).set_info_callback(FUNC(gauntlet_state::get_alpha_tile_info))",
+        "ownerTag": "alpha",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 772,
+        "sourceColumn": 2,
+        "sourceEndLine": 772,
+        "targetClass": "gauntlet_state",
+        "targetMethod": "get_alpha_tile_info"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.get_alpha_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_alpha_tile_info",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 241,
+        "sourceColumn": 1,
+        "sourceEndLine": 248,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint16_t const data = m_alpha_tilemap->basemem_read(tile_index);\n\tint const code = data & 0x3ff;\n\tint const color = ((data >> 10) & 0x0f) | ((data >> 9) & 0x20);\n\tint const opaque = data & 0x8000;\n\ttileinfo.set(1, code, color, opaque ? TILE_FORCE_LAYER0 : 0);"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/mob",
+      "label": "Device",
+      "props": {
+        "type": "ATARI_MOTION_OBJECTS",
+        "tag": "mob",
+        "clock": null,
+        "config": [
+          "ATARI_MOTION_OBJECTS(config, m_mob, m_screen, gauntlet_state::s_mob_config)",
+          "m_mob->set_gfxdecode(m_gfxdecode)"
+        ],
+        "cls": "atari_motion_objects_device",
+        "clsHierarchy": [
+          "atari_motion_objects_device"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 774,
+        "sourceColumn": 2,
+        "sourceEndLine": 774,
+        "clockExpr": "m_screen"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK)",
+          "m_screen->set_raw(14.318181_MHz_XTAL / 2, 456, 0, 336, 262, 0, 240)",
+          "m_screen->set_screen_update(FUNC(gauntlet_state::screen_update))",
+          "m_screen->set_palette(\"palette\")",
+          "m_screen->screen_vblank().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 777,
+        "sourceColumn": 2,
+        "sourceEndLine": 777,
+        "configCalls": [
+          "set_raw(7159090.5,456,0,336,262,0,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          7159090.5,
+          456,
+          0,
+          336,
+          262,
+          0,
+          240
+        ],
+        "screenRawExpr": [
+          "14.318181_MHz_XTAL / 2",
+          "456",
+          "0",
+          "336",
+          "262",
+          "0",
+          "240"
+        ],
+        "screenVideoAttributes": [
+          "VIDEO_UPDATE_BEFORE_VBLANK"
+        ]
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(gauntlet_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 782,
+        "sourceColumn": 2,
+        "sourceEndLine": 782,
+        "targetClass": "gauntlet_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 1,
+        "sourceEndLine": 422,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// start drawing\n\tm_mob->draw_async(cliprect);\n\n\t// draw the playfield\n\tm_playfield_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\t// draw and merge the MO\n\tbitmap_ind16 &mobitmap = m_mob->bitmap();\n\tm_mob->iterate_dirty_rects(\n\t\t\tcliprect,\n\t\t\t[this, &bitmap, &mobitmap] (rectangle const &rect)\n\t\t\t{\n\t\t\t\tfor (int y = rect.top(); y <= rect.bottom(); y++)\n\t\t\t\t{\n\t\t\t\t\tuint16_t const *const mo = &mobitmap.pix(y);\n\t\t\t\t\tuint16_t *const pf = &bitmap.pix(y);\n\t\t\t\t\tfor (int x = rect.left(); x <= rect.right(); x++)\n\t\t\t\t\t{\n\t\t\t\t\t\tif (mo[x] != 0xffff)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t/* verified via schematics:\n\n\t\t\t\t\t\t\t    MO pen 1 clears PF color bit 0x80\n\t\t\t\t\t\t\t*/\n\t\t\t\t\t\t\tif ((mo[x] & 0x0f) == 1)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t// Vindicators Part II has extra logic here for the bases\n\t\t\t\t\t\t\t\tif (!m_vindctr2_screen_refresh || (mo[x] & 0xf0) != 0)\n\t\t\t\t\t\t\t\t\tpf[x] ^= 0x80;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\telse\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tpf[x] = mo[x];\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t});\n\n\t// add the alpha on top\n\tm_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.draw",
+      "label": "Handler",
+      "props": {
+        "method": "draw",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 163,
+        "sourceColumn": 1,
+        "sourceEndLine": 230,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// compute start/stop bands\n\tint startband = ((cliprect.top() + m_yscroll - m_slipoffset) & m_bitmapymask) >> m_slipshift;\n\tint stopband = ((cliprect.bottom() + m_yscroll - m_slipoffset) & m_bitmapymask) >> m_slipshift;\n\tif (startband > stopband)\n\t\tstartband -= m_bitmapheight >> m_slipshift;\n\tif (m_slipshift == 0)\n\t\tstopband = startband;\n\n\t// loop over SLIP bands\n\tfor (int band = startband; band <= stopband; band++)\n\t{\n\t\t// compute the starting link and clip for the current band\n\t\trectangle bandclip = cliprect;\n\t\tint link = 0;\n\t\tif (m_slipshift != 0)\n\t\t{\n\t\t\t// extract the link from the SLIP RAM\n\t\t\tlink = (m_slipram[band & m_sliprammask] >> m_linkmask.shift()) & m_linkmask.mask();\n\n\t\t\t// compute minimum Y and wrap around if necessary\n\t\t\tbandclip.min_y = ((band << m_slipshift) - m_yscroll + m_slipoffset) & m_bitmapymask;\n\t\t\tif (bandclip.min_y >= bitmap.height())\n\t\t\t\tbandclip.min_y -= m_bitmapheight;\n\n\t\t\t// maximum Y is based on the minimum\n\t\t\tbandclip.set_height(1 << m_slipshift);\n\n\t\t\t// keep within the cliprect\n\t\t\tbandclip &= cliprect;\n\t\t}\n\n\t\t// if this matches the last link, we don't need to re-process the list\n\t\tbuild_active_list(link);\n\n\t\t// initialize the parameters\n\t\tm_next_xpos = 123456;\n\n\t\t// safety check\n\t\tif (m_activelist == m_activelast)\n\t\t\tcontinue;\n\n\t\t// set the start and end points\n\t\tuint16_t *first, *last;\n\t\tint step;\n\t\tif (m_reverse)\n\t\t{\n\t\t\tfirst = m_activelast - 4;\n\t\t\tlast = m_activelist;\n\t\t\tstep = -4;\n\t\t}\n\t\telse\n\t\t{\n\t\t\tfirst = m_activelist;\n\t\t\tlast = m_activelast - 4;\n\t\t\tstep = 4;\n\t\t}\n\n\t\t// render the mos\n\t\tfor (uint16_t *current = first; ; current += step)\n\t\t{\n\t\t\trender_object(bitmap, bandclip, current);\n\t\t\tif (current == last)\n\t\t\t\tbreak;\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.build_active_list",
+      "label": "Handler",
+      "props": {
+        "method": "build_active_list",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 374,
+        "sourceColumn": 1,
+        "sourceEndLine": 412,
+        "sourceParameters": "int link",
+        "sourceBody": "uint16_t const *bankbase = &spriteram()[m_bank << (m_entrybits + 2)];\n\tuint16_t *current = &m_activelist[0];\n\n\t// visit all the motion objects and copy their data into the display list\n\tuint8_t visited[MAX_PER_BANK] = {0};\n\tfor (int i = 0; i < m_maxperline && !visited[link]; i++)\n\t{\n\t\t// copy the current entry into the list\n\t\tuint16_t *modata = current;\n\t\tif (!m_split)\n\t\t{\n\t\t\tuint16_t const *srcdata = &bankbase[link * 4];\n\t\t\t*current++ = srcdata[0];\n\t\t\t*current++ = srcdata[1];\n\t\t\t*current++ = srcdata[2];\n\t\t\t*current++ = srcdata[3];\n\t\t}\n\t\telse\n\t\t{\n\t\t\tuint16_t const *srcdata = &bankbase[link];\n\t\t\t*current++ = srcdata[uint32_t(0 << m_entrybits)];\n\t\t\t*current++ = srcdata[uint32_t(1 << m_entrybits)];\n\t\t\t*current++ = srcdata[uint32_t(2 << m_entrybits)];\n\t\t\t*current++ = srcdata[uint32_t(3 << m_entrybits)];\n\t\t}\n\n\t\t// link to the next object\n\t\tvisited[link] = 1;\n\t\tif (m_linked)\n\t\t\tlink = m_linkmask.extract(modata);\n\t\telse\n\t\t\tlink = (link + 1) & m_linkmask.mask();\n\t}\n\n\t// note the last entry\n\tm_activelast = current;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.render_object",
+      "label": "Handler",
+      "props": {
+        "method": "render_object",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 421,
+        "sourceColumn": 1,
+        "sourceEndLine": 552,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, const uint16_t *entry",
+        "sourceBody": "// select the gfx element and save off key information\n\tint const rawcode = m_codemask.extract(entry);\n\tgfx_element *gfx = m_gfxdecode->gfx(m_gfxlookup[rawcode >> 8]);\n\n\t// extract data from the various words\n\tint code = m_codelookup[rawcode];\n\tint color = m_colorlookup[m_colormask.extract(entry)];\n\tint xpos = m_xposmask.extract(entry) + m_xoffset;\n\tint ypos = -m_yposmask.extract(entry);\n\tint const hflip = m_hflipmask.extract(entry);\n\tint const vflip = m_vflipmask.extract(entry);\n\tint const width = m_widthmask.extract(entry) + 1;\n\tint const height = m_heightmask.extract(entry) + 1;\n\tint const priority = m_prioritymask.extract(entry);\n\n\t// compute the effective color, merging in priority\n\tcolor = (color * gfx->granularity()) | (priority << PRIORITY_SHIFT);\n\tcolor += m_palettebase;\n\n\t// add in the scroll positions if we're not in absolute coordinates\n\tif (!m_absolutemask.extract(entry))\n\t{\n\t\txpos -= m_xscroll;\n\t\typos -= m_yscroll;\n\t}\n\n\t// adjust for height\n\typos -= height << m_tileyshift;\n\n\t// handle previous hold bits\n\tif (m_next_xpos != 123456)\n\t\txpos = m_next_xpos;\n\tm_next_xpos = 123456;\n\n\t// check for the hold bit\n\tif (m_neighbormask.extract(entry) != 0)\n\t{\n\t\tif (!m_nextneighbor)\n\t\t\txpos = m_last_xpos + m_tilewidth;\n\t\telse\n\t\t\tm_next_xpos = xpos + m_tilewidth;\n\t}\n\tm_last_xpos = xpos;\n\n\t// adjust the final coordinates\n\txpos &= m_bitmapxmask;\n\typos &= m_bitmapymask;\n\tif (xpos >= bitmap.width())\n\t\txpos -= m_bitmapwidth;\n\tif (ypos >= bitmap.height())\n\t\typos -= m_bitmapheight;\n\n\t// is this one special?\n\tif (m_specialmask.mask() == 0 || m_specialmask.extract(entry) != m_specialvalue)\n\t{\n\t\t// adjust for h flip\n\t\tint xadv = m_tilewidth;\n\t\tif (hflip)\n\t\t{\n\t\t\txpos += (width - 1) << m_tilexshift;\n\t\t\txadv = -xadv;\n\t\t}\n\n\t\t// adjust for v flip\n\t\tint yadv = m_tileheight;\n\t\tif (vflip)\n\t\t{\n\t\t\typos += (height - 1) << m_tileyshift;\n\t\t\tyadv = -yadv;\n\t\t}\n\n\t\t// standard order is: loop over Y first, then X\n\t\tif (!m_swapxy)\n\t\t{\n\t\t\t// loop over the height\n\t\t\tfor (int y = 0, sy = ypos; y < height; y++, sy += yadv)\n\t\t\t{\n\t\t\t\t// clip the Y coordinate\n\t\t\t\tif (sy <= cliprect.top() - m_tileheight)\n\t\t\t\t{\n\t\t\t\t\tcode += width;\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\telse if (sy > cliprect.bottom())\n\t\t\t\t\tbreak;\n\n\t\t\t\t// loop over the width\n\t\t\t\tfor (int x = 0, sx = xpos; x < width; x++, sx += xadv, code++)\n\t\t\t\t{\n\t\t\t\t\t// clip the X coordinate\n\t\t\t\t\tif (sx <= -cliprect.left() - m_tilewidth || sx > cliprect.right())\n\t\t\t\t\t\tcontinue;\n\n\t\t\t\t\t// draw the sprite\n\t\t\t\t\tgfx->transpen_raw(bitmap, cliprect, code, color, hflip, vflip, sx, sy, m_transpen);\n\t\t\t\t\tmark_dirty(sx, sx + m_tilewidth - 1, sy, sy + m_tileheight - 1);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\t\t// alternative order is swapped\n\t\telse\n\t\t{\n\t\t\t// loop over the width\n\t\t\tfor (int x = 0, sx = xpos; x < width; x++, sx += xadv)\n\t\t\t{\n\t\t\t\t// clip the X coordinate\n\t\t\t\tif (sx <= cliprect.left() - m_tilewidth)\n\t\t\t\t{\n\t\t\t\t\tcode += height;\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\telse if (sx > cliprect.right())\n\t\t\t\t\tbreak;\n\n\t\t\t\t// loop over the height\n\t\t\t\tfor (int y = 0, sy = ypos; y < height; y++, sy += yadv, code++)\n\t\t\t\t{\n\t\t\t\t\t// clip the X coordinate\n\t\t\t\t\tif (sy <= -cliprect.top() - m_tileheight || sy > cliprect.bottom())\n\t\t\t\t\t\tcontinue;\n\n\t\t\t\t\t// draw the sprite\n\t\t\t\t\tgfx->transpen_raw(bitmap, cliprect, code, color, hflip, vflip, sx, sy, m_transpen);\n\t\t\t\t\tmark_dirty(sx, sx + m_tilewidth - 1, sy, sy + m_tileheight - 1);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set_inputline",
+        "raw": "m_screen->screen_vblank().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE)",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 784,
+        "sourceColumn": 2,
+        "sourceEndLine": 784,
+        "inputLine": "M68K_IRQ_4",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 2,
+        "sourceEndLine": 787
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch)",
+          "m_soundlatch->data_pending_callback().set_inputline(m_audiocpu, m6502_device::NMI_LINE)",
+          "m_soundlatch->data_pending_callback().append([this] (int state) { if (state) machine().scheduler().perfect_quantum(attotime::from_usec(100)); })"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 789,
+        "sourceColumn": 2,
+        "sourceEndLine": 789
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundlatch/callback:soundlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set_inputline",
+        "raw": "m_soundlatch->data_pending_callback().set_inputline(m_audiocpu, m6502_device::NMI_LINE)",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 790,
+        "sourceColumn": 2,
+        "sourceEndLine": 790,
+        "inputLine": "m6502_device::NMI_LINE",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundlatch/callback:soundlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "perfect_quantum",
+        "raw": "m_soundlatch->data_pending_callback().append([this] (int state) { if (state) machine().scheduler().perfect_quantum(attotime::from_usec(100)); })",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 791,
+        "sourceColumn": 2,
+        "sourceEndLine": 791,
+        "quantumSeconds": 0.00009999999999999999
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_mainlatch)",
+          "m_mainlatch->data_pending_callback().set_inputline(m_maincpu, M68K_IRQ_6)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 793,
+        "sourceColumn": 2,
+        "sourceEndLine": 793
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set_inputline",
+        "raw": "m_mainlatch->data_pending_callback().set_inputline(m_maincpu, M68K_IRQ_6)",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 794,
+        "sourceColumn": 2,
+        "sourceEndLine": 794,
+        "inputLine": "M68K_IRQ_6",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/ymsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM2151",
+        "tag": "ymsnd",
+        "clock": 3579545.25,
+        "config": [
+          "YM2151(config, m_ym2151, 14.318181_MHz_XTAL / 4)",
+          "m_ym2151->add_route(1, \"speaker\", 0.48, 0)",
+          "m_ym2151->add_route(0, \"speaker\", 0.48, 1)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 796,
+        "sourceColumn": 2,
+        "sourceEndLine": 796
+      }
+    },
+    {
+      "id": "audioroute:device:gauntlet_state.base/ymsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "speaker",
+        "gain": 0.48,
+        "input": 0,
+        "raw": "m_ym2151->add_route(1, \"speaker\", 0.48, 0)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 797,
+        "sourceColumn": 2,
+        "sourceEndLine": 797
+      }
+    },
+    {
+      "id": "audioroute:device:gauntlet_state.base/ymsnd/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "speaker",
+        "gain": 0.48,
+        "input": 1,
+        "raw": "m_ym2151->add_route(0, \"speaker\", 0.48, 1)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/pokey",
+      "label": "Device",
+      "props": {
+        "type": "POKEY",
+        "tag": "pokey",
+        "clock": 1789772.625,
+        "config": [
+          "POKEY(config, m_pokey, 14.318181_MHz_XTAL / 8)",
+          "m_pokey->add_route(ALL_OUTPUTS, \"speaker\", 0.32, 0)",
+          "m_pokey->add_route(ALL_OUTPUTS, \"speaker\", 0.32, 1)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 800,
+        "sourceColumn": 2,
+        "sourceEndLine": 800
+      }
+    },
+    {
+      "id": "audioroute:device:gauntlet_state.base/pokey/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.32,
+        "input": 0,
+        "raw": "m_pokey->add_route(ALL_OUTPUTS, \"speaker\", 0.32, 0)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 801,
+        "sourceColumn": 2,
+        "sourceEndLine": 801
+      }
+    },
+    {
+      "id": "audioroute:device:gauntlet_state.base/pokey/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.32,
+        "input": 1,
+        "raw": "m_pokey->add_route(ALL_OUTPUTS, \"speaker\", 0.32, 1)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 802,
+        "sourceColumn": 2,
+        "sourceEndLine": 802
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/tms",
+      "label": "Device",
+      "props": {
+        "type": "TMS5220C",
+        "tag": "tms",
+        "clock": 650826.4090909091,
+        "config": [
+          "TMS5220C(config, m_tms5220, 14.318181_MHz_XTAL / 2 / 11)",
+          "m_tms5220->add_route(ALL_OUTPUTS, \"speaker\", 0.80, 0)",
+          "m_tms5220->add_route(ALL_OUTPUTS, \"speaker\", 0.80, 1)"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 804,
+        "sourceColumn": 2,
+        "sourceEndLine": 804
+      }
+    },
+    {
+      "id": "audioroute:device:gauntlet_state.base/tms/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.8,
+        "input": 0,
+        "raw": "m_tms5220->add_route(ALL_OUTPUTS, \"speaker\", 0.80, 0)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 805,
+        "sourceColumn": 2,
+        "sourceEndLine": 805
+      }
+    },
+    {
+      "id": "audioroute:device:gauntlet_state.base/tms/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.8,
+        "input": 1,
+        "raw": "m_tms5220->add_route(ALL_OUTPUTS, \"speaker\", 0.80, 1)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 806,
+        "sourceColumn": 2,
+        "sourceEndLine": 806
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundctl",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "soundctl",
+        "clock": null,
+        "config": [
+          "LS259(config, m_soundctl)",
+          "m_soundctl->q_out_cb<0>().set(m_ym2151, FUNC(ym2151_device::reset_w))",
+          "m_soundctl->q_out_cb<1>().set(m_tms5220, FUNC(tms5220_device::wsq_w))",
+          "m_soundctl->q_out_cb<2>().set(m_tms5220, FUNC(tms5220_device::rsq_w))",
+          "m_soundctl->q_out_cb<3>().set(FUNC(gauntlet_state::speech_squeak_w))",
+          "m_soundctl->q_out_cb<4>().set(FUNC(gauntlet_state::coin_counter_w<1>))",
+          "m_soundctl->q_out_cb<5>().set(FUNC(gauntlet_state::coin_counter_w<0>))"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 808,
+        "sourceColumn": 2,
+        "sourceEndLine": 808
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundctl/callback:soundctl:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_soundctl->q_out_cb<0>().set(m_ym2151, FUNC(ym2151_device::reset_w))",
+        "ownerTag": "soundctl",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 809,
+        "sourceColumn": 2,
+        "sourceEndLine": 809,
+        "slot": "0",
+        "targetClass": "ym2151_device",
+        "targetMethod": "reset_w",
+        "targetTag": "ymsnd"
+      }
+    },
+    {
+      "id": "handler:ym2151_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 809,
+        "sourceColumn": 2,
+        "sourceEndLine": 809
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundctl/callback:soundctl:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_soundctl->q_out_cb<1>().set(m_tms5220, FUNC(tms5220_device::wsq_w))",
+        "ownerTag": "soundctl",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 810,
+        "sourceColumn": 2,
+        "sourceEndLine": 810,
+        "slot": "1",
+        "targetClass": "tms5220_device",
+        "targetMethod": "wsq_w",
+        "targetTag": "tms"
+      }
+    },
+    {
+      "id": "handler:tms5220_device.wsq_w",
+      "label": "Handler",
+      "props": {
+        "method": "wsq_w",
+        "ownerClass": "tms5220_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 810,
+        "sourceColumn": 2,
+        "sourceEndLine": 810
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundctl/callback:soundctl:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_soundctl->q_out_cb<2>().set(m_tms5220, FUNC(tms5220_device::rsq_w))",
+        "ownerTag": "soundctl",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 811,
+        "sourceColumn": 2,
+        "sourceEndLine": 811,
+        "slot": "2",
+        "targetClass": "tms5220_device",
+        "targetMethod": "rsq_w",
+        "targetTag": "tms"
+      }
+    },
+    {
+      "id": "handler:tms5220_device.rsq_w",
+      "label": "Handler",
+      "props": {
+        "method": "rsq_w",
+        "ownerClass": "tms5220_device",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 811,
+        "sourceColumn": 2,
+        "sourceEndLine": 811
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundctl/callback:soundctl:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_soundctl->q_out_cb<3>().set(FUNC(gauntlet_state::speech_squeak_w))",
+        "ownerTag": "soundctl",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 2,
+        "sourceEndLine": 812,
+        "slot": "3",
+        "targetClass": "gauntlet_state",
+        "targetMethod": "speech_squeak_w"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.speech_squeak_w",
+      "label": "Handler",
+      "props": {
+        "method": "speech_squeak_w",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 504,
+        "sourceColumn": 1,
+        "sourceEndLine": 508,
+        "sourceParameters": "int state",
+        "sourceBody": "uint8_t const data = 5 | (state ? 2 : 0);\n\tm_tms5220->set_unscaled_clock(14.318181_MHz_XTAL/2 / (16 - data));"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundctl/callback:soundctl:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_soundctl->q_out_cb<4>().set(FUNC(gauntlet_state::coin_counter_w<1>))",
+        "ownerTag": "soundctl",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 813,
+        "sourceColumn": 2,
+        "sourceEndLine": 813,
+        "slot": "4",
+        "targetClass": "gauntlet_state",
+        "targetMethod": "coin_counter_w_1"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.coin_counter_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w_1",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 511,
+        "sourceColumn": 1,
+        "sourceEndLine": 514,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(Which, state);"
+      }
+    },
+    {
+      "id": "device:gauntlet_state.base/soundctl/callback:soundctl:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_soundctl->q_out_cb<5>().set(FUNC(gauntlet_state::coin_counter_w<0>))",
+        "ownerTag": "soundctl",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 814,
+        "sourceColumn": 2,
+        "sourceEndLine": 814,
+        "slot": "5",
+        "targetClass": "gauntlet_state",
+        "targetMethod": "coin_counter_w_0"
+      }
+    },
+    {
+      "id": "handler:gauntlet_state.coin_counter_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w_0",
+        "ownerClass": "gauntlet_state",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 511,
+        "sourceColumn": 1,
+        "sourceEndLine": 514,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(Which, state);"
+      }
+    },
+    {
+      "id": "machine:gauntlet_state.gauntlet",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "gauntlet_state",
+        "name": "gauntlet",
+        "calls": [
+          "base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_vindctr2_screen_refresh\",\"bits\":1}",
+          "{\"name\":\"m_playfield_tile_bank\",\"bits\":8}",
+          "{\"name\":\"m_playfield_color_bank\",\"bits\":8}"
+        ],
+        "startHandlers": [
+          "gauntlet_state.video_start"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 1,
+        "sourceEndLine": 824
+      }
+    },
+    {
+      "id": "bank:gauntlet_state.gauntlet/slapstic_bank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "slapstic_bank",
+        "member": "m_slapstic_bank",
+        "startEntry": 0,
+        "entries": 4,
+        "region": "maincpu",
+        "offset": 229376,
+        "stride": 8192,
+        "raw": "m_slapstic_bank->configure_entries(0, 4, rom + 0x38000, 0x2000)",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 2056,
+        "sourceColumn": 1,
+        "sourceEndLine": 2060
+      }
+    },
+    {
+      "id": "device:gauntlet_state.gauntlet/slapstic",
+      "label": "Device",
+      "props": {
+        "type": "SLAPSTIC",
+        "tag": "slapstic",
+        "clock": 104,
+        "config": [
+          "SLAPSTIC(config, m_slapstic, 104)",
+          "m_slapstic->set_range(m_maincpu, AS_PROGRAM, 0x38000, 0x3ffff, 0x280000)",
+          "m_slapstic->set_bank(m_slapstic_bank)"
+        ],
+        "cls": "atari_slapstic_device",
+        "clsHierarchy": [
+          "atari_slapstic_device"
+        ],
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 821,
+        "sourceColumn": 2,
+        "sourceEndLine": 821
+      }
+    },
+    {
+      "id": "inputs:gauntlet",
+      "label": "InputPorts",
+      "props": {
+        "name": "gauntlet",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 8,
+        "sourceEndLine": 606
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000",
+      "label": "Port",
+      "props": {
+        "tag": "803000",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 12,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 12
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803000/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 65280
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002",
+      "label": "Port",
+      "props": {
+        "tag": "803002",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 12,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 12
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803002/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 65280
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004",
+      "label": "Port",
+      "props": {
+        "tag": "803004",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 12,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 12
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803004/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 65280
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006",
+      "label": "Port",
+      "props": {
+        "tag": "803006",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 12,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 12
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803006/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 65280
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803008",
+      "label": "Port",
+      "props": {
+        "tag": "803008",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803008/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 7,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803008/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 8,
+        "activeLow": true,
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803008/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"mainlatch\", FUNC(generic_latch_8_device::pending_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803008/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"soundlatch\", FUNC(generic_latch_8_device::pending_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803008/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"screen\", FUNC(screen_device::vblank))"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:gauntlet/803008/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65408,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:gauntlet/COIN",
+      "label": "Port",
+      "props": {
+        "tag": "COIN",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:gauntlet/COIN/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN4",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:gauntlet/COIN/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN3",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:gauntlet/COIN/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:gauntlet/COIN/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:gauntlet/COIN/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 240,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 240
+      }
+    },
+    {
+      "id": "gfxlayout:anlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "anlayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 2,
+        "planeOffsets": [
+          0,
+          4
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          8,
+          9,
+          10,
+          11
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gauntlet",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_gauntlet",
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 731,
+        "sourceColumn": 8,
+        "sourceEndLine": 731
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gauntlet/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "spr_tiles",
+        "offset": 0,
+        "layout": "gfx_8x8x4_planar",
+        "colorBase": 256,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_gauntlet/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "chars",
+        "offset": 0,
+        "layout": "anlayout",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:gauntlet",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 2098,
+        "sourceColumn": 1,
+        "sourceEndLine": 2098
+      }
+    },
+    {
+      "from": "game:gauntlet",
+      "to": "machine:gauntlet_state.gauntlet",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gauntlet",
+      "to": "inputs:gauntlet",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gauntlet",
+      "to": "romset:gauntlet",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:atarimo.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:slapstic.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:cpu/m68000/m68010.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:machine/eeprompar.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:machine/timer.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:sound/pokey.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:sound/tms5220.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:sound/ymopm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/gauntlet.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:gauntlet_state.gauntlet",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 1,
+        "sourceEndLine": 824
+      }
+    },
+    {
+      "from": "machine:gauntlet_state.gauntlet",
+      "to": "handler:gauntlet_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gauntlet_state.gauntlet",
+      "to": "machine:gauntlet_state.base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:gauntlet_state.gauntlet",
+      "to": "bank:gauntlet_state.gauntlet/slapstic_bank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:gauntlet_state.gauntlet",
+      "to": "device:gauntlet_state.gauntlet/slapstic",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:gauntlet",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 8,
+        "sourceEndLine": 606
+      }
+    },
+    {
+      "from": "inputs:gauntlet",
+      "to": "inputs:gauntlet/803000",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gauntlet",
+      "to": "inputs:gauntlet/803002",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gauntlet",
+      "to": "inputs:gauntlet/803004",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gauntlet",
+      "to": "inputs:gauntlet/803006",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gauntlet",
+      "to": "inputs:gauntlet/803008",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:gauntlet",
+      "to": "inputs:gauntlet/COIN",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:gauntlet",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 897,
+        "sourceColumn": 1,
+        "sourceEndLine": 897
+      }
+    },
+    {
+      "from": "romset:gauntlet",
+      "to": "region:gauntlet/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gauntlet",
+      "to": "region:gauntlet/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gauntlet",
+      "to": "region:gauntlet/chars",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gauntlet",
+      "to": "region:gauntlet/spr_tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gauntlet",
+      "to": "region:gauntlet/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 1,
+        "sourceEndLine": 815
+      }
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "handler:gauntlet_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/eeprom",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/outlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/scantimer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "gfxdecode:gfx_gauntlet",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/playfield",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/alpha",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/mob",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/ymsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/pokey",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/tms",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:gauntlet_state.base",
+      "to": "device:gauntlet_state.base/soundctl",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "bank:gauntlet_state.gauntlet/slapstic_bank",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 2056,
+        "sourceColumn": 1,
+        "sourceEndLine": 2060
+      }
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803000",
+      "to": "inputs:gauntlet/803000/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803002",
+      "to": "inputs:gauntlet/803002/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803004",
+      "to": "inputs:gauntlet/803004/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803006",
+      "to": "inputs:gauntlet/803006/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803008",
+      "to": "inputs:gauntlet/803008/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803008",
+      "to": "inputs:gauntlet/803008/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803008",
+      "to": "inputs:gauntlet/803008/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803008",
+      "to": "inputs:gauntlet/803008/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803008",
+      "to": "inputs:gauntlet/803008/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/803008",
+      "to": "inputs:gauntlet/803008/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/COIN",
+      "to": "inputs:gauntlet/COIN/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/COIN",
+      "to": "inputs:gauntlet/COIN/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/COIN",
+      "to": "inputs:gauntlet/COIN/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/COIN",
+      "to": "inputs:gauntlet/COIN/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:gauntlet/COIN",
+      "to": "inputs:gauntlet/COIN/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:gauntlet/maincpu",
+      "to": "rom:gauntlet/maincpu/136037-1307.9a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/maincpu",
+      "to": "rom:gauntlet/maincpu/136037-1308.9b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/maincpu",
+      "to": "rom:gauntlet/maincpu/136037-205.10a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/maincpu",
+      "to": "rom:gauntlet/maincpu/136037-206.10b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/maincpu",
+      "to": "rom:gauntlet/maincpu/136037-1409.7a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/maincpu",
+      "to": "rom:gauntlet/maincpu/136037-1410.7b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/audiocpu",
+      "to": "rom:gauntlet/audiocpu/136037-120.16r",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/audiocpu",
+      "to": "rom:gauntlet/audiocpu/136037-119.16s",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/chars",
+      "to": "rom:gauntlet/chars/136037-104.6p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-111.1a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-112.1b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-113.1l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-114.1mn",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-115.2a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-116.2b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-117.2l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/spr_tiles",
+      "to": "rom:gauntlet/spr_tiles/136037-118.2mn",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/proms",
+      "to": "rom:gauntlet/proms/74s472-136037-101.7u",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/proms",
+      "to": "rom:gauntlet/proms/74s472-136037-102.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:gauntlet/proms",
+      "to": "rom:gauntlet/proms/74s287-136037-103.4r",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:gauntlet_state.base/maincpu",
+      "to": "map:gauntlet_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:gauntlet_state.base/audiocpu",
+      "to": "map:gauntlet_state.sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:gauntlet_state.base/outlatch",
+      "to": "device:gauntlet_state.base/outlatch/callback:outlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/scantimer",
+      "to": "device:gauntlet_state.base/scantimer/callback:scantimer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_gauntlet",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 731,
+        "sourceColumn": 8,
+        "sourceEndLine": 731
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_gauntlet",
+      "to": "gfxdecode:gfx_gauntlet/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_gauntlet",
+      "to": "gfxdecode:gfx_gauntlet/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:gauntlet_state.base/playfield",
+      "to": "device:gauntlet_state.base/playfield/callback:playfield:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/alpha",
+      "to": "device:gauntlet_state.base/alpha/callback:alpha:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/screen",
+      "to": "device:gauntlet_state.base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/screen",
+      "to": "device:gauntlet_state.base/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundlatch",
+      "to": "device:gauntlet_state.base/soundlatch/callback:soundlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundlatch",
+      "to": "device:gauntlet_state.base/soundlatch/callback:soundlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/mainlatch",
+      "to": "device:gauntlet_state.base/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/ymsnd",
+      "to": "audioroute:device:gauntlet_state.base/ymsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gauntlet_state.base/ymsnd",
+      "to": "audioroute:device:gauntlet_state.base/ymsnd/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gauntlet_state.base/pokey",
+      "to": "audioroute:device:gauntlet_state.base/pokey/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gauntlet_state.base/pokey",
+      "to": "audioroute:device:gauntlet_state.base/pokey/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gauntlet_state.base/tms",
+      "to": "audioroute:device:gauntlet_state.base/tms/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gauntlet_state.base/tms",
+      "to": "audioroute:device:gauntlet_state.base/tms/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl",
+      "to": "device:gauntlet_state.base/soundctl/callback:soundctl:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl",
+      "to": "device:gauntlet_state.base/soundctl/callback:soundctl:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl",
+      "to": "device:gauntlet_state.base/soundctl/callback:soundctl:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl",
+      "to": "device:gauntlet_state.base/soundctl/callback:soundctl:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl",
+      "to": "device:gauntlet_state.base/soundctl/callback:soundctl:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl",
+      "to": "device:gauntlet_state.base/soundctl/callback:soundctl:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 571
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range18",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range19",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range20",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range21",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range22",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.main_map",
+      "to": "map:gauntlet_state.main_map/range23",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/gauntlet.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 1,
+        "sourceEndLine": 596
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map",
+      "to": "map:gauntlet_state.sound_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:gauntlet_state.base/outlatch/callback:outlatch:0",
+      "to": "handler:gauntlet_state.sound_reset_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/scantimer/callback:scantimer:0",
+      "to": "handler:gauntlet_state.scanline_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_gauntlet/e0",
+      "to": "gfxlayout:gfx_8x8x4_planar",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_gauntlet/e1",
+      "to": "gfxlayout:anlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:gauntlet_state.base/playfield/callback:playfield:0",
+      "to": "handler:gauntlet_state.get_playfield_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/alpha/callback:alpha:0",
+      "to": "handler:gauntlet_state.get_alpha_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/screen/callback:screen:0",
+      "to": "handler:gauntlet_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/screen/callback:screen:1",
+      "to": "device:gauntlet_state.base/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundlatch/callback:soundlatch:0",
+      "to": "device:gauntlet_state.base/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gauntlet_state.base/mainlatch/callback:mainlatch:0",
+      "to": "device:gauntlet_state.base/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:0",
+      "to": "handler:ym2151_device.reset_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:0",
+      "to": "device:gauntlet_state.base/ymsnd",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:1",
+      "to": "handler:tms5220_device.wsq_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:1",
+      "to": "device:gauntlet_state.base/tms",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:2",
+      "to": "handler:tms5220_device.rsq_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:2",
+      "to": "device:gauntlet_state.base/tms",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:3",
+      "to": "handler:gauntlet_state.speech_squeak_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:4",
+      "to": "handler:gauntlet_state.coin_counter_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:gauntlet_state.base/soundctl/callback:soundctl:5",
+      "to": "handler:gauntlet_state.coin_counter_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range4",
+      "to": "handler:eeprom_parallel_28xx_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "eeprom"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range4",
+      "to": "handler:eeprom_parallel_28xx_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "eeprom"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range10",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range11",
+      "to": "handler:watchdog_timer_device.reset16_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range12",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "outlatch"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range13",
+      "to": "handler:gauntlet_state.video_int_ack_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range14",
+      "to": "handler:eeprom_parallel_28xx_device.unlock_write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "eeprom"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range15",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range16",
+      "to": "handler:tilemap_device.write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "playfield"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range19",
+      "to": "handler:tilemap_device.write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "alpha"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range20",
+      "to": "handler:gauntlet_state.yscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range22",
+      "to": "handler:palette_device.write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.main_map/range23",
+      "to": "handler:gauntlet_state.xscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range1",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range2",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range3",
+      "to": "handler:gauntlet_state.mixer_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range4",
+      "to": "handler:gauntlet_state.switch_6502_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range5",
+      "to": "handler:ls259_device.write_d7",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundctl"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range6",
+      "to": "handler:pokey_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range6",
+      "to": "handler:pokey_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range7",
+      "to": "handler:ym2151_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range7",
+      "to": "handler:ym2151_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range8",
+      "to": "handler:tms5220_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "tms"
+      }
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range9",
+      "to": "handler:gauntlet_state.sound_irq_ack_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:gauntlet_state.sound_map/range9",
+      "to": "handler:gauntlet_state.sound_irq_ack_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:gauntlet_state.sound_reset_w",
+      "to": "handler:gauntlet_state.mixer_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_planar",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:anlayout",
+      "to": "file:src/mame/atari/gauntlet.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:gauntlet_state.screen_update",
+      "to": "handler:atari_motion_objects_device.draw",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atari_motion_objects_device.draw",
+      "to": "handler:atari_motion_objects_device.build_active_list",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atari_motion_objects_device.draw",
+      "to": "handler:atari_motion_objects_device.render_object",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

@@ -1,0 +1,418 @@
+{
+  "game": "a2600",
+  "title": "Atari 2600 (NTSC) (Atari, 1977)",
+  "family": "a2600",
+  "kind": "console",
+  "dataPath": "games/consoles/a2600",
+  "board": {
+    "family": "a2600",
+    "cpus": [
+      {
+        "tag": "^maincpu",
+        "type": "m6507",
+        "clock": 1193191.6666666667,
+        "region": "^maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "handler",
+            "mirror": 3840,
+            "read": "tia_video.read",
+            "write": "tia_video.write",
+            "handlerWidth": 8
+          },
+          {
+            "start": 128,
+            "end": 255,
+            "kind": "ram",
+            "mirror": 3328,
+            "share": "riot_ram"
+          },
+          {
+            "start": 640,
+            "end": 640,
+            "kind": "handler",
+            "mirror": 3352,
+            "read": "riot.pa_data_r",
+            "write": "riot.pa_data_w"
+          },
+          {
+            "start": 641,
+            "end": 641,
+            "kind": "handler",
+            "mirror": 3352,
+            "read": "riot.pa_ddr_r",
+            "write": "riot.pa_ddr_w"
+          },
+          {
+            "start": 642,
+            "end": 642,
+            "kind": "handler",
+            "mirror": 3352,
+            "read": "riot.pb_data_r",
+            "write": "riot.pb_data_w"
+          },
+          {
+            "start": 643,
+            "end": 643,
+            "kind": "handler",
+            "mirror": 3352,
+            "read": "riot.pb_ddr_r",
+            "write": "riot.pb_ddr_w"
+          },
+          {
+            "start": 660,
+            "end": 663,
+            "kind": "handler",
+            "mirror": 3328,
+            "write": "riot.timer_off_w"
+          },
+          {
+            "start": 668,
+            "end": 671,
+            "kind": "handler",
+            "mirror": 3328,
+            "write": "riot.timer_on_w"
+          },
+          {
+            "start": 644,
+            "end": 644,
+            "kind": "handler",
+            "mirror": 3346,
+            "read": "riot.timer_off_r"
+          },
+          {
+            "start": 652,
+            "end": 652,
+            "kind": "handler",
+            "mirror": 3346,
+            "read": "riot.timer_on_r"
+          },
+          {
+            "start": 645,
+            "end": 645,
+            "kind": "handler",
+            "mirror": 3354,
+            "read": "riot.irq_r"
+          },
+          {
+            "start": 644,
+            "end": 647,
+            "kind": "handler",
+            "mirror": 3336,
+            "write": "riot.edge_w"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 127,
+        "kind": "handler",
+        "mirror": 3840,
+        "read": "tia_video.read",
+        "write": "tia_video.write",
+        "handlerWidth": 8
+      },
+      {
+        "start": 128,
+        "end": 255,
+        "kind": "ram",
+        "mirror": 3328,
+        "share": "riot_ram"
+      },
+      {
+        "start": 640,
+        "end": 640,
+        "kind": "handler",
+        "mirror": 3352,
+        "read": "riot.pa_data_r",
+        "write": "riot.pa_data_w"
+      },
+      {
+        "start": 641,
+        "end": 641,
+        "kind": "handler",
+        "mirror": 3352,
+        "read": "riot.pa_ddr_r",
+        "write": "riot.pa_ddr_w"
+      },
+      {
+        "start": 642,
+        "end": 642,
+        "kind": "handler",
+        "mirror": 3352,
+        "read": "riot.pb_data_r",
+        "write": "riot.pb_data_w"
+      },
+      {
+        "start": 643,
+        "end": 643,
+        "kind": "handler",
+        "mirror": 3352,
+        "read": "riot.pb_ddr_r",
+        "write": "riot.pb_ddr_w"
+      },
+      {
+        "start": 660,
+        "end": 663,
+        "kind": "handler",
+        "mirror": 3328,
+        "write": "riot.timer_off_w"
+      },
+      {
+        "start": 668,
+        "end": 671,
+        "kind": "handler",
+        "mirror": 3328,
+        "write": "riot.timer_on_w"
+      },
+      {
+        "start": 644,
+        "end": 644,
+        "kind": "handler",
+        "mirror": 3346,
+        "read": "riot.timer_off_r"
+      },
+      {
+        "start": 652,
+        "end": 652,
+        "kind": "handler",
+        "mirror": 3346,
+        "read": "riot.timer_on_r"
+      },
+      {
+        "start": 645,
+        "end": 645,
+        "kind": "handler",
+        "mirror": 3354,
+        "read": "riot.irq_r"
+      },
+      {
+        "start": 644,
+        "end": 647,
+        "kind": "handler",
+        "mirror": 3336,
+        "write": "riot.edge_w"
+      }
+    ],
+    "screen": {
+      "width": 176,
+      "height": 223,
+      "xOffset": 26,
+      "yOffset": 24,
+      "refresh": 59.92324561403509,
+      "htotal": 228,
+      "vtotal": 262,
+      "vbstart": 247,
+      "vbend": 24,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "tia",
+    "clock": 31399.780701754386,
+    "deviceTag": "tia",
+    "masterGain": 0.9,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 8192,
+      "fill": 255,
+      "loads": []
+    }
+  ],
+  "cart": {
+    "interface": "a2600_cart",
+    "list": "a2600",
+    "catalogUrl": "softlist.json",
+    "cartsUrl": "carts.json",
+    "slots": [
+      "a26_2k_4k",
+      "a26_f8",
+      "a26_f8sw",
+      "a26_f6",
+      "a26_f4",
+      "a26_fa",
+      "a26_3f",
+      "a26_ua",
+      "a26_fv",
+      "a26_8in1",
+      "a26_dpc"
+    ],
+    "games": [
+      "adventure",
+      "pacman",
+      "pitfall",
+      "combat",
+      "spaceinv",
+      "breakout",
+      "frogger",
+      "defender",
+      "asteroid"
+    ],
+    "defaultSlot": "a26_2k_4k",
+    "romRegion": "cartslot:cart:rom",
+    "extensions": [
+      ".bin",
+      ".a26"
+    ]
+  },
+  "bindings": [
+    {
+      "port": "SWB",
+      "mask": 1,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "Reset Game",
+      "activeLow": true
+    },
+    {
+      "port": "SWB",
+      "mask": 2,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "Select Game",
+      "activeLow": true
+    },
+    {
+      "port": "SWB",
+      "mask": 8,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "TV Type",
+      "activeLow": true,
+      "activeValue": 0,
+      "toggle": true
+    },
+    {
+      "port": "SWB",
+      "mask": 64,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "Left Diff. Switch",
+      "activeLow": true,
+      "activeValue": 64,
+      "toggle": true
+    },
+    {
+      "port": "SWB",
+      "mask": 128,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "Right Diff. Switch",
+      "activeLow": true,
+      "activeValue": 128,
+      "toggle": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "joyport1:JOY",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SWB",
+      "mask": 8,
+      "value": 8,
+      "name": "TV Type"
+    },
+    {
+      "port": "SWB",
+      "mask": 64,
+      "value": 0,
+      "name": "Left Diff. Switch"
+    },
+    {
+      "port": "SWB",
+      "mask": 128,
+      "value": 0,
+      "name": "Right Diff. Switch"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "SWB",
+      "init": 63
+    },
+    {
+      "tag": "joyport1:JOY",
+      "init": 255
+    },
+    {
+      "tag": "joyport2:JOY",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

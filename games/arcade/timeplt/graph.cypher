@@ -1,0 +1,425 @@
+// mamekit knowledge graph — driver src/mame/konami/timeplt.cpp
+// generated 2026-09-05T03:50:13.064Z
+CREATE CONSTRAINT mamekit_id IF NOT EXISTS FOR (n:KG) REQUIRE n.id IS UNIQUE;
+MERGE (n:KG {id: 'file:src/mame/konami/timeplt.cpp'}) SET n:SourceFile SET n += {path: 'src/mame/konami/timeplt.cpp'};
+MERGE (n:KG {id: 'file:emu.h'}) SET n:SourceFile SET n += {path: 'emu.h', external: true};
+MERGE (n:KG {id: 'file:konamipt.h'}) SET n:SourceFile SET n += {path: 'konamipt.h', external: true};
+MERGE (n:KG {id: 'file:timeplt_a.h'}) SET n:SourceFile SET n += {path: 'timeplt_a.h', external: true};
+MERGE (n:KG {id: 'file:cpu/z80/z80.h'}) SET n:SourceFile SET n += {path: 'cpu/z80/z80.h', external: true};
+MERGE (n:KG {id: 'file:machine/74259.h'}) SET n:SourceFile SET n += {path: 'machine/74259.h', external: true};
+MERGE (n:KG {id: 'file:machine/ticket.h'}) SET n:SourceFile SET n += {path: 'machine/ticket.h', external: true};
+MERGE (n:KG {id: 'file:machine/watchdog.h'}) SET n:SourceFile SET n += {path: 'machine/watchdog.h', external: true};
+MERGE (n:KG {id: 'file:sound/ay8910.h'}) SET n:SourceFile SET n += {path: 'sound/ay8910.h', external: true};
+MERGE (n:KG {id: 'file:sound/tc8830f.h'}) SET n:SourceFile SET n += {path: 'sound/tc8830f.h', external: true};
+MERGE (n:KG {id: 'file:emupal.h'}) SET n:SourceFile SET n += {path: 'emupal.h', external: true};
+MERGE (n:KG {id: 'file:screen.h'}) SET n:SourceFile SET n += {path: 'screen.h', external: true};
+MERGE (n:KG {id: 'file:tilemap.h'}) SET n:SourceFile SET n += {path: 'tilemap.h', external: true};
+MERGE (n:KG {id: 'file:machine/gen_latch.h'}) SET n:SourceFile SET n += {path: 'machine/gen_latch.h', external: true};
+MERGE (n:KG {id: 'file:src/mame/shared/timeplt_a.cpp'}) SET n:SourceFile SET n += {path: 'src/mame/shared/timeplt_a.cpp'};
+MERGE (n:KG {id: 'file:speaker.h'}) SET n:SourceFile SET n += {path: 'speaker.h', external: true};
+MERGE (n:KG {id: 'game:timeplt'}) SET n:Game SET n += {name: 'timeplt', year: '1982', company: 'Konami', fullname: 'Time Pilot', monitor: 'ROT90', cls: 'timeplt_state', init: 'empty_init', flags: 'MACHINE_SUPPORTS_SAVE', kind: 'arcade', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 1025, sourceColumn: 1, sourceEndLine: 1025};
+MERGE (n:KG {id: 'romset:timeplt'}) SET n:RomSet SET n += {name: 'timeplt', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 823, sourceColumn: 1, sourceEndLine: 823};
+MERGE (n:KG {id: 'region:timeplt/maincpu'}) SET n:RomRegion SET n += {tag: 'maincpu', size: 65536, flags: '0', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 824, sourceColumn: 2, sourceEndLine: 824};
+MERGE (n:KG {id: 'rom:timeplt/maincpu/tm1'}) SET n:Rom SET n += {file: 'tm1', offset: 0, size: 8192, crc: '1551f1b9', sha1: 'c72f30988ac00cbe6549b71c3bcb414511e8b997', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 825, sourceColumn: 2, sourceEndLine: 825};
+MERGE (n:KG {id: 'rom:timeplt/maincpu/tm2'}) SET n:Rom SET n += {file: 'tm2', offset: 8192, size: 8192, crc: '58636cb5', sha1: 'ab517efa93ae7be780af55faea82a6e83edd828c', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 826, sourceColumn: 2, sourceEndLine: 826};
+MERGE (n:KG {id: 'rom:timeplt/maincpu/tm3'}) SET n:Rom SET n += {file: 'tm3', offset: 16384, size: 8192, crc: 'ff4e0d83', sha1: 'ef98a1abb45b22d7498a0aca520f43bbee248b22', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 827, sourceColumn: 2, sourceEndLine: 827};
+MERGE (n:KG {id: 'region:timeplt/timeplt_audio:tpsound'}) SET n:RomRegion SET n += {tag: 'timeplt_audio:tpsound', size: 65536, flags: '0', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 829, sourceColumn: 2, sourceEndLine: 829};
+MERGE (n:KG {id: 'rom:timeplt/timeplt_audio:tpsound/tm7'}) SET n:Rom SET n += {file: 'tm7', offset: 0, size: 4096, crc: 'd66da813', sha1: '408fca4515e8af84211df3e204c8776b2f8adb23', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 830, sourceColumn: 2, sourceEndLine: 830};
+MERGE (n:KG {id: 'region:timeplt/tiles'}) SET n:RomRegion SET n += {tag: 'tiles', size: 8192, flags: '0', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 832, sourceColumn: 2, sourceEndLine: 832};
+MERGE (n:KG {id: 'rom:timeplt/tiles/tm6'}) SET n:Rom SET n += {file: 'tm6', offset: 0, size: 8192, crc: 'c2507f40', sha1: '07221875e3f81d9def67c57a7ccd82d52ce65e01', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 833, sourceColumn: 2, sourceEndLine: 833};
+MERGE (n:KG {id: 'region:timeplt/sprites'}) SET n:RomRegion SET n += {tag: 'sprites', size: 16384, flags: '0', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 835, sourceColumn: 2, sourceEndLine: 835};
+MERGE (n:KG {id: 'rom:timeplt/sprites/tm4'}) SET n:Rom SET n += {file: 'tm4', offset: 0, size: 8192, crc: '7e437c3e', sha1: 'cbe2ccd2cd503af62f009cd5aab73aa7366230b1', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 836, sourceColumn: 2, sourceEndLine: 836};
+MERGE (n:KG {id: 'rom:timeplt/sprites/tm5'}) SET n:Rom SET n += {file: 'tm5', offset: 8192, size: 8192, crc: 'e8ca87b9', sha1: '5dd30d3fb9fd8cf9e6a8e37e7ea858c7fd038a7e', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 837, sourceColumn: 2, sourceEndLine: 837};
+MERGE (n:KG {id: 'region:timeplt/proms'}) SET n:RomRegion SET n += {tag: 'proms', size: 576, flags: '0', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 839, sourceColumn: 2, sourceEndLine: 839};
+MERGE (n:KG {id: 'rom:timeplt/proms/timeplt.b4'}) SET n:Rom SET n += {file: 'timeplt.b4', offset: 0, size: 32, crc: '34c91839', sha1: 'f62e279e21fce171231d3139be7adabe1f4b8c2e', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 840, sourceColumn: 2, sourceEndLine: 840};
+MERGE (n:KG {id: 'rom:timeplt/proms/timeplt.b5'}) SET n:Rom SET n += {file: 'timeplt.b5', offset: 32, size: 32, crc: '463b2b07', sha1: '9ad275365eba4869f94749f39ff8705d92056a10', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 841, sourceColumn: 2, sourceEndLine: 841};
+MERGE (n:KG {id: 'rom:timeplt/proms/timeplt.e9'}) SET n:Rom SET n += {file: 'timeplt.e9', offset: 64, size: 256, crc: '4bbb2150', sha1: '678433b21aae1daa938e32d3293eeed529a42ef9', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 842, sourceColumn: 2, sourceEndLine: 842};
+MERGE (n:KG {id: 'rom:timeplt/proms/timeplt.e12'}) SET n:Rom SET n += {file: 'timeplt.e12', offset: 320, size: 256, crc: 'f7b7663e', sha1: '151bd2dff4e4ef76d6438c1ab2cae71f987b9dad', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 843, sourceColumn: 2, sourceEndLine: 843};
+MERGE (n:KG {id: 'map:timeplt_state.main_map'}) SET n:AddressMap SET n += {cls: 'timeplt_state', name: 'main_map', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 449, sourceColumn: 1, sourceEndLine: 465, unmapHigh: true};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range0'}) SET n:AddressRange SET n += {start: 0, end: 24575, raw: 'map(0x0000, 0x5fff).rom()', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 452, sourceColumn: 2, sourceEndLine: 452, rom: true};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range1'}) SET n:AddressRange SET n += {start: 40960, end: 41983, raw: 'map(0xa000, 0xa3ff).ram().w(FUNC(timeplt_state::colorram_w)).share(m_colorram)', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 453, sourceColumn: 2, sourceEndLine: 453, ram: true, share: 'colorram'};
+MERGE (n:KG {id: 'handler:timeplt_state.colorram_w'}) SET n:Handler SET n += {method: 'colorram_w', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 323, sourceColumn: 1, sourceEndLine: 327, sourceParameters: 'offs_t offset, uint8_t data', sourceBody: 'm_colorram[offset] = data;
+	m_bg_tilemap->mark_tile_dirty(offset);'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range2'}) SET n:AddressRange SET n += {start: 41984, end: 43007, raw: 'map(0xa400, 0xa7ff).ram().w(FUNC(timeplt_state::videoram_w)).share(m_videoram)', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 454, sourceColumn: 2, sourceEndLine: 454, ram: true, share: 'videoram'};
+MERGE (n:KG {id: 'handler:timeplt_state.videoram_w'}) SET n:Handler SET n += {method: 'videoram_w', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 316, sourceColumn: 1, sourceEndLine: 320, sourceParameters: 'offs_t offset, uint8_t data', sourceBody: 'm_videoram[offset] = data;
+	m_bg_tilemap->mark_tile_dirty(offset);'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range3'}) SET n:AddressRange SET n += {start: 43008, end: 45055, raw: 'map(0xa800, 0xafff).ram()', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 455, sourceColumn: 2, sourceEndLine: 455, ram: true};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range4'}) SET n:AddressRange SET n += {start: 45056, end: 45311, raw: 'map(0xb000, 0xb0ff).mirror(0x0b00).ram().share(m_spriteram[0])', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 456, sourceColumn: 2, sourceEndLine: 456, mirror: 2816, ram: true, share: 'spriteram[0]'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range5'}) SET n:AddressRange SET n += {start: 46080, end: 46335, raw: 'map(0xb400, 0xb4ff).mirror(0x0b00).ram().share(m_spriteram[1])', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 457, sourceColumn: 2, sourceEndLine: 457, mirror: 2816, ram: true, share: 'spriteram[1]'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range6'}) SET n:AddressRange SET n += {start: 49152, end: 49152, raw: 'map(0xc000, 0xc000).mirror(0x0cff).r(FUNC(timeplt_state::scanline_r)).w("timeplt_audio", FUNC(timeplt_audio_device::sound_data_w))', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 458, sourceColumn: 2, sourceEndLine: 458, mirror: 3327};
+MERGE (n:KG {id: 'handler:timeplt_state.scanline_r'}) SET n:Handler SET n += {method: 'scanline_r', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 335, sourceColumn: 1, sourceEndLine: 338, sourceParameters: '', sourceBody: 'return m_screen->vpos();'};
+MERGE (n:KG {id: 'handler:timeplt_audio_device.sound_data_w'}) SET n:Handler SET n += {method: 'sound_data_w', ownerClass: 'timeplt_audio_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 127, sourceColumn: 1, sourceEndLine: 130, sourceParameters: 'uint8_t data', sourceBody: 'm_soundlatch->write(data);'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range7'}) SET n:AddressRange SET n += {start: 49664, end: 49664, raw: 'map(0xc200, 0xc200).mirror(0x0cff).portr("DSW1").w("watchdog", FUNC(watchdog_timer_device::reset_w))', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 459, sourceColumn: 2, sourceEndLine: 459, mirror: 3327, portRead: 'DSW1'};
+MERGE (n:KG {id: 'handler:watchdog_timer_device.reset_w'}) SET n:Handler SET n += {method: 'reset_w', ownerClass: 'watchdog_timer_device', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 459, sourceColumn: 2, sourceEndLine: 459};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range8'}) SET n:AddressRange SET n += {start: 49920, end: 49920, raw: 'map(0xc300, 0xc300).mirror(0x0c9f).portr("IN0")', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 460, sourceColumn: 2, sourceEndLine: 460, mirror: 3231, portRead: 'IN0'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range9'}) SET n:AddressRange SET n += {start: 49920, end: 49935, raw: 'map(0xc300, 0xc30f).lw8(NAME([this] (offs_t offset, u8 data) { m_mainlatch->write_d0(offset >> 1, data); }))', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 461, sourceColumn: 2, sourceEndLine: 461};
+MERGE (n:KG {id: 'handler:timeplt_state.__inline_main_map_c300_lw8'}) SET n:Handler SET n += {method: '__inline_main_map_c300_lw8', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 461, sourceColumn: 2, sourceEndLine: 461, sourceParameters: 'offs_t offset, u8 data', sourceBody: 'm_mainlatch->write_d0(offset >> 1, data);', inline: true};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range10'}) SET n:AddressRange SET n += {start: 49952, end: 49952, raw: 'map(0xc320, 0xc320).mirror(0x0c9f).portr("IN1")', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 462, sourceColumn: 2, sourceEndLine: 462, mirror: 3231, portRead: 'IN1'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range11'}) SET n:AddressRange SET n += {start: 49984, end: 49984, raw: 'map(0xc340, 0xc340).mirror(0x0c9f).portr("IN2")', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 463, sourceColumn: 2, sourceEndLine: 463, mirror: 3231, portRead: 'IN2'};
+MERGE (n:KG {id: 'map:timeplt_state.main_map/range12'}) SET n:AddressRange SET n += {start: 50016, end: 50016, raw: 'map(0xc360, 0xc360).mirror(0x0c9f).portr("DSW0")', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 464, sourceColumn: 2, sourceEndLine: 464, mirror: 3231, portRead: 'DSW0'};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}) SET n:AddressMap SET n += {cls: 'timeplt_audio_device', name: 'timeplt_sound_map', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 159, sourceColumn: 1, sourceEndLine: 168};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range0'}) SET n:AddressRange SET n += {start: 0, end: 12287, raw: 'map(0x0000, 0x2fff).rom()', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 161, sourceColumn: 2, sourceEndLine: 161, rom: true};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range1'}) SET n:AddressRange SET n += {start: 12288, end: 13311, raw: 'map(0x3000, 0x33ff).mirror(0x0c00).ram()', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 162, sourceColumn: 2, sourceEndLine: 162, mirror: 3072, ram: true};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range2'}) SET n:AddressRange SET n += {start: 16384, end: 16384, raw: 'map(0x4000, 0x4000).mirror(0x0fff).rw("ay1", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 163, sourceColumn: 2, sourceEndLine: 163, mirror: 4095};
+MERGE (n:KG {id: 'handler:ay8910_device.data_r'}) SET n:Handler SET n += {method: 'data_r', ownerClass: 'ay8910_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 178, sourceColumn: 2, sourceEndLine: 178};
+MERGE (n:KG {id: 'handler:ay8910_device.data_w'}) SET n:Handler SET n += {method: 'data_w', ownerClass: 'ay8910_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 178, sourceColumn: 2, sourceEndLine: 178};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range3'}) SET n:AddressRange SET n += {start: 20480, end: 20480, raw: 'map(0x5000, 0x5000).mirror(0x0fff).w("ay1", FUNC(ay8910_device::address_w))', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 164, sourceColumn: 2, sourceEndLine: 164, mirror: 4095};
+MERGE (n:KG {id: 'handler:ay8910_device.address_w'}) SET n:Handler SET n += {method: 'address_w', ownerClass: 'ay8910_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 179, sourceColumn: 2, sourceEndLine: 179};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range4'}) SET n:AddressRange SET n += {start: 24576, end: 24576, raw: 'map(0x6000, 0x6000).mirror(0x0fff).rw("ay2", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 165, sourceColumn: 2, sourceEndLine: 165, mirror: 4095};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range5'}) SET n:AddressRange SET n += {start: 28672, end: 28672, raw: 'map(0x7000, 0x7000).mirror(0x0fff).w("ay2", FUNC(ay8910_device::address_w))', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 166, sourceColumn: 2, sourceEndLine: 166, mirror: 4095};
+MERGE (n:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range6'}) SET n:AddressRange SET n += {start: 32768, end: 65535, raw: 'map(0x8000, 0xffff).w(FUNC(timeplt_audio_device::filter_w))', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 167, sourceColumn: 2, sourceEndLine: 167};
+MERGE (n:KG {id: 'handler:timeplt_audio_device.filter_w'}) SET n:Handler SET n += {method: 'filter_w', ownerClass: 'timeplt_audio_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 109, sourceColumn: 1, sourceEndLine: 117, sourceParameters: 'offs_t offset, uint8_t data', sourceBody: 'set_filter(1, 0, (offset >>  0) & 3);
+	set_filter(1, 1, (offset >>  2) & 3);
+	set_filter(1, 2, (offset >>  4) & 3);
+	set_filter(0, 0, (offset >>  6) & 3);
+	set_filter(0, 1, (offset >>  8) & 3);
+	set_filter(0, 2, (offset >> 10) & 3);'};
+MERGE (n:KG {id: 'handler:timeplt_audio_device.set_filter'}) SET n:Handler SET n += {method: 'set_filter', ownerClass: 'timeplt_audio_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 96, sourceColumn: 1, sourceEndLine: 106, sourceConstants: ['LOWPASS_3R=0'], sourceParameters: 'int no, int ch, int data', sourceBody: 'int C = 0;
+
+	if (BIT(data, 0))
+		C += 220000;    /* 220000pF = 0.220uF */
+	if (BIT(data, 1))
+		C +=  47000;    /*  47000pF = 0.047uF */
+
+	m_filter[no][ch]->filter_rc_set_RC(filter_rc_device::LOWPASS_3R, 1000, 5100, 0, CAP_P(C));'};
+MERGE (n:KG {id: 'machine:timeplt_state.timeplt'}) SET n:MachineConfig SET n += {cls: 'timeplt_state', name: 'timeplt', calls: [], stateMembers: ['{"name":"m_video_enable","bits":1}', '{"name":"m_nmi_enable","bits":8}'], startHandlers: ['timeplt_state.video_start'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 738, sourceColumn: 1, sourceEndLine: 773};
+MERGE (n:KG {id: 'handler:timeplt_state.video_start'}) SET n:Handler SET n += {method: 'video_start', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 285, sourceColumn: 1, sourceEndLine: 291, sourceParameters: '', sourceBody: 'm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(timeplt_state::get_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
+	m_video_enable = 0;
+
+	save_item(NAME(m_video_enable));'};
+MERGE (n:KG {id: 'handler:timeplt_state.get_tile_info'}) SET n:Handler SET n += {method: 'get_tile_info', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 255, sourceColumn: 1, sourceEndLine: 264, sourceParameters: 'tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index', sourceBody: 'int const attr = m_colorram[tile_index];
+	int const code = m_videoram[tile_index] + 8 * (attr & 0x20);
+	int const color = attr & 0x1f;
+	int const flags = TILE_FLIPYX(attr >> 6);
+
+	tileinfo.category = (attr & 0x10) >> 4;
+	tileinfo.set(0, code, color, flags);'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/maincpu'}) SET n:Device SET n += {type: 'Z80', tag: 'maincpu', clock: 3072000, config: ['Z80(config, m_maincpu, MASTER_CLOCK / 3 / 2)', 'm_maincpu->set_addrmap(AS_PROGRAM, &timeplt_state::main_map)'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 743, sourceColumn: 2, sourceEndLine: 743};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch'}) SET n:Device SET n += {type: 'LS259', tag: 'mainlatch', clock: null, config: ['LS259(config, m_mainlatch)', 'm_mainlatch->q_out_cb<0>().set(FUNC(timeplt_state::nmi_enable_w))', 'm_mainlatch->q_out_cb<1>().set(FUNC(timeplt_state::flip_screen_set)).invert()', 'm_mainlatch->q_out_cb<2>().set("timeplt_audio", FUNC(timeplt_audio_device::sh_irqtrigger_w))', 'm_mainlatch->q_out_cb<3>().set("timeplt_audio", FUNC(timeplt_audio_device::mute_w))', 'm_mainlatch->q_out_cb<4>().set(FUNC(timeplt_state::video_enable_w))', 'm_mainlatch->q_out_cb<5>().set(FUNC(timeplt_state::coin_counter_w<0>))', 'm_mainlatch->q_out_cb<6>().set(FUNC(timeplt_state::coin_counter_w<1>))', 'm_mainlatch->q_out_cb<7>().set_nop()'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 746, sourceColumn: 2, sourceEndLine: 746};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:0'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'm_mainlatch->q_out_cb<0>().set(FUNC(timeplt_state::nmi_enable_w))', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 747, sourceColumn: 2, sourceEndLine: 747, slot: '0', targetClass: 'timeplt_state', targetMethod: 'nmi_enable_w'};
+MERGE (n:KG {id: 'handler:timeplt_state.nmi_enable_w'}) SET n:Handler SET n += {method: 'nmi_enable_w', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 401, sourceColumn: 1, sourceEndLine: 406, sourceParameters: 'int state', sourceBody: 'm_nmi_enable = state;
+	if (!m_nmi_enable)
+		m_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:1'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'm_mainlatch->q_out_cb<1>().set(FUNC(timeplt_state::flip_screen_set)).invert()', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 748, sourceColumn: 2, sourceEndLine: 748, slot: '1', transforms: ['invert'], targetClass: 'timeplt_state', targetMethod: 'flip_screen_set'};
+MERGE (n:KG {id: 'handler:timeplt_state.flip_screen_set'}) SET n:Handler SET n += {method: 'flip_screen_set', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 748, sourceColumn: 2, sourceEndLine: 748};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:2'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'm_mainlatch->q_out_cb<2>().set("timeplt_audio", FUNC(timeplt_audio_device::sh_irqtrigger_w))', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 749, sourceColumn: 2, sourceEndLine: 749, slot: '2', targetTag: 'timeplt_audio', targetClass: 'timeplt_audio_device', targetMethod: 'sh_irqtrigger_w'};
+MERGE (n:KG {id: 'handler:timeplt_audio_device.sh_irqtrigger_w'}) SET n:Handler SET n += {method: 'sh_irqtrigger_w', ownerClass: 'timeplt_audio_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 133, sourceColumn: 1, sourceEndLine: 142, sourceParameters: 'int state', sourceBody: 'if (m_last_irq_state == 0 && state)
+	{
+		/* setting bit 0 low then high triggers IRQ on the sound CPU */
+		m_soundcpu->set_input_line(0, HOLD_LINE); // Z80 IM1
+	}
+
+	m_last_irq_state = state;'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:3'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'm_mainlatch->q_out_cb<3>().set("timeplt_audio", FUNC(timeplt_audio_device::mute_w))', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 750, sourceColumn: 2, sourceEndLine: 750, slot: '3', targetTag: 'timeplt_audio', targetClass: 'timeplt_audio_device', targetMethod: 'mute_w'};
+MERGE (n:KG {id: 'handler:timeplt_audio_device.mute_w'}) SET n:Handler SET n += {method: 'mute_w', ownerClass: 'timeplt_audio_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 145, sourceColumn: 1, sourceEndLine: 149, sourceParameters: 'int state', sourceBody: '// controls pin 6 (DC audio mute) of LA4460 amplifier
+	machine().sound().system_mute(state);'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:4'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'm_mainlatch->q_out_cb<4>().set(FUNC(timeplt_state::video_enable_w))', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 751, sourceColumn: 2, sourceEndLine: 751, slot: '4', targetClass: 'timeplt_state', targetMethod: 'video_enable_w'};
+MERGE (n:KG {id: 'handler:timeplt_state.video_enable_w'}) SET n:Handler SET n += {method: 'video_enable_w', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 330, sourceColumn: 1, sourceEndLine: 333, sourceParameters: 'int state', sourceBody: 'm_video_enable = state;'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:5'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'm_mainlatch->q_out_cb<5>().set(FUNC(timeplt_state::coin_counter_w<0>))', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 752, sourceColumn: 2, sourceEndLine: 752, slot: '5', targetClass: 'timeplt_state', targetMethod: 'coin_counter_w_0'};
+MERGE (n:KG {id: 'handler:timeplt_state.coin_counter_w_0'}) SET n:Handler SET n += {method: 'coin_counter_w_0', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 417, sourceColumn: 1, sourceEndLine: 420, sourceConstants: ['Which=0'], sourceParameters: 'int state', sourceBody: 'machine().bookkeeping().coin_counter_w(Which, state);'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:6'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'm_mainlatch->q_out_cb<6>().set(FUNC(timeplt_state::coin_counter_w<1>))', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 753, sourceColumn: 2, sourceEndLine: 753, slot: '6', targetClass: 'timeplt_state', targetMethod: 'coin_counter_w_1'};
+MERGE (n:KG {id: 'handler:timeplt_state.coin_counter_w_1'}) SET n:Handler SET n += {method: 'coin_counter_w_1', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 417, sourceColumn: 1, sourceEndLine: 420, sourceConstants: ['Which=1'], sourceParameters: 'int state', sourceBody: 'machine().bookkeeping().coin_counter_w(Which, state);'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:7'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set_nop', raw: 'm_mainlatch->q_out_cb<7>().set_nop()', ownerTag: 'mainlatch', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 754, sourceColumn: 2, sourceEndLine: 754, slot: '7'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/watchdog'}) SET n:Device SET n += {type: 'WATCHDOG_TIMER', tag: 'watchdog', clock: null, config: ['WATCHDOG_TIMER(config, "watchdog")'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 756, sourceColumn: 2, sourceEndLine: 756};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/screen'}) SET n:Device SET n += {type: 'SCREEN', tag: 'screen', clock: null, config: ['SCREEN(config, m_screen, SCREEN_TYPE_RASTER)', 'm_screen->set_video_attributes(VIDEO_UPDATE_SCANLINE)', 'm_screen->set_refresh_hz(60)', 'm_screen->set_size(32*8, 32*8)', 'm_screen->set_visarea(0*8, 32*8-1, 2*8, 30*8-1)', 'm_screen->set_screen_update(FUNC(timeplt_state::screen_update))', 'm_screen->set_palette(m_palette)', 'm_screen->screen_vblank().set(FUNC(timeplt_state::vblank_irq))'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 759, sourceColumn: 2, sourceEndLine: 759, configCalls: ['set_refresh_hz(60)', 'set_size(256,256)', 'set_visarea(0,255,16,239)'], clockExpr: 'SCREEN_TYPE_RASTER', screenRefreshHz: 60, screenSize: [256, 256], screenVisarea: [0, 255, 16, 239], screenVideoAttributes: ['VIDEO_UPDATE_SCANLINE']};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/screen/callback:screen:0'}) SET n:Callback SET n += {signal: 'set_screen_update', operation: 'set_screen_update', raw: 'm_screen->set_screen_update(FUNC(timeplt_state::screen_update))', ownerTag: 'screen', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 764, sourceColumn: 2, sourceEndLine: 764, targetClass: 'timeplt_state', targetMethod: 'screen_update'};
+MERGE (n:KG {id: 'handler:timeplt_state.screen_update'}) SET n:Handler SET n += {method: 'screen_update', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 376, sourceColumn: 1, sourceEndLine: 385, sourceParameters: 'screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect', sourceBody: 'if (m_video_enable)
+	{
+		m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);
+		draw_sprites(bitmap, cliprect);
+		m_bg_tilemap->draw(screen, bitmap, cliprect, 1, 0);
+	}
+	return 0;'};
+MERGE (n:KG {id: 'handler:timeplt_state.draw_sprites'}) SET n:Handler SET n += {method: 'draw_sprites', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 348, sourceColumn: 1, sourceEndLine: 366, sourceParameters: 'bitmap_ind16 &bitmap, const rectangle &cliprect', sourceBody: 'for (int offs = 0x3e; offs >= 0x10; offs -= 2)
+	{
+		int const sx = m_spriteram[0][offs];
+		int const sy = 241 - m_spriteram[1][offs + 1];
+
+		int const code = m_spriteram[0][offs + 1];
+		int const color = m_spriteram[1][offs] & 0x3f;
+		int const flipx = ~m_spriteram[1][offs] & 0x40;
+		int const flipy = m_spriteram[1][offs] & 0x80;
+
+		m_gfxdecode->gfx(1)->transpen(bitmap, cliprect,
+				code,
+				color,
+				flipx, flipy,
+				sx, sy, 0);
+	}'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/screen/callback:screen:1'}) SET n:Callback SET n += {signal: 'screen_vblank', operation: 'set', raw: 'm_screen->screen_vblank().set(FUNC(timeplt_state::vblank_irq))', ownerTag: 'screen', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 766, sourceColumn: 2, sourceEndLine: 766, targetClass: 'timeplt_state', targetMethod: 'vblank_irq'};
+MERGE (n:KG {id: 'handler:timeplt_state.vblank_irq'}) SET n:Handler SET n += {method: 'vblank_irq', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 394, sourceColumn: 1, sourceEndLine: 398, sourceParameters: 'int state', sourceBody: 'if (state && m_nmi_enable)
+		m_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/gfxdecode'}) SET n:Device SET n += {type: 'GFXDECODE', tag: 'gfxdecode', clock: null, config: ['GFXDECODE(config, m_gfxdecode, m_palette, gfx_timeplt)'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 768, sourceColumn: 2, sourceEndLine: 768, clockExpr: 'm_palette'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/palette'}) SET n:Device SET n += {type: 'PALETTE', tag: 'palette', clock: null, config: ['PALETTE(config, m_palette, FUNC(timeplt_state::palette), 32*4 + 64*4)'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 769, sourceColumn: 2, sourceEndLine: 769, clockExpr: 'FUNC(timeplt_state::palette)'};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/timeplt_audio'}) SET n:Device SET n += {type: 'TIMEPLT_AUDIO', tag: 'timeplt_audio', clock: 14318181, config: ['TIMEPLT_AUDIO(config, "timeplt_audio")'], cls: 'timeplt_audio_device', clsHierarchy: ['timeplt_audio_device'], sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 772, sourceColumn: 2, sourceEndLine: 772};
+MERGE (n:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}) SET n:MachineConfig SET n += {cls: 'timeplt_audio_device', name: 'device_add_mconfig', calls: [], stateMembers: ['{"name":"m_last_irq_state","bits":8}'], sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 189, sourceColumn: 1, sourceEndLine: 217};
+MERGE (n:KG {id: 'device:timeplt_audio_device.device_add_mconfig/tpsound'}) SET n:Device SET n += {type: 'Z80', tag: 'tpsound', clock: 1789772.625, config: ['Z80(config, m_soundcpu, DERIVED_CLOCK(1, 8))', 'm_soundcpu->set_addrmap(AS_PROGRAM, &timeplt_audio_device::timeplt_sound_map)'], sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 192, sourceColumn: 2, sourceEndLine: 192};
+MERGE (n:KG {id: 'device:timeplt_audio_device.device_add_mconfig/mono'}) SET n:Device SET n += {type: 'SPEAKER', tag: 'mono', clock: null, config: ['SPEAKER(config, "mono").front_center()', 'for (required_device<filter_rc_device> &filter : m_filter[0])
+		FILTER_RC(config, filter).add_route(ALL_OUTPUTS, "mono", 1.0)', 'for (required_device<filter_rc_device> &filter : m_filter[1])
+		FILTER_RC(config, filter).add_route(ALL_OUTPUTS, "mono", 1.0)'], sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 196, sourceColumn: 2, sourceEndLine: 196};
+MERGE (n:KG {id: 'device:timeplt_audio_device.device_add_mconfig/soundlatch'}) SET n:Device SET n += {type: 'GENERIC_LATCH_8', tag: 'soundlatch', clock: null, config: ['GENERIC_LATCH_8(config, m_soundlatch)'], sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 198, sourceColumn: 2, sourceEndLine: 198};
+MERGE (n:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1'}) SET n:Device SET n += {type: 'AY8910', tag: 'ay1', clock: 1789772.625, config: ['ay8910_device &ay1(AY8910(config, "ay1", DERIVED_CLOCK(1, 8)))', 'ay1.port_a_read_callback().set(m_soundlatch, FUNC(generic_latch_8_device::read))', 'ay1.port_b_read_callback().set(FUNC(timeplt_audio_device::portB_r))', 'ay1.add_route(0, "filter.0.0", 0.60)', 'ay1.add_route(1, "filter.0.1", 0.60)', 'ay1.add_route(2, "filter.0.2", 0.60)'], sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 200, sourceColumn: 2, sourceEndLine: 200};
+MERGE (n:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/0'}) SET n:AudioRoute SET n += {output: '0', target: 'filter.0.0', gain: 0.6, raw: 'ay1.add_route(0, "filter.0.0", 0.60)', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 203, sourceColumn: 2, sourceEndLine: 203};
+MERGE (n:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/1'}) SET n:AudioRoute SET n += {output: '1', target: 'filter.0.1', gain: 0.6, raw: 'ay1.add_route(1, "filter.0.1", 0.60)', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 204, sourceColumn: 2, sourceEndLine: 204};
+MERGE (n:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/2'}) SET n:AudioRoute SET n += {output: '2', target: 'filter.0.2', gain: 0.6, raw: 'ay1.add_route(2, "filter.0.2", 0.60)', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 205, sourceColumn: 2, sourceEndLine: 205};
+MERGE (n:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0'}) SET n:Callback SET n += {signal: 'port_a_read_callback', operation: 'set', raw: 'ay1.port_a_read_callback().set(m_soundlatch, FUNC(generic_latch_8_device::read))', ownerTag: 'ay1', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 201, sourceColumn: 2, sourceEndLine: 201, targetClass: 'generic_latch_8_device', targetMethod: 'read', targetTag: 'soundlatch'};
+MERGE (n:KG {id: 'handler:generic_latch_8_device.read'}) SET n:Handler SET n += {method: 'read', ownerClass: 'generic_latch_8_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 201, sourceColumn: 2, sourceEndLine: 201};
+MERGE (n:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1'}) SET n:Callback SET n += {signal: 'port_b_read_callback', operation: 'set', raw: 'ay1.port_b_read_callback().set(FUNC(timeplt_audio_device::portB_r))', ownerTag: 'ay1', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 202, sourceColumn: 2, sourceEndLine: 202, targetClass: 'timeplt_audio_device', targetMethod: 'portB_r'};
+MERGE (n:KG {id: 'handler:timeplt_audio_device.portB_r'}) SET n:Handler SET n += {method: 'portB_r', ownerClass: 'timeplt_audio_device', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 78, sourceColumn: 1, sourceEndLine: 86, sourceParameters: '', sourceBody: 'return TABLE((m_soundcpu->total_cycles() / 512) % 10, 0x00, 0x10, 0x20, 0x30, 0x40, 0x90, 0xa0, 0xb0, 0xa0, 0xd0);'};
+MERGE (n:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay2'}) SET n:Device SET n += {type: 'AY8910', tag: 'ay2', clock: 1789772.625, config: ['ay8910_device &ay2(AY8910(config, "ay2", DERIVED_CLOCK(1, 8)))', 'ay2.add_route(0, "filter.1.0", 0.60)', 'ay2.add_route(1, "filter.1.1", 0.60)', 'ay2.add_route(2, "filter.1.2", 0.60)'], sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 207, sourceColumn: 2, sourceEndLine: 207};
+MERGE (n:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/0'}) SET n:AudioRoute SET n += {output: '0', target: 'filter.1.0', gain: 0.6, raw: 'ay2.add_route(0, "filter.1.0", 0.60)', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 208, sourceColumn: 2, sourceEndLine: 208};
+MERGE (n:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/1'}) SET n:AudioRoute SET n += {output: '1', target: 'filter.1.1', gain: 0.6, raw: 'ay2.add_route(1, "filter.1.1", 0.60)', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 209, sourceColumn: 2, sourceEndLine: 209};
+MERGE (n:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/2'}) SET n:AudioRoute SET n += {output: '2', target: 'filter.1.2', gain: 0.6, raw: 'ay2.add_route(2, "filter.1.2", 0.60)', sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 210, sourceColumn: 2, sourceEndLine: 210};
+MERGE (n:KG {id: 'inputs:timeplt'}) SET n:InputPorts SET n += {name: 'timeplt', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 487, sourceColumn: 8, sourceEndLine: 487};
+MERGE (n:KG {id: 'inputs:timeplt/IN0'}) SET n:Port SET n += {tag: 'IN0', modify: false};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 1, activeLow: true, type: 'IPT_COIN1', defaultValue: 1};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f1'}) SET n:PortField SET n += {kind: 'bit', mask: 2, activeLow: true, type: 'IPT_COIN2', defaultValue: 2};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f2'}) SET n:PortField SET n += {kind: 'bit', mask: 4, activeLow: true, type: 'IPT_SERVICE1', defaultValue: 4};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f3'}) SET n:PortField SET n += {kind: 'bit', mask: 8, activeLow: true, type: 'IPT_START1', defaultValue: 8};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f4'}) SET n:PortField SET n += {kind: 'bit', mask: 16, activeLow: true, type: 'IPT_START2', defaultValue: 16};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f5'}) SET n:PortField SET n += {kind: 'bit', mask: 32, activeLow: true, type: 'IPT_UNKNOWN', defaultValue: 32};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f6'}) SET n:PortField SET n += {kind: 'bit', mask: 64, activeLow: true, type: 'IPT_UNKNOWN', defaultValue: 64};
+MERGE (n:KG {id: 'inputs:timeplt/IN0/f7'}) SET n:PortField SET n += {kind: 'bit', mask: 128, activeLow: true, type: 'IPT_UNKNOWN', defaultValue: 128};
+MERGE (n:KG {id: 'inputs:timeplt/IN1'}) SET n:Port SET n += {tag: 'IN1', modify: false};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 1, activeLow: true, type: 'IPT_JOYSTICK_LEFT', modifiers: ['PORT_8WAY'], defaultValue: 1};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f1'}) SET n:PortField SET n += {kind: 'bit', mask: 2, activeLow: true, type: 'IPT_JOYSTICK_RIGHT', modifiers: ['PORT_8WAY'], defaultValue: 2};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f2'}) SET n:PortField SET n += {kind: 'bit', mask: 4, activeLow: true, type: 'IPT_JOYSTICK_UP', modifiers: ['PORT_8WAY'], defaultValue: 4};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f3'}) SET n:PortField SET n += {kind: 'bit', mask: 8, activeLow: true, type: 'IPT_JOYSTICK_DOWN', modifiers: ['PORT_8WAY'], defaultValue: 8};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f4'}) SET n:PortField SET n += {kind: 'bit', mask: 16, activeLow: true, type: 'IPT_BUTTON1', defaultValue: 16};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f5'}) SET n:PortField SET n += {kind: 'bit', mask: 32, activeLow: true, type: 'IPT_UNKNOWN', defaultValue: 32};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f6'}) SET n:PortField SET n += {kind: 'bit', mask: 64, activeLow: true, type: 'IPT_UNKNOWN', defaultValue: 64};
+MERGE (n:KG {id: 'inputs:timeplt/IN1/f7'}) SET n:PortField SET n += {kind: 'bit', mask: 128, activeLow: true, type: 'IPT_UNKNOWN', defaultValue: 128};
+MERGE (n:KG {id: 'inputs:timeplt/IN2'}) SET n:Port SET n += {tag: 'IN2', modify: false};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 1, activeLow: true, type: 'IPT_JOYSTICK_LEFT', modifiers: ['PORT_8WAY', 'PORT_COCKTAIL'], defaultValue: 1};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f1'}) SET n:PortField SET n += {kind: 'bit', mask: 2, activeLow: true, type: 'IPT_JOYSTICK_RIGHT', modifiers: ['PORT_8WAY', 'PORT_COCKTAIL'], defaultValue: 2};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f2'}) SET n:PortField SET n += {kind: 'bit', mask: 4, activeLow: true, type: 'IPT_JOYSTICK_UP', modifiers: ['PORT_8WAY', 'PORT_COCKTAIL'], defaultValue: 4};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f3'}) SET n:PortField SET n += {kind: 'bit', mask: 8, activeLow: true, type: 'IPT_JOYSTICK_DOWN', modifiers: ['PORT_8WAY', 'PORT_COCKTAIL'], defaultValue: 8};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f4'}) SET n:PortField SET n += {kind: 'bit', mask: 16, activeLow: true, type: 'IPT_BUTTON1', modifiers: ['PORT_COCKTAIL'], defaultValue: 16};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f5'}) SET n:PortField SET n += {kind: 'bit', mask: 32, activeLow: true, type: 'IPT_UNKNOWN', modifiers: ['PORT_COCKTAIL'], defaultValue: 32};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f6'}) SET n:PortField SET n += {kind: 'bit', mask: 64, activeLow: true, type: 'IPT_UNKNOWN', modifiers: ['PORT_COCKTAIL'], defaultValue: 64};
+MERGE (n:KG {id: 'inputs:timeplt/IN2/f7'}) SET n:PortField SET n += {kind: 'bit', mask: 128, activeLow: true, type: 'IPT_UNKNOWN', defaultValue: 128};
+MERGE (n:KG {id: 'inputs:timeplt/DSW0'}) SET n:Port SET n += {tag: 'DSW0', modify: false};
+MERGE (n:KG {id: 'inputs:timeplt/DSW0/f0'}) SET n:PortField SET n += {kind: 'dip', mask: 15, modifiers: ['PORT_DIPLOCATION(#SW1":1,2,3,4")'], name: 'Coin A', defaultValue: 15, location: '#SW1":1,2,3,4"', settings: ['2=4C 1C', '5=3C 1C', '8=2C 1C', '4=3C 2C', '1=4C 3C', '15=1C 1C', '3=3C 4C', '7=2C 3C', '14=1C 2C', '6=2C 5C', '13=1C 3C', '12=1C 4C', '11=1C 5C', '10=1C 6C', '9=1C 7C', '0=Free Play']};
+MERGE (n:KG {id: 'inputs:timeplt/DSW0/f1'}) SET n:PortField SET n += {kind: 'dip', mask: 240, modifiers: ['PORT_DIPLOCATION(#SW1":5,6,7,8")'], name: 'Coin B', defaultValue: 240, location: '#SW1":5,6,7,8"', settings: ['32=4C 1C', '80=3C 1C', '128=2C 1C', '64=3C 2C', '16=4C 3C', '240=1C 1C', '48=3C 4C', '112=2C 3C', '224=1C 2C', '96=2C 5C', '208=1C 3C', '192=1C 4C', '176=1C 5C', '160=1C 6C', '144=1C 7C', '0=Free Play']};
+MERGE (n:KG {id: 'inputs:timeplt/DSW1'}) SET n:Port SET n += {tag: 'DSW1', modify: false};
+MERGE (n:KG {id: 'inputs:timeplt/DSW1/f0'}) SET n:PortField SET n += {kind: 'dip', mask: 3, modifiers: ['PORT_DIPLOCATION("SW2:1,2")'], name: 'Lives', defaultValue: 3, location: 'SW2:1,2', settings: ['3=3', '2=4', '1=5', '0=255 (Cheat)']};
+MERGE (n:KG {id: 'inputs:timeplt/DSW1/f1'}) SET n:PortField SET n += {kind: 'dip', mask: 4, modifiers: ['PORT_DIPLOCATION("SW2:3")'], name: 'Cabinet', defaultValue: 0, location: 'SW2:3', settings: ['0=Upright', '4=Cocktail']};
+MERGE (n:KG {id: 'inputs:timeplt/DSW1/f2'}) SET n:PortField SET n += {kind: 'dip', mask: 8, modifiers: ['PORT_DIPLOCATION("SW2:4")'], name: 'Bonus Life', defaultValue: 8, location: 'SW2:4', settings: ['8=10000 50000', '0=20000 60000']};
+MERGE (n:KG {id: 'inputs:timeplt/DSW1/f3'}) SET n:PortField SET n += {kind: 'dip', mask: 112, modifiers: ['PORT_DIPLOCATION("SW2:5,6,7")'], name: 'Difficulty', defaultValue: 64, location: 'SW2:5,6,7', settings: ['112=1 (Easiest)', '96=2', '80=3', '64=4', '48=5', '32=6', '16=7', '0=8 (Difficult)']};
+MERGE (n:KG {id: 'inputs:timeplt/DSW1/f4'}) SET n:PortField SET n += {kind: 'dip', mask: 128, modifiers: ['PORT_DIPLOCATION("SW2:8")'], name: 'Demo Sounds', defaultValue: 0, location: 'SW2:8', settings: ['128=Off', '0=On']};
+MERGE (n:KG {id: 'gfxlayout:charlayout'}) SET n:GfxLayout SET n += {name: 'charlayout', width: 8, height: 8, total: 'RGN_FRAC(1,1)', planes: 2, planeOffsets: [4, 0], xOffsets: [0, 1, 2, 3, 64, 65, 66, 67], yOffsets: [0, 8, 16, 24, 32, 40, 48, 56], charIncrement: 128};
+MERGE (n:KG {id: 'gfxlayout:spritelayout'}) SET n:GfxLayout SET n += {name: 'spritelayout', width: 16, height: 16, total: 'RGN_FRAC(1,1)', planes: 2, planeOffsets: [4, 0], xOffsets: [0, 1, 2, 3, 64, 65, 66, 67, 128, 129, 130, 131, 192, 193, 194, 195], yOffsets: [0, 8, 16, 24, 32, 40, 48, 56, 256, 264, 272, 280, 288, 296, 304, 312], charIncrement: 512};
+MERGE (n:KG {id: 'gfxdecode:gfx_timeplt'}) SET n:GfxDecode SET n += {name: 'gfx_timeplt', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 706, sourceColumn: 8, sourceEndLine: 706};
+MERGE (n:KG {id: 'gfxdecode:gfx_timeplt/e0'}) SET n:GfxDecodeEntry SET n += {region: 'tiles', offset: 0, layout: 'charlayout', colorBase: 0, colorCount: 32, xscale: 1, yscale: 1};
+MERGE (n:KG {id: 'gfxdecode:gfx_timeplt/e1'}) SET n:GfxDecodeEntry SET n += {region: 'sprites', offset: 0, layout: 'spritelayout', colorBase: 128, colorCount: 64, xscale: 1, yscale: 1};
+MERGE (n:KG {id: 'device:timeplt_state.timeplt/palette/callback:palette_init'}) SET n:Callback SET n += {signal: 'palette_init', operation: 'palette_init', raw: 'PALETTE(config, m_palette, FUNC(timeplt_state::palette), 32*4 + 64*4)', ownerTag: 'palette', targetClass: 'timeplt_state', targetMethod: 'palette', entries: 384, sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 769};
+MERGE (n:KG {id: 'handler:timeplt_state.palette'}) SET n:Handler SET n += {method: 'palette', ownerClass: 'timeplt_state', sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 203, sourceColumn: 1, sourceEndLine: 245, sourceParameters: 'palette_device &palette', sourceBody: 'const uint8_t *color_prom = memregion("proms")->base();
+
+	rgb_t palette_val[32];
+	for (int i = 0; i < 32; i++)
+	{
+		int bit0, bit1, bit2, bit3, bit4;
+
+		bit0 = BIT(color_prom[i + 1 * 32], 1);
+		bit1 = BIT(color_prom[i + 1 * 32], 2);
+		bit2 = BIT(color_prom[i + 1 * 32], 3);
+		bit3 = BIT(color_prom[i + 1 * 32], 4);
+		bit4 = BIT(color_prom[i + 1 * 32], 5);
+		int const r = 0x19 * bit0 + 0x24 * bit1 + 0x35 * bit2 + 0x40 * bit3 + 0x4d * bit4;
+		bit0 = BIT(color_prom[i + 1 * 32], 6);
+		bit1 = BIT(color_prom[i + 1 * 32], 7);
+		bit2 = BIT(color_prom[i + 0 * 32], 0);
+		bit3 = BIT(color_prom[i + 0 * 32], 1);
+		bit4 = BIT(color_prom[i + 0 * 32], 2);
+		int const g = 0x19 * bit0 + 0x24 * bit1 + 0x35 * bit2 + 0x40 * bit3 + 0x4d * bit4;
+		bit0 = BIT(color_prom[i + 0 * 32], 3);
+		bit1 = BIT(color_prom[i + 0 * 32], 4);
+		bit2 = BIT(color_prom[i + 0 * 32], 5);
+		bit3 = BIT(color_prom[i + 0 * 32], 6);
+		bit4 = BIT(color_prom[i + 0 * 32], 7);
+		int const b = 0x19 * bit0 + 0x24 * bit1 + 0x35 * bit2 + 0x40 * bit3 + 0x4d * bit4;
+
+		palette_val[i] = rgb_t(r, g, b);
+	}
+
+	color_prom += 2*32;
+	// color_prom now points to the beginning of the lookup table
+
+
+	// sprites
+	for (int i = 0; i < 64 * 4; i++)
+		palette.set_pen_color(32 * 4 + i, palette_val[*color_prom++ & 0x0f]);
+
+	// characters
+	for (int i = 0; i < 32 * 4; i++)
+		palette.set_pen_color(i, palette_val[(*color_prom++ & 0x0f) + 0x10]);'};
+MATCH (a:KG {id: 'game:timeplt'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 1025, sourceColumn: 1, sourceEndLine: 1025};
+MATCH (a:KG {id: 'game:timeplt'}), (b:KG {id: 'machine:timeplt_state.timeplt'}) MERGE (a)-[r:USES_MACHINE]->(b);
+MATCH (a:KG {id: 'game:timeplt'}), (b:KG {id: 'inputs:timeplt'}) MERGE (a)-[r:USES_INPUTS]->(b);
+MATCH (a:KG {id: 'game:timeplt'}), (b:KG {id: 'romset:timeplt'}) MERGE (a)-[r:USES_ROMSET]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:emu.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:konamipt.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:timeplt_a.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:cpu/z80/z80.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:machine/74259.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:machine/ticket.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:machine/watchdog.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:sound/ay8910.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:sound/tc8830f.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:emupal.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:screen.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/konami/timeplt.cpp'}), (b:KG {id: 'file:tilemap.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 738, sourceColumn: 1, sourceEndLine: 773};
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'handler:timeplt_state.video_start'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'device:timeplt_state.timeplt/maincpu'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'device:timeplt_state.timeplt/watchdog'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'device:timeplt_state.timeplt/screen'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'device:timeplt_state.timeplt/gfxdecode'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'gfxdecode:gfx_timeplt'}) MERGE (a)-[r:DECODES]->(b) SET r += {deviceTag: 'gfxdecode'};
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'device:timeplt_state.timeplt/palette'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_state.timeplt'}), (b:KG {id: 'device:timeplt_state.timeplt/timeplt_audio'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'inputs:timeplt'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 487, sourceColumn: 8, sourceEndLine: 487};
+MATCH (a:KG {id: 'inputs:timeplt'}), (b:KG {id: 'inputs:timeplt/IN0'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:timeplt'}), (b:KG {id: 'inputs:timeplt/IN1'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:timeplt'}), (b:KG {id: 'inputs:timeplt/IN2'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:timeplt'}), (b:KG {id: 'inputs:timeplt/DSW0'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:timeplt'}), (b:KG {id: 'inputs:timeplt/DSW1'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'romset:timeplt'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 823, sourceColumn: 1, sourceEndLine: 823};
+MATCH (a:KG {id: 'romset:timeplt'}), (b:KG {id: 'region:timeplt/maincpu'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'romset:timeplt'}), (b:KG {id: 'region:timeplt/timeplt_audio:tpsound'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'romset:timeplt'}), (b:KG {id: 'region:timeplt/tiles'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'romset:timeplt'}), (b:KG {id: 'region:timeplt/sprites'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'romset:timeplt'}), (b:KG {id: 'region:timeplt/proms'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'handler:timeplt_state.video_start'}), (b:KG {id: 'handler:timeplt_state.get_tile_info'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/maincpu'}), (b:KG {id: 'map:timeplt_state.main_map'}) MERGE (a)-[r:HAS_MAP]->(b) SET r += {space: 'AS_PROGRAM'};
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:2'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:3'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:4'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:5'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:6'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch'}), (b:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:7'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/screen'}), (b:KG {id: 'device:timeplt_state.timeplt/screen/callback:screen:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/screen'}), (b:KG {id: 'device:timeplt_state.timeplt/screen/callback:screen:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'gfxdecode:gfx_timeplt'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 706, sourceColumn: 8, sourceEndLine: 706};
+MATCH (a:KG {id: 'gfxdecode:gfx_timeplt'}), (b:KG {id: 'gfxdecode:gfx_timeplt/e0'}) MERGE (a)-[r:HAS_ENTRY]->(b);
+MATCH (a:KG {id: 'gfxdecode:gfx_timeplt'}), (b:KG {id: 'gfxdecode:gfx_timeplt/e1'}) MERGE (a)-[r:HAS_ENTRY]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/palette'}), (b:KG {id: 'device:timeplt_state.timeplt/palette/callback:palette_init'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/timeplt_audio'}), (b:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}) MERGE (a)-[r:CALLS]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f5'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f6'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN0'}), (b:KG {id: 'inputs:timeplt/IN0/f7'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f5'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f6'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN1'}), (b:KG {id: 'inputs:timeplt/IN1/f7'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f5'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f6'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/IN2'}), (b:KG {id: 'inputs:timeplt/IN2/f7'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/DSW0'}), (b:KG {id: 'inputs:timeplt/DSW0/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/DSW0'}), (b:KG {id: 'inputs:timeplt/DSW0/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/DSW1'}), (b:KG {id: 'inputs:timeplt/DSW1/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/DSW1'}), (b:KG {id: 'inputs:timeplt/DSW1/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/DSW1'}), (b:KG {id: 'inputs:timeplt/DSW1/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/DSW1'}), (b:KG {id: 'inputs:timeplt/DSW1/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:timeplt/DSW1'}), (b:KG {id: 'inputs:timeplt/DSW1/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'region:timeplt/maincpu'}), (b:KG {id: 'rom:timeplt/maincpu/tm1'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/maincpu'}), (b:KG {id: 'rom:timeplt/maincpu/tm2'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/maincpu'}), (b:KG {id: 'rom:timeplt/maincpu/tm3'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/timeplt_audio:tpsound'}), (b:KG {id: 'rom:timeplt/timeplt_audio:tpsound/tm7'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/tiles'}), (b:KG {id: 'rom:timeplt/tiles/tm6'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/sprites'}), (b:KG {id: 'rom:timeplt/sprites/tm4'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/sprites'}), (b:KG {id: 'rom:timeplt/sprites/tm5'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/proms'}), (b:KG {id: 'rom:timeplt/proms/timeplt.b4'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/proms'}), (b:KG {id: 'rom:timeplt/proms/timeplt.b5'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/proms'}), (b:KG {id: 'rom:timeplt/proms/timeplt.e9'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:timeplt/proms'}), (b:KG {id: 'rom:timeplt/proms/timeplt.e12'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/konami/timeplt.cpp', sourceLine: 449, sourceColumn: 1, sourceEndLine: 465};
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range0'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range1'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range2'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range3'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range4'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range5'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range6'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range7'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range8'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range9'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range10'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range11'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map'}), (b:KG {id: 'map:timeplt_state.main_map/range12'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:0'}), (b:KG {id: 'handler:timeplt_state.nmi_enable_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:1'}), (b:KG {id: 'handler:timeplt_state.flip_screen_set'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:2'}), (b:KG {id: 'handler:timeplt_audio_device.sh_irqtrigger_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:3'}), (b:KG {id: 'handler:timeplt_audio_device.mute_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:4'}), (b:KG {id: 'handler:timeplt_state.video_enable_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:5'}), (b:KG {id: 'handler:timeplt_state.coin_counter_w_0'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/mainlatch/callback:mainlatch:6'}), (b:KG {id: 'handler:timeplt_state.coin_counter_w_1'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/screen/callback:screen:0'}), (b:KG {id: 'handler:timeplt_state.screen_update'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/screen/callback:screen:1'}), (b:KG {id: 'handler:timeplt_state.vblank_irq'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'gfxdecode:gfx_timeplt/e0'}), (b:KG {id: 'gfxlayout:charlayout'}) MERGE (a)-[r:USES_LAYOUT]->(b);
+MATCH (a:KG {id: 'gfxdecode:gfx_timeplt/e1'}), (b:KG {id: 'gfxlayout:spritelayout'}) MERGE (a)-[r:USES_LAYOUT]->(b);
+MATCH (a:KG {id: 'device:timeplt_state.timeplt/palette/callback:palette_init'}), (b:KG {id: 'handler:timeplt_state.palette'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}), (b:KG {id: 'file:src/mame/shared/timeplt_a.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 189, sourceColumn: 1, sourceEndLine: 217};
+MATCH (a:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/tpsound'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/mono'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/soundlatch'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:timeplt_audio_device.device_add_mconfig'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay2'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map/range1'}), (b:KG {id: 'handler:timeplt_state.colorram_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map/range2'}), (b:KG {id: 'handler:timeplt_state.videoram_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map/range6'}), (b:KG {id: 'handler:timeplt_state.scanline_r'}) MERGE (a)-[r:READS]->(b);
+MATCH (a:KG {id: 'map:timeplt_state.main_map/range6'}), (b:KG {id: 'handler:timeplt_audio_device.sound_data_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'timeplt_audio'};
+MATCH (a:KG {id: 'map:timeplt_state.main_map/range7'}), (b:KG {id: 'handler:watchdog_timer_device.reset_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'watchdog'};
+MATCH (a:KG {id: 'map:timeplt_state.main_map/range9'}), (b:KG {id: 'handler:timeplt_state.__inline_main_map_c300_lw8'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'handler:timeplt_state.screen_update'}), (b:KG {id: 'handler:timeplt_state.draw_sprites'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'gfxlayout:charlayout'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b);
+MATCH (a:KG {id: 'gfxlayout:spritelayout'}), (b:KG {id: 'file:src/mame/konami/timeplt.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b);
+MATCH (a:KG {id: 'file:src/mame/shared/timeplt_a.cpp'}), (b:KG {id: 'file:emu.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/shared/timeplt_a.cpp'}), (b:KG {id: 'file:timeplt_a.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/shared/timeplt_a.cpp'}), (b:KG {id: 'file:machine/gen_latch.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/shared/timeplt_a.cpp'}), (b:KG {id: 'file:speaker.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/tpsound'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}) MERGE (a)-[r:HAS_MAP]->(b) SET r += {space: 'AS_PROGRAM'};
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1'}), (b:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/0'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1'}), (b:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/1'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1'}), (b:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay1/2'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay2'}), (b:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/0'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay2'}), (b:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/1'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay2'}), (b:KG {id: 'audioroute:device:timeplt_audio_device.device_add_mconfig/ay2/2'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'file:src/mame/shared/timeplt_a.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/shared/timeplt_a.cpp', sourceLine: 159, sourceColumn: 1, sourceEndLine: 168};
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range0'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range1'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range2'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range3'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range4'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range5'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map'}), (b:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range6'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0'}), (b:KG {id: 'handler:generic_latch_8_device.read'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0'}), (b:KG {id: 'device:timeplt_audio_device.device_add_mconfig/soundlatch'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1'}), (b:KG {id: 'handler:timeplt_audio_device.portB_r'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range2'}), (b:KG {id: 'handler:ay8910_device.data_r'}) MERGE (a)-[r:READS]->(b) SET r += {deviceTag: 'ay1'};
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range2'}), (b:KG {id: 'handler:ay8910_device.data_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'ay1'};
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range3'}), (b:KG {id: 'handler:ay8910_device.address_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'ay1'};
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range4'}), (b:KG {id: 'handler:ay8910_device.data_r'}) MERGE (a)-[r:READS]->(b) SET r += {deviceTag: 'ay2'};
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range4'}), (b:KG {id: 'handler:ay8910_device.data_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'ay2'};
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range5'}), (b:KG {id: 'handler:ay8910_device.address_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'ay2'};
+MATCH (a:KG {id: 'map:timeplt_audio_device.timeplt_sound_map/range6'}), (b:KG {id: 'handler:timeplt_audio_device.filter_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'handler:timeplt_audio_device.filter_w'}), (b:KG {id: 'handler:timeplt_audio_device.set_filter'}) MERGE (a)-[r:CALLS_HANDLER]->(b);

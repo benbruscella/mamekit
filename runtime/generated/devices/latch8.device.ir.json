@@ -1,0 +1,3257 @@
+{
+  "schemaVersion": 1,
+  "type": "LATCH8",
+  "className": "latch8_device",
+  "hierarchy": [
+    "latch8_device"
+  ],
+  "sourceFiles": [
+    "src/devices/machine/latch8.cpp",
+    "src/devices/machine/latch8.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3
+  },
+  "members": [
+    {
+      "name": "m_value",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_has_write",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_has_read",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_maskout",
+      "valueType": "uint32_t",
+      "bits": 32,
+      "initial": 0
+    },
+    {
+      "name": "m_xorvalue",
+      "valueType": "uint32_t",
+      "bits": 32,
+      "initial": 0
+    },
+    {
+      "name": "m_nosync",
+      "valueType": "uint32_t",
+      "bits": 32,
+      "initial": 0
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "write_cb",
+      "member": "m_write_cb",
+      "slots": 8,
+      "initial": 0
+    },
+    {
+      "signal": "read_cb",
+      "member": "m_read_cb",
+      "slots": 8,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "update",
+      "parameters": "uint8_t new_val, uint8_t mask",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "old_val",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "identifier",
+              "name": "m_value"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "mask"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "new_val"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_has_write"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "changed",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "old_val"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "changed"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_write_cb"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          },
+                          "args": [
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_value"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "i"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 14,
+        "column": 1
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "res",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "identifier",
+              "name": "m_value"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_has_read"
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_read_cb"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          },
+                          "property": "isunset"
+                        },
+                        "args": []
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "res"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "res"
+                            },
+                            "right": {
+                              "kind": "unary",
+                              "operator": "~",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "i"
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_read_cb"
+                                },
+                                "index": {
+                                  "kind": "identifier",
+                                  "name": "i"
+                                }
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "res"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_maskout"
+                  }
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_xorvalue"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 39,
+        "column": 1
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_nosync"
+              },
+              "right": {
+                "kind": "number",
+                "value": 255
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "latch8_device::timerproc"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "number",
+                          "value": 255
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "data"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 56,
+        "column": 1
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 67,
+        "column": 1
+      }
+    },
+    {
+      "name": "bitx_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_nosync"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "mask"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "masked_data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mask"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "latch8_device::timerproc"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "mask"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "masked_data"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 77,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit0_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 91,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit1_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 92,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit2_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 93,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit3_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 3
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 94,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit4_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 4
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 95,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit5_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 5
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 96,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit6_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 6
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 97,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit7_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "masked_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 7
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "masked_data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 98,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_validity_check",
+      "parameters": "validity_checker &valid",
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_read_cb"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "i"
+                          }
+                        },
+                        "property": "isunset"
+                      },
+                      "args": []
+                    }
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_write_cb"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "i"
+                          }
+                        },
+                        "property": "isunset"
+                      },
+                      "args": []
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_error"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Device %s: Bit %d already has a handler.\n"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "tag"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 121,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_has_write"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_has_read"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 132,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 155,
+        "column": 1
+      }
+    },
+    {
+      "name": "timerproc",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "new_val",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "param"
+              },
+              "right": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "param"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "new_val"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.cpp",
+        "line": 29,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_write_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 25,
+        "column": 1
+      }
+    },
+    {
+      "name": "read_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_read_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 28,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_maskout",
+      "parameters": "uint32_t maskout",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_maskout"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "maskout"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 31,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_xorvalue",
+      "parameters": "uint32_t xorvalue",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xorvalue"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xorvalue"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 34,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_nosync",
+      "parameters": "uint32_t nosync",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_nosync"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "nosync"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 37,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit0_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit1_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 51,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit2_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 52,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit3_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 53,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit4_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit5_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit6_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 56,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit7_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 57,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit0_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 58,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit1_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 62,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit2_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit3_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit4_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 65,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit5_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 66,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit6_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 67,
+        "column": 1
+      }
+    },
+    {
+      "name": "bit7_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 68,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::write_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_write_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 25,
+        "column": 100
+      }
+    },
+    {
+      "name": "latch8_device::read_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_read_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 29,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::set_maskout",
+      "parameters": "uint32_t maskout",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_maskout"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "maskout"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 32,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::set_xorvalue",
+      "parameters": "uint32_t xorvalue",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xorvalue"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xorvalue"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 35,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::set_nosync",
+      "parameters": "uint32_t nosync",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_nosync"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "nosync"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 38,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit0_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 47,
+        "column": 43
+      }
+    },
+    {
+      "name": "latch8_device::bit1_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 52,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit2_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 53,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit3_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit4_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit5_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 56,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit6_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 57,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit7_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 58,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit0_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 59,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit1_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit2_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit3_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 65,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit4_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 66,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit5_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 67,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit6_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 68,
+        "column": 1
+      }
+    },
+    {
+      "name": "latch8_device::bit7_q_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_value"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/latch8.h",
+        "line": 69,
+        "column": 1
+      }
+    }
+  ],
+  "hotMethods": [
+    "timerproc"
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 59,
+    "compiledMethods": 59,
+    "diagnostics": 0
+  }
+}

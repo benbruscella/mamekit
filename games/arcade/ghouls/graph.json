@@ -1,0 +1,4224 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/capcom/cps1.cpp",
+    "generatedAt": "2026-09-05T03:49:42.046Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Paul Leaman"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/capcom/cps1.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/capcom/cps1.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cps1.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cps1.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/eepromser.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/eepromser.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/upd4701.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/upd4701.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:kabuki.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "kabuki.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:ghouls",
+      "label": "Game",
+      "props": {
+        "name": "ghouls",
+        "year": "1988",
+        "company": "Capcom",
+        "fullname": "Ghouls'n Ghosts (World)",
+        "monitor": "ROT0",
+        "cls": "cps_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 14966,
+        "sourceColumn": 1,
+        "sourceEndLine": 14966
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_cps_b_r",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_cps_b_r",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2136,
+        "sourceColumn": 1,
+        "sourceEndLine": 2180,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "// Some games interrogate a couple of registers on bootup.\n\t// These are CPS1 board B self test checks. They wander from game to game.\n\tif (offset == m_game_config->cpsb_addr / 2)\n\t\treturn m_game_config->cpsb_value;\n\n\t// some games use as a protection check the ability to do 16-bit multiplications\n\t// with a 32-bit result, by writing the factors to two ports and reading the\n\t// result from two other ports.\n\tif (offset == m_game_config->mult_result_lo / 2)\n\t\treturn (m_cps_b_regs[m_game_config->mult_factor1 / 2] *\n\t\t\t\tm_cps_b_regs[m_game_config->mult_factor2 / 2]) & 0xffff;\n\n\tif (offset == m_game_config->mult_result_hi / 2)\n\t\treturn (m_cps_b_regs[m_game_config->mult_factor1 / 2] *\n\t\t\t\tm_cps_b_regs[m_game_config->mult_factor2 / 2]) >> 16;\n\n\t// Extra input ports (on C-board)\n\tif (m_game_config->in2_addr != 0 && offset == m_game_config->in2_addr / 2)\n\t\treturn m_io_in[2]->read();\n\n\t// Player 4 controls (on C-board) (\"Captain Commando\")\n\tif (m_game_config->in3_addr != 0 && offset == m_game_config->in3_addr / 2)\n\t\treturn m_io_in[3]->read();\n\n\t// raster counters for cps2 & ganbare\n\tif (m_raster_irq != nullptr)\n\t{\n\t\tif (offset == 0x0e/2)\n\t\t{\n\t\t\t// 2-pixel hpos relative to raster counter #3\n\t\t\treturn ((m_raster_counter[2] - m_screen->hpos() / 2) << 1 & 0x1fe) | (m_cps_b_regs[0x0e / 2] & 1);\n\t\t}\n\t\tif (offset == 0x10/2 || offset == 0x12/2)\n\t\t{\n\t\t\t// scanline relative to raster counter #1, #2\n\t\t\treturn m_raster_counter[offset & 1] & 0x1ff;\n\t\t}\n\t}\n#ifdef MAME_DEBUG\n\tpopmessage(\"CPS-B read port %02x contact MAMEDEV\", offset * 2);\n#endif\n\treturn 0xffff;",
+        "inputMembers": [
+          "m_io_in=IN0,IN1,IN2,IN3"
+        ]
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_cps_b_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_cps_b_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2183,
+        "sourceColumn": 1,
+        "sourceEndLine": 2243,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "data = COMBINE_DATA(&m_cps_b_regs[offset]);\n\n\t// raster counters for cps2 & ganbare\n\tif (m_raster_irq != nullptr)\n\t{\n\t\tif (offset == 0x0e/2)\n\t\t{\n\t\t\tm_raster_reload[2] = data >> 1 & 0xff;\n\t\t\treturn;\n\t\t}\n\t\tif (offset == 0x10/2 || offset == 0x12/2)\n\t\t{\n\t\t\tm_raster_reload[offset & 1] = data & 0x1ff;\n\n\t\t\t// manually reload counter\n\t\t\tif (BIT(data, 15))\n\t\t\t\tm_raster_counter[offset & 1] = m_raster_reload[offset & 1];\n\t\t\treturn;\n\t\t}\n\t}\n\n\t// additional outputs on C-board\n\tif (m_game_config->out2_addr != 0 && offset == m_game_config->out2_addr / 2)\n\t{\n\t\tif (ACCESSING_BITS_0_7)\n\t\t{\n\t\t\tif (m_game_config->cpsb_value == 0x0402) // Mercs (CN2 connector)\n\t\t\t{\n\t\t\t\tmachine().bookkeeping().coin_lockout_w(2, BIT(~data, 0));\n\t\t\t\tm_led_cboard[0] = BIT(data, 1);\n\t\t\t\tm_led_cboard[1] = BIT(data, 2);\n\t\t\t\tm_led_cboard[2] = BIT(data, 3);\n\t\t\t}\n\t\t\telse // kod, captcomm, knights\n\t\t\t{\n\t\t\t\tmachine().bookkeeping().coin_lockout_w(2, BIT(~data, 1));\n\t\t\t\tmachine().bookkeeping().coin_lockout_w(3, BIT(~data, 3));\n\t\t\t}\n\t\t}\n\t}\n\n#ifdef MAME_DEBUG\n\tif (offset != m_game_config->cpsb_addr / 2 &&   // only varth writes here\n\t\t\toffset != m_game_config->mult_factor1 / 2 &&\n\t\t\toffset != m_game_config->mult_factor2 / 2 &&\n\t\t\toffset != m_game_config->layer_control / 2 &&\n\t\t\toffset != m_game_config->unknown1 / 2 &&\n\t\t\toffset != m_game_config->unknown2 / 2 &&\n\t\t\toffset != m_game_config->unknown3 / 2 &&\n\t\t\toffset != m_game_config->priority[0] / 2 &&\n\t\t\toffset != m_game_config->priority[1] / 2 &&\n\t\t\toffset != m_game_config->priority[2] / 2 &&\n\t\t\toffset != m_game_config->priority[3] / 2 &&\n\t\t\toffset != m_game_config->palette_control / 2 &&\n\t\t\toffset != m_game_config->out2_addr / 2 &&\n\t\t\t!m_game_config->bootleg_kludge)\n\t\tpopmessage(\"CPS-B write %04x to port %02x contact MAMEDEV\", data, offset * 2);\n#endif"
+      }
+    },
+    {
+      "id": "romset:ghouls",
+      "label": "RomSet",
+      "props": {
+        "name": "ghouls",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4561,
+        "sourceColumn": 1,
+        "sourceEndLine": 4561
+      }
+    },
+    {
+      "id": "region:ghouls/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 4194304,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4082,
+        "sourceColumn": 2,
+        "sourceEndLine": 4082
+      }
+    },
+    {
+      "id": "rom:ghouls/maincpu/dme_29.10h",
+      "label": "Rom",
+      "props": {
+        "file": "dme_29.10h",
+        "offset": 0,
+        "size": 131072,
+        "crc": "166a58a2",
+        "sha1": "f21fcf88d2ebb7bc9e8885fde760a5d82f295c1a",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:ghouls/maincpu/dme_30.10j",
+      "label": "Rom",
+      "props": {
+        "file": "dme_30.10j",
+        "offset": 1,
+        "size": 131072,
+        "crc": "7ac8407a",
+        "sha1": "3613699213db47bfeabedf87f12eb0fa7e5973b6",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:ghouls/maincpu/dme_27.9h",
+      "label": "Rom",
+      "props": {
+        "file": "dme_27.9h",
+        "offset": 262144,
+        "size": 131072,
+        "crc": "f734b2be",
+        "sha1": "fa230bf5503487ec11d767485a18f0a55dcc13d2",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:ghouls/maincpu/dme_28.9j",
+      "label": "Rom",
+      "props": {
+        "file": "dme_28.9j",
+        "offset": 262145,
+        "size": 131072,
+        "crc": "03d3e714",
+        "sha1": "a07786062358c89f3b4634b8822173261802290b",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:ghouls/maincpu/dm-17.7j",
+      "label": "Rom",
+      "props": {
+        "file": "dm-17.7j",
+        "offset": 524288,
+        "size": 524288,
+        "crc": "3ea1b0f2",
+        "sha1": "c51f1c38cdaed77ad715cedd845617a291ab2441",
+        "groupSize": 2
+      }
+    },
+    {
+      "id": "region:ghouls/gfx",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx",
+        "size": 3145728,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4089,
+        "sourceColumn": 2,
+        "sourceEndLine": 4089
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/dm-05.3a",
+      "label": "Rom",
+      "props": {
+        "file": "dm-05.3a",
+        "offset": 0,
+        "size": 524288,
+        "crc": "0ba9c0b0",
+        "sha1": "c4945b603115f32b7346d72426571dc2d361159f",
+        "groupSize": 2,
+        "skip": 6
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/dm-07.3f",
+      "label": "Rom",
+      "props": {
+        "file": "dm-07.3f",
+        "offset": 2,
+        "size": 524288,
+        "crc": "5d760ab9",
+        "sha1": "212176947933fcfef991bc80ad5bd91718689ffe",
+        "groupSize": 2,
+        "skip": 6
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/dm-06.3c",
+      "label": "Rom",
+      "props": {
+        "file": "dm-06.3c",
+        "offset": 4,
+        "size": 524288,
+        "crc": "4ba90b59",
+        "sha1": "35bc9dec5ddbf064c30c951627581c16764456ac",
+        "groupSize": 2,
+        "skip": 6
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/dm-08.3g",
+      "label": "Rom",
+      "props": {
+        "file": "dm-08.3g",
+        "offset": 6,
+        "size": 524288,
+        "crc": "4bdee9de",
+        "sha1": "7d0c4736f16577afe9966447a18f039728f6fbdf",
+        "groupSize": 2,
+        "skip": 6
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/09.4a",
+      "label": "Rom",
+      "props": {
+        "file": "09.4a",
+        "offset": 2097152,
+        "size": 65536,
+        "crc": "ae24bb19",
+        "sha1": "aa91c6ffe657b878e10e4e930457b530f7bb529b",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/18.7a",
+      "label": "Rom",
+      "props": {
+        "file": "18.7a",
+        "offset": 2097153,
+        "size": 65536,
+        "crc": "d34e271a",
+        "sha1": "55211fc2861dce32951f41624c9c99c09bf3b184",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/13.4e",
+      "label": "Rom",
+      "props": {
+        "file": "13.4e",
+        "offset": 2097154,
+        "size": 65536,
+        "crc": "3f70dd37",
+        "sha1": "9ecb4dec9d131e9fca15ded7d71986a9fcb62c19",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/22.7e",
+      "label": "Rom",
+      "props": {
+        "file": "22.7e",
+        "offset": 2097155,
+        "size": 65536,
+        "crc": "7e69e2e6",
+        "sha1": "4e0b4d2474beaa5c869c8f1a91893c79ac6e7f39",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/11.4c",
+      "label": "Rom",
+      "props": {
+        "file": "11.4c",
+        "offset": 2097156,
+        "size": 65536,
+        "crc": "37c9b6c6",
+        "sha1": "b2bb82537e335339846dbf9588cfacfdbdd75ee6",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/20.7c",
+      "label": "Rom",
+      "props": {
+        "file": "20.7c",
+        "offset": 2097157,
+        "size": 65536,
+        "crc": "2f1345b4",
+        "sha1": "14c450abcf9defa29c6f48e5ffd0b9d1e4a66a1d",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/15.4g",
+      "label": "Rom",
+      "props": {
+        "file": "15.4g",
+        "offset": 2097158,
+        "size": 65536,
+        "crc": "3c2a212a",
+        "sha1": "f8fa0e0e2d09ea37c54d1c2493752b4e97e3f534",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/24.7g",
+      "label": "Rom",
+      "props": {
+        "file": "24.7g",
+        "offset": 2097159,
+        "size": 65536,
+        "crc": "889aac05",
+        "sha1": "9301dcecee699e7f7672bb498122e1f4831ce536",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/10.4b",
+      "label": "Rom",
+      "props": {
+        "file": "10.4b",
+        "offset": 2621440,
+        "size": 65536,
+        "crc": "bcc0f28c",
+        "sha1": "02f587aa4ae71631f27b0e3aaf1829cdded1bdc2",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/19.7b",
+      "label": "Rom",
+      "props": {
+        "file": "19.7b",
+        "offset": 2621441,
+        "size": 65536,
+        "crc": "2a40166a",
+        "sha1": "dc4e75d7ed87ae5386d721a09113bba364740465",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/14.4f",
+      "label": "Rom",
+      "props": {
+        "file": "14.4f",
+        "offset": 2621442,
+        "size": 65536,
+        "crc": "20f85c03",
+        "sha1": "86385139a9b42270aade758bfe338525936f5671",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/23.7f",
+      "label": "Rom",
+      "props": {
+        "file": "23.7f",
+        "offset": 2621443,
+        "size": 65536,
+        "crc": "8426144b",
+        "sha1": "2dbf9625413b302fcdad5bef8733a9dfbfaead52",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/12.4d",
+      "label": "Rom",
+      "props": {
+        "file": "12.4d",
+        "offset": 2621444,
+        "size": 65536,
+        "crc": "da088d61",
+        "sha1": "67229eff2827a42af97a60ceb252e132e7f307bc",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/21.7d",
+      "label": "Rom",
+      "props": {
+        "file": "21.7d",
+        "offset": 2621445,
+        "size": 65536,
+        "crc": "17e11df0",
+        "sha1": "42fb15e9300b07fc5f4bc21744484869859b130c",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/16.4h",
+      "label": "Rom",
+      "props": {
+        "file": "16.4h",
+        "offset": 2621446,
+        "size": 65536,
+        "crc": "f187ba1c",
+        "sha1": "6d9441d04ecef2a9d9c7a2cc7781acd7904c2061",
+        "skip": 7
+      }
+    },
+    {
+      "id": "rom:ghouls/gfx/25.7h",
+      "label": "Rom",
+      "props": {
+        "file": "25.7h",
+        "offset": 2621447,
+        "size": 65536,
+        "crc": "29f79c78",
+        "sha1": "26000a58454a06c3016f99ebc3a79c52911a7070",
+        "skip": 7
+      }
+    },
+    {
+      "id": "region:ghouls/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 98304,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4117,
+        "sourceColumn": 2,
+        "sourceEndLine": 4117
+      }
+    },
+    {
+      "id": "rom:ghouls/audiocpu/26.10a",
+      "label": "Rom",
+      "props": {
+        "file": "26.10a",
+        "offset": 0,
+        "size": 32768,
+        "crc": "3692f6e5",
+        "sha1": "61b8438d60a39b4cf5062dff0a53228e8a4e4b5f",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4592,
+        "sourceColumn": 2,
+        "sourceEndLine": 4592,
+        "continueSegments": [
+          65536,
+          32768,
+          32768
+        ]
+      }
+    },
+    {
+      "id": "region:ghouls/oki",
+      "label": "RomRegion",
+      "props": {
+        "tag": "oki",
+        "size": 262144,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4121,
+        "sourceColumn": 2,
+        "sourceEndLine": 4121
+      }
+    },
+    {
+      "id": "region:ghouls/aboardplds",
+      "label": "RomRegion",
+      "props": {
+        "tag": "aboardplds",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4125,
+        "sourceColumn": 2,
+        "sourceEndLine": 4125
+      }
+    },
+    {
+      "id": "rom:ghouls/aboardplds/buf1",
+      "label": "Rom",
+      "props": {
+        "file": "buf1",
+        "offset": 0,
+        "size": 279,
+        "crc": "eb122de7",
+        "sha1": "b26b5bfe258e3e184f069719f9fd008d6b8f6b9b",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4126,
+        "sourceColumn": 2,
+        "sourceEndLine": 4126
+      }
+    },
+    {
+      "id": "rom:ghouls/aboardplds/ioa1",
+      "label": "Rom",
+      "props": {
+        "file": "ioa1",
+        "offset": 0,
+        "size": 279,
+        "crc": "59c7ee3b",
+        "sha1": "fbb887c5b4f5cb8df77cec710eaac2985bc482a6",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4127,
+        "sourceColumn": 2,
+        "sourceEndLine": 4127
+      }
+    },
+    {
+      "id": "rom:ghouls/aboardplds/prg1",
+      "label": "Rom",
+      "props": {
+        "file": "prg1",
+        "offset": 0,
+        "size": 279,
+        "crc": "f1129744",
+        "sha1": "a5300f301c1a08a7da768f0773fa0fe3f683b237",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4128,
+        "sourceColumn": 2,
+        "sourceEndLine": 4128
+      }
+    },
+    {
+      "id": "rom:ghouls/aboardplds/rom1",
+      "label": "Rom",
+      "props": {
+        "file": "rom1",
+        "offset": 0,
+        "size": 279,
+        "crc": "41dc73b9",
+        "sha1": "7d4c9f1693c821fbf84e32dd6ef62ddf14967845",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4129,
+        "sourceColumn": 2,
+        "sourceEndLine": 4129
+      }
+    },
+    {
+      "id": "rom:ghouls/aboardplds/sou1",
+      "label": "Rom",
+      "props": {
+        "file": "sou1",
+        "offset": 0,
+        "size": 279,
+        "crc": "84f4b2fe",
+        "sha1": "dcc9e86cc36316fe42eace02d6df75d08bc8bb6d",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4130,
+        "sourceColumn": 2,
+        "sourceEndLine": 4130
+      }
+    },
+    {
+      "id": "region:ghouls/bboardplds",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bboardplds",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4132,
+        "sourceColumn": 2,
+        "sourceEndLine": 4132
+      }
+    },
+    {
+      "id": "rom:ghouls/bboardplds/dm620.2a",
+      "label": "Rom",
+      "props": {
+        "file": "dm620.2a",
+        "offset": 0,
+        "size": 279,
+        "crc": "f6e5f727",
+        "sha1": "8d38c458721347272ccc14b2c0e9885c4f891477",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4605,
+        "sourceColumn": 2,
+        "sourceEndLine": 4605
+      }
+    },
+    {
+      "id": "rom:ghouls/bboardplds/lwio.8i",
+      "label": "Rom",
+      "props": {
+        "file": "lwio.8i",
+        "offset": 0,
+        "size": 279,
+        "crc": "ad52b90c",
+        "sha1": "f0fd6aeea515ee449320fe15684e6b3ab7f97bf4",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4606,
+        "sourceColumn": 2,
+        "sourceEndLine": 4606
+      }
+    },
+    {
+      "id": "map:cps_state.cpu_space_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "cps_state",
+        "name": "cpu_space_map",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 419,
+        "sourceColumn": 1,
+        "sourceEndLine": 422
+      }
+    },
+    {
+      "id": "map:cps_state.cpu_space_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 16777202,
+        "end": 16777215,
+        "raw": "map(0xfffff2, 0xffffff).before_time(m_maincpu, FUNC(m68000_device::vpa_sync)).after_delay(m_maincpu, FUNC(m68000_device::vpa_after)).r(FUNC(cps_state::irqack_r))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 421,
+        "sourceColumn": 2,
+        "sourceEndLine": 421
+      }
+    },
+    {
+      "id": "handler:cps_state.irqack_r",
+      "label": "Handler",
+      "props": {
+        "method": "irqack_r",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 407,
+        "sourceColumn": 1,
+        "sourceEndLine": 417,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "// FC0-FC2(any) + BGACK: VPA and clears both IPL1 and IPL2\n\tif (!machine().side_effects_disabled())\n\t{\n\t\tm_maincpu->set_input_line(M68K_IRQ_IPL1, CLEAR_LINE);\n\t\tm_maincpu->set_input_line(M68K_IRQ_IPL2, CLEAR_LINE);\n\t}\n\n\treturn m68000_base_device::autovector(offset + 1);"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "cps_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 1,
+        "sourceEndLine": 594
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4194303,
+        "raw": "map(0x000000, 0x3fffff).rom()",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 2,
+        "sourceEndLine": 579,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388608,
+        "end": 8388615,
+        "raw": "map(0x800000, 0x800007).portr(\"IN1\")",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 580,
+        "sourceColumn": 2,
+        "sourceEndLine": 580,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388632,
+        "end": 8388639,
+        "raw": "map(0x800018, 0x80001f).r(FUNC(cps_state::cps1_dsw_r))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 2,
+        "sourceEndLine": 582
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_dsw_r",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_dsw_r",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 257,
+        "sourceColumn": 1,
+        "sourceEndLine": 272,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "int in = 0xff;\n\tswitch (offset)\n\t{\n\t\tcase 0:\n\t\t\tin = m_io_in[0]->read();\n\t\t\tbreak;\n\t\tcase 1:\n\t\tcase 2:\n\t\tcase 3:\n\t\t\tin = m_dsw[offset - 1]->read();\n\t\t\tbreak;\n\t}\n\treturn (in << 8) | 0xff;",
+        "inputMembers": [
+          "m_io_in=IN0,IN1,IN2,IN3",
+          "m_dsw=DSWA,DSWB,DSWC"
+        ]
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388640,
+        "end": 8388641,
+        "raw": "map(0x800020, 0x800021).nopr()",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 583,
+        "sourceColumn": 2,
+        "sourceEndLine": 583,
+        "nopr": true
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388656,
+        "end": 8388663,
+        "raw": "map(0x800030, 0x800037).w(FUNC(cps_state::cps1_coinctrl_w))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_coinctrl_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_coinctrl_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 316,
+        "sourceColumn": 1,
+        "sourceEndLine": 327,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "if (ACCESSING_BITS_8_15)\n\t{\n\t\tmachine().bookkeeping().coin_counter_w(0, BIT(data, 8));\n\t\tmachine().bookkeeping().coin_counter_w(1, BIT(data, 9));\n\t\tmachine().bookkeeping().coin_lockout_w(0, BIT(~data, 10));\n\t\tmachine().bookkeeping().coin_lockout_w(1, BIT(~data, 11));\n\n\t\t// bit 15 = CPS-A custom reset?\n\t}"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388864,
+        "end": 8388927,
+        "raw": "map(0x800100, 0x80013f).w(FUNC(cps_state::cps1_cps_a_w)).share(m_cps_a_regs)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586,
+        "share": "cps_a_regs"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_cps_a_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_cps_a_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2115,
+        "sourceColumn": 1,
+        "sourceEndLine": 2133,
+        "sourceConstants": [
+          "CPS1_PALETTE_BASE=5",
+          "CPS1_VIDEOCONTROL=17"
+        ],
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "data = COMBINE_DATA(&m_cps_a_regs[offset]);\n\n\t// The main CPU writes the palette to gfxram, and the CPS-B custom copies it\n\t// to the real palette RAM, which is separated from gfxram.\n\t// This is done ONLY after the palette base register is written to. It is not\n\t// known what the exact timing should be, how long it should take and when it\n\t// should happen. We are assuming that the copy happens immediately, since it\n\t// fixes glitches in the ghouls intro, but it might happen at next vblank.\n\tif (offset == CPS1_PALETTE_BASE)\n\t\tcps1_build_palette(cps1_base(CPS1_PALETTE_BASE, m_palette_align));\n\n#ifdef MAME_DEBUG\n\t// pzloop2 write to register 24 on startup. This is probably just a bug.\n\tif (offset > CPS1_VIDEOCONTROL)\n\t\tpopmessage(\"write to CPS-A register %02x contact MAMEDEV\", offset * 2);\n#endif"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_build_palette",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_build_palette",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2612,
+        "sourceColumn": 1,
+        "sourceEndLine": 2646,
+        "sourceParameters": "const uint16_t* const palette_base",
+        "sourceBody": "uint16_t const *palette_ram = palette_base;\n\tconst uint16_t ctrl = m_cps_b_regs[m_game_config->palette_control/2];\n\n\t// The palette is copied only for pages that are enabled in the ctrl\n\t// register. Note that if the first palette pages are skipped, all\n\t// the following pages are scaled down.\n\tfor (int page = 0; page < 6; ++page)\n\t{\n\t\tif (BIT(ctrl, page))\n\t\t{\n\t\t\tfor (int offset = 0; offset < 0x200; ++offset)\n\t\t\t{\n\t\t\t\tconst uint16_t palette = *(palette_ram++);\n\n\t\t\t\t// from my understanding of the schematics, when the 'brightness'\n\t\t\t\t// component is set to 0 it should reduce brightness to 1/3\n\t\t\t\tconst int bright = 0x0f + ((palette >> 12) << 1);\n\n\t\t\t\tconst int r = ((palette >> 8) & 0x0f) * 0x11 * bright / 0x2d;\n\t\t\t\tconst int g = ((palette >> 4) & 0x0f) * 0x11 * bright / 0x2d;\n\t\t\t\tconst int b = ((palette >> 0) & 0x0f) * 0x11 * bright / 0x2d;\n\n\t\t\t\tm_palette->set_pen_color(0x200 * page + offset, rgb_t(r, g, b));\n\t\t\t}\n\t\t}\n\t\telse\n\t\t{\n\t\t\t// skip page in gfxram, but only if we have already copied at least one page\n\t\t\tif (palette_ram != palette_base)\n\t\t\t\tpalette_ram += 0x200;\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_base",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_base",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2099,
+        "sourceColumn": 1,
+        "sourceEndLine": 2111,
+        "sourceParameters": "int offset, int boundary",
+        "sourceBody": "int base = m_cps_a_regs[offset] * 256;\n\n\t// The scroll RAM must start on a 0x4000 boundary.\n\t// Some games do not do this.\n\t// For example:\n\t//    Captain commando     - continue screen will not display\n\t//    Muscle bomber games  - will animate garbage during gameplay\n\t// Mask out the irrelevant bits.\n\tbase &= ~(boundary - 1);\n\treturn &m_gfxram[(base & 0x3ffff) / 2];"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388928,
+        "end": 8388991,
+        "raw": "map(0x800140, 0x80017f).rw(FUNC(cps_state::cps1_cps_b_r), FUNC(cps_state::cps1_cps_b_w)).share(m_cps_b_regs)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 2,
+        "sourceEndLine": 589,
+        "share": "cps_b_regs"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388992,
+        "end": 8388999,
+        "raw": "map(0x800180, 0x800187).w(FUNC(cps_state::cps1_soundlatch_w))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 590,
+        "sourceColumn": 2,
+        "sourceEndLine": 590
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_soundlatch_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_soundlatch_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 302,
+        "sourceColumn": 1,
+        "sourceEndLine": 308,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "if (ACCESSING_BITS_0_7)\n\t\tm_soundlatch[0]->write(data & 0xff);\n\telse\n\t\tm_soundlatch[0]->write(data >> 8);"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 8389000,
+        "end": 8389007,
+        "raw": "map(0x800188, 0x80018f).w(FUNC(cps_state::cps1_soundlatch2_w))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_soundlatch2_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_soundlatch2_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 310,
+        "sourceColumn": 1,
+        "sourceEndLine": 314,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "if (ACCESSING_BITS_0_7)\n\t\tm_soundlatch[1]->write(data & 0xff);"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 9437184,
+        "end": 9633791,
+        "raw": "map(0x900000, 0x92ffff).ram().w(FUNC(cps_state::cps1_gfxram_w)).share(m_gfxram)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592,
+        "ram": true,
+        "share": "gfxram"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_gfxram_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_gfxram_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2368,
+        "sourceColumn": 1,
+        "sourceEndLine": 2381,
+        "sourceConstants": [
+          "CPS1_SCROLL1_BASE=1",
+          "CPS1_SCROLL2_BASE=2",
+          "CPS1_SCROLL3_BASE=3"
+        ],
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "const int page = (offset >> 7) & 0x3c0;\n\tCOMBINE_DATA(&m_gfxram[offset]);\n\n\tif (page == (m_cps_a_regs[CPS1_SCROLL1_BASE] & 0x3c0))\n\t\tm_bg_tilemap[0]->mark_tile_dirty(offset / 2 & 0x0fff);\n\n\tif (page == (m_cps_a_regs[CPS1_SCROLL2_BASE] & 0x3c0))\n\t\tm_bg_tilemap[1]->mark_tile_dirty(offset / 2 & 0x0fff);\n\n\tif (page == (m_cps_a_regs[CPS1_SCROLL3_BASE] & 0x3c0))\n\t\tm_bg_tilemap[2]->mark_tile_dirty(offset / 2 & 0x0fff);"
+      }
+    },
+    {
+      "id": "map:cps_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 16711680,
+        "end": 16777215,
+        "raw": "map(0xff0000, 0xffffff).ram().share(m_mainram)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593,
+        "ram": true,
+        "share": "mainram"
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "cps_state",
+        "name": "sub_map",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 631,
+        "sourceColumn": 1,
+        "sourceEndLine": 642
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 633,
+        "sourceColumn": 2,
+        "sourceEndLine": 633,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 49151,
+        "raw": "map(0x8000, 0xbfff).bankr(m_audiobank)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 634,
+        "sourceColumn": 2,
+        "sourceEndLine": 634,
+        "bankRead": "audiobank"
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 55295,
+        "raw": "map(0xd000, 0xd7ff).ram()",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 635,
+        "sourceColumn": 2,
+        "sourceEndLine": 635,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 61441,
+        "raw": "map(0xf000, 0xf001).rw(\"2151\", FUNC(ym2151_device::read), FUNC(ym2151_device::write))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 2,
+        "sourceEndLine": 636
+      }
+    },
+    {
+      "id": "handler:ym2151_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 2,
+        "sourceEndLine": 636
+      }
+    },
+    {
+      "id": "handler:ym2151_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 2,
+        "sourceEndLine": 636
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 61442,
+        "end": 61442,
+        "raw": "map(0xf002, 0xf002).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 637,
+        "sourceColumn": 2,
+        "sourceEndLine": 637
+      }
+    },
+    {
+      "id": "handler:okim6295_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "okim6295_device",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 637,
+        "sourceColumn": 2,
+        "sourceEndLine": 637
+      }
+    },
+    {
+      "id": "handler:okim6295_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "okim6295_device",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 637,
+        "sourceColumn": 2,
+        "sourceEndLine": 637
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 61444,
+        "end": 61444,
+        "raw": "map(0xf004, 0xf004).w(FUNC(cps_state::cps1_snd_bankswitch_w))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 2,
+        "sourceEndLine": 638
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_snd_bankswitch_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_snd_bankswitch_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 292,
+        "sourceColumn": 1,
+        "sourceEndLine": 295,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_audiobank->set_entry(BIT(data, 0));"
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 61446,
+        "end": 61446,
+        "raw": "map(0xf006, 0xf006).w(FUNC(cps_state::cps1_oki_pin7_w))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 639,
+        "sourceColumn": 2,
+        "sourceEndLine": 639
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_oki_pin7_w",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_oki_pin7_w",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 297,
+        "sourceColumn": 1,
+        "sourceEndLine": 300,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_oki->set_pin7(BIT(data, 0));"
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 61448,
+        "end": 61448,
+        "raw": "map(0xf008, 0xf008).r(m_soundlatch[0], FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 2,
+        "sourceEndLine": 640
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 641,
+        "sourceColumn": 2,
+        "sourceEndLine": 641
+      }
+    },
+    {
+      "id": "map:cps_state.sub_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 61450,
+        "end": 61450,
+        "raw": "map(0xf00a, 0xf00a).r(m_soundlatch[1], FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 641,
+        "sourceColumn": 2,
+        "sourceEndLine": 641
+      }
+    },
+    {
+      "id": "machine:cps_state.cps1_10MHz",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "cps_state",
+        "name": "cps1_10MHz",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_sf2ceblp_prot\",\"bits\":16}",
+          "{\"name\":\"m_pang3b4_prot\",\"bits\":16}",
+          "{\"name\":\"m_raster_counter\",\"bits\":16,\"arrayLength\":3}",
+          "{\"name\":\"m_raster_reload\",\"bits\":16,\"arrayLength\":3}",
+          "{\"name\":\"m_scrollx\",\"bits\":32,\"signed\":true,\"arrayLength\":3}",
+          "{\"name\":\"m_scrolly\",\"bits\":32,\"signed\":true,\"arrayLength\":3}",
+          "{\"name\":\"m_stars_enabled\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_starsx\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_starsy\",\"bits\":32,\"signed\":true,\"arrayLength\":2}",
+          "{\"name\":\"m_last_sprite_offset\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_scroll_size\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_obj_size\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_other_size\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_palette_align\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_palette_size\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_stars_rom_size\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_empty_tile\",\"bits\":8}"
+        ],
+        "startHandlers": [
+          "cps_state.video_start"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3909,
+        "sourceColumn": 1,
+        "sourceEndLine": 3947
+      }
+    },
+    {
+      "id": "handler:cps_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2533,
+        "sourceColumn": 1,
+        "sourceEndLine": 2596,
+        "sourceConstants": [
+          "CPS1_PALETTE_ENTRIES=192",
+          "CPS1_OBJ_BASE=0",
+          "CPS1_SCROLL1_BASE=1",
+          "CPS1_SCROLL2_BASE=2",
+          "CPS1_SCROLL3_BASE=3",
+          "CPS1_OTHER_BASE=4"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "MACHINE_RESET_CALL_MEMBER(cps);\n\n\t// Put in some const\n\tm_scroll_size    = 0x4000; // scroll1, scroll2, scroll3\n\tm_obj_size       = 0x0800;\n\tm_other_size     = 0x0800;\n\tm_palette_align  = 0x0400; // minimum alignment is a single palette page (512 colors). Verified on pcb.\n\tm_palette_size   = CPS1_PALETTE_ENTRIES * 32; // Size of palette RAM\n\tm_stars_rom_size = 0x2000; // first 0x4000 of gfx ROM are used, but 0x0000-0x1fff is == 0x2000-0x3fff\n\n\t// create tilemaps\n\tm_bg_tilemap[0] = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(cps_state::get_tile0_info)), tilemap_mapper_delegate(*this, FUNC(cps_state::tilemap0_scan)),  8,  8, 64, 64);\n\tm_bg_tilemap[1] = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(cps_state::get_tile1_info)), tilemap_mapper_delegate(*this, FUNC(cps_state::tilemap1_scan)), 16, 16, 64, 64);\n\tm_bg_tilemap[2] = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(cps_state::get_tile2_info)), tilemap_mapper_delegate(*this, FUNC(cps_state::tilemap2_scan)), 32, 32, 64, 64);\n\n\t// create empty tiles\n\tmemset(m_empty_tile, 0x0f, sizeof(m_empty_tile));\n\n\t// front masks will change at runtime to handle sprite occluding\n\tcps1_update_transmasks();\n\n\tm_buffered_obj = make_unique_clear<uint16_t[]>(m_obj_size / 2);\n\n\t// clear RAM regions\n\tmemset(m_gfxram, 0, m_gfxram.bytes()); // Clear GFX RAM\n\tmemset(m_cps_a_regs, 0, 0x40); // Clear CPS-A registers\n\tmemset(m_cps_b_regs, 0, 0x40); // Clear CPS-B registers\n\n\t// Put in some defaults\n\tm_cps_a_regs[CPS1_OBJ_BASE]     = 0x9200;\n\tm_cps_a_regs[CPS1_SCROLL1_BASE] = 0x9000;\n\tm_cps_a_regs[CPS1_SCROLL2_BASE] = 0x9040;\n\tm_cps_a_regs[CPS1_SCROLL3_BASE] = 0x9080;\n\tm_cps_a_regs[CPS1_OTHER_BASE]   = 0x9100;\n\n\t// This should never be hit, since game_config is set in machine_reset\n\tif (!m_game_config)\n\t\tthrow emu_fatalerror(\"cps_state::video_start: m_game_config hasn't been set up yet\");\n\n\t// Set up old base\n\tm_scroll[0] = nullptr;\n\tm_scroll[1] = nullptr;\n\tm_scroll[2] = nullptr;\n\tm_obj = nullptr;\n\tm_other = nullptr;\n\tcps1_get_video_base(); // Calculate base pointers\n\tcps1_get_video_base(); // Calculate old base pointers\n\n\tm_screen->register_screen_bitmap(m_dummy_bitmap);\n\n\t// state save register\n\tsave_item(NAME(m_last_sprite_offset));\n\tsave_pointer(NAME(m_buffered_obj), m_obj_size / 2);\n#if 0\n\t// these do not need to be saved, because they are recovered from cps_a_regs in cps1_postload\n\tsave_item(NAME(m_scrollx));\n\tsave_item(NAME(m_scrolly));\n\tsave_item(NAME(m_starsx));\n\tsave_item(NAME(m_starsy));\n\tsave_item(NAME(m_stars_enabled));\n#endif"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_update_transmasks",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_update_transmasks",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2515,
+        "sourceColumn": 1,
+        "sourceEndLine": 2531,
+        "sourceParameters": "",
+        "sourceBody": "for (int i = 0; i < 4; i++)\n\t{\n\t\tuint32_t mask;\n\n\t\t// Get transparency registers\n\t\tif (m_game_config->priority[i] != -1)\n\t\t\tmask = m_cps_b_regs[m_game_config->priority[i] / 2] ^ 0xffff;\n\t\telse\n\t\t\tmask = 0xffff; // completely transparent if priority masks not defined (qad)\n\n\t\tm_bg_tilemap[0]->set_transmask(i, mask, 0x8000);\n\t\tm_bg_tilemap[1]->set_transmask(i, mask, 0x8000);\n\t\tm_bg_tilemap[2]->set_transmask(i, mask, 0x8000);\n\t}"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_get_video_base",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_get_video_base",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2246,
+        "sourceColumn": 1,
+        "sourceEndLine": 2365,
+        "sourceConstants": [
+          "CPS1_OBJ_BASE=0",
+          "CPS1_SCROLL1_BASE=1",
+          "CPS1_SCROLL2_BASE=2",
+          "CPS1_SCROLL3_BASE=3",
+          "CPS1_OTHER_BASE=4",
+          "CPS1_PALETTE_BASE=5",
+          "CPS1_SCROLL1_SCROLLX=6",
+          "CPS1_SCROLL1_SCROLLY=7",
+          "CPS1_SCROLL2_SCROLLX=8",
+          "CPS1_SCROLL2_SCROLLY=9",
+          "CPS1_SCROLL3_SCROLLX=10",
+          "CPS1_SCROLL3_SCROLLY=11",
+          "CPS1_STARS1_SCROLLX=12",
+          "CPS1_STARS1_SCROLLY=13",
+          "CPS1_STARS2_SCROLLX=14",
+          "CPS1_STARS2_SCROLLY=15",
+          "CPS1_VIDEOCONTROL=17"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "int scroll1xoff = 0, scroll2xoff = 0, scroll3xoff = 0;\n\n\t// Re-calculate the VIDEO RAM base\n\tif (m_scroll[0] != cps1_base(CPS1_SCROLL1_BASE, m_scroll_size))\n\t{\n\t\tm_scroll[0] = cps1_base(CPS1_SCROLL1_BASE, m_scroll_size);\n\t\tm_bg_tilemap[0]->mark_all_dirty();\n\t}\n\tif (m_scroll[1] != cps1_base(CPS1_SCROLL2_BASE, m_scroll_size))\n\t{\n\t\tm_scroll[1] = cps1_base(CPS1_SCROLL2_BASE, m_scroll_size);\n\t\tm_bg_tilemap[1]->mark_all_dirty();\n\t}\n\tif (m_scroll[2] != cps1_base(CPS1_SCROLL3_BASE, m_scroll_size))\n\t{\n\t\tm_scroll[2] = cps1_base(CPS1_SCROLL3_BASE, m_scroll_size);\n\t\tm_bg_tilemap[2]->mark_all_dirty();\n\t}\n\n\t// Some of the sf2 hacks use only sprite port 0x9100 and the scroll layers are offset\n\tconst uint8_t kludge = m_game_config->bootleg_kludge & 15;\n\tif (kludge == 0x01)\n\t{\n\t\tm_cps_a_regs[CPS1_OBJ_BASE] = 0x9100;\n\t\tscroll1xoff = -0x0c;\n\t\tscroll2xoff = -0x0e;\n\t\tscroll3xoff = -0x10;\n\t}\n\telse if (kludge == 0x0e)\n\t{\n\t\tscroll1xoff = 0xffba;\n\t\tscroll2xoff = 0xffc0;\n\t\tscroll3xoff = 0xffba;\n\t}\n\telse if (kludge == 0x0f)\n\t{\n\t\tscroll1xoff = 0xffc0;\n\t\tscroll2xoff = 0xffc0;\n\t\tscroll3xoff = 0xffc0;\n\t}\n\telse if (kludge == 2)\n\t{\n\t\tm_cps_a_regs[CPS1_OBJ_BASE] = 0x9100;\n\t\tscroll1xoff = -0x10;\n\t\tscroll2xoff = -0x10;\n\t\tscroll3xoff = -0x10;\n\t}\n\telse if (kludge == 3)\n\t{\n\t\tscroll1xoff = -0x08;\n\t\tscroll2xoff = -0x0b;\n\t\tscroll3xoff = -0x0c;\n\t}\n\telse if (m_game_config->bootleg_kludge == 0x88) // 3wondersb\n\t{\n\t\tscroll1xoff = 0x4;\n\t\tscroll2xoff = 0x6;\n\t\tscroll3xoff = 0xa;\n\t\tm_cps_b_regs[0x30/2] = 0x3f;\n\t\tm_cps_a_regs[CPS1_VIDEOCONTROL] = 0x3e;\n\t\tm_cps_a_regs[CPS1_SCROLL2_BASE] = 0x90c0;\n\t\tm_cps_a_regs[CPS1_SCROLL3_BASE] = 0x9100;\n\t\tm_cps_a_regs[CPS1_PALETTE_BASE] = 0x9140;\n\t}\n\n\tm_obj = cps1_base(CPS1_OBJ_BASE, m_obj_size);\n\tm_other = cps1_base(CPS1_OTHER_BASE, m_other_size);\n\n\t// Get scroll values\n\tm_scrollx[0] = m_cps_a_regs[CPS1_SCROLL1_SCROLLX] + scroll1xoff;\n\tm_scrolly[0] = m_cps_a_regs[CPS1_SCROLL1_SCROLLY];\n\tm_scrollx[1] = m_cps_a_regs[CPS1_SCROLL2_SCROLLX] + scroll2xoff;\n\tm_scrolly[1] = m_cps_a_regs[CPS1_SCROLL2_SCROLLY];\n\tm_scrollx[2] = m_cps_a_regs[CPS1_SCROLL3_SCROLLX] + scroll3xoff;\n\tm_scrolly[2] = m_cps_a_regs[CPS1_SCROLL3_SCROLLY];\n\tm_starsx[0] = m_cps_a_regs[CPS1_STARS1_SCROLLX];\n\tm_starsy[0] = m_cps_a_regs[CPS1_STARS1_SCROLLY];\n\tm_starsx[1] = m_cps_a_regs[CPS1_STARS2_SCROLLX];\n\tm_starsy[1] = m_cps_a_regs[CPS1_STARS2_SCROLLY];\n\n\t// Get layer enable bits\n\tconst uint16_t layercontrol = m_cps_b_regs[m_game_config->layer_control / 2];\n\tconst uint16_t videocontrol = m_cps_a_regs[CPS1_VIDEOCONTROL];\n\tm_bg_tilemap[0]->enable(layercontrol & m_game_config->layer_enable_mask[0]);\n\tm_bg_tilemap[1]->enable((layercontrol & m_game_config->layer_enable_mask[1]) && BIT(videocontrol, 2));\n\tm_bg_tilemap[2]->enable((layercontrol & m_game_config->layer_enable_mask[2]) && BIT(videocontrol, 3));\n\tm_stars_enabled[0] = layercontrol & m_game_config->layer_enable_mask[3];\n\tm_stars_enabled[1] = layercontrol & m_game_config->layer_enable_mask[4];\n\n#ifdef MAME_DEBUG\n{\n\tint enablemask = 0;\n\n\tif (m_game_config->layer_enable_mask[0] == m_game_config->layer_enable_mask[1])\n\t\tenablemask = m_game_config->layer_enable_mask[0];\n\n\tif (m_game_config->layer_enable_mask[0] == m_game_config->layer_enable_mask[2])\n\t\tenablemask = m_game_config->layer_enable_mask[0];\n\n\tif (m_game_config->layer_enable_mask[1] == m_game_config->layer_enable_mask[2])\n\t\tenablemask = m_game_config->layer_enable_mask[1];\n\n\tif (enablemask)\n\t{\n\t\tif (((layercontrol & enablemask) && (layercontrol & enablemask) != enablemask))\n\t\t\tpopmessage(\"layer %02x contact MAMEDEV\", layercontrol & 0xc03f);\n\t}\n\n\tenablemask = m_game_config->layer_enable_mask[0] | m_game_config->layer_enable_mask[1]\n\t\t\t| m_game_config->layer_enable_mask[2]\n\t\t\t| m_game_config->layer_enable_mask[3] | m_game_config->layer_enable_mask[4];\n\n\tif (((layercontrol & ~enablemask) & 0x003e) != 0)\n\t\tpopmessage(\"layer %02x contact MAMEDEV\", layercontrol & 0xc03f);\n}\n#endif"
+      }
+    },
+    {
+      "id": "handler:cps_state.get_tile0_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_tile0_info",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2452,
+        "sourceColumn": 1,
+        "sourceEndLine": 2474,
+        "sourceConstants": [
+          "GFXTYPE_SCROLL1=2"
+        ],
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code = m_scroll[0][2 * tile_index];\n\tconst uint16_t attr = m_scroll[0][2 * tile_index + 1];\n\n\tcode = gfxrom_bank_mapper(GFXTYPE_SCROLL1, code);\n\n\t// allows us to reproduce a problem seen with a ffight board where USA and Japanese\n\t// roms have been mixed to be reproduced (ffightub) -- it looks like each column\n\t// should alternate between the left and right side of the 16x16 tiles\n\tconst uint8_t gfxset = BIT(tile_index, 5);\n\n\ttileinfo.set(gfxset,\n\t\t\tcode,\n\t\t\t(attr & 0x1f) + 0x20,\n\t\t\tTILE_FLIPYX((attr & 0x60) >> 5));\n\ttileinfo.group = (attr & 0x0180) >> 7;\n\n\t// for out of range tiles, switch to fully transparent data\n\t// (but still call tileinfo.set, otherwise problems might occur on boot e.g. unsquad)\n\tif (code == -1)\n\t\ttileinfo.pen_data = m_empty_tile;"
+      }
+    },
+    {
+      "id": "handler:cps_state.gfxrom_bank_mapper",
+      "label": "Handler",
+      "props": {
+        "method": "gfxrom_bank_mapper",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2385,
+        "sourceColumn": 1,
+        "sourceEndLine": 2425,
+        "sourceConstants": [
+          "GFXTYPE_SPRITES=1",
+          "GFXTYPE_SCROLL1=2",
+          "GFXTYPE_SCROLL2=4",
+          "GFXTYPE_SCROLL3=8"
+        ],
+        "sourceParameters": "int type, int code",
+        "sourceBody": "const struct gfx_range *range = m_game_config->bank_mapper;\n\tint shift = 0;\n\n\tassert(range);\n\n\tswitch (type)\n\t{\n\t\tcase GFXTYPE_SPRITES: shift = 1; break;\n\t\tcase GFXTYPE_SCROLL1: shift = 0; break;\n\t\tcase GFXTYPE_SCROLL2: shift = 1; break;\n\t\tcase GFXTYPE_SCROLL3: shift = 3; break;\n\t}\n\n\tcode <<= shift;\n\n\twhile (range->type)\n\t{\n\t\tif (code >= range->start && code <= range->end)\n\t\t{\n\t\t\tif (range->type & type)\n\t\t\t{\n\t\t\t\tint base = 0;\n\n\t\t\t\tfor (int i = 0; i < range->bank; ++i)\n\t\t\t\t\tbase += m_game_config->bank_sizes[i];\n\n\t\t\t\treturn (base + (code & (m_game_config->bank_sizes[range->bank] - 1))) >> shift;\n\t\t\t}\n\t\t}\n\n\t\t++range;\n\t}\n\n#ifdef MAME_DEBUG\n\t//popmessage(\"tile %02x/%04x out of range\", type, code >> shift);\n#endif\n\n\treturn -1;"
+      }
+    },
+    {
+      "id": "handler:cps_state.tilemap0_scan",
+      "label": "Handler",
+      "props": {
+        "method": "tilemap0_scan",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2434,
+        "sourceColumn": 1,
+        "sourceEndLine": 2438,
+        "sourceParameters": "u32 col, u32 row, u32 num_cols, u32 num_rows",
+        "sourceBody": "// logical (col,row) -> memory offset\n\treturn (row & 0x1f) + ((col & 0x3f) << 5) + ((row & 0x20) << 6);"
+      }
+    },
+    {
+      "id": "handler:cps_state.get_tile1_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_tile1_info",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2476,
+        "sourceColumn": 1,
+        "sourceEndLine": 2492,
+        "sourceConstants": [
+          "GFXTYPE_SCROLL2=4"
+        ],
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code = m_scroll[1][2 * tile_index];\n\tconst uint16_t attr = m_scroll[1][2 * tile_index + 1];\n\n\tcode = gfxrom_bank_mapper(GFXTYPE_SCROLL2, code);\n\n\ttileinfo.set(2,\n\t\t\tcode,\n\t\t\t(attr & 0x1f) + 0x40,\n\t\t\tTILE_FLIPYX((attr & 0x60) >> 5));\n\ttileinfo.group = (attr & 0x0180) >> 7;\n\n\t// for out of range tiles, switch to fully transparent data\n\tif (code == -1)\n\t\ttileinfo.pen_data = m_empty_tile;"
+      }
+    },
+    {
+      "id": "handler:cps_state.tilemap1_scan",
+      "label": "Handler",
+      "props": {
+        "method": "tilemap1_scan",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2440,
+        "sourceColumn": 1,
+        "sourceEndLine": 2444,
+        "sourceParameters": "u32 col, u32 row, u32 num_cols, u32 num_rows",
+        "sourceBody": "// logical (col,row) -> memory offset\n\treturn (row & 0x0f) + ((col & 0x3f) << 4) + ((row & 0x30) << 6);"
+      }
+    },
+    {
+      "id": "handler:cps_state.get_tile2_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_tile2_info",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2494,
+        "sourceColumn": 1,
+        "sourceEndLine": 2511,
+        "sourceConstants": [
+          "GFXTYPE_SCROLL3=8"
+        ],
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int code = m_scroll[2][2 * tile_index] & 0x3fff;\n\tconst uint16_t attr = m_scroll[2][2 * tile_index + 1];\n\n\tcode = gfxrom_bank_mapper(GFXTYPE_SCROLL3, code);\n\n\ttileinfo.set(3,\n\t\t\tcode,\n\t\t\t(attr & 0x1f) + 0x60,\n\t\t\tTILE_FLIPYX((attr & 0x60) >> 5));\n\ttileinfo.group = (attr & 0x0180) >> 7;\n\n\t// for out of range tiles, switch to fully transparent data\n\t// (but still call tileinfo.set, otherwise problems might occur on boot e.g. unsquad)\n\tif (code == -1)\n\t\ttileinfo.pen_data = m_empty_tile;"
+      }
+    },
+    {
+      "id": "handler:cps_state.tilemap2_scan",
+      "label": "Handler",
+      "props": {
+        "method": "tilemap2_scan",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2446,
+        "sourceColumn": 1,
+        "sourceEndLine": 2450,
+        "sourceParameters": "u32 col, u32 row, u32 num_cols, u32 num_rows",
+        "sourceBody": "// logical (col,row) -> memory offset\n\treturn (row & 0x07) + ((col & 0x3f) << 3) + ((row & 0x38) << 6);"
+      }
+    },
+    {
+      "id": "bank:cps_state.cps1_10MHz/audiobank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "audiobank",
+        "member": "m_audiobank",
+        "startEntry": 0,
+        "entries": 2,
+        "region": "audiocpu",
+        "offset": 65536,
+        "stride": 16384,
+        "raw": "m_audiobank->configure_entries(0, 2, memregion(\"audiocpu\")->base() + 0x10000, 0x4000)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3909,
+        "sourceColumn": 1,
+        "sourceEndLine": 3947
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M68000",
+        "tag": "maincpu",
+        "clock": 10000000,
+        "config": [
+          "M68000(config, m_maincpu, XTAL(10'000'000))",
+          "m_maincpu->set_interrupt_mixer(false)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &cps_state::main_map)",
+          "m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &cps_state::cpu_space_map)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(cps_state::cps1_interrupt))"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3912,
+        "sourceColumn": 2,
+        "sourceEndLine": 3912
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_vblank_int",
+        "operation": "set_vblank_int",
+        "raw": "m_maincpu->set_vblank_int(\"screen\", FUNC(cps_state::cps1_interrupt))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3916,
+        "sourceColumn": 2,
+        "sourceEndLine": 3916,
+        "targetTag": "screen",
+        "targetClass": "cps_state",
+        "targetMethod": "cps1_interrupt"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_interrupt",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 348,
+        "sourceColumn": 1,
+        "sourceEndLine": 354,
+        "sourceParameters": "device_t &device",
+        "sourceBody": "/* Strider also has a IRQ4 handler. It is input port related, but the game */\n\t/* works without it. It is the *only* CPS1 game to have that. */\n\t/* ...until we found out that ganbare relies on it, see below */\n\tdevice.execute().set_input_line(M68K_IRQ_IPL1, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3579545,
+        "config": [
+          "Z80(config, m_audiocpu, XTAL(3'579'545))",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &cps_state::sub_map)"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3918,
+        "sourceColumn": 2,
+        "sourceEndLine": 3918
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(CPS_PIXEL_CLOCK, CPS_HTOTAL, CPS_HBEND, CPS_HBSTART, CPS_VTOTAL, CPS_VBEND, CPS_VBSTART)",
+          "m_screen->set_screen_update(FUNC(cps_state::screen_update_cps1))",
+          "m_screen->screen_vblank().set(FUNC(cps_state::screen_vblank_cps1))",
+          "m_screen->screen_vblank().append(FUNC(cps_state::cps1_objram_latch))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "configCalls": [
+          "set_raw(8000000,512,64,448,262,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          8000000,
+          512,
+          64,
+          448,
+          262,
+          16,
+          240
+        ],
+        "screenRawExpr": [
+          "CPS_PIXEL_CLOCK",
+          "CPS_HTOTAL",
+          "CPS_HBEND",
+          "CPS_HBSTART",
+          "CPS_VTOTAL",
+          "CPS_VBEND",
+          "CPS_VBSTART"
+        ]
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(cps_state::screen_update_cps1))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3926,
+        "sourceColumn": 2,
+        "sourceEndLine": 3926,
+        "targetClass": "cps_state",
+        "targetMethod": "screen_update_cps1"
+      }
+    },
+    {
+      "id": "handler:cps_state.screen_update_cps1",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_cps1",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 3001,
+        "sourceColumn": 1,
+        "sourceEndLine": 3052,
+        "sourceConstants": [
+          "CPS1_ROWSCROLL_OFFS=16",
+          "CPS1_VIDEOCONTROL=17"
+        ],
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "const uint16_t videocontrol = m_cps_a_regs[CPS1_VIDEOCONTROL];\n\n\tflip_screen_set(BIT(videocontrol, 15));\n\n\t// Get video memory base registers\n\tcps1_get_video_base();\n\n\t// Find the offset of the last sprite in the sprite table\n\tfind_last_sprite();\n\n\tcps1_update_transmasks();\n\n\tm_bg_tilemap[0]->set_scrollx(0, m_scrollx[0]);\n\tm_bg_tilemap[0]->set_scrolly(0, m_scrolly[0]);\n\n\tif (BIT(videocontrol, 0)) // linescroll enable\n\t{\n\t\tconst int scrly = -m_scrolly[1];\n\n\t\tm_bg_tilemap[1]->set_scroll_rows(1024);\n\n\t\tconst int otheroffs = m_cps_a_regs[CPS1_ROWSCROLL_OFFS];\n\n\t\tfor (int i = 0; i < 256; i++)\n\t\t\tm_bg_tilemap[1]->set_scrollx((i - scrly) & 0x3ff, m_scrollx[1] + m_other[(i + otheroffs) & 0x3ff]);\n\t}\n\telse\n\t{\n\t\tm_bg_tilemap[1]->set_scroll_rows(1);\n\t\tm_bg_tilemap[1]->set_scrollx(0, m_scrollx[1]);\n\t}\n\tm_bg_tilemap[1]->set_scrolly(0, m_scrolly[1]);\n\tm_bg_tilemap[2]->set_scrollx(0, m_scrollx[2]);\n\tm_bg_tilemap[2]->set_scrolly(0, m_scrolly[2]);\n\n\t// Games use pen 0xbff as background color; this is used in 3wonders,\n\t// mtwins (explosion during attract), mercs (intermission).\n\t// Depending on what type of monitor is connected, it can be glitchy on\n\t// real hardware if 0xbff is not black.\n\tbitmap.fill(0xbff, cliprect);\n\n\tif (m_region_stars)\n\t{\n\t\tcps1_render_stars(screen, bitmap, cliprect);\n\t}\n\n\trender_layers(screen, bitmap, cliprect);\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:cps_state.find_last_sprite",
+      "label": "Handler",
+      "props": {
+        "method": "find_last_sprite",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2684,
+        "sourceColumn": 1,
+        "sourceEndLine": 2717,
+        "sourceParameters": "",
+        "sourceBody": "int offset = 0;\n\n\t// Locate the end of table marker\n\twhile (offset < m_obj_size / 2)\n\t{\n\t\tif (BIT(m_game_config->bootleg_kludge, 0, 4) == 3)\n\t\t{\n\t\t\t// captcommb - same end of sprite marker as CPS-2\n\t\t\tconst int marker = m_buffered_obj[offset + 1];\n\t\t\tif (marker >= 0x8000)\n\t\t\t{\n\t\t\t\t// Marker found. This is the last sprite.\n\t\t\t\tm_last_sprite_offset = offset - 4;\n\t\t\t\treturn;\n\t\t\t}\n\t\t}\n\t\telse\n\t\t{\n\t\t\tconst int marker = m_buffered_obj[offset + 3];\n\t\t\tif ((marker & 0xff00) == 0xff00)\n\t\t\t{\n\t\t\t\t// Marker found. This is the last sprite.\n\t\t\t\tm_last_sprite_offset = offset - 4;\n\t\t\t\treturn;\n\t\t\t}\n\t\t}\n\n\t\toffset += 4;\n\t}\n\t// Sprites must use full sprite RAM\n\tm_last_sprite_offset = m_obj_size / 2 - 4;"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_render_stars",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_render_stars",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2869,
+        "sourceColumn": 1,
+        "sourceEndLine": 2930,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "uint8_t const *const stars_rom = m_region_stars->base();\n\n\tif (!stars_rom && (m_stars_enabled[0] || m_stars_enabled[1]))\n\t{\n\t\t//popmessage(\"stars enabled but no stars ROM\");\n\t\treturn;\n\t}\n\n\tif (m_stars_enabled[0])\n\t{\n\t\tfor (int offs = 0; offs < m_stars_rom_size / 2; offs++)\n\t\t{\n\t\t\tint col = stars_rom[8 * offs + 4];\n\t\t\tif ((col & 0x1f) != 0x0f)\n\t\t\t{\n\t\t\t\tint sx = (offs / 256) * 32;\n\t\t\t\tint sy = (offs % 256);\n\t\t\t\tsx = (sx - m_starsx[1] + (col & 0x1f)) & 0x1ff;\n\t\t\t\tsy = (sy - m_starsy[1]) & 0xff;\n\t\t\t\tif (flip_screen())\n\t\t\t\t{\n\t\t\t\t\tsx = 512 - sx;\n\t\t\t\t\tsy = 256 - sy;\n\t\t\t\t}\n\n\t\t\t\tconst int cnt = (screen.frame_number() / 16) % (BIT(col, 7) ? 15 : 16);\n\t\t\t\tcol = ((col & 0xe0) >> 1) + cnt;\n\n\t\t\t\tif (cliprect.contains(sx, sy))\n\t\t\t\t\tbitmap.pix(sy, sx) = 0xa00 + col;\n\t\t\t}\n\t\t}\n\t}\n\n\tif (m_stars_enabled[1])\n\t{\n\t\tfor (int offs = 0; offs < m_stars_rom_size / 2; offs++)\n\t\t{\n\t\t\tint col = stars_rom[8 * offs];\n\t\t\tif ((col & 0x1f) != 0x0f)\n\t\t\t{\n\t\t\t\tint sx = (offs / 256) * 32;\n\t\t\t\tint sy = (offs % 256);\n\t\t\t\tsx = (sx - m_starsx[0] + (col & 0x1f)) & 0x1ff;\n\t\t\t\tsy = (sy - m_starsy[0]) & 0xff;\n\t\t\t\tif (flip_screen())\n\t\t\t\t{\n\t\t\t\t\tsx = 512 - sx;\n\t\t\t\t\tsy = 256 - sy;\n\t\t\t\t}\n\n\t\t\t\tconst int cnt = (screen.frame_number() / 16) % (BIT(col, 7) ? 15 : 16);\n\t\t\t\tcol = ((col & 0xe0) >> 1) + cnt;\n\n\t\t\t\tif (cliprect.contains(sx, sy))\n\t\t\t\t\tbitmap.pix(sy, sx) = 0x800 + col;\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:cps_state.render_layers",
+      "label": "Handler",
+      "props": {
+        "method": "render_layers",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2970,
+        "sourceColumn": 1,
+        "sourceEndLine": 2999,
+        "sourceConstants": [
+          "CPS1_PALETTE_BASE=5"
+        ],
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// Draw layers (0 = sprites, 1-3 = tilemaps)\n\tconst uint16_t layercontrol = m_cps_b_regs[m_game_config->layer_control / 2];\n\tconst uint16_t l0 = (layercontrol >> 0x06) & 0x03;\n\tconst uint16_t l1 = (layercontrol >> 0x08) & 0x03;\n\tconst uint16_t l2 = (layercontrol >> 0x0a) & 0x03;\n\tconst uint16_t l3 = (layercontrol >> 0x0c) & 0x03;\n\tscreen.priority().fill(0, cliprect);\n\n\tif (BIT(m_game_config->bootleg_kludge, 7))\n\t\tcps1_build_palette(cps1_base(CPS1_PALETTE_BASE, m_palette_align));\n\n\tcps1_render_layer(screen, bitmap, cliprect, l0, 0);\n\n\tif (l1 == 0)\n\t\tcps1_render_high_layer(screen, bitmap, cliprect, l0); // prepare mask for sprites\n\n\tcps1_render_layer(screen, bitmap, cliprect, l1, 0);\n\n\tif (l2 == 0)\n\t\tcps1_render_high_layer(screen, bitmap, cliprect, l1); // prepare mask for sprites\n\n\tcps1_render_layer(screen, bitmap, cliprect, l2, 0);\n\n\tif (l3 == 0)\n\t\tcps1_render_high_layer(screen, bitmap, cliprect, l2); // prepare mask for sprites\n\n\tcps1_render_layer(screen, bitmap, cliprect, l3, 0);"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_render_layer",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_render_layer",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2933,
+        "sourceColumn": 1,
+        "sourceEndLine": 2946,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int layer, int primask",
+        "sourceBody": "switch (layer)\n\t{\n\t\tcase 0:\n\t\t\tcps1_render_sprites(screen, bitmap, cliprect);\n\t\t\tbreak;\n\t\tcase 1:\n\t\tcase 2:\n\t\tcase 3:\n\t\t\tm_bg_tilemap[layer - 1]->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER1, primask);\n\t\t\tbreak;\n\t}"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_render_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_render_sprites",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2720,
+        "sourceColumn": 1,
+        "sourceEndLine": 2865,
+        "sourceConstants": [
+          "GFXTYPE_SPRITES=1"
+        ],
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "#define DRAWSPRITE(CODE,COLOR,FLIPX,FLIPY,SX,SY)                    \\\n{                                                                   \\\n\tif (flip_screen())                                           \\\n\t\tm_gfxdecode->gfx(2)->prio_transpen(bitmap,\\\n\t\t\t\tcliprect,                            \\\n\t\t\t\tCODE,                                               \\\n\t\t\t\tCOLOR,                                              \\\n\t\t\t\t!(FLIPX), !(FLIPY),                                  \\\n\t\t\t\t512-16-(SX), 256-16-(SY), screen.priority(), 0x02, 15);                   \\\n\telse                                                            \\\n\t\tm_gfxdecode->gfx(2)->prio_transpen(bitmap,\\\n\t\t\t\tcliprect,                            \\\n\t\t\t\tCODE,                                               \\\n\t\t\t\tCOLOR,                                              \\\n\t\t\t\tFLIPX, FLIPY,                                        \\\n\t\t\t\tSX, SY, screen.priority(), 0x02,15);          \\\n}\n\n\tint baseadd;\n\tuint16_t const *base = m_buffered_obj.get();\n\n\t// some sf2 hacks draw the sprites in reverse order\n\tif (BIT(m_game_config->bootleg_kludge, 6))\n\t{\n\t\tbase += m_last_sprite_offset;\n\t\tbaseadd = -4;\n\t}\n\telse\n\t{\n\t\tbaseadd = 4;\n\t}\n\n\tfor (int i = m_last_sprite_offset; i >= 0; i -= 4)\n\t{\n\t\tconst int x = *(base + 0);\n\t\tconst int y = *(base + 1);\n\t\tint code = *(base + 2);\n\t\tconst int colour = *(base + 3);\n\t\tconst int col = colour & 0x1f;\n\t\tconst bool flipx = BIT(colour, 5);\n\t\tconst bool flipy = BIT(colour, 6);\n\n\t\tcode = gfxrom_bank_mapper(GFXTYPE_SPRITES, code);\n\n\t\tif (code != -1)\n\t\t{\n\t\t\tif (colour & 0xff00)\n\t\t\t{\n\t\t\t\t// handle blocked sprites\n\t\t\t\tint nx = (colour & 0x0f00) >> 8;\n\t\t\t\tint ny = (colour & 0xf000) >> 12;\n\t\t\t\tnx++;\n\t\t\t\tny++;\n\n\t\t\t\tif (flipy)\n\t\t\t\t{\n\t\t\t\t\t// Y flip\n\t\t\t\t\tif (flipx)\n\t\t\t\t\t{\n\t\t\t\t\t\tfor (int nys = 0; nys < ny; nys++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tconst int sy = (y + nys * 16) & 0x1ff;\n\t\t\t\t\t\t\tfor (int nxs = 0; nxs < nx; nxs++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tconst int sx = (x + nxs * 16) & 0x1ff;\n\n\t\t\t\t\t\t\t\tDRAWSPRITE(\n\t\t\t\t\t\t\t\t\t\t(code & ~0xf) + ((code + (nx - 1) - nxs) & 0xf) + 0x10 * (ny - 1 - nys),\n\t\t\t\t\t\t\t\t\t\tcol,\n\t\t\t\t\t\t\t\t\t\t1, 1,\n\t\t\t\t\t\t\t\t\t\tsx, sy);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tfor (int nys = 0; nys < ny; nys++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tconst int sy = (y + nys * 16) & 0x1ff;\n\t\t\t\t\t\t\tfor (int nxs = 0; nxs < nx; nxs++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tconst int sx = (x + nxs * 16) & 0x1ff;\n\n\t\t\t\t\t\t\t\tDRAWSPRITE(\n\t\t\t\t\t\t\t\t\t\t(code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * (ny - 1 - nys),\n\t\t\t\t\t\t\t\t\t\tcol,\n\t\t\t\t\t\t\t\t\t\t0, 1,\n\t\t\t\t\t\t\t\t\t\tsx, sy);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tif (flipx)\n\t\t\t\t\t{\n\t\t\t\t\t\tfor (int nys = 0; nys < ny; nys++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tconst int sy = (y + nys * 16) & 0x1ff;\n\t\t\t\t\t\t\tfor (int nxs = 0; nxs<nx; nxs++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tconst int sx = (x + nxs * 16) & 0x1ff;\n\n\t\t\t\t\t\t\t\tDRAWSPRITE(\n\t\t\t\t\t\t\t\t\t\t(code & ~0xf) + ((code + (nx - 1) - nxs) & 0xf) + 0x10 * nys,\n\t\t\t\t\t\t\t\t\t\tcol,\n\t\t\t\t\t\t\t\t\t\t1, 0,\n\t\t\t\t\t\t\t\t\t\tsx, sy);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tfor (int nys = 0; nys < ny; nys++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tconst int sy = (y + nys * 16) & 0x1ff;\n\t\t\t\t\t\t\tfor (int nxs = 0; nxs < nx; nxs++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tconst int sx = (x + nxs * 16) & 0x1ff;\n\n\t\t\t\t\t\t\t\tDRAWSPRITE(\n\t\t\t\t\t\t\t\t\t\t(code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * nys,\n\t\t\t\t\t\t\t\t\t\tcol,\n\t\t\t\t\t\t\t\t\t\t0, 0,\n\t\t\t\t\t\t\t\t\t\tsx, sy);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t// Simple case... 1 sprite\n\t\t\t\tDRAWSPRITE(\n\t\t\t\t\t\tcode,\n\t\t\t\t\t\tcol,\n\t\t\t\t\t\tflipx, flipy,\n\t\t\t\t\t\tx & 0x1ff, y & 0x1ff);\n\t\t\t}\n\t\t}\n\t\tbase += baseadd;\n\t}\n#undef DRAWSPRITE"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_render_high_layer",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_render_high_layer",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 2948,
+        "sourceColumn": 1,
+        "sourceEndLine": 2961,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int layer",
+        "sourceBody": "switch (layer)\n\t{\n\t\tcase 0:\n\t\t\t// there are no high priority sprites\n\t\t\tbreak;\n\t\tcase 1:\n\t\tcase 2:\n\t\tcase 3:\n\t\t\tm_bg_tilemap[layer - 1]->draw(screen, m_dummy_bitmap, cliprect, TILEMAP_DRAW_LAYER0, 1);\n\t\t\tbreak;\n\t}"
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "m_screen->screen_vblank().set(FUNC(cps_state::screen_vblank_cps1))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3927,
+        "sourceColumn": 2,
+        "sourceEndLine": 3927,
+        "targetClass": "cps_state",
+        "targetMethod": "screen_vblank_cps1"
+      }
+    },
+    {
+      "id": "handler:cps_state.screen_vblank_cps1",
+      "label": "Handler",
+      "props": {
+        "method": "screen_vblank_cps1",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 3054,
+        "sourceColumn": 1,
+        "sourceEndLine": 3061,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state)\n\t{\n\t\t// Get video memory base registers\n\t\tcps1_get_video_base();\n\t}"
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/screen/callback:screen:2",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "append",
+        "raw": "m_screen->screen_vblank().append(FUNC(cps_state::cps1_objram_latch))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3928,
+        "sourceColumn": 2,
+        "sourceEndLine": 3928,
+        "targetClass": "cps_state",
+        "targetMethod": "cps1_objram_latch"
+      }
+    },
+    {
+      "id": "handler:cps_state.cps1_objram_latch",
+      "label": "Handler",
+      "props": {
+        "method": "cps1_objram_latch",
+        "ownerClass": "cps_state",
+        "sourceFile": "src/mame/capcom/cps1_v.cpp",
+        "sourceLine": 3063,
+        "sourceColumn": 1,
+        "sourceEndLine": 3070,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state)\n\t{\n\t\t// CPS1 sprites have to be delayed one frame\n\t\tmemcpy(m_buffered_obj.get(), m_obj, m_obj_size);\n\t}"
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_cps1)"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3931,
+        "sourceColumn": 2,
+        "sourceEndLine": 3931,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, palette_device::BLACK).set_entries(0xc00)"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3932,
+        "sourceColumn": 2,
+        "sourceEndLine": 3932,
+        "clockExpr": "palette_device::BLACK"
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3935,
+        "sourceColumn": 2,
+        "sourceEndLine": 3935
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/soundlatch1",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch1",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch[0])"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3937,
+        "sourceColumn": 2,
+        "sourceEndLine": 3937
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/soundlatch2",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch2",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch[1])"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3938,
+        "sourceColumn": 2,
+        "sourceEndLine": 3938
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/2151",
+      "label": "Device",
+      "props": {
+        "type": "YM2151",
+        "tag": "2151",
+        "clock": 3579545,
+        "config": [
+          "ym2151_device &ym2151(YM2151(config, \"2151\", XTAL(3'579'545)))",
+          "ym2151.irq_handler().set_inputline(m_audiocpu, 0)",
+          "ym2151.add_route(0, \"mono\", 0.35)",
+          "ym2151.add_route(1, \"mono\", 0.35)"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3940,
+        "sourceColumn": 2,
+        "sourceEndLine": 3940
+      }
+    },
+    {
+      "id": "audioroute:device:cps_state.cps1_10MHz/2151/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.35,
+        "raw": "ym2151.add_route(0, \"mono\", 0.35)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3942,
+        "sourceColumn": 2,
+        "sourceEndLine": 3942
+      }
+    },
+    {
+      "id": "audioroute:device:cps_state.cps1_10MHz/2151/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.35,
+        "raw": "ym2151.add_route(1, \"mono\", 0.35)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3943,
+        "sourceColumn": 2,
+        "sourceEndLine": 3943
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/2151/callback:2151:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set_inputline",
+        "raw": "ym2151.irq_handler().set_inputline(m_audiocpu, 0)",
+        "ownerTag": "2151",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3941,
+        "sourceColumn": 2,
+        "sourceEndLine": 3941,
+        "inputLine": "0",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:cps_state.cps1_10MHz/oki",
+      "label": "Device",
+      "props": {
+        "type": "OKIM6295",
+        "tag": "oki",
+        "clock": 1000000,
+        "config": [
+          "OKIM6295(config, m_oki, XTAL(16'000'000)/4/4, okim6295_device::PIN7_HIGH).add_route(ALL_OUTPUTS, \"mono\", 0.30)"
+        ],
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3946,
+        "sourceColumn": 2,
+        "sourceEndLine": 3946
+      }
+    },
+    {
+      "id": "audioroute:device:cps_state.cps1_10MHz/oki/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.3,
+        "raw": "OKIM6295(config, m_oki, XTAL(16'000'000)/4/4, okim6295_device::PIN7_HIGH).add_route(ALL_OUTPUTS, \"mono\", 0.30)",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3946,
+        "sourceColumn": 2,
+        "sourceEndLine": 3946
+      }
+    },
+    {
+      "id": "inputs:cps1_3b",
+      "label": "InputPorts",
+      "props": {
+        "name": "cps1_3b",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 8,
+        "sourceEndLine": 829
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 64,
+        "activeLow": true,
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4096,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 4096
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8192,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 8192
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f14",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:cps1_3b/IN1/f15",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32768,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "inputs:cps1_2b",
+      "label": "InputPorts",
+      "props": {
+        "name": "cps1_2b",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 860,
+        "sourceColumn": 8,
+        "sourceEndLine": 860
+      }
+    },
+    {
+      "id": "inputs:cps1_2b/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:cps1_2b/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:cps1_2b/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way",
+      "label": "InputPorts",
+      "props": {
+        "name": "cps1_2b_4way",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 869,
+        "sourceColumn": 8,
+        "sourceEndLine": 869
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:cps1_2b_4way/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:ghouls",
+      "label": "InputPorts",
+      "props": {
+        "name": "ghouls",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 1070,
+        "sourceColumn": 8,
+        "sourceEndLine": 1070
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC",
+      "label": "Port",
+      "props": {
+        "tag": "DSWC",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(C):1,2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 3,
+        "location": "SW(C):1,2",
+        "settings": [
+          "3=3",
+          "2=4",
+          "1=5",
+          "0=6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(C):5\")"
+        ],
+        "name": "Flip Screen",
+        "defaultValue": 16,
+        "location": "SW(C):5",
+        "settings": [
+          "16=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(C):6\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 32,
+        "location": "SW(C):6",
+        "settings": [
+          "32=On",
+          "0=Off"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(C):7\")"
+        ],
+        "name": "Allow Continue",
+        "defaultValue": 64,
+        "location": "SW(C):7",
+        "settings": [
+          "0=No",
+          "64=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWC/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(C):8\")"
+        ],
+        "name": "Game Mode",
+        "defaultValue": 128,
+        "location": "SW(C):8",
+        "settings": [
+          "128=Game",
+          "0=Test"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWB",
+      "label": "Port",
+      "props": {
+        "tag": "DSWB",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWB/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 7,
+        "modifiers": [
+          "PORT_CONDITION(\"DSWC\", 0x80, EQUALS, 0x80)",
+          "PORT_DIPLOCATION(\"SW(B):1,2,3\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 5,
+        "location": "SW(B):1,2,3",
+        "settings": [
+          "4=1 (Easiest)",
+          "5=2",
+          "6=3",
+          "7=4 (Normal)",
+          "3=5",
+          "2=6",
+          "1=7",
+          "0=8 (Hardest)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWB/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWB/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(B):5,6\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 48,
+        "location": "SW(B):5,6",
+        "settings": [
+          "32=10K, 30K and every 30K",
+          "16=20K, 50K and every 70K",
+          "48=30K, 60K and every 70K",
+          "0=40K, 70K and every 80K"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWB/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Unused",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWB/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWA",
+      "label": "Port",
+      "props": {
+        "tag": "DSWA",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWA/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 7,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(A)\" \":1,2,3\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 7,
+        "location": "SW(A)\" \":1,2,3",
+        "settings": [
+          "0=4C 1C",
+          "1=3C 1C",
+          "2=2C 1C",
+          "7=1C 1C",
+          "6=1C 2C",
+          "5=1C 3C",
+          "4=1C 4C",
+          "3=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWA/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 56,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(A)\" \":4,5,6\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 56,
+        "location": "SW(A)\" \":4,5,6",
+        "settings": [
+          "0=4C 1C",
+          "8=3C 1C",
+          "16=2C 1C",
+          "56=1C 1C",
+          "48=1C 2C",
+          "40=1C 3C",
+          "32=1C 4C",
+          "24=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ghouls/DSWA/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW(A):7,8\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 192,
+        "location": "SW(A):7,8",
+        "settings": [
+          "192=Upright 1 Player",
+          "128=Upright 2 Players",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:cps1_layout8x8",
+      "label": "GfxLayout",
+      "props": {
+        "name": "cps1_layout8x8",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          24,
+          16,
+          8,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxlayout:cps1_layout8x8_2",
+      "label": "GfxLayout",
+      "props": {
+        "name": "cps1_layout8x8_2",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          24,
+          16,
+          8,
+          0
+        ],
+        "xOffsets": [
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxlayout:cps1_layout16x16",
+      "label": "GfxLayout",
+      "props": {
+        "name": "cps1_layout16x16",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          24,
+          16,
+          8,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:cps1_layout32x32",
+      "label": "GfxLayout",
+      "props": {
+        "name": "cps1_layout32x32",
+        "width": 32,
+        "height": 32,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          24,
+          16,
+          8,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103
+        ],
+        "yOffsets": [
+          0,
+          128,
+          256,
+          384,
+          512,
+          640,
+          768,
+          896,
+          1024,
+          1152,
+          1280,
+          1408,
+          1536,
+          1664,
+          1792,
+          1920,
+          2048,
+          2176,
+          2304,
+          2432,
+          2560,
+          2688,
+          2816,
+          2944,
+          3072,
+          3200,
+          3328,
+          3456,
+          3584,
+          3712,
+          3840,
+          3968
+        ],
+        "charIncrement": 4096
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_cps1",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_cps1",
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3881,
+        "sourceColumn": 1,
+        "sourceEndLine": 3881
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_cps1/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx",
+        "offset": 0,
+        "layout": "cps1_layout8x8",
+        "colorBase": 0,
+        "colorCount": 128,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_cps1/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx",
+        "offset": 0,
+        "layout": "cps1_layout8x8_2",
+        "colorBase": 0,
+        "colorCount": 128,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_cps1/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx",
+        "offset": 0,
+        "layout": "cps1_layout16x16",
+        "colorBase": 0,
+        "colorCount": 128,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_cps1/e3",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx",
+        "offset": 0,
+        "layout": "cps1_layout32x32",
+        "colorBase": 0,
+        "colorCount": 128,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:ghouls",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 14966,
+        "sourceColumn": 1,
+        "sourceEndLine": 14966
+      }
+    },
+    {
+      "from": "game:ghouls",
+      "to": "machine:cps_state.cps1_10MHz",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:ghouls",
+      "to": "inputs:ghouls",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:ghouls",
+      "to": "romset:ghouls",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:cps1.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:machine/eepromser.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:machine/upd4701.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:sound/ymopm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:kabuki.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/capcom/cps1.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3909,
+        "sourceColumn": 1,
+        "sourceEndLine": 3947
+      }
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "handler:cps_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "bank:cps_state.cps1_10MHz/audiobank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "gfxdecode:gfx_cps1",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/soundlatch1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/soundlatch2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/2151",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:cps_state.cps1_10MHz",
+      "to": "device:cps_state.cps1_10MHz/oki",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:ghouls",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 1070,
+        "sourceColumn": 8,
+        "sourceEndLine": 1070
+      }
+    },
+    {
+      "from": "inputs:ghouls",
+      "to": "inputs:cps1_2b_4way",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:ghouls",
+      "to": "inputs:ghouls/DSWC",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ghouls",
+      "to": "inputs:ghouls/DSWB",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ghouls",
+      "to": "inputs:ghouls/DSWA",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:ghouls",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 4561,
+        "sourceColumn": 1,
+        "sourceEndLine": 4561
+      }
+    },
+    {
+      "from": "romset:ghouls",
+      "to": "region:ghouls/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ghouls",
+      "to": "region:ghouls/gfx",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ghouls",
+      "to": "region:ghouls/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ghouls",
+      "to": "region:ghouls/oki",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ghouls",
+      "to": "region:ghouls/aboardplds",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ghouls",
+      "to": "region:ghouls/bboardplds",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.cps1_update_transmasks",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.cps1_get_video_base",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.get_tile0_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.tilemap0_scan",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.get_tile1_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.tilemap1_scan",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.get_tile2_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.video_start",
+      "to": "handler:cps_state.tilemap2_scan",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:cps_state.cps1_10MHz/audiobank",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3909,
+        "sourceColumn": 1,
+        "sourceEndLine": 3947
+      }
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/maincpu",
+      "to": "device:cps_state.cps1_10MHz/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/maincpu",
+      "to": "map:cps_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/maincpu",
+      "to": "map:cps_state.cpu_space_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "m68000_base_device::AS_CPU_SPACE"
+      }
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/audiocpu",
+      "to": "map:cps_state.sub_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/screen",
+      "to": "device:cps_state.cps1_10MHz/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/screen",
+      "to": "device:cps_state.cps1_10MHz/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/screen",
+      "to": "device:cps_state.cps1_10MHz/screen/callback:screen:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 3881,
+        "sourceColumn": 1,
+        "sourceEndLine": 3881
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_cps1",
+      "to": "gfxdecode:gfx_cps1/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1",
+      "to": "gfxdecode:gfx_cps1/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1",
+      "to": "gfxdecode:gfx_cps1/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1",
+      "to": "gfxdecode:gfx_cps1/e3",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/2151",
+      "to": "audioroute:device:cps_state.cps1_10MHz/2151/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/2151",
+      "to": "audioroute:device:cps_state.cps1_10MHz/2151/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/2151",
+      "to": "device:cps_state.cps1_10MHz/2151/callback:2151:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/oki",
+      "to": "audioroute:device:cps_state.cps1_10MHz/oki/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:cps1_2b_4way",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 869,
+        "sourceColumn": 8,
+        "sourceEndLine": 869
+      }
+    },
+    {
+      "from": "inputs:cps1_2b_4way",
+      "to": "inputs:cps1_2b",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:cps1_2b_4way",
+      "to": "inputs:cps1_2b_4way/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ghouls/DSWC",
+      "to": "inputs:ghouls/DSWC/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWC",
+      "to": "inputs:ghouls/DSWC/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWC",
+      "to": "inputs:ghouls/DSWC/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWC",
+      "to": "inputs:ghouls/DSWC/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWC",
+      "to": "inputs:ghouls/DSWC/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWC",
+      "to": "inputs:ghouls/DSWC/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWC",
+      "to": "inputs:ghouls/DSWC/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWB",
+      "to": "inputs:ghouls/DSWB/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWB",
+      "to": "inputs:ghouls/DSWB/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWB",
+      "to": "inputs:ghouls/DSWB/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWB",
+      "to": "inputs:ghouls/DSWB/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWB",
+      "to": "inputs:ghouls/DSWB/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWA",
+      "to": "inputs:ghouls/DSWA/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWA",
+      "to": "inputs:ghouls/DSWA/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ghouls/DSWA",
+      "to": "inputs:ghouls/DSWA/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:ghouls/maincpu",
+      "to": "rom:ghouls/maincpu/dme_29.10h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/maincpu",
+      "to": "rom:ghouls/maincpu/dme_30.10j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/maincpu",
+      "to": "rom:ghouls/maincpu/dme_27.9h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/maincpu",
+      "to": "rom:ghouls/maincpu/dme_28.9j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/maincpu",
+      "to": "rom:ghouls/maincpu/dm-17.7j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/dm-05.3a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/dm-07.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/dm-06.3c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/dm-08.3g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/09.4a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/18.7a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/13.4e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/22.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/11.4c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/20.7c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/15.4g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/24.7g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/10.4b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/19.7b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/14.4f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/23.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/12.4d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/21.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/16.4h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/gfx",
+      "to": "rom:ghouls/gfx/25.7h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/audiocpu",
+      "to": "rom:ghouls/audiocpu/26.10a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/aboardplds",
+      "to": "rom:ghouls/aboardplds/buf1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/aboardplds",
+      "to": "rom:ghouls/aboardplds/ioa1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/aboardplds",
+      "to": "rom:ghouls/aboardplds/prg1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/aboardplds",
+      "to": "rom:ghouls/aboardplds/rom1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/aboardplds",
+      "to": "rom:ghouls/aboardplds/sou1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/bboardplds",
+      "to": "rom:ghouls/bboardplds/dm620.2a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ghouls/bboardplds",
+      "to": "rom:ghouls/bboardplds/lwio.8i",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:cps_state.cps1_get_video_base",
+      "to": "handler:cps_state.cps1_base",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.get_tile0_info",
+      "to": "handler:cps_state.gfxrom_bank_mapper",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.get_tile1_info",
+      "to": "handler:cps_state.gfxrom_bank_mapper",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.get_tile2_info",
+      "to": "handler:cps_state.gfxrom_bank_mapper",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/maincpu/callback:maincpu:0",
+      "to": "handler:cps_state.cps1_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 1,
+        "sourceEndLine": 594
+      }
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.main_map",
+      "to": "map:cps_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.cpu_space_map",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 419,
+        "sourceColumn": 1,
+        "sourceEndLine": 422
+      }
+    },
+    {
+      "from": "map:cps_state.cpu_space_map",
+      "to": "map:cps_state.cpu_space_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 631,
+        "sourceColumn": 1,
+        "sourceEndLine": 642
+      }
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:cps_state.sub_map",
+      "to": "map:cps_state.sub_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/screen/callback:screen:0",
+      "to": "handler:cps_state.screen_update_cps1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/screen/callback:screen:1",
+      "to": "handler:cps_state.screen_vblank_cps1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/screen/callback:screen:2",
+      "to": "handler:cps_state.cps1_objram_latch",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1/e0",
+      "to": "gfxlayout:cps1_layout8x8",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1/e1",
+      "to": "gfxlayout:cps1_layout8x8_2",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1/e2",
+      "to": "gfxlayout:cps1_layout16x16",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_cps1/e3",
+      "to": "gfxlayout:cps1_layout32x32",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:cps_state.cps1_10MHz/2151/callback:2151:0",
+      "to": "device:cps_state.cps1_10MHz/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "inputs:cps1_2b",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 860,
+        "sourceColumn": 8,
+        "sourceEndLine": 860
+      }
+    },
+    {
+      "from": "inputs:cps1_2b",
+      "to": "inputs:cps1_3b",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:cps1_2b",
+      "to": "inputs:cps1_2b/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b_4way/IN1",
+      "to": "inputs:cps1_2b_4way/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "map:cps_state.main_map/range2",
+      "to": "handler:cps_state.cps1_dsw_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:cps_state.main_map/range4",
+      "to": "handler:cps_state.cps1_coinctrl_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.main_map/range5",
+      "to": "handler:cps_state.cps1_cps_a_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.main_map/range6",
+      "to": "handler:cps_state.cps1_cps_b_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:cps_state.main_map/range6",
+      "to": "handler:cps_state.cps1_cps_b_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.main_map/range7",
+      "to": "handler:cps_state.cps1_soundlatch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.main_map/range8",
+      "to": "handler:cps_state.cps1_soundlatch2_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.main_map/range9",
+      "to": "handler:cps_state.cps1_gfxram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.cpu_space_map/range0",
+      "to": "handler:cps_state.irqack_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:cps_state.sub_map/range3",
+      "to": "handler:ym2151_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "2151"
+      }
+    },
+    {
+      "from": "map:cps_state.sub_map/range3",
+      "to": "handler:ym2151_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "2151"
+      }
+    },
+    {
+      "from": "map:cps_state.sub_map/range4",
+      "to": "handler:okim6295_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "oki"
+      }
+    },
+    {
+      "from": "map:cps_state.sub_map/range4",
+      "to": "handler:okim6295_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "oki"
+      }
+    },
+    {
+      "from": "map:cps_state.sub_map/range5",
+      "to": "handler:cps_state.cps1_snd_bankswitch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.sub_map/range6",
+      "to": "handler:cps_state.cps1_oki_pin7_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:cps_state.sub_map/range7",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch1"
+      }
+    },
+    {
+      "from": "map:cps_state.sub_map/range8",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch2"
+      }
+    },
+    {
+      "from": "handler:cps_state.screen_update_cps1",
+      "to": "handler:cps_state.cps1_get_video_base",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.screen_update_cps1",
+      "to": "handler:cps_state.find_last_sprite",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.screen_update_cps1",
+      "to": "handler:cps_state.cps1_update_transmasks",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.screen_update_cps1",
+      "to": "handler:cps_state.cps1_render_stars",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.screen_update_cps1",
+      "to": "handler:cps_state.render_layers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.screen_vblank_cps1",
+      "to": "handler:cps_state.cps1_get_video_base",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:cps1_layout8x8",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:cps1_layout8x8_2",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:cps1_layout16x16",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:cps1_layout32x32",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:cps1_3b",
+      "to": "file:src/mame/capcom/cps1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/capcom/cps1.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 8,
+        "sourceEndLine": 829
+      }
+    },
+    {
+      "from": "inputs:cps1_3b",
+      "to": "inputs:cps1_3b/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:cps1_3b",
+      "to": "inputs:cps1_3b/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:cps1_2b/IN1",
+      "to": "inputs:cps1_2b/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_2b/IN1",
+      "to": "inputs:cps1_2b/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "handler:cps_state.cps1_cps_a_w",
+      "to": "handler:cps_state.cps1_build_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.cps1_cps_a_w",
+      "to": "handler:cps_state.cps1_base",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.render_layers",
+      "to": "handler:cps_state.cps1_render_layer",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.render_layers",
+      "to": "handler:cps_state.cps1_build_palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.render_layers",
+      "to": "handler:cps_state.cps1_base",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.render_layers",
+      "to": "handler:cps_state.cps1_render_high_layer",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN0",
+      "to": "inputs:cps1_3b/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f14",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:cps1_3b/IN1",
+      "to": "inputs:cps1_3b/IN1/f15",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "handler:cps_state.cps1_render_layer",
+      "to": "handler:cps_state.cps1_render_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:cps_state.cps1_render_sprites",
+      "to": "handler:cps_state.gfxrom_bank_mapper",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

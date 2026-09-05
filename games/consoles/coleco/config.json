@@ -1,0 +1,537 @@
+{
+  "game": "coleco",
+  "title": "ColecoVision (NTSC) (Coleco, 1982)",
+  "family": "coleco",
+  "kind": "console",
+  "dataPath": "games/consoles/coleco",
+  "board": {
+    "family": "coleco",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3579545,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 8191,
+            "kind": "rom"
+          },
+          {
+            "start": 24576,
+            "end": 25599,
+            "kind": "ram",
+            "mirror": 7168
+          },
+          {
+            "start": 32768,
+            "end": 65535,
+            "kind": "handler",
+            "read": "coleco_state.cart_r",
+            "write": "coleco_state.cart_w",
+            "handlerWidth": 8
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 128,
+              "end": 128,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "coleco_state.paddle_off_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 160,
+              "end": 161,
+              "kind": "handler",
+              "mirror": 30,
+              "read": "tms9928a.read",
+              "write": "tms9928a.write"
+            },
+            {
+              "start": 192,
+              "end": 192,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "coleco_state.paddle_on_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 224,
+              "end": 224,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "sn76489a.write"
+            },
+            {
+              "start": 224,
+              "end": 224,
+              "kind": "handler",
+              "mirror": 29,
+              "read": "coleco_state.paddle_1_r"
+            },
+            {
+              "start": 226,
+              "end": 226,
+              "kind": "handler",
+              "mirror": 29,
+              "read": "coleco_state.paddle_2_r"
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 8191,
+        "kind": "rom"
+      },
+      {
+        "start": 24576,
+        "end": 25599,
+        "kind": "ram",
+        "mirror": 7168
+      },
+      {
+        "start": 32768,
+        "end": 65535,
+        "kind": "handler",
+        "read": "coleco_state.cart_r",
+        "write": "coleco_state.cart_w",
+        "handlerWidth": 8
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 128,
+          "end": 128,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "coleco_state.paddle_off_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 160,
+          "end": 161,
+          "kind": "handler",
+          "mirror": 30,
+          "read": "tms9928a.read",
+          "write": "tms9928a.write"
+        },
+        {
+          "start": 192,
+          "end": 192,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "coleco_state.paddle_on_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 224,
+          "end": 224,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "sn76489a.write"
+        },
+        {
+          "start": 224,
+          "end": 224,
+          "kind": "handler",
+          "mirror": 29,
+          "read": "coleco_state.paddle_1_r"
+        },
+        {
+          "start": 226,
+          "end": 226,
+          "kind": "handler",
+          "mirror": 29,
+          "read": "coleco_state.paddle_2_r"
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 280,
+      "height": 216,
+      "xOffset": 25,
+      "yOffset": 28,
+      "refresh": 59.922737824204276,
+      "htotal": 342,
+      "vtotal": 262,
+      "vbstart": 244,
+      "vbend": 28,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "sn76489",
+    "clock": 3579545,
+    "chips": 1,
+    "deviceTypes": [
+      "SN76489A"
+    ],
+    "clocks": [
+      3579545
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "313_10031-4005_73108a.u2",
+          "offset": 0,
+          "size": 8192,
+          "crc": "3aa93ef3",
+          "alt": [
+            {
+              "file": "onyx.rom",
+              "crc": "011c32e7"
+            },
+            {
+              "file": "r72114a_8317.u2",
+              "crc": "d393c0cc"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cart": {
+    "interface": "coleco_cart",
+    "list": "coleco",
+    "catalogUrl": "softlist.json",
+    "cartsUrl": "carts.json",
+    "slots": [
+      "standard",
+      "megacart",
+      "xin1",
+      "activision",
+      "activision_256b",
+      "activision_32k",
+      "sgc_1mbit",
+      "sgc_2mbit",
+      "sgc_4mbit"
+    ],
+    "games": [],
+    "defaultSlot": "standard",
+    "romRegion": "coleco_cart:rom",
+    "extensions": [
+      ".rom",
+      ".col",
+      ".bin"
+    ]
+  },
+  "bindings": [
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 1,
+      "keys": [
+        "Digit0",
+        "Numpad0"
+      ],
+      "label": "0 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 2,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "1 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 4,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "2 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 8,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "3 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 16,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "4 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 32,
+      "keys": [
+        "Digit5",
+        "Numpad5"
+      ],
+      "label": "5 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 64,
+      "keys": [
+        "Digit6",
+        "Numpad6"
+      ],
+      "label": "6 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 128,
+      "keys": [
+        "Digit7",
+        "Numpad7"
+      ],
+      "label": "7 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 256,
+      "keys": [
+        "Digit8",
+        "Numpad8"
+      ],
+      "label": "8 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 512,
+      "keys": [
+        "Digit9",
+        "Numpad9"
+      ],
+      "label": "9 (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 1024,
+      "keys": [
+        "NumpadSubtract",
+        "Equal"
+      ],
+      "label": "# (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 2048,
+      "keys": [
+        "NumpadMultiply",
+        "Minus"
+      ],
+      "label": "* (pad 1)",
+      "activeLow": true
+    },
+    {
+      "port": "STD_KEYPAD1",
+      "mask": 16384,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "STD_JOY1",
+      "mask": 64,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "CTRLSEL",
+      "mask": 7,
+      "value": 0,
+      "name": "Port 1 Controller"
+    },
+    {
+      "port": "CTRLSEL",
+      "mask": 112,
+      "value": 0,
+      "name": "Port 2 Controller"
+    },
+    {
+      "port": "CTRLSEL",
+      "mask": 128,
+      "value": 0,
+      "name": "Extra Controller"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "STD_KEYPAD1",
+      "init": 65535
+    },
+    {
+      "tag": "STD_JOY1",
+      "init": 255
+    },
+    {
+      "tag": "STD_KEYPAD2",
+      "init": 65535
+    },
+    {
+      "tag": "STD_JOY2",
+      "init": 255
+    },
+    {
+      "tag": "SAC_KEYPAD1",
+      "init": 65535
+    },
+    {
+      "tag": "SAC_JOY1",
+      "init": 255
+    },
+    {
+      "tag": "SAC_SLIDE1",
+      "init": 0
+    },
+    {
+      "tag": "SAC_KEYPAD2",
+      "init": 65535
+    },
+    {
+      "tag": "SAC_JOY2",
+      "init": 255
+    },
+    {
+      "tag": "SAC_SLIDE2",
+      "init": 0
+    },
+    {
+      "tag": "DRIV_WHEEL1",
+      "init": 0
+    },
+    {
+      "tag": "DRIV_PEDAL1",
+      "init": 255
+    },
+    {
+      "tag": "DRIV_WHEEL2",
+      "init": 0
+    },
+    {
+      "tag": "DRIV_PEDAL2",
+      "init": 255
+    },
+    {
+      "tag": "ROLLER_X",
+      "init": 0
+    },
+    {
+      "tag": "ROLLER_Y",
+      "init": 0
+    },
+    {
+      "tag": "CTRLSEL",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

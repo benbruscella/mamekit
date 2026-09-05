@@ -1,0 +1,1263 @@
+{
+  "game": "xevious",
+  "title": "Xevious (Namco) (Namco, 1982)",
+  "family": "galaga",
+  "dataPath": "games/arcade/xevious",
+  "board": {
+    "family": "galaga",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom",
+            "readOnly": true
+          },
+          {
+            "start": 26624,
+            "end": 26631,
+            "kind": "handler",
+            "read": "xevious_state.bosco_dsw_r"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 30720,
+            "end": 32767,
+            "kind": "ram",
+            "share": "share1"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "share": "xevious_sr1"
+          },
+          {
+            "start": 36864,
+            "end": 38911,
+            "kind": "ram",
+            "share": "xevious_sr2"
+          },
+          {
+            "start": 40960,
+            "end": 43007,
+            "kind": "ram",
+            "share": "xevious_sr3"
+          },
+          {
+            "start": 45056,
+            "end": 47103,
+            "kind": "ram",
+            "share": "fg_colorram",
+            "write": "xevious_state.xevious_fg_colorram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 47104,
+            "end": 49151,
+            "kind": "ram",
+            "share": "bg_colorram",
+            "write": "xevious_state.xevious_bg_colorram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 49152,
+            "end": 51199,
+            "kind": "ram",
+            "share": "fg_videoram",
+            "write": "xevious_state.xevious_fg_videoram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 51200,
+            "end": 53247,
+            "kind": "ram",
+            "share": "bg_videoram",
+            "write": "xevious_state.xevious_bg_videoram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 53375,
+            "kind": "handler",
+            "write": "xevious_state.xevious_vh_latch_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 61440,
+            "end": 65535,
+            "kind": "handler",
+            "read": "xevious_state.xevious_bb_r",
+            "write": "xevious_state.xevious_bs_w",
+            "handlerWidth": 8
+          }
+        ]
+      },
+      {
+        "tag": "sub",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "sub",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom",
+            "readOnly": true
+          },
+          {
+            "start": 26624,
+            "end": 26631,
+            "kind": "handler",
+            "read": "xevious_state.bosco_dsw_r"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 30720,
+            "end": 32767,
+            "kind": "ram",
+            "share": "share1"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "share": "xevious_sr1"
+          },
+          {
+            "start": 36864,
+            "end": 38911,
+            "kind": "ram",
+            "share": "xevious_sr2"
+          },
+          {
+            "start": 40960,
+            "end": 43007,
+            "kind": "ram",
+            "share": "xevious_sr3"
+          },
+          {
+            "start": 45056,
+            "end": 47103,
+            "kind": "ram",
+            "share": "fg_colorram",
+            "write": "xevious_state.xevious_fg_colorram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 47104,
+            "end": 49151,
+            "kind": "ram",
+            "share": "bg_colorram",
+            "write": "xevious_state.xevious_bg_colorram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 49152,
+            "end": 51199,
+            "kind": "ram",
+            "share": "fg_videoram",
+            "write": "xevious_state.xevious_fg_videoram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 51200,
+            "end": 53247,
+            "kind": "ram",
+            "share": "bg_videoram",
+            "write": "xevious_state.xevious_bg_videoram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 53375,
+            "kind": "handler",
+            "write": "xevious_state.xevious_vh_latch_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 61440,
+            "end": 65535,
+            "kind": "handler",
+            "read": "xevious_state.xevious_bb_r",
+            "write": "xevious_state.xevious_bs_w",
+            "handlerWidth": 8
+          }
+        ]
+      },
+      {
+        "tag": "sub2",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "sub2",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom",
+            "readOnly": true
+          },
+          {
+            "start": 26624,
+            "end": 26631,
+            "kind": "handler",
+            "read": "xevious_state.bosco_dsw_r"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 30720,
+            "end": 32767,
+            "kind": "ram",
+            "share": "share1"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "share": "xevious_sr1"
+          },
+          {
+            "start": 36864,
+            "end": 38911,
+            "kind": "ram",
+            "share": "xevious_sr2"
+          },
+          {
+            "start": 40960,
+            "end": 43007,
+            "kind": "ram",
+            "share": "xevious_sr3"
+          },
+          {
+            "start": 45056,
+            "end": 47103,
+            "kind": "ram",
+            "share": "fg_colorram",
+            "write": "xevious_state.xevious_fg_colorram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 47104,
+            "end": 49151,
+            "kind": "ram",
+            "share": "bg_colorram",
+            "write": "xevious_state.xevious_bg_colorram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 49152,
+            "end": 51199,
+            "kind": "ram",
+            "share": "fg_videoram",
+            "write": "xevious_state.xevious_fg_videoram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 51200,
+            "end": 53247,
+            "kind": "ram",
+            "share": "bg_videoram",
+            "write": "xevious_state.xevious_bg_videoram_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 53375,
+            "kind": "handler",
+            "write": "xevious_state.xevious_vh_latch_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 61440,
+            "end": 65535,
+            "kind": "handler",
+            "read": "xevious_state.xevious_bb_r",
+            "write": "xevious_state.xevious_bs_w",
+            "handlerWidth": 8
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom",
+        "readOnly": true
+      },
+      {
+        "start": 26624,
+        "end": 26631,
+        "kind": "handler",
+        "read": "xevious_state.bosco_dsw_r"
+      },
+      {
+        "start": 26624,
+        "end": 26655,
+        "kind": "handler",
+        "write": "namco.pacman_sound_w"
+      },
+      {
+        "start": 26656,
+        "end": 26663,
+        "kind": "handler",
+        "write": "misclatch.write_d0"
+      },
+      {
+        "start": 26672,
+        "end": 26672,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 28672,
+        "end": 28927,
+        "kind": "handler",
+        "read": "06xx.data_r",
+        "write": "06xx.data_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 28928,
+        "end": 28928,
+        "kind": "handler",
+        "read": "06xx.ctrl_r",
+        "write": "06xx.ctrl_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 30720,
+        "end": 32767,
+        "kind": "ram",
+        "share": "share1"
+      },
+      {
+        "start": 32768,
+        "end": 34815,
+        "kind": "ram",
+        "share": "xevious_sr1"
+      },
+      {
+        "start": 36864,
+        "end": 38911,
+        "kind": "ram",
+        "share": "xevious_sr2"
+      },
+      {
+        "start": 40960,
+        "end": 43007,
+        "kind": "ram",
+        "share": "xevious_sr3"
+      },
+      {
+        "start": 45056,
+        "end": 47103,
+        "kind": "ram",
+        "share": "fg_colorram",
+        "write": "xevious_state.xevious_fg_colorram_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 47104,
+        "end": 49151,
+        "kind": "ram",
+        "share": "bg_colorram",
+        "write": "xevious_state.xevious_bg_colorram_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 49152,
+        "end": 51199,
+        "kind": "ram",
+        "share": "fg_videoram",
+        "write": "xevious_state.xevious_fg_videoram_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 51200,
+        "end": 53247,
+        "kind": "ram",
+        "share": "bg_videoram",
+        "write": "xevious_state.xevious_bg_videoram_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 53248,
+        "end": 53375,
+        "kind": "handler",
+        "write": "xevious_state.xevious_vh_latch_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 61440,
+        "end": 65535,
+        "kind": "handler",
+        "read": "xevious_state.xevious_bb_r",
+        "write": "xevious_state.xevious_bs_w",
+        "handlerWidth": 8
+      }
+    ],
+    "screen": {
+      "width": 288,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 60.60606060606061,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 224,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "auxiliary": {
+      "type": "DAC_FILTER",
+      "levels": [
+        0,
+        0.05606523955147809,
+        0.11977573904179407,
+        0.17584097859327213,
+        0.263506625891947,
+        0.3195718654434251,
+        0.38328236493374107,
+        0.4393476044852191,
+        0.5606523955147809,
+        0.6167176350662589,
+        0.6804281345565749,
+        0.7364933741080529,
+        0.8241590214067278,
+        0.8802242609582059,
+        0.9439347604485219,
+        1
+      ],
+      "channels": [
+        {
+          "input": 2,
+          "frequency": 2520.9816921671772,
+          "q": 1.7423774640682894,
+          "gain": 0.10957176220160833
+        },
+        {
+          "input": 1,
+          "frequency": 450.43388318211043,
+          "q": 2.1226196674992623,
+          "gain": 0.1626142212349928
+        },
+        {
+          "input": 0,
+          "frequency": 167.41656583794713,
+          "q": 2.4719868706309156,
+          "gain": 0.7278140165633988
+        }
+      ],
+      "outputGain": 0.65,
+      "source": {
+        "file": "src/mame/namco/galaga_a.cpp",
+        "line": 310,
+        "netlist": "galaga_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "xvi_1.3p",
+          "offset": 0,
+          "size": 4096,
+          "crc": "09964dda",
+          "alt": [
+            {
+              "file": "xvi_u_.3p",
+              "crc": "7b203868"
+            },
+            {
+              "file": "4.7h",
+              "crc": "1f8ca4c0"
+            },
+            {
+              "file": "bg1.h7",
+              "crc": "475d848a"
+            }
+          ]
+        },
+        {
+          "file": "xvi_2.3m",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "60ecce84",
+          "alt": [
+            {
+              "file": "xv_2-2.3m",
+              "crc": "b6fe738e"
+            },
+            {
+              "file": "5.6h",
+              "crc": "2e47ce8f"
+            },
+            {
+              "file": "bg2.h6",
+              "crc": "c66f2a87"
+            }
+          ]
+        },
+        {
+          "file": "xvi_3.2m",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "79754b7d",
+          "alt": [
+            {
+              "file": "xv_2-3.2m",
+              "crc": "dbd52ff5"
+            }
+          ]
+        },
+        {
+          "file": "xvi_4.2l",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "c7d4bbf0",
+          "alt": [
+            {
+              "file": "xvi_u_.2l",
+              "crc": "ad12af53"
+            },
+            {
+              "file": "7.4h",
+              "crc": "17f48277"
+            },
+            {
+              "file": "bg4.h4",
+              "crc": "3da1a0a2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "xvi_5.3f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c85b703f",
+          "alt": [
+            {
+              "file": "xv2_5.3f",
+              "crc": "f8cc2861"
+            }
+          ]
+        },
+        {
+          "file": "xvi_6.3j",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "e18cdaad"
+        }
+      ]
+    },
+    {
+      "region": "sub2",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "xvi_7.2c",
+          "offset": 0,
+          "size": 4096,
+          "crc": "dd35cf1c"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "xvi_12.3b",
+          "offset": 0,
+          "size": 4096,
+          "crc": "088c8b26",
+          "alt": [
+            {
+              "file": "bg9.c10",
+              "crc": "5bd6e9ae"
+            },
+            {
+              "file": "bg17.f8",
+              "crc": "9571e400"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "xvi_13.3c",
+          "offset": 0,
+          "size": 4096,
+          "crc": "de60ba25",
+          "alt": [
+            {
+              "file": "bg10.c8",
+              "crc": "b43ea55d"
+            }
+          ]
+        },
+        {
+          "file": "xvi_14.3d",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "535cdbbc",
+          "alt": [
+            {
+              "file": "bg11.c7",
+              "crc": "73603931"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx3",
+      "size": 40960,
+      "fills": [
+        {
+          "offset": 36864,
+          "size": 4096,
+          "value": 0
+        }
+      ],
+      "loads": [
+        {
+          "file": "xvi_15.4m",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dc2c0ecb"
+        },
+        {
+          "file": "xvi_17.4p",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "dfb587ce"
+        },
+        {
+          "file": "xvi_16.4n",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "605ca889"
+        },
+        {
+          "file": "xvi_18.4r",
+          "offset": 20480,
+          "size": 8192,
+          "crc": "02417d19",
+          "alt": [
+            {
+              "file": "16.8d",
+              "crc": "44262c04"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx4",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "xvi_9.2a",
+          "offset": 0,
+          "size": 4096,
+          "crc": "57ed9879",
+          "alt": [
+            {
+              "file": "10.1d",
+              "crc": "10baeebb"
+            }
+          ]
+        },
+        {
+          "file": "xvi_10.2b",
+          "offset": 4096,
+          "size": 8192,
+          "crc": "ae3ba9e5"
+        },
+        {
+          "file": "xvi_11.2c",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "31e244dd",
+          "alt": [
+            {
+              "file": "12.3d",
+              "crc": "51a4e83b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 2816,
+      "loads": [
+        {
+          "file": "xvi-8.6a",
+          "offset": 0,
+          "size": 256,
+          "crc": "5cc2727f"
+        },
+        {
+          "file": "xvi-9.6d",
+          "offset": 256,
+          "size": 256,
+          "crc": "5c8796cc"
+        },
+        {
+          "file": "xvi-10.6e",
+          "offset": 512,
+          "size": 256,
+          "crc": "3cb60975"
+        },
+        {
+          "file": "xvi-7.4h",
+          "offset": 768,
+          "size": 512,
+          "crc": "22d98032"
+        },
+        {
+          "file": "xvi-6.4f",
+          "offset": 1280,
+          "size": 512,
+          "crc": "3a7599f0"
+        },
+        {
+          "file": "xvi-4.3l",
+          "offset": 1792,
+          "size": 512,
+          "crc": "fd8b9d91"
+        },
+        {
+          "file": "xvi-5.3m",
+          "offset": 2304,
+          "size": 512,
+          "crc": "bf906d82"
+        }
+      ]
+    },
+    {
+      "region": "pals_vidbd",
+      "size": 512,
+      "loads": [
+        {
+          "file": "xvi-3.1f",
+          "offset": 0,
+          "size": 279,
+          "crc": "9192d57a"
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "xvi-2.7n",
+          "offset": 0,
+          "size": 256,
+          "crc": "550f06bc"
+        },
+        {
+          "file": "xvi-1.5n",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66"
+        }
+      ]
+    },
+    {
+      "region": "50xx:mcu",
+      "size": 2048,
+      "romSet": "namco50",
+      "loads": [
+        {
+          "file": "50xx.bin",
+          "offset": 0,
+          "size": 2048,
+          "crc": "a0acbaf7"
+        }
+      ]
+    },
+    {
+      "region": "51xx:mcu",
+      "size": 1024,
+      "romSet": "namco51",
+      "loads": [
+        {
+          "file": "51xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "c2f57ef8"
+        }
+      ]
+    },
+    {
+      "region": "54xx:mcu",
+      "size": 1024,
+      "romSet": "namco54",
+      "loads": [
+        {
+          "file": "54xx.bin",
+          "offset": 0,
+          "size": 1024,
+          "crc": "ee7357e0"
+        }
+      ]
+    }
+  ],
+  "romTransforms": [
+    {
+      "kind": "init-program",
+      "method": "init_xevious",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "rom",
+            "valueType": "uint8_t*",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "memregion"
+                    },
+                    "args": [
+                      {
+                        "kind": "string",
+                        "value": "gfx3"
+                      }
+                    ]
+                  },
+                  "property": "base"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 20480
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8192
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "rom"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8192
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "helpers": [],
+      "source": {
+        "file": "src/mame/namco/galaga.cpp",
+        "line": 3527,
+        "column": 1
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "DSWB",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 3,
+      "value": 3,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 28,
+      "value": 28,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSWA",
+      "mask": 96,
+      "value": 96,
+      "name": "Lives"
+    },
+    {
+      "port": "DSWA",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSWB",
+      "mask": 2,
+      "value": 2,
+      "name": "Flags Award Bonus Life"
+    },
+    {
+      "port": "DSWB",
+      "mask": 12,
+      "value": 12,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWB",
+      "mask": 96,
+      "value": 96,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSWB",
+      "mask": 128,
+      "value": 128,
+      "name": "Freeze"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "DSWA",
+      "init": 255
+    },
+    {
+      "tag": "DSWB",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

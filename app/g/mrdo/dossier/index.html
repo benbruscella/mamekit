@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mr. Do! — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Mr. Do!</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/mrdo/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/mrdo/mrdo-dossier.md" download="mrdo-dossier.md">Download mrdo-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Universal · 1982</div>
+    <h1>Mr. Do!</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/mrdo.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>mrdo</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/universal/mrdo.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>mrdo</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>sn76489</strong></div>
+      <div class="fact"><span>Screen</span><strong>240×192 @ 59.94 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>270°</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>4.100 MHz</td><td>15</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>a4-01.bin</td><td>0x0</td><td>0x2000</td><td>03dcfba2</td></tr><tr><td>maincpu</td><td>c4-02.bin</td><td>0x2000</td><td>0x2000</td><td>0ecdd39c</td></tr><tr><td>maincpu</td><td>e4-03.bin</td><td>0x4000</td><td>0x2000</td><td>358f5dc2</td></tr><tr><td>maincpu</td><td>f4-04.bin</td><td>0x6000</td><td>0x2000</td><td>f4190cfc</td></tr><tr><td>gfx1</td><td>s8-09.bin</td><td>0x0</td><td>0x1000</td><td>aa80c5b6</td></tr><tr><td>gfx1</td><td>u8-10.bin</td><td>0x1000</td><td>0x1000</td><td>d20ec85b</td></tr><tr><td>gfx2</td><td>r8-08.bin</td><td>0x0</td><td>0x1000</td><td>dbdc9ffa</td></tr><tr><td>gfx2</td><td>n8-07.bin</td><td>0x1000</td><td>0x1000</td><td>4b9973db</td></tr><tr><td>gfx3</td><td>h5-05.bin</td><td>0x0</td><td>0x1000</td><td>e1218cc5</td></tr><tr><td>gfx3</td><td>k5-06.bin</td><td>0x1000</td><td>0x1000</td><td>b1f68b04</td></tr><tr><td>proms</td><td>u02--2.bin</td><td>0x0</td><td>0x20</td><td>238a65d7</td></tr><tr><td>proms</td><td>t02--3.bin</td><td>0x20</td><td>0x20</td><td>ae263dc0</td></tr><tr><td>proms</td><td>f10--1.bin</td><td>0x40</td><td>0x20</td><td>16ee4ca2</td></tr><tr><td>proms</td><td>j10--4.bin</td><td>0x60</td><td>0x20</td><td>ff7fe284</td></tr><tr><td>pal16r6</td><td>u001_pal16r6cn.j2</td><td>0x0</td><td>0x104</td><td>84dbe498</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Left</td><td>joystick left</td><td>P1</td><td>0x1</td></tr><tr><td>Down</td><td>joystick down</td><td>P1</td><td>0x2</td></tr><tr><td>Right</td><td>joystick right</td><td>P1</td><td>0x4</td></tr><tr><td>Up</td><td>joystick up</td><td>P1</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>P1</td><td>0x10</td></tr><tr><td>1</td><td>start1</td><td>P1</td><td>0x20</td></tr><tr><td>2</td><td>start2</td><td>P1</td><td>0x40</td></tr><tr><td>5</td><td>coin1</td><td>P2</td><td>0x40</td></tr><tr><td>6</td><td>coin2</td><td>P2</td><td>0x80</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/universal/mrdo.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Nicola Salmoria</strong></div>
+    <div class="fact"><span>Development</span><strong>103 commits by 22 contributors, 2007–2025</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Miodrag Milanovic, Vas Crabb, Olivier Galibert, hap</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 43 years ago:
+
+Mr. Do! (c) 1983 Universal.
+
+Mr. Do! is a colourful and addictive maze game in which the player takes on the role of the eponymous Mr. Do, a circus clown, who must clear each level of either cherries or monsters. The game's single screen levels are made up of tunnels surrounded by a colourful, soil-like substance. This soil can be dug through to create new tunnels, allowing Mr. Do to escape his enemies and to reach the many cherries that litter the levels. A number of apples are also scattered around each level, and Mr. Do can push them along tunnels (to block and/or kill monsters) or can tunnel beneath them to drop them onto the heads of any pursuing enemies. Mr. Do himself can also be killed by a falling apple.
+
+Mr. Do is armed with a 'Powerball' that can be fired down a tunnel, it will then bounce around the tunnels until it either returns to Mr. Do, or comes into contact with, and kills, one of the level's monsters. The Powerball regenerates immediately the first time you use it, but takes longer each time it is used to return to your hands. As each level progresses, the monsters themselves start to dig tunnels of their own in their pursuit of Mr. Do. Monsters can also push the apples.
+
+Each screen has a doorway through which the monsters enter the level. Once all of the monsters have appeared, the doorway will turn into a 'prize', (ice cream, biscuits, etc.). If Mr. Do collects the prize, the 'Alphamonster' and his three 'Muncher' henchmen will appear. The Alphamonster may be in the EXTRA box at the top of the screen or be moving around the screen. The Alphamonster and the Munchers cannot be easily crushed under apples because they tend to eat them. They can be killed individually with the Powerball or by killing the Alphamonster itself, at which point any remaining Munchers will turn into apples.
+
+After every three levels, there is a brief intermission in which a tune is played and a large, animated Mr. Do appears, together with some of the game's monsters. The time to complete each level and the preferred method (monsters, cherries, Alphamonsters, or Diamond) is shown. The paths in the first level resemble a 'D', after this each level's tunnels resemble a digit, ('2', '3', '4' etc.) up to '0' for level 10.
+
+A level can be completed any one of several different ways : either by collecting all of the on-screen cherries; by killing all of the monsters, by completing the EXTRA box, or by collecting the diamond. The latter appears only very occasionally ('Special' awards an extra credit).</p><details><summary>TECHNICAL</summary><p class="story">Prom Stickers : D1-D10
+
+Main CPU : Zilog Z80
+Sound Chips : (2x) Texas Instruments SN76496
+
+Players : 2
+Control : 4-way joystick
+Buttons : 1</p></details><details><summary>TRIVIA</summary><p class="story">Mr. Do! was released in September 1982 in Japan and in December 1982 in the USA. It was also licensed to Taito.
+
+Mr. Do! was inspired by &quot;Dig Dug&quot; and was the first in a series of four Mr. Do! games. Mr. Do! was one of video-gaming's biggest arcade successes. Unfortunately for Universal, none of their other games could match it in commercial terms. 
+
+It is the game responsible for launching the kit game craze in the U.S. video game industry.
+
+David Breckon holds the official record for this game with 26,030,050 points.
+
+A bootleg of this game is known as &quot;Mr. Lo!&quot;, and another is called &quot;Mr. Du!&quot;.
+
+There are several well-known hacks of Mr Do! which are as follows :
+* Mr. DigDo! - graphics changed to make them look more like those of Namco's &quot;Dig Dug&quot;.
+* Mr. Jong - Changes the clown into an old Chinese man, the monsters into clowns and the apples into mahjong blocks.
+* Yankee Do! - Changes the graphics to make them more American patriotic.</p></details><details><summary>UPDATES</summary><p class="story">On the Prototype version (which is a Japanese hack) :
+* You are a 'Yukidaruma' (a snowman) with green arms instead of the famous clown.
+* You dig with a rake in your hands.
+* There is a mean expression when you push an apple.
+* The screen does not turn red when you grab cookies, cake, etc...</p></details><details><summary>SCORING</summary><p class="story">Eating a cherry : 50 points.
+Eating a series of 8 cherries in a row : 500 points bonus.
+Killing a monster with your snowball : 500 points.
+Killing one monster with one apple : 1,000 points.
+Killing two monsters with one apple : 2,000 points.
+Killing three monsters with one apple : 4,000 points.
+Killing four monsters with one apple : 6,000 points.
+Killing five or more monsters with one apple : 8,000 points.
+Collecting special (free credit) diamond : 8,000 points.
+Collecting bonus treat from empty monster home: 1,000 points on level one, increasing incremently up to a maximum of 8,000 points on level 22 onwards.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* 255 Lives Tricks : It's possible to win 255 lives on the first screen, but only if an apple appears in the top two rows of the playfield.
+1) Begin by digging a tunnel directly from the bottom of the screen to just below the apple, but leave enough dirt under it that it doesn't fall.
+2) Next, kill all of the enemies but one, then lose all of your extra lives. As soon as you're on your last life, go right under the apple and wait.
+3) Eventually, the remaining enemy will come after you. Allow the apple to drop, but, in the interval before you're squashed, kill the enemy with the powerball. If all has gone well, you'll be carried to the bottom of the screen, the music will go haywire for a moment, and you'll be awarded 255 extra lives.
+4) Note that you should always lose a life before spelling 'EXTRA', or you'll roll back to zero lives, so, to be safe, immediately kill yourself at the start of level two.
+5) IMPORTANT : This trick will only work with the Taito version of Mr. Do!.
+
+* Here's A Neat Trick : You can divide the screen into a grid. The cherries, apples, and tunnel corners are all centered on a grid element. If you are being chased by the normal badguys (not ghosts) you can dig and stop between grid elements. The badguy will think it needs to turn into a digger to get you. While he's changing forms, you can escape.
+
+* An Alphamonster will appear every time your score reaches a multiple of 5,000.</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES:
+Colecovision [US] (1983) &quot;Mr. Do! [Model 2622]&quot;
+[US] Atari 2600 (1983) &quot;Mr. Do! [Model 2656]&quot;
+[JP] Nintendo Super Famicom (june.23, 1995) &quot;Mr. Do! [Model SHVC-AUNJ-JPN]&quot; 
+[US] Nintendo SNES (dec.1996) &quot;Mr. Do! [Model SNS-AUNE-USA]&quot; 
+[EU] Nintendo SNES (mar.27, 1997) &quot;Mr. Do! [Model SNSP-AUNP-EUR]&quot; 
+Nintendo Wii [Virtual Console Arcade] [JP] (apr.27, 2010) 
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy (1992) &quot;Mr. Do! [Model DMG-M4-NOE]&quot; 
+[US] Nintendo Game Boy (nov.1992) &quot;Mr. Do! [Model DMG-M4-USA]&quot; 
+
+* COMPUTERS:
+BBC B [EU] &quot;Mr.EE!&quot; 
+[EU] Acorn Electron &quot;Mr Wiz&quot; by Superior Software 
+[JP] MSX (1984) &quot;Mr. Do [Model 48C99-1004]&quot; 
+Tandy Color Computer [US] (1984) &quot;Mr. Dig&quot; 
+[EU] Amstrad CPC (1984) &quot;Fruity Frank&quot; 
+MSX [EU] (1985) &quot;Fruity Frank&quot; 
+[US] Commodore C64 [EU] (1985) 
+[JP] Sharp X68000 (june.1994) &quot;Mr. Do! and Mr. Do! vs. the Unicorns&quot; 
+[US] Apple II (1985) 
+[US] Atari 800 (1984)
+Tomy Tutor [EU] 
+NEC PC-98 [JP] (1996)
+Fujitsu FM-7 [JP] 
+
+* OTHERS:
+LCD handheld game [US] (1983) by Tomy : Their most impressive feature is a multi-colored backlit LCD, which is very impressive looking (and it is backlit by a full-length fluorescent light).
+LCD handheld game [DE] (1983) &quot;Mr. Go!&quot; by Tomy</p></details><details><summary>SERIES</summary><p class="story">1. Mr. Do! (1982)
+2. Mr. Do's Castle (1983)
+3. Mr. Do's Wild Ride (1984)
+4. Do! Run Run (1984)
+5. Neo Mr. Do! (1996)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/1684/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

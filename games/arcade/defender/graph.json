@@ -1,0 +1,2956 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/williams/williams.cpp",
+    "generatedAt": "2026-09-05T03:49:25.164Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Aaron Giles"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/williams/williams.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/williams/williams.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:williams.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "williams.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/input_merger.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/input_merger.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/dac.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/dac.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:defender",
+      "label": "Game",
+      "props": {
+        "name": "defender",
+        "year": "1980",
+        "company": "Williams",
+        "fullname": "Defender (Red label)",
+        "monitor": "ROT0",
+        "cls": "defender_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 3968,
+        "sourceColumn": 1,
+        "sourceEndLine": 3968
+      }
+    },
+    {
+      "id": "romset:defender",
+      "label": "RomSet",
+      "props": {
+        "name": "defender",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1985,
+        "sourceColumn": 1,
+        "sourceEndLine": 1985
+      }
+    },
+    {
+      "id": "region:defender/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 12288,
+        "flags": "ROMREGION_BE",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1986,
+        "sourceColumn": 2,
+        "sourceEndLine": 1986
+      }
+    },
+    {
+      "id": "rom:defender/maincpu/defend.1",
+      "label": "Rom",
+      "props": {
+        "file": "defend.1",
+        "offset": 0,
+        "size": 2048,
+        "crc": "c3e52d7e",
+        "sha1": "a57f5278ffe44248fc73f9925d107f4024ad981a",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1987,
+        "sourceColumn": 2,
+        "sourceEndLine": 1987
+      }
+    },
+    {
+      "id": "rom:defender/maincpu/defend.4",
+      "label": "Rom",
+      "props": {
+        "file": "defend.4",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "9a72348b",
+        "sha1": "ed6ce796702ff32209ced3cb1ba3837dbafa526f",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1988,
+        "sourceColumn": 2,
+        "sourceEndLine": 1988
+      }
+    },
+    {
+      "id": "rom:defender/maincpu/defend.2",
+      "label": "Rom",
+      "props": {
+        "file": "defend.2",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "89b75984",
+        "sha1": "a9481478da38f99efb67f0ecf82d084e14b93b42",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1989,
+        "sourceColumn": 2,
+        "sourceEndLine": 1989
+      }
+    },
+    {
+      "id": "rom:defender/maincpu/defend.3",
+      "label": "Rom",
+      "props": {
+        "file": "defend.3",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "94f51e9b",
+        "sha1": "a24cfc55de56a72758c76fe2a55f1ec6c353b16f",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1990,
+        "sourceColumn": 2,
+        "sourceEndLine": 1990
+      }
+    },
+    {
+      "id": "region:defender/banked",
+      "label": "RomRegion",
+      "props": {
+        "tag": "banked",
+        "size": 28672,
+        "flags": "ROMREGION_BE",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1992,
+        "sourceColumn": 2,
+        "sourceEndLine": 1992
+      }
+    },
+    {
+      "id": "rom:defender/banked/defend.9",
+      "label": "Rom",
+      "props": {
+        "file": "defend.9",
+        "offset": 0,
+        "size": 2048,
+        "crc": "6870e8a5",
+        "sha1": "67ccc194b1753a18af0c85f5e603355549c4f727",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1993,
+        "sourceColumn": 2,
+        "sourceEndLine": 1993
+      }
+    },
+    {
+      "id": "rom:defender/banked/defend.12",
+      "label": "Rom",
+      "props": {
+        "file": "defend.12",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "f1f88938",
+        "sha1": "26e48dfeefa0766837b1e762695b9532dbc8bc5e",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1994,
+        "sourceColumn": 2,
+        "sourceEndLine": 1994
+      }
+    },
+    {
+      "id": "rom:defender/banked/defend.8",
+      "label": "Rom",
+      "props": {
+        "file": "defend.8",
+        "offset": 4096,
+        "size": 2048,
+        "crc": "b649e306",
+        "sha1": "9d7bc3c89e5a53c575946f06702c722b864b1ff0",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1995,
+        "sourceColumn": 2,
+        "sourceEndLine": 1995
+      }
+    },
+    {
+      "id": "rom:defender/banked/defend.11",
+      "label": "Rom",
+      "props": {
+        "file": "defend.11",
+        "offset": 6144,
+        "size": 2048,
+        "crc": "9deaf6d9",
+        "sha1": "59b018ba0f3fe6eadfd387dc180ac281460358bc",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1996,
+        "sourceColumn": 2,
+        "sourceEndLine": 1996
+      }
+    },
+    {
+      "id": "rom:defender/banked/defend.7",
+      "label": "Rom",
+      "props": {
+        "file": "defend.7",
+        "offset": 8192,
+        "size": 2048,
+        "crc": "339e092e",
+        "sha1": "2f89951dbe55d80df43df8dcf497171f73e726d3",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1997,
+        "sourceColumn": 2,
+        "sourceEndLine": 1997
+      }
+    },
+    {
+      "id": "rom:defender/banked/defend.10",
+      "label": "Rom",
+      "props": {
+        "file": "defend.10",
+        "offset": 10240,
+        "size": 2048,
+        "crc": "a543b167",
+        "sha1": "9292b94b0d74e57e03aada4852ad1997c34122ff",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1998,
+        "sourceColumn": 2,
+        "sourceEndLine": 1998
+      }
+    },
+    {
+      "id": "rom:defender/banked/defend.6",
+      "label": "Rom",
+      "props": {
+        "file": "defend.6",
+        "offset": 24576,
+        "size": 2048,
+        "crc": "65f4efd1",
+        "sha1": "a960fd1559ed74b81deba434391e49fc6ec389ca",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1999,
+        "sourceColumn": 2,
+        "sourceEndLine": 1999
+      }
+    },
+    {
+      "id": "region:defender/soundcpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundcpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 2001,
+        "sourceColumn": 2,
+        "sourceEndLine": 2001
+      }
+    },
+    {
+      "id": "rom:defender/soundcpu/video_sound_rom_1.ic12",
+      "label": "Rom",
+      "props": {
+        "file": "video_sound_rom_1.ic12",
+        "offset": 63488,
+        "size": 2048,
+        "crc": "fefd5b48",
+        "sha1": "ceb0d18483f0691978c604db94417e6941ad7ff2",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 2002,
+        "sourceColumn": 2,
+        "sourceEndLine": 2002
+      }
+    },
+    {
+      "id": "region:defender/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 1024,
+        "flags": "0",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 2004,
+        "sourceColumn": 2,
+        "sourceEndLine": 2004
+      }
+    },
+    {
+      "id": "rom:defender/proms/decoder.2",
+      "label": "Rom",
+      "props": {
+        "file": "decoder.2",
+        "offset": 0,
+        "size": 512,
+        "crc": "8dd98da5",
+        "sha1": "da979604f7a2aa8b5a6d4a5debd2e80f77569e35",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 2005,
+        "sourceColumn": 2,
+        "sourceEndLine": 2005
+      }
+    },
+    {
+      "id": "rom:defender/proms/decoder.3",
+      "label": "Rom",
+      "props": {
+        "file": "decoder.3",
+        "offset": 512,
+        "size": 512,
+        "crc": "c3f45f70",
+        "sha1": "d19036cbc46b130548873597b44b8b70758f25c4",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 2006,
+        "sourceColumn": 2,
+        "sourceEndLine": 2006
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "defender_state",
+        "name": "defender_main_map",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 494,
+        "sourceColumn": 1,
+        "sourceEndLine": 507
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 49151,
+        "raw": "map(0x0000, 0xbfff).ram().share(m_videoram)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 496,
+        "sourceColumn": 2,
+        "sourceEndLine": 496,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 53247,
+        "raw": "map(0xc000, 0xcfff).view(m_rom_view)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 497,
+        "sourceColumn": 2,
+        "sourceEndLine": 497
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49167,
+        "raw": "m_rom_view[0](0xc000, 0xc00f).mirror(0x03e0).writeonly().share(m_paletteram)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 498,
+        "sourceColumn": 2,
+        "sourceEndLine": 498,
+        "mirror": 992,
+        "writeonly": true,
+        "share": "paletteram",
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 50175,
+        "end": 50175,
+        "raw": "m_rom_view[0](0xc3ff, 0xc3ff).w(FUNC(defender_state::watchdog_reset_w))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 499,
+        "sourceColumn": 2,
+        "sourceEndLine": 499,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "handler:defender_state.watchdog_reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "watchdog_reset_w",
+        "ownerClass": "defender_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 247,
+        "sourceColumn": 1,
+        "sourceEndLine": 252,
+        "sourceParameters": "u8 data",
+        "sourceBody": "// yes, the data bits are checked for this specific value\n\tif (data == 0x39)\n\t\tm_watchdog->watchdog_reset();"
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 49168,
+        "end": 49183,
+        "raw": "m_rom_view[0](0xc010, 0xc01f).mirror(0x03e0).w(FUNC(defender_state::video_control_w))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 500,
+        "sourceColumn": 2,
+        "sourceEndLine": 500,
+        "mirror": 992,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "handler:defender_state.video_control_w",
+      "label": "Handler",
+      "props": {
+        "method": "video_control_w",
+        "ownerClass": "defender_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 335,
+        "sourceColumn": 1,
+        "sourceEndLine": 338,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_cocktail = BIT(data, 0);"
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 50176,
+        "end": 50431,
+        "raw": "m_rom_view[0](0xc400, 0xc4ff).mirror(0x0300).ram().w(FUNC(defender_state::cmos_4bit_w)).share(\"nvram\")",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 501,
+        "sourceColumn": 2,
+        "sourceEndLine": 501,
+        "mirror": 768,
+        "ram": true,
+        "share": "nvram",
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "handler:defender_state.cmos_4bit_w",
+      "label": "Handler",
+      "props": {
+        "method": "cmos_4bit_w",
+        "ownerClass": "defender_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 233,
+        "sourceColumn": 1,
+        "sourceEndLine": 237,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "// only 4 bits are valid\n\tm_nvram[offset] = data | 0xf0;"
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 52223,
+        "raw": "m_rom_view[0](0xc800, 0xcbff).r(FUNC(defender_state::video_counter_r))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 502,
+        "sourceColumn": 2,
+        "sourceEndLine": 502,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "handler:defender_state.video_counter_r",
+      "label": "Handler",
+      "props": {
+        "method": "video_counter_r",
+        "ownerClass": "defender_state",
+        "sourceFile": "src/mame/williams/williams_v.cpp",
+        "sourceLine": 485,
+        "sourceColumn": 1,
+        "sourceEndLine": 491,
+        "sourceParameters": "",
+        "sourceBody": "if (m_screen->vpos() < 0x100)\n\t\treturn m_screen->vpos() & 0xfc;\n\telse\n\t\treturn 0xfc;"
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 52224,
+        "end": 52227,
+        "raw": "m_rom_view[0](0xcc00, 0xcc03).mirror(0x03e0).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 503,
+        "sourceColumn": 2,
+        "sourceEndLine": 503,
+        "mirror": 992,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "handler:pia6821_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "pia6821_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 1223,
+        "sourceColumn": 2,
+        "sourceEndLine": 1223
+      }
+    },
+    {
+      "id": "handler:pia6821_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "pia6821_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 1223,
+        "sourceColumn": 2,
+        "sourceEndLine": 1223
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 52228,
+        "end": 52231,
+        "raw": "m_rom_view[0](0xcc04, 0xcc07).mirror(0x03e0).rw(m_pia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 504,
+        "sourceColumn": 2,
+        "sourceEndLine": 504,
+        "mirror": 992,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 57343,
+        "raw": "map(0xd000, 0xdfff).w(FUNC(defender_state::bank_select_w))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 505,
+        "sourceColumn": 2,
+        "sourceEndLine": 505
+      }
+    },
+    {
+      "id": "handler:defender_state.bank_select_w",
+      "label": "Handler",
+      "props": {
+        "method": "bank_select_w",
+        "ownerClass": "defender_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 341,
+        "sourceColumn": 1,
+        "sourceEndLine": 344,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_rom_view.select(data & 0x0f);"
+      }
+    },
+    {
+      "id": "map:defender_state.defender_main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 65535,
+        "raw": "map(0xd000, 0xffff).rom().region(\"maincpu\", 0)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 506,
+        "sourceColumn": 2,
+        "sourceEndLine": 506,
+        "rom": true,
+        "region": "maincpu",
+        "regionOffset": 0
+      }
+    },
+    {
+      "id": "map:williams_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "williams_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 530,
+        "sourceColumn": 1,
+        "sourceEndLine": 543
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 49151,
+        "raw": "map(0x0000, 0xbfff).ram().share(m_videoram)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 532,
+        "sourceColumn": 2,
+        "sourceEndLine": 532,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 36863,
+        "raw": "map(0x0000, 0x8fff).view(m_rom_view)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 533,
+        "sourceColumn": 2,
+        "sourceEndLine": 533
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 36863,
+        "raw": "m_rom_view[0](0x0000, 0x8fff).rom().region(\"maincpu\", 0x00000)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 534,
+        "sourceColumn": 2,
+        "sourceEndLine": 534,
+        "rom": true,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0,
+        "region": "maincpu",
+        "regionOffset": 0
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49167,
+        "raw": "map(0xc000, 0xc00f).mirror(0x03f0).writeonly().share(m_paletteram)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 535,
+        "sourceColumn": 2,
+        "sourceEndLine": 535,
+        "mirror": 1008,
+        "writeonly": true,
+        "share": "paletteram"
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 51204,
+        "end": 51207,
+        "raw": "map(0xc804, 0xc807).mirror(0x00f0).rw(m_pia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 536,
+        "sourceColumn": 2,
+        "sourceEndLine": 536,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 51212,
+        "end": 51215,
+        "raw": "map(0xc80c, 0xc80f).mirror(0x00f0).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 537,
+        "sourceColumn": 2,
+        "sourceEndLine": 537,
+        "mirror": 240
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 51456,
+        "end": 51711,
+        "raw": "map(0xc900, 0xc9ff).w(FUNC(williams_state::vram_select_w))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 538,
+        "sourceColumn": 2,
+        "sourceEndLine": 538
+      }
+    },
+    {
+      "id": "handler:williams_state.vram_select_w",
+      "label": "Handler",
+      "props": {
+        "method": "vram_select_w",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 112,
+        "sourceColumn": 1,
+        "sourceEndLine": 122,
+        "sourceParameters": "u8 data",
+        "sourceBody": "// VRAM/ROM banking from bit 0\n\tif (BIT(data, 0))\n\t\tm_rom_view.select(0);\n\telse\n\t\tm_rom_view.disable();\n\n\t// cocktail flip from bit 1\n\tm_cocktail = BIT(data, 1);"
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 51968,
+        "end": 52223,
+        "raw": "map(0xcb00, 0xcbff).r(FUNC(williams_state::video_counter_r))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 539,
+        "sourceColumn": 2,
+        "sourceEndLine": 539
+      }
+    },
+    {
+      "id": "handler:williams_state.video_counter_r",
+      "label": "Handler",
+      "props": {
+        "method": "video_counter_r",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_v.cpp",
+        "sourceLine": 485,
+        "sourceColumn": 1,
+        "sourceEndLine": 491,
+        "sourceParameters": "",
+        "sourceBody": "if (m_screen->vpos() < 0x100)\n\t\treturn m_screen->vpos() & 0xfc;\n\telse\n\t\treturn 0xfc;"
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 52223,
+        "end": 52223,
+        "raw": "map(0xcbff, 0xcbff).w(FUNC(williams_state::watchdog_reset_w))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 2,
+        "sourceEndLine": 540
+      }
+    },
+    {
+      "id": "handler:williams_state.watchdog_reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "watchdog_reset_w",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 247,
+        "sourceColumn": 1,
+        "sourceEndLine": 252,
+        "sourceParameters": "u8 data",
+        "sourceBody": "// yes, the data bits are checked for this specific value\n\tif (data == 0x39)\n\t\tm_watchdog->watchdog_reset();"
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 52224,
+        "end": 53247,
+        "raw": "map(0xcc00, 0xcfff).ram().w(FUNC(williams_state::cmos_4bit_w)).share(\"nvram\")",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 541,
+        "sourceColumn": 2,
+        "sourceEndLine": 541,
+        "ram": true,
+        "share": "nvram"
+      }
+    },
+    {
+      "id": "handler:williams_state.cmos_4bit_w",
+      "label": "Handler",
+      "props": {
+        "method": "cmos_4bit_w",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 233,
+        "sourceColumn": 1,
+        "sourceEndLine": 237,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "// only 4 bits are valid\n\tm_nvram[offset] = data | 0xf0;"
+      }
+    },
+    {
+      "id": "map:williams_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 65535,
+        "raw": "map(0xd000, 0xffff).rom()",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 542,
+        "sourceColumn": 2,
+        "sourceEndLine": 542,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:defender_state.defender_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "defender_state",
+        "name": "defender_sound_map",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 676,
+        "sourceColumn": 1,
+        "sourceEndLine": 681
+      }
+    },
+    {
+      "id": "map:defender_state.defender_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 127,
+        "raw": "map(0x0000, 0x007f).ram()",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 678,
+        "sourceColumn": 2,
+        "sourceEndLine": 678,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:defender_state.defender_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1024,
+        "end": 1027,
+        "raw": "map(0x0400, 0x0403).mirror(0x8000).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 679,
+        "sourceColumn": 2,
+        "sourceEndLine": 679,
+        "mirror": 32768
+      }
+    },
+    {
+      "id": "map:defender_state.defender_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 45056,
+        "end": 65535,
+        "raw": "map(0xb000, 0xffff).rom()",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 680,
+        "sourceColumn": 2,
+        "sourceEndLine": 680,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:williams_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "williams_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 691,
+        "sourceColumn": 1,
+        "sourceEndLine": 697
+      }
+    },
+    {
+      "id": "map:williams_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 127,
+        "raw": "map(0x0000, 0x007f).ram()",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 693,
+        "sourceColumn": 2,
+        "sourceEndLine": 693,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:williams_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 128,
+        "end": 255,
+        "raw": "map(0x0080, 0x00ff).ram()",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 694,
+        "sourceColumn": 2,
+        "sourceEndLine": 694,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:williams_state.sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 1024,
+        "end": 1027,
+        "raw": "map(0x0400, 0x0403).mirror(0x8000).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 695,
+        "sourceColumn": 2,
+        "sourceEndLine": 695,
+        "mirror": 32768
+      }
+    },
+    {
+      "id": "map:williams_state.sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 45056,
+        "end": 65535,
+        "raw": "map(0xb000, 0xffff).rom()",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 696,
+        "sourceColumn": 2,
+        "sourceEndLine": 696,
+        "rom": true
+      }
+    },
+    {
+      "id": "handler:dac_byte_interface.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "dac_byte_interface",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 1242,
+        "sourceColumn": 2,
+        "sourceEndLine": 1242
+      }
+    },
+    {
+      "id": "machine:williams_state.williams_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "williams_state",
+        "name": "williams_base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_cocktail\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "williams_state.machine_reset"
+        ],
+        "startHandlers": [
+          "williams_state.video_start"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1534,
+        "sourceColumn": 1,
+        "sourceEndLine": 1584
+      }
+    },
+    {
+      "id": "handler:williams_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 47,
+        "sourceColumn": 1,
+        "sourceEndLine": 50,
+        "sourceParameters": "",
+        "sourceBody": "m_rom_view.disable();"
+      }
+    },
+    {
+      "id": "handler:defender_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "defender_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 327,
+        "sourceColumn": 1,
+        "sourceEndLine": 332,
+        "sourceParameters": "",
+        "sourceBody": "williams_state::machine_reset();\n\n\tbank_select_w(0);"
+      }
+    },
+    {
+      "id": "handler:williams_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_v.cpp",
+        "sourceLine": 163,
+        "sourceColumn": 1,
+        "sourceEndLine": 166,
+        "sourceParameters": "",
+        "sourceBody": "save_item(NAME(m_cocktail));"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "MC6809E",
+        "tag": "maincpu",
+        "clock": 1000000,
+        "config": [
+          "MC6809E(config, m_maincpu, MASTER_CLOCK/3/4)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &williams_state::main_map)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1537,
+        "sourceColumn": 2,
+        "sourceEndLine": 1537
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/soundcpu",
+      "label": "Device",
+      "props": {
+        "type": "M6808",
+        "tag": "soundcpu",
+        "clock": 3579545,
+        "config": [
+          "M6808(config, m_soundcpu, SOUND_CLOCK)",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &williams_state::sound_map)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1540,
+        "sourceColumn": 2,
+        "sourceEndLine": 1540
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/nvram",
+      "label": "Device",
+      "props": {
+        "type": "NVRAM",
+        "tag": "nvram",
+        "clock": null,
+        "config": [
+          "NVRAM(config, \"nvram\", nvram_device::DEFAULT_ALL_0)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1543,
+        "sourceColumn": 2,
+        "sourceEndLine": 1543,
+        "clockExpr": "nvram_device::DEFAULT_ALL_0"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/scan_timer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "scan_timer",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"scan_timer\").configure_scanline(FUNC(williams_state::va11_callback), \"screen\", 0, 32)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1546,
+        "sourceColumn": 2,
+        "sourceEndLine": 1546
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_scanline",
+        "operation": "configure_scanline",
+        "raw": "TIMER(config, \"scan_timer\").configure_scanline(FUNC(williams_state::va11_callback), \"screen\", 0, 32)",
+        "ownerTag": "scan_timer",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1546,
+        "sourceColumn": 2,
+        "sourceEndLine": 1546,
+        "scanlineStart": 0,
+        "scanlineIncrement": 32,
+        "targetClass": "williams_state",
+        "targetMethod": "va11_callback"
+      }
+    },
+    {
+      "id": "handler:williams_state.va11_callback",
+      "label": "Handler",
+      "props": {
+        "method": "va11_callback",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 19,
+        "sourceColumn": 1,
+        "sourceEndLine": 29,
+        "sourceParameters": "int param",
+        "sourceBody": "int const scanline = param;\n\n\t// must not fire at line 256\n\tif (scanline == 256)\n\t\treturn;\n\n\t// the IRQ signal comes into CB1, and is set to VA11\n\tm_pia[1]->cb1_w(BIT(scanline, 5));"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/240_timer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "240_timer",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"240_timer\").configure_scanline(FUNC(williams_state::count240_callback), \"screen\", 0, 240)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1549,
+        "sourceColumn": 2,
+        "sourceEndLine": 1549
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/240_timer/callback:240_timer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_scanline",
+        "operation": "configure_scanline",
+        "raw": "TIMER(config, \"240_timer\").configure_scanline(FUNC(williams_state::count240_callback), \"screen\", 0, 240)",
+        "ownerTag": "240_timer",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1549,
+        "sourceColumn": 2,
+        "sourceEndLine": 1549,
+        "scanlineStart": 0,
+        "scanlineIncrement": 240,
+        "targetClass": "williams_state",
+        "targetMethod": "count240_callback"
+      }
+    },
+    {
+      "id": "handler:williams_state.count240_callback",
+      "label": "Handler",
+      "props": {
+        "method": "count240_callback",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 32,
+        "sourceColumn": 1,
+        "sourceEndLine": 38,
+        "sourceParameters": "int param",
+        "sourceBody": "int const scanline = param;\n\n\t// the COUNT240 signal comes into CA1, and is set to the logical AND of VA10-VA13\n\tm_pia[1]->ca1_w(scanline >= 240 ? 1 : 0);"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, m_watchdog)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1551,
+        "sourceColumn": 2,
+        "sourceEndLine": 1551
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_video_attributes(VIDEO_UPDATE_SCANLINE | VIDEO_ALWAYS_UPDATE)",
+          "m_screen->set_raw(MASTER_CLOCK*2/3, 512, 6, 298, 260, 7, 247)",
+          "m_screen->set_screen_update(FUNC(williams_state::screen_update))",
+          "m_screen->set_visarea(12, 304-1, 7, 247-1)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1554,
+        "sourceColumn": 2,
+        "sourceEndLine": 1554,
+        "configCalls": [
+          "set_raw(8000000,512,6,298,260,7,247)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          8000000,
+          512,
+          6,
+          298,
+          260,
+          7,
+          247
+        ],
+        "screenRawExpr": [
+          "MASTER_CLOCK*2/3",
+          "512",
+          "6",
+          "298",
+          "260",
+          "7",
+          "247"
+        ],
+        "screenVideoAttributes": [
+          "VIDEO_UPDATE_SCANLINE",
+          "VIDEO_ALWAYS_UPDATE"
+        ]
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(williams_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1557,
+        "sourceColumn": 2,
+        "sourceEndLine": 1557,
+        "targetClass": "williams_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:williams_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_v.cpp",
+        "sourceLine": 200,
+        "sourceColumn": 1,
+        "sourceEndLine": 222,
+        "sourceParameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// precompute the palette\n\trgb_t pens[16];\n\tfor (int x = 0; x < 16; x++)\n\t\tpens[x] = m_palette->pen_color(m_paletteram[x]);\n\n\t// loop over rows\n\tfor (int y = cliprect.min_y; y <= cliprect.max_y; y++)\n\t{\n\t\tuint8_t const *const source = &m_videoram[y];\n\t\tuint32_t *const dest = &bitmap.pix(y);\n\n\t\t// loop over columns\n\t\tfor (int x = cliprect.min_x & ~1; x <= cliprect.max_x; x += 2)\n\t\t{\n\t\t\tuint8_t const pix = source[(x / 2) * 256];\n\t\t\tdest[x + 0] = pens[pix >> 4];\n\t\t\tdest[x + 1] = pens[pix & 0x0f];\n\t\t}\n\t}\n\treturn 0;"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(williams_state::palette_init), 256)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1559,
+        "sourceColumn": 2,
+        "sourceEndLine": 1559,
+        "clockExpr": "FUNC(williams_state::palette_init)"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1562,
+        "sourceColumn": 2,
+        "sourceEndLine": 1562
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/dac",
+      "label": "Device",
+      "props": {
+        "type": "MC1408",
+        "tag": "dac",
+        "clock": 0,
+        "config": [
+          "MC1408(config, \"dac\", 0).add_route(ALL_OUTPUTS, \"speaker\", 0.25)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1563,
+        "sourceColumn": 2,
+        "sourceEndLine": 1563
+      }
+    },
+    {
+      "id": "audioroute:device:williams_state.williams_base/dac/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.25,
+        "raw": "MC1408(config, \"dac\", 0).add_route(ALL_OUTPUTS, \"speaker\", 0.25)",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1563,
+        "sourceColumn": 2,
+        "sourceEndLine": 1563
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/mainirq",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ANY_HIGH",
+        "tag": "mainirq",
+        "clock": null,
+        "config": [
+          "INPUT_MERGER_ANY_HIGH(config, \"mainirq\").output_handler().set_inputline(m_maincpu, M6809_IRQ_LINE)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1566,
+        "sourceColumn": 2,
+        "sourceEndLine": 1566
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/mainirq/callback:mainirq:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set_inputline",
+        "raw": "INPUT_MERGER_ANY_HIGH(config, \"mainirq\").output_handler().set_inputline(m_maincpu, M6809_IRQ_LINE)",
+        "ownerTag": "mainirq",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1566,
+        "sourceColumn": 2,
+        "sourceEndLine": 1566,
+        "inputLine": "M6809_IRQ_LINE",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/soundirq",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ANY_HIGH",
+        "tag": "soundirq",
+        "clock": null,
+        "config": [
+          "INPUT_MERGER_ANY_HIGH(config, \"soundirq\").output_handler().set_inputline(m_soundcpu, M6808_IRQ_LINE)"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1568,
+        "sourceColumn": 2,
+        "sourceEndLine": 1568
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/soundirq/callback:soundirq:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set_inputline",
+        "raw": "INPUT_MERGER_ANY_HIGH(config, \"soundirq\").output_handler().set_inputline(m_soundcpu, M6808_IRQ_LINE)",
+        "ownerTag": "soundirq",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1568,
+        "sourceColumn": 2,
+        "sourceEndLine": 1568,
+        "inputLine": "M6808_IRQ_LINE",
+        "targetTag": "soundcpu"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_0",
+      "label": "Device",
+      "props": {
+        "type": "PIA6821",
+        "tag": "pia_0",
+        "clock": null,
+        "config": [
+          "PIA6821(config, m_pia[0])",
+          "m_pia[0]->readpa_handler().set_ioport(\"IN0\")",
+          "m_pia[0]->readpb_handler().set_ioport(\"IN1\")"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1570,
+        "sourceColumn": 2,
+        "sourceEndLine": 1570
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_0/callback:pia_0:0",
+      "label": "Callback",
+      "props": {
+        "signal": "readpa_handler",
+        "operation": "set_ioport",
+        "raw": "m_pia[0]->readpa_handler().set_ioport(\"IN0\")",
+        "ownerTag": "pia_0",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1571,
+        "sourceColumn": 2,
+        "sourceEndLine": 1571,
+        "targetTag": "IN0",
+        "targetPort": "IN0"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_0/callback:pia_0:1",
+      "label": "Callback",
+      "props": {
+        "signal": "readpb_handler",
+        "operation": "set_ioport",
+        "raw": "m_pia[0]->readpb_handler().set_ioport(\"IN1\")",
+        "ownerTag": "pia_0",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1572,
+        "sourceColumn": 2,
+        "sourceEndLine": 1572,
+        "targetTag": "IN1",
+        "targetPort": "IN1"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_1",
+      "label": "Device",
+      "props": {
+        "type": "PIA6821",
+        "tag": "pia_1",
+        "clock": null,
+        "config": [
+          "PIA6821(config, m_pia[1])",
+          "m_pia[1]->readpa_handler().set_ioport(\"IN2\")",
+          "m_pia[1]->writepb_handler().set(FUNC(williams_state::snd_cmd_w))",
+          "m_pia[1]->irqa_handler().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<0>))",
+          "m_pia[1]->irqb_handler().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<1>))"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1574,
+        "sourceColumn": 2,
+        "sourceEndLine": 1574
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_1/callback:pia_1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "readpa_handler",
+        "operation": "set_ioport",
+        "raw": "m_pia[1]->readpa_handler().set_ioport(\"IN2\")",
+        "ownerTag": "pia_1",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1575,
+        "sourceColumn": 2,
+        "sourceEndLine": 1575,
+        "targetTag": "IN2",
+        "targetPort": "IN2"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_1/callback:pia_1:1",
+      "label": "Callback",
+      "props": {
+        "signal": "writepb_handler",
+        "operation": "set",
+        "raw": "m_pia[1]->writepb_handler().set(FUNC(williams_state::snd_cmd_w))",
+        "ownerTag": "pia_1",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1576,
+        "sourceColumn": 2,
+        "sourceEndLine": 1576,
+        "targetClass": "williams_state",
+        "targetMethod": "snd_cmd_w"
+      }
+    },
+    {
+      "id": "handler:williams_state.snd_cmd_w",
+      "label": "Handler",
+      "props": {
+        "method": "snd_cmd_w",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 171,
+        "sourceColumn": 1,
+        "sourceEndLine": 175,
+        "sourceParameters": "u8 data",
+        "sourceBody": "// the high two bits are set externally, and should be 1\n\tmachine().scheduler().synchronize(timer_expired_delegate(FUNC(williams_state::deferred_snd_cmd_w<2>), this), data | 0xc0);"
+      }
+    },
+    {
+      "id": "handler:williams_state.deferred_snd_cmd_w_2",
+      "label": "Handler",
+      "props": {
+        "method": "deferred_snd_cmd_w_2",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_m.cpp",
+        "sourceLine": 162,
+        "sourceColumn": 1,
+        "sourceEndLine": 169,
+        "sourceParameters": "int param",
+        "sourceBody": "m_pia[A]->portb_w(param);\n\tm_pia[A]->cb1_w((param == 0xff) ? 0 : 1);\n\n\tif constexpr (sizeof...(B) > 0)\n\t\tdeferred_snd_cmd_w<B...>(param);"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_1/callback:pia_1:2",
+      "label": "Callback",
+      "props": {
+        "signal": "irqa_handler",
+        "operation": "set",
+        "raw": "m_pia[1]->irqa_handler().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<0>))",
+        "ownerTag": "pia_1",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1577,
+        "sourceColumn": 2,
+        "sourceEndLine": 1577,
+        "targetTag": "mainirq",
+        "targetClass": "input_merger_any_high_device",
+        "targetMethod": "in_w_0"
+      }
+    },
+    {
+      "id": "handler:input_merger_any_high_device.in_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_0",
+        "ownerClass": "input_merger_any_high_device",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1964,
+        "sourceColumn": 2,
+        "sourceEndLine": 1964
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_1/callback:pia_1:3",
+      "label": "Callback",
+      "props": {
+        "signal": "irqb_handler",
+        "operation": "set",
+        "raw": "m_pia[1]->irqb_handler().set(\"mainirq\", FUNC(input_merger_any_high_device::in_w<1>))",
+        "ownerTag": "pia_1",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1578,
+        "sourceColumn": 2,
+        "sourceEndLine": 1578,
+        "targetTag": "mainirq",
+        "targetClass": "input_merger_any_high_device",
+        "targetMethod": "in_w_1"
+      }
+    },
+    {
+      "id": "handler:input_merger_any_high_device.in_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_1",
+        "ownerClass": "input_merger_any_high_device",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1965,
+        "sourceColumn": 2,
+        "sourceEndLine": 1965
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_2",
+      "label": "Device",
+      "props": {
+        "type": "PIA6821",
+        "tag": "pia_2",
+        "clock": null,
+        "config": [
+          "PIA6821(config, m_pia[2])",
+          "m_pia[2]->writepa_handler().set(\"dac\", FUNC(dac_byte_interface::data_w))",
+          "m_pia[2]->irqa_handler().set(\"soundirq\", FUNC(input_merger_any_high_device::in_w<0>))",
+          "m_pia[2]->irqb_handler().set(\"soundirq\", FUNC(input_merger_any_high_device::in_w<1>))"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1580,
+        "sourceColumn": 2,
+        "sourceEndLine": 1580
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_2/callback:pia_2:0",
+      "label": "Callback",
+      "props": {
+        "signal": "writepa_handler",
+        "operation": "set",
+        "raw": "m_pia[2]->writepa_handler().set(\"dac\", FUNC(dac_byte_interface::data_w))",
+        "ownerTag": "pia_2",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1581,
+        "sourceColumn": 2,
+        "sourceEndLine": 1581,
+        "targetTag": "dac",
+        "targetClass": "dac_byte_interface",
+        "targetMethod": "data_w"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_2/callback:pia_2:1",
+      "label": "Callback",
+      "props": {
+        "signal": "irqa_handler",
+        "operation": "set",
+        "raw": "m_pia[2]->irqa_handler().set(\"soundirq\", FUNC(input_merger_any_high_device::in_w<0>))",
+        "ownerTag": "pia_2",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1582,
+        "sourceColumn": 2,
+        "sourceEndLine": 1582,
+        "targetTag": "soundirq",
+        "targetClass": "input_merger_any_high_device",
+        "targetMethod": "in_w_0"
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/pia_2/callback:pia_2:2",
+      "label": "Callback",
+      "props": {
+        "signal": "irqb_handler",
+        "operation": "set",
+        "raw": "m_pia[2]->irqb_handler().set(\"soundirq\", FUNC(input_merger_any_high_device::in_w<1>))",
+        "ownerTag": "pia_2",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1583,
+        "sourceColumn": 2,
+        "sourceEndLine": 1583,
+        "targetTag": "soundirq",
+        "targetClass": "input_merger_any_high_device",
+        "targetMethod": "in_w_1"
+      }
+    },
+    {
+      "id": "machine:defender_state.defender",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "defender_state",
+        "name": "defender",
+        "calls": [
+          "williams_base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_cocktail\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "williams_state.machine_reset",
+          "defender_state.machine_reset"
+        ],
+        "startHandlers": [
+          "williams_state.video_start"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"screen\",\"config\":[\"m_screen->set_visarea(12, 304-1, 7, 247-1)\"]}"
+        ],
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1594,
+        "sourceColumn": 1,
+        "sourceEndLine": 1602
+      }
+    },
+    {
+      "id": "inputs:defender",
+      "label": "InputPorts",
+      "props": {
+        "name": "defender",
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 8,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "id": "inputs:defender/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"Fire\")"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"Thrust\")"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_NAME(\"Smart Bomb\")"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_NAME(\"Hyperspace\")"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_START2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_START1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_BUTTON5",
+        "modifiers": [
+          "PORT_NAME(DEF_STR( Reverse ))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:defender/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 254,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_SERVICE1",
+        "modifiers": [
+          "PORT_NAME(\"Auto Up / Manual Down\")",
+          "PORT_TOGGLE"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_SERVICE",
+        "modifiers": [
+          "PORT_NAME(\"Advance\")"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_COIN3",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_MEMORY_RESET",
+        "modifiers": [
+          "PORT_NAME(\"High Score Reset\")"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_COIN1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_COIN2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_TILT",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:defender/IN2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "device:williams_state.williams_base/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(williams_state::palette_init), 256)",
+        "ownerTag": "palette",
+        "targetClass": "williams_state",
+        "targetMethod": "palette_init",
+        "entries": 256,
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1559
+      }
+    },
+    {
+      "id": "handler:williams_state.palette_init",
+      "label": "Handler",
+      "props": {
+        "method": "palette_init",
+        "ownerClass": "williams_state",
+        "sourceFile": "src/mame/williams/williams_v.cpp",
+        "sourceLine": 340,
+        "sourceColumn": 1,
+        "sourceEndLine": 363,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "// compute palette information\n\t// note that there really are pullup/pulldown resistors, but this situation is complicated\n\t// by the use of transistors, so we ignore that and just use the relative resistor weights\n\tdouble weights_r[3], weights_g[3], weights_b[2];\n\tcompute_resistor_weights(0, 255, -1.0,\n\t\t\t3, resistances_rg, weights_r, 0, 0,\n\t\t\t3, resistances_rg, weights_g, 0, 0,\n\t\t\t2, resistances_b,  weights_b, 0, 0);\n\n\t// build a palette lookup\n\tfor (int i = 0; i < 256; i++)\n\t{\n\t\tint const r = combine_weights(weights_r, BIT(i, 0), BIT(i, 1), BIT(i, 2));\n\t\tint const g = combine_weights(weights_g, BIT(i, 3), BIT(i, 4), BIT(i, 5));\n\t\tint const b = combine_weights(weights_b, BIT(i, 6), BIT(i, 7));\n\n\t\tpalette.set_pen_color(i, rgb_t(r, g, b));\n\t}"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:defender",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 3968,
+        "sourceColumn": 1,
+        "sourceEndLine": 3968
+      }
+    },
+    {
+      "from": "game:defender",
+      "to": "machine:defender_state.defender",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:defender",
+      "to": "inputs:defender",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:defender",
+      "to": "romset:defender",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/williams/williams.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/williams.cpp",
+      "to": "file:williams.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/williams.cpp",
+      "to": "file:machine/input_merger.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/williams.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/williams.cpp",
+      "to": "file:sound/dac.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/williams.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:defender_state.defender",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1594,
+        "sourceColumn": 1,
+        "sourceEndLine": 1602
+      }
+    },
+    {
+      "from": "machine:defender_state.defender",
+      "to": "handler:williams_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:defender_state.defender",
+      "to": "handler:defender_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:defender_state.defender",
+      "to": "handler:williams_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:defender_state.defender",
+      "to": "machine:williams_state.williams_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:defender_state.defender",
+      "to": "map:defender_state.defender_main_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:defender_state.defender",
+      "to": "map:defender_state.defender_sound_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "soundcpu"
+      }
+    },
+    {
+      "from": "inputs:defender",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 8,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "from": "inputs:defender",
+      "to": "inputs:defender/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:defender",
+      "to": "inputs:defender/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:defender",
+      "to": "inputs:defender/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:defender",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1985,
+        "sourceColumn": 1,
+        "sourceEndLine": 1985
+      }
+    },
+    {
+      "from": "romset:defender",
+      "to": "region:defender/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:defender",
+      "to": "region:defender/banked",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:defender",
+      "to": "region:defender/soundcpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:defender",
+      "to": "region:defender/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:defender_state.machine_reset",
+      "to": "handler:williams_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:defender_state.machine_reset",
+      "to": "handler:defender_state.bank_select_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 1534,
+        "sourceColumn": 1,
+        "sourceEndLine": 1584
+      }
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "handler:williams_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "handler:williams_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/soundcpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/nvram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/scan_timer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/240_timer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/mainirq",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/soundirq",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/pia_0",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/pia_1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_state.williams_base",
+      "to": "device:williams_state.williams_base/pia_2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 494,
+        "sourceColumn": 1,
+        "sourceEndLine": 507
+      }
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_main_map",
+      "to": "map:defender_state.defender_main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_sound_map",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 676,
+        "sourceColumn": 1,
+        "sourceEndLine": 681
+      }
+    },
+    {
+      "from": "map:defender_state.defender_sound_map",
+      "to": "map:defender_state.defender_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_sound_map",
+      "to": "map:defender_state.defender_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:defender_state.defender_sound_map",
+      "to": "map:defender_state.defender_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN0",
+      "to": "inputs:defender/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN1",
+      "to": "inputs:defender/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN1",
+      "to": "inputs:defender/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:defender/IN2",
+      "to": "inputs:defender/IN2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:defender/maincpu",
+      "to": "rom:defender/maincpu/defend.1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/maincpu",
+      "to": "rom:defender/maincpu/defend.4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/maincpu",
+      "to": "rom:defender/maincpu/defend.2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/maincpu",
+      "to": "rom:defender/maincpu/defend.3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/banked",
+      "to": "rom:defender/banked/defend.9",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/banked",
+      "to": "rom:defender/banked/defend.12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/banked",
+      "to": "rom:defender/banked/defend.8",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/banked",
+      "to": "rom:defender/banked/defend.11",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/banked",
+      "to": "rom:defender/banked/defend.7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/banked",
+      "to": "rom:defender/banked/defend.10",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/banked",
+      "to": "rom:defender/banked/defend.6",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/soundcpu",
+      "to": "rom:defender/soundcpu/video_sound_rom_1.ic12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/proms",
+      "to": "rom:defender/proms/decoder.2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:defender/proms",
+      "to": "rom:defender/proms/decoder.3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:williams_state.williams_base/maincpu",
+      "to": "map:williams_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:williams_state.williams_base/soundcpu",
+      "to": "map:williams_state.sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:williams_state.williams_base/scan_timer",
+      "to": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/240_timer",
+      "to": "device:williams_state.williams_base/240_timer/callback:240_timer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/screen",
+      "to": "device:williams_state.williams_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/palette",
+      "to": "device:williams_state.williams_base/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/dac",
+      "to": "audioroute:device:williams_state.williams_base/dac/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:williams_state.williams_base/mainirq",
+      "to": "device:williams_state.williams_base/mainirq/callback:mainirq:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/soundirq",
+      "to": "device:williams_state.williams_base/soundirq/callback:soundirq:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_0",
+      "to": "device:williams_state.williams_base/pia_0/callback:pia_0:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_0",
+      "to": "device:williams_state.williams_base/pia_0/callback:pia_0:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1",
+      "to": "device:williams_state.williams_base/pia_1/callback:pia_1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1",
+      "to": "device:williams_state.williams_base/pia_1/callback:pia_1:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1",
+      "to": "device:williams_state.williams_base/pia_1/callback:pia_1:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1",
+      "to": "device:williams_state.williams_base/pia_1/callback:pia_1:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2",
+      "to": "device:williams_state.williams_base/pia_2/callback:pia_2:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2",
+      "to": "device:williams_state.williams_base/pia_2/callback:pia_2:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2",
+      "to": "device:williams_state.williams_base/pia_2/callback:pia_2:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range3",
+      "to": "handler:defender_state.watchdog_reset_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range4",
+      "to": "handler:defender_state.video_control_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range5",
+      "to": "handler:defender_state.cmos_4bit_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range6",
+      "to": "handler:defender_state.video_counter_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range7",
+      "to": "handler:pia6821_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pia_1"
+      }
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range7",
+      "to": "handler:pia6821_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pia_1"
+      }
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range8",
+      "to": "handler:pia6821_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pia_0"
+      }
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range8",
+      "to": "handler:pia6821_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pia_0"
+      }
+    },
+    {
+      "from": "map:defender_state.defender_main_map/range9",
+      "to": "handler:defender_state.bank_select_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:defender_state.defender_sound_map/range1",
+      "to": "handler:pia6821_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pia_2"
+      }
+    },
+    {
+      "from": "map:defender_state.defender_sound_map/range1",
+      "to": "handler:pia6821_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pia_2"
+      }
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 530,
+        "sourceColumn": 1,
+        "sourceEndLine": 543
+      }
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.main_map",
+      "to": "map:williams_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.sound_map",
+      "to": "file:src/mame/williams/williams.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/williams.cpp",
+        "sourceLine": 691,
+        "sourceColumn": 1,
+        "sourceEndLine": 697
+      }
+    },
+    {
+      "from": "map:williams_state.sound_map",
+      "to": "map:williams_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.sound_map",
+      "to": "map:williams_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.sound_map",
+      "to": "map:williams_state.sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_state.sound_map",
+      "to": "map:williams_state.sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+      "to": "handler:williams_state.va11_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/240_timer/callback:240_timer:0",
+      "to": "handler:williams_state.count240_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/screen/callback:screen:0",
+      "to": "handler:williams_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/palette/callback:palette_init",
+      "to": "handler:williams_state.palette_init",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/mainirq/callback:mainirq:0",
+      "to": "device:williams_state.williams_base/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:williams_state.williams_base/soundirq/callback:soundirq:0",
+      "to": "device:williams_state.williams_base/soundcpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1/callback:pia_1:1",
+      "to": "handler:williams_state.snd_cmd_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1/callback:pia_1:2",
+      "to": "handler:input_merger_any_high_device.in_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1/callback:pia_1:2",
+      "to": "device:williams_state.williams_base/mainirq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1/callback:pia_1:3",
+      "to": "handler:input_merger_any_high_device.in_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_1/callback:pia_1:3",
+      "to": "device:williams_state.williams_base/mainirq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2/callback:pia_2:0",
+      "to": "handler:dac_byte_interface.data_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2/callback:pia_2:0",
+      "to": "device:williams_state.williams_base/dac",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2/callback:pia_2:1",
+      "to": "handler:input_merger_any_high_device.in_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2/callback:pia_2:1",
+      "to": "device:williams_state.williams_base/soundirq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2/callback:pia_2:2",
+      "to": "handler:input_merger_any_high_device.in_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:williams_state.williams_base/pia_2/callback:pia_2:2",
+      "to": "device:williams_state.williams_base/soundirq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:williams_state.main_map/range4",
+      "to": "handler:pia6821_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pia_0"
+      }
+    },
+    {
+      "from": "map:williams_state.main_map/range4",
+      "to": "handler:pia6821_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pia_0"
+      }
+    },
+    {
+      "from": "map:williams_state.main_map/range5",
+      "to": "handler:pia6821_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pia_1"
+      }
+    },
+    {
+      "from": "map:williams_state.main_map/range5",
+      "to": "handler:pia6821_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pia_1"
+      }
+    },
+    {
+      "from": "map:williams_state.main_map/range6",
+      "to": "handler:williams_state.vram_select_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:williams_state.main_map/range7",
+      "to": "handler:williams_state.video_counter_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:williams_state.main_map/range8",
+      "to": "handler:williams_state.watchdog_reset_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:williams_state.main_map/range9",
+      "to": "handler:williams_state.cmos_4bit_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:williams_state.sound_map/range2",
+      "to": "handler:pia6821_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pia_2"
+      }
+    },
+    {
+      "from": "map:williams_state.sound_map/range2",
+      "to": "handler:pia6821_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pia_2"
+      }
+    },
+    {
+      "from": "handler:williams_state.snd_cmd_w",
+      "to": "handler:williams_state.deferred_snd_cmd_w_2",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+Arcade Video game published 37 years ago:
+
+Teenage Mutant Ninja Turtles (c) 1989 Konami.
+
+Export release. Game developed in Japan. For more information about the game itself please see the original Japanese release entry; "Teenage Mutant Ninja Turtles - Super Kame Ninja [Model GX963]".
+
+- TECHNICAL -
+
+Game ID: GX963
+
+Players: 4
+Control: 8-way joystick
+Buttons: 2 (JUMP, ATTACK)
+
+- TRIVIA -
+
+Teenage Mutant Ninja Turtles was released in October 1989.
+
+The US and European releases of the game had an exploit involving an enemy's projectiles, attacking them would make farming for points very easy, so the Japanese release removed any points given from attacking a projectile.
+
+- STAFF -
+
+Cabinet Graphic Design: Don Marshall
+
+- PORTS -
+
+The Famicom/NES port of the game was changed to accommodate for the console's limitations and other minor changes. Two extra stages were added. Another minor change is Raphael's special attack matched every other turtle.
+
+* CONSOLES:
+[US] Nintendo NES (dec.1990) "Teenage Mutant Ninja Turtles II - The Arcade Game [Model NES-2N-USA]" 
+[JP] Nintendo Famicom (dec.7, 1990) "Teenage Mutant Ninja Turtles [Model RC853]" 
+[US] Nintendo GameCube (oct.19, 2004) "Teenage Mutant Ninja Turtles II - Battle Nexus [Model DOL-GNIE-USA]" : as a bonus game
+[US] [JP] Microsoft XBOX 360 [XBLA] (mar.14, 2007) 
+
+* COMPUTERS:
+Atari ST (1991) "Teenage Mutant Ninja Turtles 2" 
+[US] PC [MS-DOS] (1992) "Teenage Mutant Ninja Turtles - The Arcade Game"
+
+- SERIES -
+
+1. Teenage Mutant Ninja Turtles (1989)
+2. Teenage Mutant Ninja Turtles - Turtles in Time (1991)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2854/?o=2
+
+— Gaming History (arcade-history.com)
