@@ -41,16 +41,16 @@ check('every accepted target is a required target', () => {
   assert.deepEqual(ACCEPTED_TARGETS.filter(target => !REQUIRED_TARGETS.includes(target)), []);
 });
 
-check('candidate targets generate but are not accepted or published', () => {
+check('candidate targets remain visible without being accepted', () => {
   assert.deepEqual(CANDIDATE_TARGETS.filter(target => !GENERATION_TARGETS.includes(target)), []);
   assert.deepEqual(CANDIDATE_TARGETS.filter(target => ACCEPTED_TARGETS.includes(target)), []);
-  assert.deepEqual(CANDIDATE_TARGETS.filter(target => PUBLISHED_TARGETS.includes(target)), []);
+  assert.deepEqual(CANDIDATE_TARGETS.filter(target => !PUBLISHED_TARGETS.includes(target)), []);
 });
 
-check('published targets are accepted games plus software-driven systems', () => {
+check('the catalogue exposes every generated target', () => {
   assert.deepEqual(
     [...PUBLISHED_TARGETS].sort(),
-    [...ACCEPTED_TARGETS, ...SYSTEM_TARGETS].sort(),
+    [...REQUIRED_TARGETS].sort(),
   );
 });
 

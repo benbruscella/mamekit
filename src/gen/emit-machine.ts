@@ -708,6 +708,7 @@ export function lowerGeneratedMachine(
   // MAME's gameboy_sound_device renders through `sound_stream` like the TIA
   // does, but its registers ARE in the processor's map, so the writes already
   // reach the chip and only the sample pull needs wiring.
+  const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(device.type));
   const gameboyApu = devices.find(device => device.type === 'DMG_APU');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
@@ -886,6 +887,10 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
             ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
           }
+        : sidDevice
+          ? { kind: 'sid', deviceTag: sidDevice.tag, deviceType: sidDevice.type,
+              writeMethods: [], enableMethods: [], controlOffset: -1,
+              routes: lowerAudioRoutes(graph, [sidDevice]) }
         : gameboyApu
           ? {
               kind: 'gameboy',

@@ -32,6 +32,10 @@ export interface SoundRuntimeContext {
   soundData(id: number, bytes: Uint8Array): void;
   /** Position within the current video frame, so writes keep their timing. */
   fraction(): number;
+  /** Scheduler time, including the running instruction. */
+  time?(): number;
+  /** Bind a framework service on an already composed generated device. */
+  bindDeviceCall?(tag: string, name: string, callback: (...args: any[]) => unknown): void;
   /** Call a method on an instantiated generated device, if it has one. */
   // A stream-rendering chip is handed MAME's own `sound_stream` surface, so
   // the argument is not always a number.

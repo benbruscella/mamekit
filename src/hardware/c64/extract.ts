@@ -9,6 +9,8 @@ import { parseMameConstructors, parseMameSource } from '../../mame/ast.ts';
 import { normalizeMameExecutionSource } from '../../mame/cpu-compiler.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import { compilePla } from '../../mame/pla-compiler.ts';
+import { compileSid } from '../../mame/sid-compiler.ts';
+import { generatedStreamWorkletSource } from '../../mame/stream-worklet.ts';
 import { compileDatassetteOptions } from '../../mame/cassette-compiler.ts';
 
 export function extractC64(input: CapabilityInput): CapabilityExtraction | undefined {
@@ -19,7 +21,8 @@ export function extractC64(input: CapabilityInput): CapabilityExtraction | undef
   for (const entry of present) {
     const source = entry.definition as MameHardwareDefinition | undefined;
     if (!source) continue;
-    const device = entry.type === 'PLS100' ? compilePla(input.mameSource, source)
+    const device = ['MOS6581', 'MOS8580'].includes(entry.type) ? compileSid(input.mameSource, source)
+      : entry.type === 'PLS100' ? compilePla(input.mameSource, source)
       : compileMameDevice(input.mameSource, source, entry.type);
     if (entry.type === 'CBM_IEC') {
       const file = source.sourceFile;
@@ -73,6 +76,11 @@ export function extractC64(input: CapabilityInput): CapabilityExtraction | undef
       { path: `${stem}.device.ir.json`, contents: JSON.stringify(device, null, 2) },
       { path: `${stem}.ts`, contents: generatedDeviceExecutableSource(device, `${entry.type.toLowerCase()}.device.ir.json`) },
     );
+    if (['MOS6581', 'MOS8580'].includes(entry.type)) result.artifacts.push({
+      path: 'audio/sid-worklet.ts', contents: generatedStreamWorkletSource({
+        kind: 'sid', sourceFiles: device.sourceFiles, methods: device.methods.map(method => method.name),
+      }),
+    });
     result.entrySourceFiles![entry.type] = device.sourceFiles;
     result.entryMethods![entry.type] = device.methods.map(method => ({
       name: method.name, parameters: method.parameters, sourceFile: method.source.file,

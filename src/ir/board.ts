@@ -242,6 +242,7 @@ export interface GeneratedHandler {
  * `screen().vpos()` on its first line, which took the ColecoVision to 17 fps.
  */
 export const HOST_SERVICE_CALLS: readonly string[] = [
+  'machine().sample_rate',
   'screen().vpos',
   'screen().hpos',
   'screen().width',

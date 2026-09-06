@@ -109,8 +109,8 @@ if (process.argv.includes(buildOnceFlag)) {
   try {
     const manifest = readBuildManifest(outRoot);
     if (!manifest) throw new Error('run npm run gen:all before starting development');
-    // Local development already compiles candidates; expose the same target
-    // set in the menu. Distribution generation retains its accepted subset.
+    // Keep the local menu aligned with the generated target set, including
+    // experimental candidates.
     if (!await buildApp(outRoot, manifest.targets)) process.exitCode = 1;
     else {
       updateAppTargets(outRoot, manifest.targets, true);

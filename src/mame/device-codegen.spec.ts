@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { dereferenceGeneratedValue } from '../ir/execute.ts';
+import { dereferenceGeneratedValue, executeGeneratedProgram } from '../ir/execute.ts';
 import type { GeneratedDeviceDefinition } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
@@ -564,4 +564,70 @@ assert.equal(
   }), 11);
 }
 
+{
+  const fixedArray = generatedDeviceMethodsSource({
+    ...definition, members: [{ name: 'm_bytes', valueType: 'uint8_t', arrayLength: 4 }],
+    hotMethods: ['access'], methods: [{
+      name: 'access', parameters: '', source: { file: 'fixture.cpp', line: 1 },
+      program: compileMameHandler('m_bytes[2] = 19; return m_bytes[2];'),
+    }],
+  });
+  assert.doesNotMatch(fixedArray.source, /runtime\.(readIndex|writeIndex|writableMember)/);
+  const built = new Function(`return ${fixedArray.source}`)();
+  assert.equal(built.access({ members: { m_bytes: new Uint8Array(4) } }), 19);
+}
+
+{
+  const nullTest = generatedDeviceMethodsSource({
+    ...definition, hotMethods: ['present'], methods: [{
+      name: 'present', parameters: 'uint8_t *memory', source: { file: 'fixture.cpp', line: 1 },
+      program: compileMameHandler('return memory != nullptr;'),
+    }],
+  });
+  assert.doesNotMatch(nullTest.source, /runtime\.same/);
+  const built = new Function(`return ${nullTest.source}`)();
+  assert.equal(built.present({ members: {} }, 0), 0);
+  assert.equal(built.present({ members: {} }, new Uint8Array(0)), 1);
+  assert.equal(built.present({ members: {} }, {
+    generatedPointer: true, source: Uint8Array.of(0), offset: 0,
+  }), 1, 'the value pointed to does not determine whether a pointer is null');
+}
+
+{
+  const dispatch = compileMameHandler('auto sampler = &sample; return (*sampler)(7);');
+  const pointers = generatedDeviceMethodsSource({
+    ...definition, hotMethods: ['dispatch', 'sample'], methods: [
+      { name: 'dispatch', parameters: '', source: { file: 'fixture.cpp', line: 1 }, program: dispatch },
+      { name: 'sample', parameters: 'int value', source: { file: 'fixture.cpp', line: 2 },
+        program: compileMameHandler('return value + 3;') },
+    ],
+  });
+  const built = new Function(`return ${pointers.source}`)();
+  assert.equal(built.dispatch({ members: {}, dereference: dereferenceGeneratedValue }), 10);
+  assert.equal(executeGeneratedProgram(dispatch, {
+    referenceCalls: { sample: value => Number(value) + 3 },
+  }).value, 10, 'the interpreter and emitted code preserve a function pointer');
+}
+
 console.log('device-codegen.spec: IR selection, dependency closure, case scoping, host services and pointer calls passed');
+
+{
+  const tables = generatedDeviceMethodsSource({
+    ...definition, hotMethods: ['fixed', 'dynamic', 'fractional'], methods: [
+      { name: 'fixed', parameters: 'int index', source: { file: 'fixture.cpp', line: 1 },
+        program: compileMameHandler('return TABLE(index, 11, 22, 33, 44);') },
+      { name: 'dynamic', parameters: 'int index, int value', source: { file: 'fixture.cpp', line: 2 },
+        program: compileMameHandler('return TABLE(index, value, 22, 33, 44);') },
+      { name: 'fractional', parameters: 'double index', source: { file: 'fixture.cpp', line: 3 },
+        program: compileMameHandler('return TABLE(index, 11, 22, 33, 44);') },
+    ],
+  });
+  const built = Function(`return ${tables.source}`)();
+  assert.equal(built.fixed({ members: {} }, -1), 44);
+  assert.equal(built.fixed({ members: {} }, 4), 11);
+  assert.equal(built.dynamic({ members: {} }, 0, 19), 19);
+  assert.equal(built.dynamic({ members: {} }, 0, 27), 27);
+  assert.equal(built.fractional({ members: {} }, 0.5), 0);
+  assert.equal(built.fractional({ members: {} }, -1), 44);
+  assert.match(tables.source, /const __mame_table_0/);
+}

@@ -3530,21 +3530,85 @@ function stripTracingCalls(source: string): string {
 }
 
 export function stripInactivePreprocessorBranches(source: string): string {
-  let normalized = source;
-  const branch =
-    /^[ \t]*#(ifdef\s+\w+|ifndef\s+\w+|if\s+[01])[^\r\n]*\r?\n([\s\S]*?)(?:^[ \t]*#else[^\r\n]*\r?\n([\s\S]*?))?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm;
-  for (let pass = 0; pass < 8; pass++) {
-    let changed = false;
-    normalized = normalized.replace(
-      branch,
-      (_match, directive: string, primary: string, alternate = '') => {
-        changed = true;
-        return /^ifndef\b|^if\s+1$/.test(directive) ? primary : alternate;
-      },
-    );
-    if (!changed) break;
-  }
-  return normalized;
+  const stack: { parent: boolean; selected: boolean; known: boolean }[] = [];
+  let active = true;
+  const condition = (directive: string, expression: string): boolean | undefined => {
+    if (directive === 'ifdef') return false;
+    if (directive === 'ifndef') return true;
+    const clean = expression.replace(/\/\/.*|\/\*.*?\*\//g, '').trim();
+    if (/^[01]$/.test(clean)) return clean === '1';
+    if (/^defined\s*(?:\(\s*\w+\s*\)|\w+)$/.test(clean)) return false;
+    if (/^!\s*defined\s*(?:\(\s*\w+\s*\)|\w+)$/.test(clean)) return true;
+    const booleanExpression = clean.replace(/\bdefined\s*(?:\(\s*\w+\s*\)|\w+)/g, '0');
+    if (/^[01\s!&|()]+$/.test(booleanExpression)) {
+      const tokens = booleanExpression.match(/&&|\|\||!|[01()]/g) ?? [];
+      if (tokens.join('') !== booleanExpression.replace(/\s/g, '')) return undefined;
+      let at = 0;
+      const primary = (): boolean => {
+        const token = tokens[at++];
+        if (token === '!') return !primary();
+        if (token === '(') {
+          const value = disjunction();
+          if (tokens[at++] !== ')') throw new Error('unclosed preprocessor condition');
+          return value;
+        }
+        if (token !== '0' && token !== '1') throw new Error('invalid preprocessor condition');
+        return token === '1';
+      };
+      const conjunction = (): boolean => {
+        let value = primary();
+        while (tokens[at] === '&&') { at++; const right = primary(); value = value && right; }
+        return value;
+      };
+      const disjunction = (): boolean => {
+        let value = conjunction();
+        while (tokens[at] === '||') { at++; const right = conjunction(); value = value || right; }
+        return value;
+      };
+      try { const value = disjunction(); if (at === tokens.length) return value; } catch { /* preserve for diagnostics */ }
+    }
+    return undefined;
+  };
+  const lines = source.split('\n');
+  return lines.map((line, lineIndex) => {
+    const directive = /^\s*#\s*(if|ifdef|ifndef|elif|else|endif)\b(.*)/.exec(line);
+    if (!directive) return active ? line : '';
+    const [, kind, expression] = directive;
+    if (kind === 'if' || kind === 'ifdef' || kind === 'ifndef') {
+      let value = condition(kind, expression);
+      // An unknown alternative cannot be silently treated as false. Preserve
+      // that whole conditional for diagnostics unless an earlier true arm
+      // makes every alternative unreachable.
+      if (value === false) {
+        let depth = 0;
+        for (let index = lineIndex + 1; index < lines.length; index++) {
+          const next = /^\s*#\s*(if|ifdef|ifndef|elif|endif)\b(.*)/.exec(lines[index]!);
+          if (!next) continue;
+          if (next[1] === 'endif') { if (depth-- === 0) break; }
+          else if (next[1] !== 'elif') depth++;
+          else if (depth === 0 && condition('if', next[2]!) === undefined) {
+            value = undefined;
+            break;
+          }
+        }
+      }
+      stack.push({ parent: active, selected: value === true, known: value !== undefined });
+      active = active && value !== false;
+      return value === undefined && active ? line : '';
+    }
+    const frame = stack.at(-1);
+    if (!frame) return active ? line : '';
+    if (kind === 'endif') {
+      stack.pop();
+      active = frame.parent;
+      return !frame.known && active ? line : '';
+    }
+    if (!frame.known) return active ? line : '';
+    const selected = kind === 'else' || condition('if', expression) === true;
+    active = frame.parent && !frame.selected && selected;
+    frame.selected ||= selected;
+    return '';
+  }).join('\n');
 }
 
 function stripMameFrameworkSetup(body: string): string {

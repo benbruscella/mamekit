@@ -13,7 +13,7 @@ export const c64p = {
       "width": 403,
       "height": 284
     },
-    "soundKind": "none",
+    "soundKind": "sid",
     "media": [
       {
         "kind": "bios",

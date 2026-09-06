@@ -111,9 +111,9 @@ const slotExecutable = extraction.artifacts.find(artifact =>
 assert.ok(slotExecutable);
 assert.match(
   slotExecutable.contents,
-  // The member read carries its own absent-member fallback, so match the
-  // pointer shape rather than the exact spelling of the read.
-  /runtime\.addressOf\(base_ptr, runtime\.readIndex\(\(?members\.m_nt_orig\b/,
+  // The fixed array may be indexed directly, but the resulting nametable
+  // address must still retain its pointer base and offset.
+  /runtime\.addressOf\(base_ptr, (?:runtime\.readIndex\()?\(?members\.m_nt_orig\b/,
   'runtime MMC3 mirroring changes must retain offset nametable pointers',
 );
 assert.equal(slotDefinition.role, 'cartridge');

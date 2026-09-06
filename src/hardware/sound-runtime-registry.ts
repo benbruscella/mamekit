@@ -14,6 +14,7 @@ import { installSamplesRuntime } from './samples/runtime.ts';
 import { installYm2151Runtime } from './ym2151/runtime.ts';
 import { installBerzerkSoundRuntime } from './berzerk-sound/runtime.ts';
 import { installA2600Runtime } from './a2600/runtime.ts';
+import { installC64AudioRuntime } from './c64/runtime.ts';
 import { installGameboyRuntime } from './gameboy/runtime.ts';
 import {
   deviceAliases,
@@ -40,6 +41,7 @@ const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
   exidy: installBerzerkSoundRuntime,
   tia: installA2600Runtime,
   gameboy: installGameboyRuntime,
+  sid: installC64AudioRuntime,
 };
 
 export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeHooks | undefined {

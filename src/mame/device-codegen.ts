@@ -48,6 +48,7 @@ export interface CodegenScope {
 }
 
 interface EmitContext {
+  dereferencedParameters?: Map<string, string>;
   definition: CodegenScope;
   boardScope: boolean;
   compiled: Set<string>;
@@ -66,6 +67,7 @@ interface EmitContext {
   stableMembers?: ReadonlySet<string>;
   /** Stable members this method actually mentions, in emission order. */
   hoisted?: Set<string>;
+  constantTables?: Map<string, string>;
 }
 
 interface Target {
@@ -161,8 +163,9 @@ export function generatedDeviceMethodsSource(
 
   // A root may only call another compiled method directly when that dependency
   // also passed validation. Other calls retain the interpreter fallback.
+  const constantTables = new Map<string, string>();
   const functions = supported.map(method =>
-    emitMethod(definition, method, supportedNames, typescript)).join('\n\n');
+    emitMethod(definition, method, supportedNames, typescript, constantTables)).join('\n\n');
   // A method that assigns through a C++ reference is emitted against the
   // get/set (or single returned reference) ABI, which only an emitted caller
   // knows how to satisfy — and those call it as a plain function, not through
@@ -176,6 +179,7 @@ export function generatedDeviceMethodsSource(
     .map(method =>
       `${JSON.stringify(method.name)}: method_${safeName(method.name)}`).join(',\n    ');
   const source = `(() => {
+${[...constantTables].map(([values, name]) => `  const ${name} = [${values}];`).join('\n')}
 ${functions}
   return {
     ${entries}
@@ -373,8 +377,9 @@ export function supportsMethod(
           members.has(expression.name) ||
           constants.has(expression.name) ||
           constants.has(expression.name.split('::').at(-1)!) ||
+          compiled.has(expression.name) ||
           callees.has(expression.name) ||
-          ['true', 'false', 'nullptr', 'g_profiler',
+          ['true', 'false', 'nullptr', 'this', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||
           expression.name.startsWith('PROFILER_') ||
           // MAME's mem_mask byte-lane tests, emitted against the handler's own
@@ -393,7 +398,7 @@ export function supportsMethod(
           ) ||
           (
             expression.operand.kind === 'identifier' &&
-            structMemberNames(definition).has(expression.operand.name)
+            (structMemberNames(definition).has(expression.operand.name) || compiled.has(expression.operand.name))
           );
       } else if (expression.kind === 'binary') {
         supported = SAFE_BINARY_OPERATORS.has(expression.operator);
@@ -447,6 +452,7 @@ function emitMethod(
   method: GeneratedDeviceMethod,
   compiled: Set<string>,
   typescript: boolean,
+  constantTables: Map<string, string>,
 ): string {
   const parameters = parseParameters(method.parameters);
   const returnedReference = singleReturnedReference(method);
@@ -474,7 +480,13 @@ function emitMethod(
     boardScope: Boolean(definition.boardScope),
     typescript,
     methodConstants: method.constants,
+    constantTables,
   };
+  context.dereferencedParameters = new Map(parameters.filter(parameter =>
+    parameter.valueType.includes('*') &&
+    Boolean(definition.structs?.[parameter.valueType.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim()]) &&
+    !assignsIdentifier(method.program.operations, parameter.name))
+    .map(parameter => [parameter.name, `__pointee_${safeName(parameter.name)}`]));
   collectLocals(method.program.operations, context);
   const annotation = typescript ? ': any' : '';
   const args = parameters.map(parameter => `${localName(parameter.name)}${annotation}`).join(', ');
@@ -486,8 +498,9 @@ function emitMethod(
       `    const ${hoistedName(name)} = members.${name} ?? ` +
       `runtime.member(${JSON.stringify(name)});`)
     .join('\n');
-  return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''}) {
+  return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
     const members = runtime.members;
+${[...context.dereferencedParameters!].map(([parameter, name]) => `    const ${name} = runtime.dereference(${localName(parameter)});`).join('\n')}
 ${hoisted}${hoisted ? '\n' : ''}${body}${returned}
   }`;
 }
@@ -628,6 +641,15 @@ function emitOperation(
  */
 function memberValue(name: string, context?: EmitContext): string {
   if (context?.stableMembers?.has(name)) {
+    const member = !context.boardScope
+      ? context.definition.members.find(candidate => candidate.name === name) : undefined;
+    if (member?.bits && member.initial !== undefined && /\bconst\b/.test(member.valueType) &&
+        !member.valueType.includes('*')) {
+      // A source-resolved const scalar cannot change after construction.
+      // Specialising chip variants here lets the JS compiler remove their
+      // unused timing/rendering branches instead of testing them every dot.
+      return String(member.initial);
+    }
     context.hoisted?.add(name);
     return hoistedName(name);
   }
@@ -717,6 +739,9 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       context.methodConstants?.[leaf] ??
       context.definition.constants[leaf];
     if (constant !== undefined) return String(constant);
+    if (context.compiled.has(expression.name)) {
+      return `method_${safeName(expression.name)}.bind(undefined, runtime)`;
+    }
     return memberValue(expression.name, context);
   }
   if (expression.kind === 'unary') {
@@ -780,6 +805,17 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
         (expression.operator === '==' || expression.operator === '!=') &&
         (leftType?.includes('*') || rightType?.includes('*'))
       ) {
+        const isNull = (value: GeneratedExpression): boolean =>
+          (value.kind === 'number' && value.value === 0) ||
+          (value.kind === 'identifier' && value.name === 'nullptr');
+        const pointer = leftType?.includes('*') && isNull(expression.right) ? left
+          : rightType?.includes('*') && isNull(expression.left) ? right : undefined;
+        if (pointer !== undefined) {
+          // A null test needs no comparison of pointer bases or offsets.
+          // Every allocated pointer, including one pointing at a zero byte,
+          // is an object; the host represents the null pointer as zero.
+          return expression.operator === '==' ? `((${pointer}) ? 0 : 1)` : `((${pointer}) ? 1 : 0)`;
+        }
         const equal = `runtime.same(${left}, ${right})`;
         return expression.operator === '=='
           ? `(${equal} ? 1 : 0)`
@@ -819,6 +855,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       `(${emitExpression(expression.whenFalse, context)}))`;
   }
   if (expression.kind === 'member') {
+    const pointee = expression.object.kind === 'identifier' && context.dereferencedParameters?.get(expression.object.name);
+    if (pointee) return `${pointee}.${expression.property}`;
     const object = emitExpression(expression.object, context);
     return expressionValueType(expression.object, context)?.includes('*') && structFieldsOf(expression.object, context)
       ? `runtime.dereference(${object}).${expression.property}`
@@ -832,7 +870,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // wrapper or a typed view -- so it is read directly. The Game Boy PPU's
     // per-dot window check reads three of these, twenty-four thousand times a
     // frame, and `runtime.readIndex` has to rule out four other shapes first.
-    return context.pointerSafeIndex && !isStructFieldArray(expression.object, context)
+    return context.pointerSafeIndex && !isDirectArray(expression.object, context)
       ? `runtime.readIndex(${object}, ${index})`
       : `${object}[${index}]`;
   }
@@ -880,6 +918,7 @@ function expressionValueType(
   // pointer tests. The Game Boy PPU's per-dot window check does five of these.
   if (expression.kind === 'member') {
     const field = structFieldOf(expression, context);
+    if (field?.valueType && !field.length) return field.valueType;
     if (field?.bits && !field.fields && !field.length) {
       return field.signed ? `s${field.bits}` : `u${field.bits}`;
     }
@@ -890,6 +929,12 @@ function expressionValueType(
       : undefined;
     if (field?.bits && field.length && !field.fields) {
       return field.signed ? `s${field.bits}` : `u${field.bits}`;
+    }
+    const member = expression.object.kind === 'identifier' && !context.locals.has(expression.object.name)
+      ? context.definition.members.find(candidate => candidate.name === (expression.object as { name: string }).name)
+      : undefined;
+    if (member?.bits && (member.arrayLength !== undefined || member.values !== undefined) && !member.fields) {
+      return member.signed ? `s${member.bits}` : `u${member.bits}`;
     }
   }
   if (expression.kind === 'unary' && expression.operator === '&') {
@@ -966,9 +1011,22 @@ function emitCall(
     if (name === 'TABLE') {
       const index = args[0] ?? '0';
       const values = args.slice(1);
-      return `([${values.join(', ')}][(((${index}) % ${values.length}) + ${values.length}) % ` +
-        `${values.length}] ?? 0)`;
+      const contents = values.join(', ');
+      let table = `[${contents}]`;
+      if (context.constantTables && values.every(value => value.trim() !== '' && Number.isFinite(Number(value)))) {
+        table = context.constantTables.get(contents) ?? `__mame_table_${context.constantTables.size}`;
+        context.constantTables.set(contents, table);
+      }
+      const indexExpression = expression.args[0];
+      const indexType = indexExpression && expressionValueType(indexExpression, context)?.replace(/\bconst\b/g, '').trim();
+      const integralIndex = indexExpression?.kind === 'number' && Number.isInteger(indexExpression.value) ||
+        /^(?:bool|char|[us](?:8|16|32)|u?int(?:8|16|32)_t|int|unsigned|offs_t)$/.test(indexType ?? '');
+      const wrapped = integralIndex && values.length > 0 && (values.length & (values.length - 1)) === 0
+        ? `((${index}) & ${values.length - 1})`
+        : `(((${index}) % ${values.length}) + ${values.length}) % ${values.length}`;
+      return `(${table}[${wrapped}] ?? 0)`;
     }
+    if (name.startsWith('new::')) return `runtime.invoke(${JSON.stringify(name)}${args.length ? ', ' + args.join(', ') : ''})`;
     if (name === 'bool') return `((${args[0] ?? '0'}) ? 1 : 0)`;
     if (name === 'ALLOC' || name === 'make_unique_clear') {
       return yieldToOverride(
@@ -984,6 +1042,15 @@ function emitCall(
         : /(?:u?int32_t|[us]32|float|offs_t|pen_t)/.test(valueType ?? '') ? 4
         : /(?:u?int16_t|[us]16)/.test(valueType ?? '') ? 2
         : 1;
+      const member = operand?.kind === 'identifier' && !context.locals.has(operand.name)
+        ? context.definition.members.find(member => member.name === operand.name) : undefined;
+      if (member && !member.valueType.includes('*')) {
+        const count = member.arrayShape?.reduce((total, length) => total * length, 1)
+          ?? member.arrayLength ?? member.values?.length;
+        if (count !== undefined) return String(count * bytes);
+      }
+      const field = operand?.kind === 'member' ? structFieldOf(operand, context) : undefined;
+      if (field?.length && !field.fields) return String(field.length * (field.bits ? field.bits / 8 : bytes));
       // `sizeof(uint8_t)` names a type and is that type's width. `sizeof line`
       // names a value, and C++ answers with the whole object -- for the line
       // buffers TIA composites into, the array's length, not one element.
@@ -1098,7 +1165,7 @@ function emitCall(
     // The bound branch never evaluates the object, matching the interpreter,
     // which resolves the name before it looks at any value.
     const boundName = context.boardScope ? memberCallName(expression) : undefined;
-    const onValue = emitValueMemberCall(expression, object, args);
+    const onValue = emitValueMemberCall(expression, object, args, context);
     if (boundName) {
       const lookup = `runtime.calls[${JSON.stringify(boundName)}]`;
       if (context.definition.concreteDeviceMembers?.includes(expressionName(expression.callee.object))) {
@@ -1142,9 +1209,17 @@ function emitValueMemberCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   object: string,
   args: readonly string[],
+  context: EmitContext,
 ): string {
   if (expression.callee.kind !== 'member') return `${object}(${args.join(', ')})`;
   const property = expression.callee.property;
+  if (property === 'get' && !args.length &&
+      /^std::unique_ptr</.test(expressionValueType(expression.callee.object, context) ?? '')) {
+    // The allocation host stores a unique_ptr's pointee directly. Calling
+    // get() must return that pointer, not dereference its first RAM byte and
+    // then probe the byte for a method before falling back to the container.
+    return object;
+  }
   // normalizeMameExecutionSource lowers std::vector::push_back to Array.push.
   // A vector is the container value itself, not a C++ pointer to its first
   // element. Running it through runtime.dereference turns an empty vector into
@@ -1156,7 +1231,18 @@ function emitValueMemberCall(
   // dereferences before it looks for the method, and emitted code that did not
   // found no `read_byte`, took the `?? 0` fallback, and drew the TMS9928A's
   // whole active display as empty VRAM.
-  const access = `(runtime.dereference(${object})).${property}`;
+  const receiver = expression.callee.object;
+  const member = receiver.kind === 'identifier' && !context.locals.has(receiver.name)
+    ? context.definition.members.find(candidate => candidate.name === receiver.name) : undefined;
+  const finder = member?.finder?.kind === 'device' ||
+    /^(?:required|optional)_device(?:_array)?</.test(member?.valueType ?? '');
+  const directObject = finder || /^bitmap_(?:rgb32|ind16|ind8)$/.test(member?.valueType ?? '') ||
+    (receiver.kind === 'call' && receiver.callee.kind === 'identifier' &&
+      receiver.callee.name === 'space' && Boolean(context.definition.spaces?.length));
+  const access = directObject ? `(${object}).${property}` : `(runtime.dereference(${object})).${property}`;
+  // Resolved device finders expose source methods as functions. They cannot
+  // be a pointer into an array or a numeric framework property.
+  if (finder) return `((${object})?.${property}?.(${args.join(', ')}) ?? 0)`;
   // A MAME `rgb_t` is a packed number, and its channel accessors read it back:
   // the TIA builds its 16k blended palette from `pen_color(i).r()` and friends.
   // A numeric receiver has no method to call, and the fallback below answered 0
@@ -1271,13 +1357,14 @@ function emitAssignment(
     // a member that does not exist yet reads as 0, which silently swallowed
     // the write. That is how the Game Boy's `m_gb_io[0] = 0xCF | data` never
     // reached the joypad register.
-    const object = expression.object.kind === 'identifier' &&
+    const directArray = isDirectArray(expression.object, context);
+    const object = !directArray && expression.object.kind === 'identifier' &&
         expression.object.name.startsWith('m_') &&
         !context.locals.has(expression.object.name)
       ? `runtime.writableMember(${JSON.stringify(expression.object.name)})`
       : emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
-    if (isStructFieldArray(expression.object, context)) {
+    if (directArray) {
       const current = `${object}[${index}]`;
       const next = operator === '='
         ? right
@@ -1334,6 +1421,9 @@ function emitAddressOf(
   expression: GeneratedExpression,
   context: EmitContext,
 ): string {
+  if (expression.kind === 'identifier' && !context.locals.has(expression.name) && context.compiled.has(expression.name)) {
+    return emitExpression(expression, context);
+  }
   if (expression.kind === 'index') {
     const object = emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
@@ -1353,7 +1443,7 @@ function emitAddressOf(
   if (expression.kind === 'identifier' && namesStructMember(expression.name, context)) {
     return emitExpression(expression, context);
   }
-  throw new Error(`device codegen has unsupported address-of operand "${expression.kind}"`);
+  throw new Error(`device codegen has unsupported address-of operand ${JSON.stringify(expression)}`);
 }
 
 function emitReferenceArgument(
@@ -1485,6 +1575,17 @@ function assignsIdentifier(
  * typed view or a memory share -- so it can be indexed directly rather than
  * through the runtime's shape tests.
  */
+function isDirectArray(expression: GeneratedExpression, context: EmitContext): boolean {
+  if (isStructFieldArray(expression, context)) return true;
+  // Fixed C arrays are allocated by the device host before any method runs
+  // and C++ cannot rebind them to an offset pointer. Driver arrays still use
+  // the lazy board-storage ABI, and pointer locals still need shape dispatch.
+  return !context.boardScope && expression.kind === 'identifier' &&
+    !context.locals.has(expression.name) &&
+    context.definition.members.some(member =>
+      member.name === expression.name && member.arrayLength !== undefined);
+}
+
 function isStructFieldArray(expression: GeneratedExpression, context: EmitContext): boolean {
   if (expression.kind !== 'member') return false;
   const field = structFieldOf(expression, context);
@@ -1510,7 +1611,8 @@ function structFieldsOf(
     );
   }
   if (expression.kind === 'member') {
-    return structFieldOf(expression, context)?.fields;
+    const field = structFieldOf(expression, context);
+    return field?.fields ?? context.definition.structs?.[field?.valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim() ?? ''];
   }
   if (expression.kind !== 'identifier') return undefined;
   if (context.locals.has(expression.name)) {

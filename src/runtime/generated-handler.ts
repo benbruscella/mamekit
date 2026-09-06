@@ -5,6 +5,8 @@ import type { HandlerRegistry, ReadHandler, WriteHandler } from './bus.ts';
 import type { BoardIr, GeneratedHandler } from '../ir/board.ts';
 import {
   executeGeneratedMachineHandler,
+  prepareGeneratedMachineHandler,
+  prepareGeneratedMachineCall,
   type GeneratedHandlerBindings,
 } from '../ir/execute.ts';
 import { wireDeviceCallbacks, type CallbackDevice } from './generated-machine.ts';
@@ -190,11 +192,14 @@ function makeReadHandler(
   bindings: GeneratedHandlerBindings,
   cpuTag?: string,
 ): ReadHandler {
+  if (/^(?:offs_t|u?int(?:8|16|32)_t|[us](?:8|16|32))\s+offset$/.test((handler.parameters ?? '').trim()) &&
+      machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`]) {
+    const call = prepareGeneratedMachineCall(machine, handler, bindings);
+    return (_address, offset) => Number(call(offset) ?? 0xff);
+  }
   const space = handlerSpace(handler, bindings, cpuTag);
-  return (addr, offset, memMask) => executeGeneratedMachineHandler(
-    machine,
-    handler,
-    bindings,
+  const execute = prepareGeneratedMachineHandler(machine, handler, bindings);
+  return (addr, offset, memMask) => execute(
     {
       addr,
       offset,

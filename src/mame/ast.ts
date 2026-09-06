@@ -260,7 +260,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   // (`class ATTR_COLD upd775x_device : ...`).  Treat those export/attribute
   // markers as declaration syntax, not as the class identifier, or the base
   // disappears from every derived device's executable hierarchy.
-  const classRe = /\bclass\s+(?:ATTR_\w+\s+)*(\w+)\s*(?::\s*([^;{]+))?\{/g;
+  const classRe = /\b(?:class|struct)\s+(?:ATTR_\w+\s+)*(\w+)\s*(?::\s*([^;{]+))?\{/g;
   let cm: RegExpExecArray | null;
   while ((cm = classRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', cm.index + cm[0].length - 1);

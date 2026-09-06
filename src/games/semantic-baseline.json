@@ -65,7 +65,7 @@
       "palette": "ram:palette:-:big:256:2"
     },
     "c64": {
-      "sha256": "b73be97eb0a2859ab347383edf6cd5eda2efea4a1b1e7083a6136685a34310d2",
+      "sha256": "041750dffc38bebb2e109e8be1d6531cf6a6801efab52827eb9e7496a4f441ce",
       "callbacks": 50,
       "frameEvents": 0,
       "devices": 23,
@@ -74,7 +74,7 @@
       "palette": "none"
     },
     "c64p": {
-      "sha256": "c1760144e9396dd296fdddda8f7c42874b5e47e39d146d7b8efdccd3e74a1956",
+      "sha256": "d27447a621e71a26f6b38a8da02bb64cd6724cf7a48ecb5bcd0440e095619d3a",
       "callbacks": 50,
       "frameEvents": 0,
       "devices": 23,
@@ -254,7 +254,7 @@
       "palette": "none"
     },
     "gauntlet": {
-      "sha256": "7042792e0f19eee9f456b749f436311457b3ed901161ff169c40551101d17405",
+      "sha256": "b12039eefa57661a1263206e4322c56ddd48be6c80ea045e09fbc4cdcd26fc09",
       "callbacks": 15,
       "frameEvents": 10,
       "devices": 20,

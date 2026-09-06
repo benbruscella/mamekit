@@ -9,6 +9,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
+import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
   GeneratedMameVideoPrimitives,
@@ -814,9 +815,10 @@ class IrBoard implements Board {
     const timerClockHz = timerClockCpu
       ? Math.max(1, timerClockCpu.cycleClock ?? timerClockCpu.clock)
       : 1;
+    const timedDevices = [...this.devices.values()].filter(device => device.needsTick?.() !== false);
     const tickGeneratedDevices = (seconds: number): void => {
       if (!(seconds > 0)) return;
-      for (const device of this.devices.values()) device.tick(seconds);
+      for (const device of timedDevices) device.tick(seconds);
     };
     let tickHostedProcessors = (_seconds: number): void => {};
     const advanceTimedHardware = (seconds: number): void => {
@@ -927,6 +929,31 @@ class IrBoard implements Board {
     // effect executors and prepared-call caches hold references to them, so
     // later packages (video framework calls) must extend them rather than
     // replace them, or those holders keep serving stale bindings.
+    const stateNames = new Set([
+      ...(machine.stateMembers ?? []).map(member => member.name),
+      ...(machine.devices ?? []).flatMap(device => device.member ? [device.member.replace(/\[.*$/, '')] : []),
+      ...Object.keys(regions).map(tag => `m_${tag.split(':').at(-1)}`),
+      ...Object.keys(machine.execution.regionBindings ?? {}),
+      ...Object.keys(machine.video?.regionBindings ?? {}),
+      ...(machine.execution.inputMembers ?? []).map(input => input.member),
+    ]);
+    for (const handler of machine.handlers ?? []) {
+      if (!handler.program) continue;
+      const locals = new Set((handler.parameters ?? '').split(',').map(parameter => /(?:\w+)\s*$/.exec(parameter)?.[0].trim()));
+      walkOperations(handler.program.operations, operation => {
+        if (operation.op === 'declare') locals.add(operation.name);
+      });
+      const remember = (target: import('../ir/board.ts').GeneratedExpression) => {
+        while (target.kind === 'index' || target.kind === 'member') target = target.object;
+        if (target.kind === 'identifier' && !locals.has(target.name)) stateNames.add(target.name);
+      };
+      walkOperations(handler.program.operations, operation => { if (operation.op === 'assign') remember(operation.target); });
+      walkExpressions(handler.program.operations, expression => { if (expression.kind === 'assignment') remember(expression.target); });
+    }
+    this.state = Object.fromEntries([
+      ...[...stateNames].map(name => [name, undefined]),
+      ...Object.entries(this.state),
+    ]);
     this.bindings = {
       members: this.state,
       constants: deviceConstants,
@@ -998,11 +1025,16 @@ class IrBoard implements Board {
       const specification = machine.devices?.find(candidate => candidate.tag === tag);
       const referent: Record<string, unknown> = {};
       for (const method of device.methodNames()) {
-        const invoke = (...args: unknown[]) =>
-          device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]);
+        const invoke = device.prepareCall?.(method) ?? ((...args: unknown[]) =>
+          device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]));
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
+        device.connectCall?.(method, call => {
+          calls[`${tag}.${method}`] = call;
+          calls[`m_${tag}.${method}`] = call;
+          if (specification?.member) calls[`${specification.member}.${method}`] = call;
+        });
         // A driver may copy a finder into a local pointer before calling it.
         // The named call table alone cannot represent that pointer identity.
         referent[method] = (...args: unknown[]) =>
@@ -1496,6 +1528,7 @@ class IrBoard implements Board {
           clock: device.cycleClock(),
           enabled: () => true,
           run: (cycles: number) => {
+            if (device.runCycles) return device.runCycles(cycles);
             device.set('m_icount', cycles);
             device.call('execute_run');
             return cycles - device.get('m_icount');
@@ -1519,6 +1552,7 @@ class IrBoard implements Board {
         clock: device.cycleClock(),
         enabled,
         run: (cycles: number) => {
+          if (device.runCycles) return device.runCycles(cycles);
           device.set('m_icount', cycles);
           device.call('execute_run');
           return cycles - device.get('m_icount');
@@ -1539,6 +1573,7 @@ class IrBoard implements Board {
         clock: device.cycleClock(),
         enabled: () => true,
         run: (cycles: number) => {
+          if (device.runCycles) return device.runCycles(cycles);
           device.set('m_icount', cycles);
           device.call('execute_run');
           return cycles - device.get('m_icount');
@@ -4166,6 +4201,8 @@ class IrBoard implements Board {
         sinks.soundWrite(offset, data, frac, method),
       soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
+      time: () => this.machineSeconds(),
+      bindDeviceCall: (tag, name, callback) => this.devices.get(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
         const device = this.devices.get(tag);
         if (!device?.methodNames().includes(method)) return undefined;

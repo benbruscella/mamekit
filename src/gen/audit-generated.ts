@@ -11,8 +11,8 @@ import { CANDIDATE_TARGETS } from './targets.ts';
 
 export { REQUIRED_TARGETS } from './targets.ts';
 
-export function requiresPlayableGeneration(target: string, published: boolean, development = false): boolean {
-  return published && !(development && CANDIDATE_TARGETS.includes(target));
+export function requiresPlayableGeneration(target: string, published: boolean): boolean {
+  return published && !CANDIDATE_TARGETS.includes(target);
 }
 
 export interface GeneratedAudit {
@@ -303,11 +303,11 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         console.warn(
           `note: ${target} runs without sound (${(report.silentGaps ?? []).join(', ')})`,
         );
-      } else if (requiresPlayableGeneration(target, publishedTargets.has(target), buildManifest?.development) &&
+      } else if (requiresPlayableGeneration(target, publishedTargets.has(target)) &&
         report.playable !== true) {
         // Candidates remain in the compiler/IR audit while their source
-        // capabilities are incomplete. Playability is a publication gate;
-        // promotion checks it before adding a candidate to the public app.
+        // capabilities are incomplete. Playability remains an acceptance gate;
+        // catalogue visibility does not promote a candidate.
         failures.push(
           `${target}: generation report is not playable` +
           (report.generationGaps?.length

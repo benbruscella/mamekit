@@ -10,12 +10,11 @@ import { REQUIRED_TARGETS, CANDIDATE_TARGETS } from './targets.ts';
 // the same set — the shape of that set is asserted in targets.spec.ts, which
 // also proves it matches the acceptance contracts and the generated catalog.
 assert.deepEqual([...AUDIT_TARGETS], [...REQUIRED_TARGETS]);
-assert.equal(requiresPlayableGeneration('pacman', true, true), true,
-  'development must retain the playability gate for accepted games');
+assert.equal(requiresPlayableGeneration('pacman', true), true,
+  'catalogue visibility must retain the playability gate for accepted games');
 for (const candidate of CANDIDATE_TARGETS) {
-  assert.equal(requiresPlayableGeneration(candidate, true, true), false);
-  assert.equal(requiresPlayableGeneration(candidate, true, false), true,
-    'a distribution must never publish an incomplete candidate');
+  assert.equal(requiresPlayableGeneration(candidate, true), false,
+    'visible candidates remain experimental rather than accepted');
   assert.equal(requiresPlayableGeneration(candidate, false), false);
 }
 assert.deepEqual(

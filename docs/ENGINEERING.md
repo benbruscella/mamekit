@@ -86,11 +86,12 @@ against a recording address space, and reads back the windows it decoded.
 
 ### C64 development
 
-`c64` (NTSC) and `c64p` (PAL) are experimental computer targets. Use PAL for
-the current selected tape collection.
+`c64` (NTSC) and `c64p` (PAL) are computer targets with generated cassette
+transport and SID audio. Use PAL for the current selected tape collection.
 
-`npm run dev` exposes all generated targets, including candidates, in its local
-catalogue. Distribution generation still exposes only the accepted target set.
+`npm run gen:all` and `npm run dev` expose all generated targets in the
+catalogue, including the Computers tab. Candidates are labelled experimental;
+menu visibility does not grant gameplay acceptance.
 For an isolated build and a local tape diagnostic:
 
 ```sh
@@ -109,6 +110,8 @@ exists; a matching tape or a BASIC screen is not a gameplay pass.
 In the app, open the PAL C64 under **Computers**, choose the BIOS `c64.zip`,
 then select a TAP or software-list ZIP with the tape file picker. Multi-image
 ZIPs expose an image selector. Type `LOAD` and press Enter, then click **Play**.
+If the loader returns to `READY.`, type `RUN` and press Enter; the game's turbo
+loader may continue reading the tape before its title screen appears.
 **Stop**, **Rewind**, **Reset computer**, and **Fast-forward** are buttons so
 the computer retains its letter and function keys. Tape speed remains under
 the emulated computer's motor control.
@@ -116,8 +119,16 @@ the emulated computer's motor control.
 Matched software belongs in `.data/roms/computers/c64/<software-list>/` and
 firmware in `.data/roms/computers/c64/bios/`; processing reports and retained
 source material belong under `.data/roms/_processed/c64/`. Neither BIOS nor
-game data belongs in generated output. SID sound, cartridge/quickload image
-loading, and the 1541 floppy-drive composition are still unfinished.
+game data belongs in generated output. Cartridge/quickload image loading and
+the 1541 floppy-drive composition are still unfinished.
+
+SID oscillator, envelope, noise, mixing and filter behavior is compiled from
+MAME's `sid.cpp`, `sidvoice.cpp`, and `sidenvel.cpp`. The host renders that
+generated device against emulated time and sends PCM to the audio worklet.
+`node tools/check-sid-native.ts` compiles the same MAME C++ sources and compares
+36 register configurations across 147,456 samples. It needs a C++17 compiler;
+`MAME_SRC` and `CXX` override the source directory and compiler. The colocated
+SID spec also checks the recorded native samples and envelope release.
 
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance

@@ -299,5 +299,10 @@ check('an override that chains to its base keeps the base body',
   virtuals.findDispatchedFunction('tpp2_state', 'tnx1_state', 'screen_vblank')?.className,
   'tnx1_state');
 
+const helperStruct = parseMameSource('helper.h', 'struct SoundHelper { int value; int read() { return value; } };');
+check('helper structs retain their method ownership',
+  helperStruct.functions.map(method => [method.className, method.name]), [['SoundHelper', 'read']]);
+check('helper structs participate in executable class lookup', helperStruct.classes.map(type => type.name), ['SoundHelper']);
+
 console.log(`ast.spec: ${passed} passed, ${failed} failed`);
 if (failed) process.exitCode = 1;

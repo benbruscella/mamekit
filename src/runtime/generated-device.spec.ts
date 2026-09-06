@@ -351,5 +351,49 @@ registerGeneratedDevice({
 assert.equal(createDevice('REFINED_MEMBER_TEST').call('read'), 9,
   'source this pointer must expose the final struct-array declaration');
 
+registerGeneratedDevice({
+  type: 'PREPARED_CALL_TEST', constants: {}, callbacks: [], members: [],
+  methods: [method('scalar', 'int value', 'return value;'), method('read', 'int value = 7', 'return value;'),
+    method('identity', 'object &value', 'return value;')],
+  compiledMethods: { scalar: (_runtime, value) => value, read: (_runtime, value) => value,
+    identity: (_runtime, value) => value },
+  summary: { diagnostics: 0 },
+});
+const preparedDevice = createDevice('PREPARED_CALL_TEST');
+const preparedRead = preparedDevice.prepareCall!('read');
+assert.equal(preparedRead(), 7, 'prepared calls retain source default arguments');
+assert.equal(preparedRead(0), 0, 'zero is an explicit argument');
+const referent = { value: 19 };
+assert.equal(preparedDevice.prepareCall!('identity')({
+  generatedLValue: true, get: () => referent, set: () => {},
+}), referent, 'prepared calls preserve reference identity');
+preparedDevice.bindCall('read', value => Number(value) + 3);
+assert.equal(preparedRead(9), 12, 'late host overrides remain visible');
+let connected: (...args: any[]) => unknown = () => undefined;
+preparedDevice.connectCall!('scalar', call => { connected = call; });
+assert.equal(connected(19), 19);
+const firstConnection = connected;
+preparedDevice.bindCall('scalar', value => Number(value) + 1);
+assert.notEqual(connected, firstConnection, 'a direct connection is republished on override');
+assert.equal(connected(19), 20);
+
+registerGeneratedDevice({
+  type: 'EXECUTION_CLOCK_TEST', constants: {}, callbacks: [],
+  members: [{ name: 'm_icount', valueType: 'int', bits: 32, signed: true },
+    { name: 'm_last_cycle', valueType: 'int', bits: 32 }],
+  methods: [method('execute_run', '',
+    'do { m_last_cycle = total_cycles(); m_icount -= 2; } while (m_icount > 0);'),
+    method('cycles', '', 'return total_cycles();')],
+  summary: { diagnostics: 0 },
+});
+const executionClock = createDevice('EXECUTION_CLOCK_TEST');
+assert.equal(executionClock.runCycles!(3), 4, 'a time slice carries instruction overshoot');
+assert.equal(executionClock.get('m_last_cycle'), 2, 'total_cycles advances inside the slice');
+assert.equal(executionClock.call('cycles'), 4);
+assert.equal(executionClock.runCycles!(2), 2);
+assert.equal(executionClock.get('m_last_cycle'), 4, 'successive slices share one cycle clock');
+executionClock.reset();
+assert.equal(executionClock.call('cycles'), 0);
+
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

@@ -476,6 +476,7 @@ function preparedHandlerRuntime(
       const getter = bindings.getters?.[name];
       if (getter) return getter();
       if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      if (bindings.referenceCalls?.[name]) return bindings.referenceCalls[name];
       // The device set lives on the prepared table, not on the bindings this
       // runtime closes over: an interpreted handler gets it grafted on per
       // call (see preparedHandlerBindings), so reading it off `bindings` here
@@ -571,6 +572,17 @@ function preparedMachineCalls(
     const names = parameterNames(target.parameters);
     MACHINE_CALL_STACK.push(key);
     try {
+      const executable = machine.compiledHandlers?.[key];
+      if (executable) {
+        // Cross-component bus calls already arrive in parameter order. Keep
+        // that ABI instead of allocating a locals dictionary only to unpack
+        // it again in executeGeneratedMachineProgram on every memory access.
+        const runtime = preparedHandlerRuntime(
+          preparedMachineCalls(machine, bindings, target.ownerClass), bindings,
+        );
+        return executable(runtime, ...names.map((_, index) =>
+          generatedReferent(values[index] ?? 0))) ?? 0;
+      }
       return executeGeneratedMachineProgram(
         machine,
         target,
@@ -661,6 +673,28 @@ export function prepareGeneratedMachineHandler(
 ): (args: Record<string, unknown>) => number | undefined {
   let dispatch: ((args: Record<string, unknown>) => number | undefined) | undefined;
   return args => (dispatch ??= buildGeneratedMachineDispatch(machine, handler, bindings))(args);
+}
+
+/** Positional ABI for a host that already supplies the source signature.
+ * Bind lazily because board construction installs services after bus handlers.
+ */
+export function prepareGeneratedMachineCall(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): (...args: unknown[]) => unknown {
+  let call: ((...args: unknown[]) => unknown) | undefined;
+  return (...args) => {
+    if (!call) {
+      const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+      if (compiled) call = compiled.bind(undefined,
+        preparedHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings));
+      else {
+        const names = parameterNames(handler.parameters);
+        const dispatch = buildGeneratedMachineDispatch(machine, handler, bindings);
+        call = (...values) => dispatch(Object.fromEntries(names.map((name, index) => [name, values[index]])));
+      }
+    }
+    return call(...args);
+  };
 }
 
 function buildGeneratedMachineDispatch(
@@ -1043,6 +1077,7 @@ function compileFastExpression(
       const getter = bindings.getters?.[name];
       if (getter) return getter();
       if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      if (bindings.referenceCalls?.[name]) return bindings.referenceCalls[name];
       return bindings.concreteDeviceMembers?.has(name)
         ? { reference: name, resolved: true }
         : reference(name);
@@ -1443,6 +1478,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       DEFAULT_CONSTANTS[expression.name] ??
       DEFAULT_CONSTANTS[constantName];
     if (constant !== undefined) return constant;
+    if (context.bindings.referenceCalls?.[expression.name]) return context.bindings.referenceCalls[expression.name];
     return context.bindings.concreteDeviceMembers?.has(expression.name)
       ? { reference: expression.name, resolved: true }
       : reference(expression.name);
@@ -2085,7 +2121,8 @@ function evaluateCall(
       }
     }
   }
-  if (expression.callee.kind === 'index') {
+  if (expression.callee.kind === 'index' ||
+      (expression.callee.kind === 'unary' && expression.callee.operator === '*')) {
     const callable = evaluate(expression.callee, context);
     const args = expression.args.map(arg => evaluate(arg, context));
     if (typeof callable === 'function') return callable(...args.map(callArgument));
@@ -2511,6 +2548,11 @@ function indexValue(object: unknown, index: number): unknown {
 }
 
 function addressOf(expression: GeneratedExpression, context: ExecutionContext): unknown {
+  if (expression.kind === 'identifier' && !Object.hasOwn(context.locals, expression.name) &&
+      !Object.hasOwn(context.bindings.members ?? {}, expression.name) &&
+      context.bindings.referenceCalls?.[expression.name]) {
+    return context.bindings.referenceCalls[expression.name];
+  }
   if (expression.kind === 'index') {
     const source = evaluate(expression.object, context);
     const offset = toNumber(evaluate(expression.index, context));

@@ -77,6 +77,7 @@ export interface GeneratedDeviceMember {
  */
 export interface GeneratedStructField {
   name: string;
+  valueType?: string;
   length?: number;
   bits?: 8 | 16 | 32;
   signed?: boolean;

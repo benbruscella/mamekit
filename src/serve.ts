@@ -4,6 +4,7 @@
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
+import { CANDIDATE_TARGETS } from './gen/targets.ts';
 import { buildClosureFailures, readBuildManifest } from './gen/build-manifest.ts';
 import { ROM_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
 import {
@@ -130,7 +131,8 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         // unplayable in the room over a chip nothing reads back.
         meta.supported = hardware !== null && boardCompiled &&
           (report?.playable === true || report?.playableWithoutSound === true);
-        meta.preview = manifest?.development === true && hardware !== null && boardCompiled && !meta.supported;
+        meta.preview = hardware !== null && boardCompiled &&
+          (CANDIDATE_TARGETS.includes(entry) || (manifest?.development === true && !meta.supported));
         meta.silent = report?.playable !== true && report?.playableWithoutSound === true;
         if (report?.silentGaps?.length) meta.silentGaps = report.silentGaps;
         meta.generationGaps = generationGaps;

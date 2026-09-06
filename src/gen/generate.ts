@@ -77,6 +77,7 @@ import {
   GAMEBOY_APU_TYPE,
   GAMEBOY_OUTPUT_RATE,
 } from '../hardware/gameboy/definition.ts';
+import { C64_AUDIO_RATE } from '../hardware/c64/definition.ts';
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
 
@@ -1182,6 +1183,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // the worklet; the DSP runs beside the CPU as a generated device because the
   // video half reaches it through a device finder (see the a2600 capability).
   const tiaChip = devices.find(device => device.props.type === 'TIA');
+  const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(String(device.props.type)));
   const gameboyApu = devices.find(device => device.props.type === GAMEBOY_APU_TYPE);
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
@@ -1346,6 +1348,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               clock: cpus[0].clock,
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
             }
+        : sidDevice
+          ? { kind: 'sid', clock: C64_AUDIO_RATE, deviceTag: String(sidDevice.props.tag) }
         : gameboyApu
           ? {
               kind: 'gameboy',
