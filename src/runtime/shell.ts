@@ -921,17 +921,22 @@ export async function runShell(
     audio.setVolume(on ? 0 : masterVolume);
   };
   if (cfg.kind === 'computer') {
-    const controls = document.createElement('div');
-    controls.style.cssText = 'display:flex;gap:8px';
-    const reset = document.createElement('button');
-    reset.textContent = 'Reset computer';
+    const deck = deckPanel('COMPUTER');
+    deck.setAttribute('data-computer-deck', '');
+    const reset = deckButton('⏻ Reset', { solid: false });
+    reset.title = 'Reset the computer (like the RESTORE/reset line)';
     reset.onclick = () => { input.releaseAll(); board.reset(); reset.blur(); };
-    const fast = document.createElement('button');
-    fast.textContent = 'Fast-forward';
+    const fast = deckButton('▶▶ Fast-forward', { solid: false });
+    fast.title = 'Run unthrottled, muted, until pressed again';
     fast.setAttribute('aria-pressed', 'false');
-    fast.onclick = () => { input.releaseAll(); setFastForward(!fastForward); fast.setAttribute('aria-pressed', String(fastForward)); fast.blur(); };
-    controls.append(reset, fast);
-    ui.addControls(controls);
+    const paintFast = () => {
+      fast.setAttribute('aria-pressed', String(fastForward));
+      setDeckButtonState(fast, fastForward);
+      fast.textContent = fastForward ? '▶▶ Fast-forward · ON' : '▶▶ Fast-forward';
+    };
+    fast.onclick = () => { input.releaseAll(); setFastForward(!fastForward); paintFast(); fast.blur(); };
+    deck.append(reset, fast);
+    ui.addControls(deck);
   }
   addEventListener('keydown', event => {
     if (cfg.kind === 'computer' || event.code !== 'KeyF' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -1192,7 +1197,15 @@ function buildDom(cfg: ShellConfig) {
   bezelCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none';
 
   const fit = () => {
-    const availH = innerHeight - 150;
+    // The screen takes what the page leaves it: everything else in the column
+    // -- title, status, key hint, and a computer's control decks -- is
+    // measured, so adding a deck shrinks the screen instead of pushing the
+    // deck off the bottom of the page.
+    const gap = 10;
+    const reserved = [...root.children]
+      .filter(child => child !== cab)
+      .reduce((sum, child) => sum + (child as HTMLElement).offsetHeight + gap, 0);
+    const availH = Math.max(120, innerHeight - reserved - 32);
     if (bezel) {
       const { w, h, win } = bezel;
       const s = Math.min((innerWidth - 40) / w, availH / h);
@@ -1242,7 +1255,7 @@ function buildDom(cfg: ShellConfig) {
 
   return {
     overlay,
-    addControls: (controls: HTMLElement) => root.appendChild(controls),
+    addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
     status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none' && !overlay.querySelector('[data-dropzone]')) overlay.textContent = text; },
     overlayHide: () => { overlay.style.display = 'none'; },
     /** adopt the board's real framebuffer size when it differs from config */
@@ -1599,38 +1612,158 @@ function waitForZip(
   });
 }
 
+// --- control decks -------------------------------------------------------------
+// The shell's own controls share one look: a dark panel with the room's gold
+// accent, buttons that read as pressed when the thing they control is on, and
+// readouts taken from the device rather than from what was last clicked.
+
+const DECK_GOLD = '#f2c200';
+
+function deckPanel(title: string): HTMLElement {
+  const panel = document.createElement('div');
+  panel.style.cssText = `display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;
+    padding:10px 14px;margin:6px 0;border-radius:10px;max-width:880px;
+    background:linear-gradient(135deg,rgba(24,30,67,.96),rgba(9,12,29,.96));border:1px solid #252d62;
+    box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.3);font:13px ui-sans-serif,system-ui,sans-serif`;
+  const label = document.createElement('span');
+  label.textContent = title;
+  label.style.cssText = 'color:#7f8ac9;font:700 10px ui-monospace,monospace;letter-spacing:2px;margin-right:4px';
+  panel.appendChild(label);
+  return panel;
+}
+
+function deckButton(text: string, options: { solid?: boolean } = {}): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = text;
+  button.dataset.solid = options.solid ? '1' : '';
+  setDeckButtonState(button, false);
+  return button;
+}
+
+/** Paint a deck button as idle, active (the thing it controls is on) or disabled. */
+function setDeckButtonState(button: HTMLButtonElement, active: boolean): void {
+  const enabled = !button.disabled;
+  button.style.cssText = `padding:6px 14px;border-radius:8px;font:700 12px ui-sans-serif,system-ui,sans-serif;
+    letter-spacing:.3px;cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
+    ${active
+      ? `background:${DECK_GOLD};color:#1b1b1b;border:2px solid ${DECK_GOLD};box-shadow:0 0 14px ${DECK_GOLD}55`
+      : `background:${enabled ? '#111633' : '#0c0f26'};border:2px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}
+    ${enabled ? '' : ';opacity:.6'}`;
+}
+
+/** mm:ss for a tape counter */
+function tapeClock(seconds: number): string {
+  const whole = Math.max(0, Math.floor(seconds));
+  return `${String(Math.floor(whole / 60)).padStart(2, '0')}:${String(whole % 60).padStart(2, '0')}`;
+}
+
 /** Local image selection and transport controls; the generated device owns playback. */
 function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial: MountedImage[] = []): HTMLElement {
-  const row = document.createElement('div');
-  row.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;max-width:800px';
-  row.setAttribute('aria-label', `Cassette ${media.tag}`);
-  for (const type of ['keydown', 'keyup']) row.addEventListener(type, event => event.stopPropagation());
-  row.addEventListener('focusin', releaseKeys);
+  const deck = deckPanel('DATASSETTE');
+  deck.setAttribute('aria-label', `Cassette ${media.tag}`);
+  for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
+  deck.addEventListener('focusin', releaseKeys);
+
+  // A hidden native input behind a deck button: the browser's own control
+  // cannot be styled and its "No file chosen" says nothing about the deck.
   const picker = document.createElement('input');
   picker.type = 'file';
   picker.accept = ['.zip', ...media.extensions.map(extension => `.${extension}`)].join(',');
   picker.setAttribute('aria-label', 'Open tape image or ZIP');
+  picker.tabIndex = -1;
+  picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+  const open = deckButton('◍ Open tape…');
+  open.title = `Open a ${media.extensions.map(extension => `.${extension}`).join(' / ')} image or a software-list ZIP`;
+  open.onclick = () => picker.click();
+
+  const mounted = document.createElement('span');
+  mounted.setAttribute('data-tape-name', '');
+  mounted.style.cssText = `padding:5px 10px;border-radius:6px;background:#080b1d;border:1px solid #303a78;
+    color:#9fb0ff;font:600 12px ui-monospace,monospace;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
+  mounted.textContent = 'no tape';
   const side = document.createElement('select');
   side.setAttribute('aria-label', 'Tape image');
+  side.style.cssText = 'padding:5px 8px;border-radius:6px;border:1px solid #303a78;background:#111633;color:#d8dcff;font:inherit;cursor:pointer';
   side.hidden = true;
+
+  const play = deckButton('▶ Play');
+  const stop = deckButton('■ Stop');
+  const rewind = deckButton('⏮ Rewind');
+  play.setAttribute('data-tape-play', '');
+  stop.setAttribute('data-tape-stop', '');
+  const buttons = [play, stop, rewind];
+  for (const button of buttons) button.disabled = true;
+
   const status = document.createElement('span');
   status.setAttribute('role', 'status');
+  status.style.cssText = 'flex-basis:100%;text-align:center;color:#8f99d2;font-size:12px;min-height:1.3em';
   status.textContent = 'Open a tape, enter the computer’s load command, then press Play.';
-  const buttons = ['Play', 'Stop', 'Rewind'].map(label => {
-    const button = document.createElement('button');
-    button.type = 'button'; button.textContent = label; button.disabled = true;
-    button.onclick = () => {
-      try {
-        if (label === 'Play') media.play();
-        else if (label === 'Stop') media.stop();
-        else media.rewind();
-        status.textContent = label === 'Play' ? 'Play pressed — the computer controls the tape motor.'
-          : label === 'Stop' ? 'Tape stopped.' : 'Tape rewound.';
-      } catch (error) { status.textContent = String(error); }
-      button.blur();
-    };
-    return button;
-  });
+
+  // Readout: transport state and counter, read back from the device 4x a
+  // second. "Playing" alone is not tape moving -- the computer's motor line
+  // decides that -- so both are shown, and the bar is the position.
+  const readout = document.createElement('span');
+  readout.setAttribute('data-tape-readout', '');
+  readout.style.cssText = 'display:inline-flex;align-items:center;gap:8px;color:#cbd1ff;font:600 12px ui-monospace,monospace';
+  const lamp = document.createElement('span');
+  lamp.style.cssText = 'width:9px;height:9px;border-radius:50%;background:#3a3f6a;box-shadow:none;transition:background .15s ease';
+  const stateText = document.createElement('span');
+  stateText.textContent = 'STOPPED';
+  const counter = document.createElement('span');
+  counter.style.color = '#8f99d2';
+  counter.textContent = '00:00 / 00:00';
+  const bar = document.createElement('span');
+  bar.style.cssText = 'position:relative;width:120px;height:6px;border-radius:3px;background:#080b1d;border:1px solid #303a78;overflow:hidden';
+  const fill = document.createElement('span');
+  fill.style.cssText = `position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#9fb0ff,${DECK_GOLD})`;
+  bar.appendChild(fill);
+  readout.append(lamp, stateText, counter, bar);
+
+  let hasTape = false;
+  const paint = (): void => {
+    const playing = hasTape && media.playing();
+    const motor = hasTape && media.motorOn();
+    const position = hasTape ? media.position() : 0;
+    const length = hasTape ? media.length() : 0;
+    setDeckButtonState(play, playing);
+    setDeckButtonState(stop, hasTape && !playing);
+    setDeckButtonState(rewind, false);
+    // The computer, not the deck, pulls the tape: with Play pressed and the
+    // motor line off the tape sits still, before a LOAD has been typed and
+    // again once the load has finished -- say which, or the deck looks stuck.
+    stateText.textContent = !hasTape ? 'NO TAPE'
+      : playing && motor ? 'PLAYING'
+        : playing && position < 0.5 ? 'PLAY · WAITING FOR LOAD'
+          : playing ? 'PLAY · PAUSED BY COMPUTER'
+            : 'STOPPED';
+    stateText.style.color = playing && motor ? DECK_GOLD : playing ? '#e8b64c' : '#cbd1ff';
+    lamp.style.background = playing && motor ? DECK_GOLD : playing ? '#e8b64c' : '#3a3f6a';
+    lamp.style.boxShadow = playing && motor ? `0 0 8px ${DECK_GOLD}` : 'none';
+    counter.textContent = `${tapeClock(position)} / ${tapeClock(length)}`;
+    fill.style.width = length > 0 ? `${Math.min(100, (position / length) * 100).toFixed(1)}%` : '0';
+  };
+  play.onclick = () => {
+    try {
+      media.play();
+      status.textContent = media.motorOn()
+        ? 'Play pressed — the computer is running the tape.'
+        : 'Play pressed — the tape moves once the computer starts the motor: type LOAD and press Enter.';
+    }
+    catch (error) { status.textContent = String(error); }
+    paint(); play.blur();
+  };
+  stop.onclick = () => {
+    try { media.stop(); status.textContent = 'Tape stopped.'; }
+    catch (error) { status.textContent = String(error); }
+    paint(); stop.blur();
+  };
+  rewind.onclick = () => {
+    try { media.rewind(); status.textContent = 'Tape rewound.'; }
+    catch (error) { status.textContent = String(error); }
+    paint(); rewind.blur();
+  };
+
   let images = new Map<string, Uint8Array>();
   const mount = () => {
     const name = side.value;
@@ -1639,12 +1772,19 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
     try {
       media.stop();
       media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      hasTape = true;
       for (const button of buttons) button.disabled = false;
+      mounted.textContent = name;
+      mounted.title = name;
+      mounted.style.color = '#f4f5ff';
       status.textContent = `${name} mounted. Enter the computer’s load command, then press Play.`;
     } catch (error) {
+      hasTape = false;
       for (const button of buttons) button.disabled = true;
+      mounted.textContent = 'no tape';
       status.textContent = String(error);
     }
+    paint();
   };
   side.onchange = mount;
   picker.onchange = async () => {
@@ -1662,12 +1802,14 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
     } catch (error) { status.textContent = String(error); }
     finally { picker.disabled = false; picker.value = ''; picker.blur(); }
   };
-  row.append(picker, side, ...buttons, status);
+  deck.append(picker, open, mounted, side, play, stop, rewind, readout, status);
   if (initial.length) {
     images = new Map(initial.map(image => [image.name, image.bytes]));
     side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
     side.hidden = images.size < 2;
     mount();
   }
-  return row;
+  paint();
+  setInterval(paint, 250);
+  return deck;
 }

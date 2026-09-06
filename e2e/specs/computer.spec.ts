@@ -114,6 +114,16 @@ test.describe('software room', () => {
       { timeout: 120_000 },
     );
     await expect(page.getByRole('status').filter({ hasText: /mounted/ }).first()).toBeVisible();
+    // The decks are part of the machine: the screen yields room to them, so
+    // neither one is pushed below the fold and the page needs no scrolling.
+    const layout = await page.evaluate(() => {
+      const bottoms = [...document.querySelectorAll('[aria-label^="Cassette"], [data-computer-deck]')]
+        .map(deck => Math.round(deck.getBoundingClientRect().bottom));
+      return { bottoms, viewport: innerHeight, scrollHeight: document.documentElement.scrollHeight };
+    });
+    expect(layout.bottoms.length, 'both decks are on the page').toBe(2);
+    for (const bottom of layout.bottoms) expect(bottom).toBeLessThanOrEqual(layout.viewport);
+    expect(layout.scrollHeight).toBeLessThanOrEqual(layout.viewport + 1);
     // The firmware search tries the clone's own set name before the family's,
     // and a computer has no bezel: both are 404s the browser logs as errors.
     expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);

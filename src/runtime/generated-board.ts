@@ -2272,6 +2272,11 @@ class IrBoard implements Board {
         stop: () => { cassette.call('change_state', constant('CASSETTE_STOPPED'), constant('CASSETTE_MASK_UISTATE')); },
         rewind: () => { cassette.call('seek', 0, constant('SEEK_SET')); },
         position: () => Number(cassette.invoke('get_position')),
+        // MAME's own cassette_image_device accessors: the deck reads the
+        // transport back rather than remembering what it pressed.
+        length: () => Number(cassette.invoke('get_length')) || 0,
+        playing: () => Boolean(Number(cassette.invoke('is_playing'))),
+        motorOn: () => Boolean(Number(cassette.invoke('motor_on'))),
       }];
     });
   }
