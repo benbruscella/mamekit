@@ -10,6 +10,7 @@
 import type {
   BoardIr,
   GeneratedCallback,
+  GeneratedCompiledHandler,
   GeneratedHandlerRuntime,
   GeneratedExpression,
   GeneratedHandler,
@@ -119,6 +120,8 @@ interface ExecutionResult {
 }
 
 interface PreparedMachineCalls {
+  /** the host call names the compiled handlers reach (BoardIr.compiledHandlerLinks) */
+  linkKeys: readonly string[];
   referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']>;
   callParameters: NonNullable<GeneratedHandlerBindings['callParameters']>;
   concreteDeviceMembers: ReadonlySet<string>;
@@ -343,18 +346,85 @@ export function generatedPeriodicLines(
 }
 
 
+/**
+ * Resolve the call names emitted code uses into one fast-mode table.
+ *
+ * The bindings' `calls` dictionary is large enough that V8 keeps it in
+ * dictionary mode, so each constant-key read is a hash probe; the C64's memory
+ * path made a dozen per bus access and spent a third of its frame on them. A
+ * table holding only the names a module reaches is a small fast object, and a
+ * constant-key read of it is an inline-cached load.
+ */
+export function buildCallLinks(
+  calls: Record<string, unknown> | undefined,
+  keys: readonly string[],
+): Record<string, ((...args: any[]) => unknown) | undefined> {
+  // Built in one step on purpose: adding this many named properties to an
+  // object one keyed store at a time trips V8's fast-properties soft limit
+  // and hands back a dictionary-mode object -- exactly the thing the table
+  // exists to avoid. Object.fromEntries keeps it a fast-mode object.
+  return Object.fromEntries(keys.map(key =>
+    [key, calls?.[key] as ((...args: any[]) => unknown) | undefined]));
+}
+
+/**
+ * Bumped whenever a host binding changes after construction (bindCall, a
+ * device's connectCall refresh), so every prepared handler runtime rebuilds
+ * its links table on its next dispatch instead of calling a stale target.
+ */
+export let callLinksGeneration = 0;
+export function noteCallLinksChanged(): void {
+  callLinksGeneration++;
+}
+
+/** The handler runtime with its links table current for this dispatch. */
+function currentHandlerRuntime(
+  prepared: PreparedMachineCalls,
+  bindings: GeneratedHandlerBindings,
+): GeneratedHandlerRuntime & { linksGeneration?: number } {
+  const runtime = preparedHandlerRuntime(prepared, bindings) as GeneratedHandlerRuntime & { linksGeneration?: number };
+  if (runtime.linksGeneration !== callLinksGeneration) {
+    // A board whose module declares no link list (one emitted before the
+    // table existed, or a harness attaching handlers by hand) keeps reading
+    // the calls dictionary: an empty table would make every call look unbound.
+    runtime.links = prepared.linkKeys.length ? buildCallLinks(runtime.calls, prepared.linkKeys) : undefined;
+    runtime.linksGeneration = callLinksGeneration;
+  }
+  return runtime;
+}
+
+/** One handler's compiled dispatch, resolved once rather than per bus access. */
+interface HandlerDispatch {
+  machine: BoardIr;
+  compiled: GeneratedCompiledHandler | undefined;
+  names: string[];
+}
+const HANDLER_DISPATCH = new WeakMap<GeneratedHandler, HandlerDispatch>();
+
+function handlerDispatch(machine: BoardIr, handler: GeneratedHandler): HandlerDispatch {
+  const cached = HANDLER_DISPATCH.get(handler);
+  if (cached && cached.machine === machine &&
+      cached.compiled === machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`]) return cached;
+  const created: HandlerDispatch = {
+    machine,
+    compiled: machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`],
+    names: parameterNames(handler.parameters),
+  };
+  HANDLER_DISPATCH.set(handler, created);
+  return created;
+}
+
 export function executeGeneratedMachineProgram(
   machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown>,
 ): { returned: boolean; value?: unknown } {
-  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  const { compiled, names } = handlerDispatch(machine, handler);
   if (compiled) {
     const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
-    const names = parameterNames(handler.parameters);
     const value = compiled(
-      preparedHandlerRuntime(prepared, bindings),
+      currentHandlerRuntime(prepared, bindings),
       // An interpreted caller passes every C++ reference parameter as an
       // l-value standing in for its storage. Emitted code reads those by value
       // — a renderer mutates what `bitmap_ind16 &bitmap` points at without ever
@@ -577,7 +647,7 @@ function preparedMachineCalls(
         // Cross-component bus calls already arrive in parameter order. Keep
         // that ABI instead of allocating a locals dictionary only to unpack
         // it again in executeGeneratedMachineProgram on every memory access.
-        const runtime = preparedHandlerRuntime(
+        const runtime = currentHandlerRuntime(
           preparedMachineCalls(machine, bindings, target.ownerClass), bindings,
         );
         return executable(runtime, ...names.map((_, index) =>
@@ -647,6 +717,7 @@ function preparedMachineCalls(
     seededConstants: bindings.constants,
     seededCalls: bindings.calls,
     handlerBindings: new WeakMap<GeneratedHandler, GeneratedHandlerBindings>(),
+    linkKeys: machine.compiledHandlerLinks ?? [],
   } as PreparedMachineCalls;
   byOwner.set(ownerClass, prepared);
   return prepared;

@@ -68,6 +68,16 @@ interface EmitContext {
   /** Stable members this method actually mentions, in emission order. */
   hoisted?: Set<string>;
   constantTables?: Map<string, string>;
+  /**
+   * Board/host call names this method reaches through `runtime.links`, the
+   * per-runtime table of resolved call targets. The board's own `calls`
+   * dictionary carries ~1,800 names and V8 keeps it in dictionary mode, so
+   * every `runtime.calls["m_vic.phi0_r"]` on the C64's memory path was a hash
+   * probe -- a dozen of them per bus access. The links table holds only the
+   * names this module uses, stays a fast-mode object, and is rebuilt by the
+   * runtime whenever a binding changes.
+   */
+  links?: Set<string>;
 }
 
 interface Target {
@@ -102,7 +112,7 @@ const JAVASCRIPT_RESERVED_WORDS = new Set([
 export function generatedDeviceMethodsSource(
   definition: CodegenScope,
   typescript = false,
-): { source: string; methods: string[] } {
+): { source: string; methods: string[]; links: string[] } {
   const methodCounts = new Map<string, number>();
   for (const method of definition.methods) {
     methodCounts.set(method.name, (methodCounts.get(method.name) ?? 0) + 1);
@@ -164,8 +174,9 @@ export function generatedDeviceMethodsSource(
   // A root may only call another compiled method directly when that dependency
   // also passed validation. Other calls retain the interpreter fallback.
   const constantTables = new Map<string, string>();
+  const links = new Set<string>();
   const functions = supported.map(method =>
-    emitMethod(definition, method, supportedNames, typescript, constantTables)).join('\n\n');
+    emitMethod(definition, method, supportedNames, typescript, constantTables, links)).join('\n\n');
   // A method that assigns through a C++ reference is emitted against the
   // get/set (or single returned reference) ABI, which only an emitted caller
   // knows how to satisfy — and those call it as a plain function, not through
@@ -185,7 +196,7 @@ ${functions}
     ${entries}
   };
 })()`;
-  return { source, methods: [...supportedNames] };
+  return { source, methods: [...supportedNames], links: [...links].sort() };
 }
 
 function containsSwitch(operations: GeneratedHandlerOperation[]): boolean {
@@ -225,6 +236,9 @@ function generatedDeviceAssignments(
     ? `${emitted.source} as GeneratedDeviceMethodMap`
     : '{} as GeneratedDeviceMethodMap';
   const assignments = [`${target}.compiledMethods = ${compiled};`];
+  if (emitted.links.length) {
+    assignments.push(`${target}.compiledMethodLinks = ${JSON.stringify(emitted.links)};`);
+  }
   for (const [option, child] of Object.entries(definition.slot?.options ?? {})) {
     assignments.push(...generatedDeviceAssignments(
       child,
@@ -398,7 +412,17 @@ export function supportsMethod(
           ) ||
           (
             expression.operand.kind === 'identifier' &&
-            (structMemberNames(definition).has(expression.operand.name) || compiled.has(expression.operand.name))
+            (
+              structMemberNames(definition).has(expression.operand.name) ||
+              compiled.has(expression.operand.name) ||
+              // `&m_value`: a pointer to one scalar slot, emitted as the
+              // interpreter builds it -- a pointer whose target is the slot's
+              // get/set pair. The cassette hands `get_sample` its `m_value`
+              // this way, and declining it left the tape transport
+              // interpreted at two thousand calls a frame.
+              members.has(expression.operand.name) ||
+              locals.has(expression.operand.name)
+            )
           );
       } else if (expression.kind === 'binary') {
         supported = SAFE_BINARY_OPERATORS.has(expression.operator);
@@ -453,6 +477,7 @@ function emitMethod(
   compiled: Set<string>,
   typescript: boolean,
   constantTables: Map<string, string>,
+  links: Set<string>,
 ): string {
   const parameters = parseParameters(method.parameters);
   const returnedReference = singleReturnedReference(method);
@@ -481,6 +506,7 @@ function emitMethod(
     typescript,
     methodConstants: method.constants,
     constantTables,
+    links: new Set<string>(),
   };
   context.dereferencedParameters = new Map(parameters.filter(parameter =>
     parameter.valueType.includes('*') &&
@@ -498,8 +524,13 @@ function emitMethod(
       `    const ${hoistedName(name)} = members.${name} ?? ` +
       `runtime.member(${JSON.stringify(name)});`)
     .join('\n');
+  // Only a method that calls out fetches the links table, and it falls back
+  // to the raw calls dictionary for a runtime that carries none (a test
+  // harness, or an older host), so the emitted code never depends on it.
+  for (const name of context.links ?? []) links.add(name);
+  const linked = context.links?.size ? '\n    const __l = runtime.links ?? runtime.calls;' : '';
   return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
-    const members = runtime.members;
+    const members = runtime.members;${linked}
 ${[...context.dereferencedParameters!].map(([parameter, name]) => `    const ${name} = runtime.dereference(${localName(parameter)});`).join('\n')}
 ${hoisted}${hoisted ? '\n' : ''}${body}${returned}
   }`;
@@ -711,9 +742,67 @@ function emitCallObject(
   return emitExpression(expression, context);
 }
 
+/**
+ * The value of an expression built only from integer literals, or undefined.
+ *
+ * MAME writes a chip's variant table as macros over a constant -- the VIC-II's
+ * `(m_variant == TYPE_6569 || m_variant == TYPE_8565 ...) ? 48 : 48` for the
+ * first DMA line -- and after the compiler substitutes the constants the IR
+ * is a tree of literals. Emitting it as written put 464 literal comparisons
+ * in the VIC's per-cycle loop; a source constant is a constant here too.
+ */
+function literalValue(expression: GeneratedExpression): number | undefined {
+  if (expression.kind === 'number') {
+    return expression.wide === undefined && !expression.floating && Number.isInteger(expression.value)
+      ? expression.value : undefined;
+  }
+  if (expression.kind === 'unary') {
+    const operand = literalValue(expression.operand);
+    if (operand === undefined) return undefined;
+    if (expression.operator === '!') return operand ? 0 : 1;
+    if (expression.operator === '-') return -operand;
+    if (expression.operator === '~') return ~operand;
+    if (expression.operator === '+') return operand;
+    return undefined;
+  }
+  if (expression.kind === 'conditional') {
+    const condition = literalValue(expression.condition);
+    if (condition === undefined) return undefined;
+    return literalValue(condition ? expression.whenTrue : expression.whenFalse);
+  }
+  if (expression.kind !== 'binary') return undefined;
+  const left = literalValue(expression.left);
+  const right = literalValue(expression.right);
+  if (left === undefined || right === undefined) return undefined;
+  switch (expression.operator) {
+    case '==': return left === right ? 1 : 0;
+    case '!=': return left !== right ? 1 : 0;
+    case '<': return left < right ? 1 : 0;
+    case '<=': return left <= right ? 1 : 0;
+    case '>': return left > right ? 1 : 0;
+    case '>=': return left >= right ? 1 : 0;
+    case '&&': return left && right ? 1 : 0;
+    case '||': return left || right ? 1 : 0;
+    case '+': return left + right;
+    case '-': return left - right;
+    case '*': return left * right;
+    case '&': return left & right;
+    case '|': return left | right;
+    case '^': return left ^ right;
+    // 32-bit shifts, as C++ on the int operands these literals are.
+    case '<<': return right >= 0 && right < 32 ? left << right : undefined;
+    case '>>': return right >= 0 && right < 32 ? left >> right : undefined;
+    default: return undefined;
+  }
+}
+
 function emitExpression(expression: GeneratedExpression, context: EmitContext): string {
   if (expression.kind === 'number') {
     return expression.wide === undefined ? String(expression.value) : `${expression.wide}n`;
+  }
+  if (expression.kind === 'binary' || expression.kind === 'conditional' || expression.kind === 'unary') {
+    const folded = literalValue(expression);
+    if (folded !== undefined && Number.isSafeInteger(folded)) return String(folded);
   }
   if (expression.kind === 'string') return JSON.stringify(expression.value);
   if (expression.kind === 'identifier') {
@@ -948,6 +1037,12 @@ function expressionValueType(
   return undefined;
 }
 
+/** A resolved host call, read from the method's `__l` links table. */
+function callLink(context: EmitContext, name: string): string {
+  context.links?.add(name);
+  return `__l[${JSON.stringify(name)}]`;
+}
+
 function emitCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: EmitContext,
@@ -1112,13 +1207,28 @@ function emitCall(
       return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
     }
     if (context.definition.callbacks.some(callback => callback.member === name)) {
-      return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
+      // A devcb line used to go through the generic invoke alone -- a method
+      // lookup, an Object.values scan and an argument array per call -- and
+      // the VIC-II raises BA and AEC through it on every cycle. This is that
+      // invoke's own precedence, spelled out: a line the board bound on the
+      // device's call table wins (a soundlatch's data-pending line is wired
+      // that way, and calling the device's local emitter instead left Double
+      // Dragon's sound CPU without its interrupt); then the device's own
+      // combined emitter, which IrDevice stores under the member name; and
+      // the generic invoke last, for a multi-slot or unwired line. A bound
+      // non-delegate line takes numbers, as invoke coerces them.
+      const link = callLink(context, name);
+      const bound = delegate ? args : args.map(argument => `Number(${argument})`);
+      const member = `members.${name}`;
+      return `(${link} ? ${link}(${bound.join(', ')}) : ` +
+        `typeof ${member} === 'function' ? ${member}(${args.join(', ')}) : ` +
+        `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
     }
     // Board/host bindings first — the interpreter's own precedence — then the
     // shared framework-macro table, so rgb_t/TILE_FLIPYX/assert and friends
     // mean the same thing here as they do interpreted.
-    return `(runtime.calls[${JSON.stringify(name)}] ? ` +
-      `runtime.calls[${JSON.stringify(name)}](${args.join(', ')}) : ` +
+    return `(${callLink(context, name)} ? ` +
+      `${callLink(context, name)}(${args.join(', ')}) : ` +
       `runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
   }
   if (expression.callee.kind === 'member') {
@@ -1134,7 +1244,7 @@ function emitCall(
     }
     if (expression.callee.property === 'isnull') {
       const name = `${expressionName(expression.callee.object)}.isnull`;
-      return `(runtime.calls[${JSON.stringify(name)}]?.() ?? 0)`;
+      return `(${callLink(context, name)}?.() ?? 0)`;
     }
     const args = expression.args.map(argument => emitExpression(argument, context));
     const object = emitCallObject(expression.callee.object, context);
@@ -1155,7 +1265,7 @@ function emitCall(
         HOST_SERVICE_CALLS.includes(directName)
       )
     ) {
-      return `(runtime.calls[${JSON.stringify(directName)}]?.(${args.join(', ')}) ?? 0)`;
+      return `(${callLink(context, directName)}?.(${args.join(', ')}) ?? 0)`;
     }
     // A call through a member is the board's binding when it has one, and a
     // method on the value only otherwise — the interpreter's own precedence.
@@ -1167,7 +1277,7 @@ function emitCall(
     const boundName = context.boardScope ? memberCallName(expression) : undefined;
     const onValue = emitValueMemberCall(expression, object, args, context);
     if (boundName) {
-      const lookup = `runtime.calls[${JSON.stringify(boundName)}]`;
+      const lookup = callLink(context, boundName);
       if (context.definition.concreteDeviceMembers?.includes(expressionName(expression.callee.object))) {
         return `(${lookup} ? ${lookup}(${args.join(', ')}) : ` +
           `(${object}) != null ? ${onValue} : 0)`;
@@ -1178,7 +1288,7 @@ function emitCall(
       // executable core) has no value at all, so its bare method name is the
       // last thing tried before the call means nothing. Emitting only the
       // first two arms turned such a call into a TypeError instead.
-      const bare = `runtime.calls[${JSON.stringify(expression.callee.property)}]`;
+      const bare = callLink(context, expression.callee.property);
       return `(${lookup} ? ${lookup}(${args.join(', ')}) : ` +
         `(${object}) != null ? ${onValue} : ` +
         `(${bare}?.(${args.join(', ')}) ?? 0))`;
@@ -1442,6 +1552,13 @@ function emitAddressOf(
   // this way, and refusing it kept the whole scanline compositor interpreted.
   if (expression.kind === 'identifier' && namesStructMember(expression.name, context)) {
     return emitExpression(expression, context);
+  }
+  // `&m_value` on a scalar: the interpreter answers with a pointer whose target
+  // is the slot's own get/set pair (execute.ts addressOf), so a callee that
+  // stores through it -- `get_sample(..., &m_value)` -- writes the member with
+  // its declared width. Emitted the same way, so both paths agree.
+  if (expression.kind === 'identifier' && !namesStructMember(expression.name, context)) {
+    return `({ generatedPointer: true, target: ${emitReferenceArgument(expression, context)}, offset: 0 })`;
   }
   throw new Error(`device codegen has unsupported address-of operand ${JSON.stringify(expression)}`);
 }

@@ -168,10 +168,23 @@ export interface DropZone {
  * Look for the romset on the web. Sources and their order live in
  * rom-source.ts, shared with the console room's cartridge fetch.
  */
-async function fetchRomSet(game: string, category = 'arcade'): Promise<Uint8Array> {
-  const bytes = await fetchRomBytes(`${category}/${game}.zip`);
-  if (!bytes) throw new Error(`no web source had ${game}.zip`);
-  return bytes;
+async function fetchRomSet(game: string, category = 'arcade', firmwareKey?: string): Promise<Uint8Array> {
+  // A computer's firmware is filed under the machine's own dump directory
+  // (computers/c64/bios/c64.zip), beside the software it runs; a console's or
+  // arcade board's set sits at the category root.
+  // A clone's firmware is its parent's chips under a different set name --
+  // the PAL C64 loads the NTSC machine's ROMs -- and the audit files the one
+  // zip under the family, so that name is tried too; the chips are matched by
+  // name and CRC either way.
+  const family = firmwareKey?.split('/').pop();
+  const keys = firmwareKey
+    ? [...new Set([`${firmwareKey}/bios/${game}.zip`, `${firmwareKey}/bios/${family}.zip`, `${category}/${game}.zip`])]
+    : [`${category}/${game}.zip`];
+  for (const key of keys) {
+    const bytes = await fetchRomBytes(key);
+    if (bytes) return bytes;
+  }
+  throw new Error(`no web source had ${game}.zip`);
 }
 
 /**
@@ -291,10 +304,54 @@ export interface ShellConfig {
      */
     cartArt?: Record<string, { cart?: string; sticker?: string }>;
   };
+  /**
+   * A computer's software shelves from the generator: one per MAME software
+   * list the driver declares, each with its own catalogue and the medium it
+   * arrives on. The software room browses these; the shell only mounts what
+   * the room hands it.
+   */
+  software?: SoftwareShelves;
   /** base url of the compiled runtime dir (for worklet modules) */
   runtimeUrl: string;
   /** where Esc returns to (the boot menu) */
   menuUrl?: string;
+}
+
+/** The medium a software list arrives on, as its part interface says. */
+export type MediumKind = 'cassette' | 'cartridge' | 'floppy' | 'quickload';
+
+export interface SoftwareShelf {
+  /** MAME software list short name: "c64_cass" */
+  list: string;
+  /** the list's own description: "Commodore 64 cassettes" */
+  description: string;
+  /** part interface: "cbm_cass", "c64_cart", "floppy_5_25" */
+  interface: string;
+  kind: MediumKind;
+  /** generated catalogue, relative to the machine's data directory */
+  catalogUrl: string;
+  /** generated availability index, when a local dump audit existed */
+  availableUrl?: string;
+  /** image file extensions the list's sets actually hold: ["tap", "wav"] */
+  extensions: string[];
+  entries: number;
+  /**
+   * Whether the generated board can mount this medium today. A list whose
+   * transport is not yet generated is still browsable, but display only.
+   */
+  mountable: boolean;
+}
+
+export interface SoftwareShelves {
+  /** bucket / .data key the dumps live under: "computers/c64" */
+  dumpsKey: string;
+  shelves: SoftwareShelf[];
+}
+
+/** One media image the software room hands the shell to mount at power-on. */
+export interface MountedImage {
+  name: string;
+  bytes: Uint8Array;
 }
 
 export type RomTransform =
@@ -652,7 +709,11 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
  * `preloaded` bypasses the drop-zone/manifest path: the console room hands
  * over already-verified cart regions (regions.prg/chr) after identification.
  */
-export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<void> {
+export async function runShell(
+  cfg: ShellConfig,
+  preloaded?: Regions,
+  mounted: MountedImage[] = [],
+): Promise<void> {
   const ui = buildDom(cfg);
 
   // Cabinet bezels are arcade presentation. Console carts boot into the clean
@@ -700,7 +761,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
       ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
       : '';
     ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (never stored).`);
-    const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath));
+    const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey);
     regions = assembleRegions(cfg.roms, files, ui.status, critical);
     // The cartridge the console room already resolved wins over anything of
     // the same name in the machine set.
@@ -744,7 +805,14 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     board.reset();
   });
   ui.setNative(board.fbWidth, board.fbHeight); // the board owns true geometry
-  for (const media of board.media?.() ?? []) ui.addControls(cassetteControls(media, () => input.releaseAll()));
+  // The software room's chosen tape rides in on `mounted`; the first transport
+  // that accepts its extension takes it, the rest start empty.
+  let pending = mounted;
+  for (const media of board.media?.() ?? []) {
+    const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
+    if (mine.length) pending = pending.filter(image => !mine.includes(image));
+    ui.addControls(cassetteControls(media, () => input.releaseAll(), mine));
+  }
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
@@ -1419,6 +1487,7 @@ function waitForZip(
   critical: Set<string>,
   game: string,
   category: string,
+  firmwareKey?: string,
 ): Promise<Map<string, Uint8Array>> {
   return new Promise(resolve => {
     const pick = document.createElement('input');
@@ -1489,7 +1558,7 @@ function waitForZip(
         fn();
       }, Math.max(0, 2400 - (performance.now() - started)));
       const sets = [game, ...dependencyRomSets(specs, game)];
-      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set, category) }))).then(
+      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set, category, firmwareKey) }))).then(
         results => finish(() => {
           const found = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
           if (!found.length) {
@@ -1531,7 +1600,7 @@ function waitForZip(
 }
 
 /** Local image selection and transport controls; the generated device owns playback. */
-function cassetteControls(media: CassetteMedia, releaseKeys: () => void): HTMLElement {
+function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial: MountedImage[] = []): HTMLElement {
   const row = document.createElement('div');
   row.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;max-width:800px';
   row.setAttribute('aria-label', `Cassette ${media.tag}`);
@@ -1594,5 +1663,11 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void): HTMLEl
     finally { picker.disabled = false; picker.value = ''; picker.blur(); }
   };
   row.append(picker, side, ...buttons, status);
+  if (initial.length) {
+    images = new Map(initial.map(image => [image.name, image.bytes]));
+    side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
+    side.hidden = images.size < 2;
+    mount();
+  }
   return row;
 }

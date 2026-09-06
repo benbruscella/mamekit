@@ -117,8 +117,12 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
   eq('crc index: smb1 first prg rom', cat.crcIndex['11111111'], [1]);
   eq('catalog meta', [cat.list, cat.interface], ['nes', 'nes_cart']);
 
+  // softlist_dev.cpp: an entry with no compatibility tag is compatible with
+  // every filter; a tagged one must name a filter token.
   const inclusive = buildCatalog(parsed, 'EXP');
-  eq('bare filter keeps only tagged entries', inclusive.entries.map(e => e.name), ['expcart']);
+  eq('bare filter keeps untagged entries and the ones naming it', inclusive.entries.map(e => e.name), ['smb', 'smb1', 'expcart']);
+  const other = buildCatalog(parsed, 'PAL');
+  eq('bare filter drops a tagged entry that does not name it', other.entries.map(e => e.name), ['smb', 'smb1']);
 
   const unfiltered = buildCatalog(parsed);
   eq('no filter keeps everything', unfiltered.entries.length, 3);
@@ -146,13 +150,88 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
   const entry = parsed.entries[0]!;
   eq('rom dataarea becomes the program area', entry.prg.size, 16384);
   eq('rom dataarea keeps every chip', entry.prg.roms, [
-    { size: 8192, crc: '3cab8c1f', offset: 0 },
-    { size: 8192, crc: '4cf856a9', offset: 8192 },
+    { size: 8192, crc: '3cab8c1f', offset: 0, file: 'carnival.1' },
+    { size: 8192, crc: '4cf856a9', offset: 8192, file: 'carnival.2' },
   ]);
   eq('a single-area list has no chr', entry.chr, undefined);
   const cat = buildCatalog(parsed);
   eq('single-area entries reach the crc index', cat.crcIndex['3cab8c1f'], [0]);
   eq('single-area catalog meta', [cat.list, cat.interface], ['coleco', 'coleco_cart']);
+}
+
+// A media list. The C64's tapes are one "cass" dataarea per side, disks one
+// "flop" per disk, and its cartridges a "roml"/"romh" pair; every image the
+// set names joins `prg` in order, with the file name the machine mounts. The
+// list also carries MAME's own support verdict, and the driver filters it
+// "NTSC" or "PAL" although almost no entry is tagged -- so untagged entries
+// must pass, exactly as MAME's is_compatible passes them.
+{
+  const parsed = parseSoftwareList(`
+<softwarelist name="c64_cass" description="Commodore 64 cassettes">
+  <software name="180">
+    <description>180</description>
+    <year>1986</year>
+    <publisher>Mastertronic</publisher>
+    <part name="cass1" interface="cbm_cass">
+      <dataarea name="cass" size="100">
+        <rom name="180.tap" size="100" crc="eee24a58" sha1="x"/>
+      </dataarea>
+    </part>
+    <part name="cass2" interface="cbm_cass">
+      <dataarea name="cass" size="50">
+        <rom name="180_a1.tap" size="50" crc="d251ee24" sha1="y"/>
+      </dataarea>
+    </part>
+  </software>
+  <software name="nemwar" supported="no">
+    <description>Nemesis the Warlock</description>
+    <year>1987</year>
+    <publisher>Martech</publisher>
+    <part name="cass1" interface="cbm_cass">
+      <dataarea name="cass" size="10">
+        <rom name="nemesis.tap" size="10" crc="0badc0de" sha1="z"/>
+      </dataarea>
+    </part>
+  </software>
+  <software name="paltape">
+    <description>PAL only</description>
+    <year>1988</year>
+    <publisher>Ocean</publisher>
+    <sharedfeat name="compatibility" value="PAL"/>
+    <part name="cass1" interface="cbm_cass">
+      <dataarea name="cass" size="10">
+        <rom name="pal.tap" size="10" crc="0000aaaa" sha1="w"/>
+      </dataarea>
+    </part>
+  </software>
+  <software name="notntsc">
+    <description>Breaks on NTSC</description>
+    <year>1988</year>
+    <publisher>Ocean</publisher>
+    <sharedfeat name="incompatibility" value="NTSC"/>
+    <part name="cass1" interface="cbm_cass">
+      <dataarea name="cass" size="10">
+        <rom name="nn.tap" size="10" crc="0000bbbb" sha1="v"/>
+      </dataarea>
+    </part>
+  </software>
+</softwarelist>`);
+  eq('media list interface', parsed.interface, 'cbm_cass');
+  const tape = parsed.entries[0]!;
+  eq('both sides join the program area in order', tape.prg.roms.map(r => r.file), ['180.tap', '180_a1.tap']);
+  eq('side sizes add up', tape.prg.size, 150);
+  eq('a two-sided tape says so', tape.parts, 2);
+  eq('a one-sided tape does not', parsed.entries[1]!.parts, undefined);
+  eq('MAME support verdict kept', parsed.entries[1]!.supported, 'no');
+  eq('a supported set carries no verdict', tape.supported, undefined);
+  const ntsc = buildCatalog(parsed, 'NTSC');
+  eq('NTSC filter keeps untagged tapes, drops PAL-only and NTSC-incompatible ones',
+    ntsc.entries.map(e => e.name), ['180', 'nemwar']);
+  eq('sharedfeats stripped from output', ['compatibility', 'incompatibility'].some(k => k in ntsc.entries[0]!), false);
+  const pal = buildCatalog(parsed, 'PAL');
+  eq('PAL filter keeps the PAL tape and the NTSC-incompatible one',
+    pal.entries.map(e => e.name), ['180', 'nemwar', 'paltape', 'notntsc']);
+  eq('first side indexes the set', ntsc.crcIndex['eee24a58'], [0]);
 }
 
 console.log(`\nsoftlist.spec: ${totalPass} passed, ${totalFail} failed`);

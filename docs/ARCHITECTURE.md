@@ -315,7 +315,14 @@ modules import that JSON and register it with the generic device runtime.
 direct, static JavaScript for those methods plus their source-defined
 dependencies. Selection is based on IR shape, not a game or device name. The
 generated module attaches compiled methods to the same device definition; any
-method omitted by codegen continues through the generic IR interpreter. This
+method omitted by codegen continues through the generic IR interpreter.
+Emitted code reaches host and cross-device calls through a per-runtime links
+table (`runtime.links`, declared by the module as `compiledMethodLinks` or
+`compiledHandlerLinks`): the bindings' calls dictionary carries close to two
+thousand names and V8 keeps it in dictionary mode, so a constant-key read of
+it is a hash probe, and a memory path that makes a dozen per bus access spends
+a third of its frame on them. The runtime resolves the module's names once
+into a small fast-mode table and rebuilds it whenever a binding changes. This
 keeps the interpreter as the semantic reference while removing per-operation
 tree walking from pixel-scale loops such as the MAME 05XX starfield.
 
@@ -450,6 +457,7 @@ own fractional line position for the same reason.
 - `audio.ts`: Web Audio startup and generated worklet transport;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;
+- `software.ts`: computer software workflow, one shelf per software list;
 - `zip.ts`, `artwork.ts`, `cartstore.ts`: file and browser persistence services.
 
 A checked-in file implementing a specific MAME CPU, sound chip, device, board,
@@ -479,6 +487,19 @@ or renderer is an architectural regression.
    Which method mounts a board, and whether it is handed that space or reaches
    for it, is read from the bus's own interface -- the Atari 2600 takes the
    space as an argument, the Game Boy's `load()` calls `cart_space()`.
+   Computer targets open their software room instead. A computer's software
+   arrives on several media -- the C64 driver declares cartridge, cassette,
+   two floppy and a quickload list -- so the generator writes one catalogue per
+   SOFTWARE_LIST declaration under `software/<list>.json`, filtered with the
+   declaration's own `set_filter` by MAME's `is_compatible` rule, and the room
+   shows one shelf per list. The medium each list holds comes from its part
+   interface (`cbm_cass`, `floppy_5_25`, `c64_cart`); whether the generated
+   board can mount it comes from the devices the board composes, so a list
+   whose transport is not generated yet is browsable but display only. A
+   fetched or dropped set is kept in the visitor's browser as the zip it
+   arrived in, identified by image CRC against every shelf, and playing it
+   hands the shell the set's images to mount on the board's own transport at
+   power-on; the machine's firmware is asked for the way any romset is.
 7. The shell creates the generated board, starts frame scheduling, presents the
    framebuffer, and activates generated audio worklets after a user gesture.
 
@@ -514,13 +535,17 @@ dist/
 │   └── generated/             shared MAME-derived hardware
 ├── games/
 │   ├── arcade/<game>/
-│   └── consoles/<system>/
+│   ├── consoles/<system>/
+│   └── computers/<system>/
 └── games.json
 ```
 
 Generated game directories contain configuration, graphs, metadata, reports,
 `DOSSIER.md`, and a `generated/` directory with `board.ts`, `board.js`,
-`board.json` and `provenance.json`.
+`board.json` and `provenance.json`. A console adds `softlist.json`, its
+cartridge catalogue; a computer adds `software/<list>.json` per software list
+and `software/<list>.available.json` where the local dump audit filed
+verified sets for it.
 
 ## 11. DATA AND BEHAVIOR RULE
 
@@ -560,8 +585,9 @@ them.
 ## 13. CATEGORY MODEL
 
 MAME arcade game declarations emit under `games/arcade`. Console/system
-declarations emit under `games/consoles`. Category is source-derived and part of
-the generated manifest/config contract.
+declarations emit under `games/consoles`. Computer declarations emit under
+`games/computers`. Category is source-derived and part of the generated
+manifest/config contract.
 
 Category helpers live in `src/gen/output-layout.ts`. New code should use those
 helpers or generated `dataPath`; it should not construct legacy `dist/<game>`

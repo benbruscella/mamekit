@@ -243,6 +243,10 @@ export interface GeneratedHandler {
  */
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'machine().sample_rate',
+  // The scheduler's clock, bound on every device; a chip that measures time
+  // by differencing two readings -- the cassette transport advancing its
+  // tape -- reaches it by this name, emitted and interpreted alike.
+  'machine().time',
   'screen().vpos',
   'screen().hpos',
   'screen().width',
@@ -1153,6 +1157,12 @@ export interface BoardIr {
    * interpreter, which remains the semantic reference for all of them.
    */
   compiledHandlers?: Record<string, GeneratedCompiledHandler>;
+  /**
+   * Every host call name the compiled handlers reach. The runtime resolves
+   * them once into `GeneratedHandlerRuntime.links`, a small fast-mode table,
+   * instead of probing the ~1,800-entry calls dictionary on every access.
+   */
+  compiledHandlerLinks?: string[];
 }
 
 /**
@@ -1163,6 +1173,12 @@ export interface BoardIr {
 export interface GeneratedHandlerRuntime {
   readonly members: Record<string, unknown>;
   readonly calls: Record<string, (...args: any[]) => unknown>;
+  /**
+   * The subset of `calls` the emitted code names, resolved once. Emitted
+   * methods read `runtime.links ?? runtime.calls`, so a runtime without it
+   * still works, just through the dictionary.
+   */
+  links?: Record<string, ((...args: any[]) => unknown) | undefined>;
   readonly palette: number[];
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;

@@ -1957,6 +1957,8 @@ export function generatedBoardSource(machine: BoardIr): string {
 // interpreter remains the semantic reference; these are checked against it by
 // src/gen/emit-handler-codegen.spec.ts.
 defined.compiledHandlers = ${compiled.source} as Record<string, GeneratedCompiledHandler>;
+// The host call names those handlers reach, resolved once into a fast table.
+defined.compiledHandlerLinks = ${JSON.stringify(compiled.links)};
 `
     : '';
   const compiledImport = compiled.handlers.length

@@ -58,6 +58,8 @@ import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
 import { compileDriverInitProgram } from '../mame/driver-init-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkSources } from '../runtime/artwork-source.ts';
+import { writeSoftwareShelves } from './software-shelves.ts';
+import type { SoftwareShelves } from '../runtime/shell.ts';
 import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
 import {
@@ -2124,6 +2126,32 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (!cart) console.warn('  ! console machine has no resolvable software list — carts will be header-identified only');
   }
 
+  // Computer software shelves: one catalogue per software list the driver
+  // declares, because a computer's software arrives on several media. The
+  // dumps a shelf can offer are filed per driver family under .data/roms --
+  // the PAL and NTSC C64 share one tape collection -- so the machine's own
+  // directory is tried first and the family's is the fallback.
+  let software: SoftwareShelves | undefined;
+  if (kind === 'computer') {
+    const dumpsDir = [opts.game, family]
+      .map(name => join(romsDir(projectRoot), category, name))
+      .find(dir => existsSync(dir));
+    software = writeSoftwareShelves({
+      mameSrc: opts.mameSrc,
+      outDir: opts.outDir,
+      lists: softlistNodes.map(node => ({
+        name: String(node.props.name),
+        status: String(node.props.status),
+        ...(node.props.filter ? { filter: String(node.props.filter) } : {}),
+      })),
+      deviceTypes: devices.map(device => String(device.props.type)),
+      ...(dumpsDir ? { dumpsDir } : {}),
+      dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : family}`,
+      log: line => console.log(line),
+    });
+    if (!software) console.warn('  ! computer declares no software list this build can read — the room will accept dropped media only');
+  }
+
   // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
   // the shell after region assembly
   const romPatches = Array.isArray(game.props.romPatches)
@@ -2219,6 +2247,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ...(romPatches ? { romPatches } : {}),
     ...(romTransforms.length ? { romTransforms } : {}),
     ...(cart ? { cart } : {}),
+    ...(software ? { software } : {}),
     bindings,
     dipDefaults,
     ports: portSpecs,
@@ -2334,6 +2363,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ...(cart ? {
       cart: { list: String(cart.list), entries: cartEntries, slots: cart.slots as string[] },
     } : {}),
+    ...(software ? {
+      software: software.shelves.map(shelf => ({
+        list: shelf.list, kind: shelf.kind, entries: shelf.entries, mountable: shelf.mountable,
+      })),
+    } : {}),
   };
   const dossierMarkdown = renderDossierMarkdown(dossier);
   writeFileSync(join(opts.outDir, 'dossier.json'), JSON.stringify(dossier, null, 2));
@@ -2385,6 +2419,7 @@ function machineDossierMarkdown(d: {
   bindings: unknown[]; dipDefaults: unknown[];
   gitHistory?: Record<string, unknown>; historyText: string; historyCredit: string;
   cart?: { list: string; entries: number; slots: string[] };
+  software?: { list: string; kind: string; entries: number; mountable: boolean }[];
 }): string {
   const hex = (n: number) => '0x' + n.toString(16);
   const prettyKey = (k: string) => k.replace(/^Key|^Arrow|^Digit/, '');
@@ -2427,6 +2462,20 @@ function machineDossierMarkdown(d: {
       `cart files onto the console page to play.`);
     md.push('');
   } else {
+    if (d.software?.length) {
+      md.push('### Software');
+      md.push('');
+      md.push('The machine boots its own firmware; software arrives on the media its ' +
+        'MAME driver declares software lists for. Bring your own legally-dumped ' +
+        'images to the shelf on the machine page.');
+      md.push('');
+      md.push('| Software list | Medium | Titles | Mounts today |');
+      md.push('| --- | --- | --- | --- |');
+      for (const shelf of d.software) {
+        md.push(`| \`${shelf.list}\` | ${shelf.kind} | ${shelf.entries.toLocaleString('en-US')} | ${shelf.mountable ? 'yes' : 'display only'} |`);
+      }
+      md.push('');
+    }
     md.push('### ROM chips');
     md.push('');
     md.push('| Region | Chip | Offset | Size | CRC |');
@@ -2659,6 +2708,7 @@ export function generatedGamePath(game: string): string | undefined {
 // config (pure knowledge-graph data) and run it.
 import { runShell, type ShellConfig } from '../runtime/core/shell.ts';
 import { runConsole } from '../runtime/core/console.ts';
+import { runSoftwareRoom } from '../runtime/core/software.ts';
 import { runMenu } from '../runtime/core/menu.ts';
 import { generatedGamePath, registerGeneratedMachines } from './registry.ts';
 
@@ -2685,7 +2735,9 @@ if (game) {
     .then(r => { if (!r.ok) throw new Error(\`no generated config for "\${game}" — run: mamekit \${game}\`); return r.json(); })
     .then(cfg => (cfg as ShellConfig).kind === 'console'
       ? runConsole(cfg as ShellConfig)   // console room: cart shelf, drop zone, per-cart boot
-      : runShell(cfg as ShellConfig))
+      : (cfg as ShellConfig).kind === 'computer'
+        ? runSoftwareRoom(cfg as ShellConfig) // software room: one shelf per software list
+        : runShell(cfg as ShellConfig))
     .catch(fail);
 } else {
   runMenu().catch(fail);

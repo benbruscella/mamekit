@@ -32,6 +32,13 @@ export interface CartRecord {
   chrCrc?: string | null;
   /** Whole-image crc, for a console whose cartridges are flat images. */
   imageCrc?: string;
+  /**
+   * A computer's media set, kept as the zip it arrived in: which software
+   * list it was identified against and the set's short name there. Absent on
+   * a file the room could not identify, which stays playable as itself.
+   */
+  list?: string;
+  set?: string;
 }
 
 export interface CartStore {

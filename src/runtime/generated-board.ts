@@ -9,6 +9,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
+import { noteCallLinksChanged } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
@@ -1034,11 +1035,18 @@ class IrBoard implements Board {
           calls[`${tag}.${method}`] = call;
           calls[`m_${tag}.${method}`] = call;
           if (specification?.member) calls[`${specification.member}.${method}`] = call;
+          // A handler runtime may already hold the previous target in its
+          // links table; make every prepared runtime re-resolve.
+          noteCallLinksChanged();
         });
         // A driver may copy a finder into a local pointer before calling it.
         // The named call table alone cannot represent that pointer identity.
+        // The key is fixed for the life of the board; building it per call put
+        // a string concatenation and a dictionary probe on every VIC-II cycle
+        // (`m_cpu->total_cycles()`). The lookup itself stays late-bound.
+        const referentKey = `${specification?.member ?? tag}.${method}`;
         referent[method] = (...args: unknown[]) =>
-          calls[`${specification?.member ?? tag}.${method}`]!(...args as number[]);
+          calls[referentKey]!(...args as number[]);
         // Tilemap callbacks are recorded by their declaring C++ class rather
         // than by the machine-config tag. When exactly one device of that
         // class is composed, preserve that source identity so its callback
@@ -1978,6 +1986,9 @@ class IrBoard implements Board {
       // not recreate it); the BIOS clears it through acknowledge_interrupt.
       this.cpus.get('maincpu')?.setInputLine(3, 1);
     }
+    // Construction assigned into the calls table freely; any handler runtime
+    // prepared during it re-resolves its links on the next dispatch.
+    noteCallLinksChanged();
   }
 
   private configureHostedProcessor(

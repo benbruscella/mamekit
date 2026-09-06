@@ -78,7 +78,7 @@ function bothWays(
   const compiledHandlers = (0, eval)(`(${emitted.source})`) as BoardIr['compiledHandlers'];
   const compiledBindings = makeBindings();
   const compiled = executeGeneratedMachineProgram(
-    { ...machine, compiledHandlers },
+    { ...machine, compiledHandlers, compiledHandlerLinks: emitted.links },
     target,
     compiledBindings,
     args,

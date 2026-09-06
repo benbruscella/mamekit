@@ -13,6 +13,18 @@ import { compileSid } from '../../mame/sid-compiler.ts';
 import { generatedStreamWorkletSource } from '../../mame/stream-worklet.ts';
 import { compileDatassetteOptions } from '../../mame/cassette-compiler.ts';
 
+/** Every method of a device, its slot cards and their children is a codegen root. */
+function markHotMethods(device: {
+  methods: { name: string }[];
+  hotMethods?: string[];
+  slot?: { options: Record<string, unknown> };
+  children?: { definition: unknown }[];
+}): void {
+  device.hotMethods = device.methods.map(method => method.name);
+  for (const option of Object.values(device.slot?.options ?? {})) markHotMethods(option as typeof device);
+  for (const child of device.children ?? []) markHotMethods(child.definition as typeof device);
+}
+
 export function extractC64(input: CapabilityInput): CapabilityExtraction | undefined {
   const present = input.entries.filter(entry =>
     C64_MAME_TYPES.includes(entry.type as typeof C64_MAME_TYPES[number]));
@@ -68,7 +80,11 @@ export function extractC64(input: CapabilityInput): CapabilityExtraction | undef
     // These connector and memory accessors participate in every CPU/VIC bus
     // cycle. Include their small source methods as compilation entry points;
     // loop-shape detection alone misses e.g. RAM::pointer and GAME/EXROM.
-    device.hotMethods = device.methods.map(method => method.name);
+    // The slot cards and their children count too: the datassette port's
+    // cassette answers `update`/`input`/`motor_on` two thousand times a frame
+    // while a tape loads, and left as non-roots those ran interpreted and cost
+    // the machine a third of its frame rate.
+    markHotMethods(device);
     const stem = `devices/${entry.type.toLowerCase()}`;
     result.executableTypes.push(entry.type);
     result.executable[entry.type] = { kind: 'device', artifact: `${stem}.device.ir.json` };

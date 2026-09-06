@@ -13,6 +13,12 @@ export interface SoftRom {
   crc: string;
   /** load offset within the dataarea (hex in the XML) */
   offset: number;
+  /**
+   * The file name inside the set zip, as the list spells it. A cartridge is
+   * matched by crc, but a tape or disk image is what the machine mounts, so
+   * the shelf needs to know which member of the zip is the medium.
+   */
+  file?: string;
 }
 
 export interface SoftArea {
@@ -40,6 +46,10 @@ export interface SoftEntry {
   vram?: number;
   wram?: number;
   bwram?: number;
+  /** MAME's own verdict on the set, when it is not plain "yes" */
+  supported?: 'no' | 'partial';
+  /** how many <part>s the set has: a two-sided tape, a three-disk game */
+  parts?: number;
 }
 
 export interface SoftCatalog {
@@ -88,8 +98,17 @@ export interface ParsedSoftwareList {
   name: string;
   description: string;
   interface: string;
-  entries: (SoftEntry & { compatibility?: string })[];
+  entries: (SoftEntry & { compatibility?: string; incompatibility?: string })[];
 }
+
+/**
+ * Dataareas that hold the medium itself rather than a cartridge chip pair.
+ * Tapes ("cass"), disks ("flop"), quickloads ("quik") and the C64's split
+ * low/high cartridge ROMs ("roml"/"romh") are all the program the machine
+ * loads, so they land in `prg` in document order and one identification path
+ * still serves every list.
+ */
+const MEDIA_AREAS = new Set(['cass', 'flop', 'quik', 'roml', 'romh']);
 
 export function parseSoftwareList(xml: string): ParsedSoftwareList {
   const head = /<softwarelist\b[^>]*>/.exec(xml);
@@ -115,7 +134,7 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
     const partAttrs = attrs(partM[0]);
     if (!out.interface && partAttrs.interface) out.interface = partAttrs.interface;
 
-    const entry: SoftEntry & { compatibility?: string } = {
+    const entry: SoftEntry & { compatibility?: string; incompatibility?: string } = {
       name: swAttrs.name ?? '',
       description: element(block, 'description') ?? '',
       year: element(block, 'year') ?? '',
@@ -124,6 +143,9 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       prg: { size: 0, roms: [] },
     };
     if (swAttrs.cloneof) entry.cloneof = swAttrs.cloneof;
+    if (swAttrs.supported === 'no' || swAttrs.supported === 'partial') entry.supported = swAttrs.supported;
+    const parts = block.match(/<part\b/g)?.length ?? 0;
+    if (parts > 1) entry.parts = parts;
 
     for (const fm of block.matchAll(/<feature\s+name="(slot|pcb|mirroring)"\s+value="([^"]*)"/g)) {
       if (fm[1] === 'slot') entry.slot = fm[2];
@@ -132,6 +154,8 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
     }
     const shared = /<sharedfeat\s+name="compatibility"\s+value="([^"]*)"/.exec(block);
     if (shared) entry.compatibility = shared[1];
+    const excluded = /<sharedfeat\s+name="incompatibility"\s+value="([^"]*)"/.exec(block);
+    if (excluded) entry.incompatibility = excluded[1];
 
     const areaRe = /<dataarea\b[^>]*>/g;
     let am: RegExpExecArray | null;
@@ -155,7 +179,8 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       // SG-1000, Atari 2600 -- have one area called "rom". Both are the
       // program area, so both land in `prg` and one identification path
       // serves every list.
-      if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom') continue;
+      const mediaArea = areaName !== undefined && MEDIA_AREAS.has(areaName);
+      if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea) continue;
       const area: SoftArea = { size, roms: [] };
       for (const rm of areaBlock.matchAll(/<rom\b[^>]*\/>/g)) {
         const rAttrs = attrs(rm[0]);
@@ -169,10 +194,15 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
           size: parseSize(rAttrs.size),
           crc: rAttrs.crc.toLowerCase(),
           offset: parseOffset(rAttrs.offset),
+          ...(rAttrs.name ? { file: rAttrs.name } : {}),
         });
       }
       if (areaName === 'chr') entry.chr = area;
-      else entry.prg = area;
+      else if (mediaArea && entry.prg.roms.length) {
+        // A second side, disk or ROM half joins the first rather than
+        // replacing it: the set is every image the list names.
+        entry.prg = { size: entry.prg.size + area.size, roms: [...entry.prg.roms, ...area.roms] };
+      } else entry.prg = area;
     }
 
     out.entries.push(entry);
@@ -182,22 +212,30 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
 
 /**
  * Apply a SOFTWARE_LIST set_filter expression and build the CRC index.
- * Filter semantics (softlist_dev.cpp): "!X" excludes entries whose
- * compatibility sharedfeat contains X; bare "X" keeps only those that do.
- * Entries without the sharedfeat always pass a "!X" filter and never pass
- * a bare "X" one.
+ *
+ * The rule is `software_list_device::is_compatible` (softlist_dev.cpp), token
+ * for token: the filter is a comma list; an entry whose "incompatibility"
+ * sharedfeat names any filter token is out; an entry with no "compatibility"
+ * sharedfeat is in; otherwise it is in only if its compatibility list names a
+ * filter token. Untagged entries therefore always pass -- the C64's tape list
+ * tags nothing at all and is filtered "NTSC" or "PAL" on every machine, so
+ * treating an untagged entry as incompatible would empty the shelf. A "!X"
+ * filter is a token no entry spells, which is how nes.cpp hides every
+ * expansion-audio cartridge on the machine that cannot play it.
  */
 export function buildCatalog(parsed: ParsedSoftwareList, filter?: string): SoftCatalog {
   let entries = parsed.entries;
   if (filter) {
-    const negate = filter.startsWith('!');
-    const token = negate ? filter.slice(1) : filter;
+    const tokens = filter.split(',').map(s => s.trim()).filter(Boolean);
+    const tags = (value: string | undefined): string[] =>
+      (value ?? '').split(',').map(s => s.trim()).filter(Boolean);
     entries = entries.filter(e => {
-      const has = (e.compatibility ?? '').split(',').map(s => s.trim()).includes(token);
-      return negate ? !has : has;
+      if (e.incompatibility !== undefined && tags(e.incompatibility).some(tag => tokens.includes(tag))) return false;
+      if (e.compatibility === undefined) return true;
+      return tags(e.compatibility).some(tag => tokens.includes(tag));
     });
   }
-  const clean: SoftEntry[] = entries.map(({ compatibility: _drop, ...rest }) => rest);
+  const clean: SoftEntry[] = entries.map(({ compatibility: _drop, incompatibility: _drop2, ...rest }) => rest);
   const crcIndex: Record<string, number[]> = {};
   clean.forEach((e, i) => {
     const first = e.prg.roms[0];

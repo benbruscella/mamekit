@@ -15,6 +15,7 @@ import {
   type GeneratedHandlerBindings,
   GENERATED_FIELD_WIDTHS,
 } from './generated-handler.ts';
+import { buildCallLinks, noteCallLinksChanged } from '../ir/execute.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
 import { GeneratedM68705P5Device } from './generated-m68705.ts';
@@ -103,6 +104,12 @@ export interface GeneratedDeviceExecutionContext {
   readonly members: Record<string, unknown>;
   /** Late-bound host calls, exposed directly to generated hot paths. */
   readonly calls: Record<string, (...args: any[]) => unknown>;
+  /**
+   * The calls this device's emitted methods name, resolved once into a small
+   * fast-mode table (see buildCallLinks). Rebuilt by refreshCallLinks whenever
+   * the device's own bindings change.
+   */
+  links?: Record<string, ((...args: any[]) => unknown) | undefined>;
   readonly palette: number[];
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;
@@ -197,6 +204,8 @@ export interface GeneratedDeviceDefinition {
     ram: true;
   }[];
   compiledMethods?: GeneratedDeviceMethodMap;
+  /** the host call names those methods reach, resolved once into `links` */
+  compiledMethodLinks?: string[];
   start?: string;
   reset?: string;
   summary: {
@@ -764,6 +773,7 @@ class IrDevice implements Device {
     this.executionContext = {
       members: this.members,
       calls: this.bindings.calls!,
+      links: undefined,
       palette,
       readIndex: (value, index) => {
         if (isGeneratedPointer(value)) {
@@ -898,6 +908,9 @@ class IrDevice implements Device {
       );
     }
 
+    // Every binding the constructor installs is in place; resolve the links
+    // the emitted methods read before any of them can run.
+    this.refreshCallLinks();
     if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
     if (definition.start) this.call(definition.start);
     for (const initialize of definition.resources?.initialize ?? []) {
@@ -1116,8 +1129,23 @@ class IrDevice implements Device {
         this.bindings.referenceCalls![name] = listener;
       }
     }
+    this.refreshCallLinks();
     for (const refresh of this.callConnections.get(name) ?? []) refresh();
     return this;
+  }
+
+  /**
+   * Re-resolve the links table the emitted methods read. Called after every
+   * change to this device's own call bindings -- bindCall here, and the
+   * board's direct assignments into a device's table -- so a link never
+   * outlives the binding it was resolved from.
+   */
+  refreshCallLinks(): void {
+    const keys = this.definition.compiledMethodLinks;
+    this.executionContext.links = keys?.length
+      ? buildCallLinks(this.bindings.calls, keys)
+      : undefined;
+    noteCallLinksChanged();
   }
 
   cycleClock(): number {

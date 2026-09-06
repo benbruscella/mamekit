@@ -383,7 +383,7 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
 export function generatedBoardHandlersSource(
   machine: BoardIr,
   typescript = false,
-): { source: string; handlers: string[] } {
+): { source: string; handlers: string[]; links: string[] } {
   // Driver classes only. A board's handler list also carries device methods
   // (`starfield_05xx_device.get_next_lfsr_state`), and those already reach the
   // emitter through their own device package, whose scope knows their members,
@@ -400,6 +400,7 @@ export function generatedBoardHandlersSource(
   )];
   const parts: string[] = [];
   const emitted: string[] = [];
+  const links = new Set<string>();
   for (const ownerClass of ownerClasses) {
     const scope = boardCodegenScope(machine, ownerClass);
     const own = new Set(
@@ -463,9 +464,10 @@ ${exported.map(method =>
     };
   })(),`);
     emitted.push(...exported.map(method => `${ownerClass}.${method}`));
+    for (const name of source.links) links.add(name);
   }
-  if (!parts.length) return { source: '{}', handlers: [] };
-  return { source: `{\n${parts.join('\n')}\n}`, handlers: emitted };
+  if (!parts.length) return { source: '{}', handlers: [], links: [] };
+  return { source: `{\n${parts.join('\n')}\n}`, handlers: emitted, links: [...links].sort() };
 }
 
 /**

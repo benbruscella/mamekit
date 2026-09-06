@@ -107,20 +107,32 @@ transport. It records loading checkpoints and attempts `RUN` after the loader
 prints `READY.`. Its exit status remains unsuccessful until gameplay acceptance
 exists; a matching tape or a BASIC screen is not a gameplay pass.
 
-In the app, open the PAL C64 under **Computers**, choose the BIOS `c64.zip`,
-then select a TAP or software-list ZIP with the tape file picker. Multi-image
-ZIPs expose an image selector. Type `LOAD` and press Enter, then click **Play**.
-If the loader returns to `READY.`, type `RUN` and press Enter; the game's turbo
-loader may continue reading the tape before its title screen appears.
-**Stop**, **Rewind**, **Reset computer**, and **Fast-forward** are buttons so
-the computer retains its letter and function keys. Tape speed remains under
-the emulated computer's motor control.
+In the app, open the PAL C64 under **Computers**. The machine page is its
+software room: one shelf per software list the driver declares (cassettes,
+cartridges, two disk lists, quickloads), each read from
+`dist/games/computers/c64p/software/<list>.json`. The cassette shelf is the
+one whose medium mounts today, so it opens first; a title the local dump
+audit has filed carries a **⌕ Search** that fetches the set into the browser,
+and **◍ Insert your own…** (or a drop anywhere on the page) takes a TAP or a
+software-list ZIP. **Play** boots the machine with the set's images mounted
+on the tape transport, after the machine asks for its own `c64.zip` firmware
+(dropped, or found by the web search under `computers/c64/bios/`). Multi-image
+sets expose an image selector. Type `LOAD` and press Enter, then click
+**Play** on the transport. If the loader returns to `READY.`, type `RUN` and
+press Enter; the game's turbo loader may continue reading the tape before its
+title screen appears. **Stop**, **Rewind**, **Reset computer**, and
+**Fast-forward** are buttons so the computer retains its letter and function
+keys. Tape speed remains under the emulated computer's motor control.
+`e2e/specs/computer.spec.ts` is the browser gate for the room.
 
 Matched software belongs in `.data/roms/computers/c64/<software-list>/` and
 firmware in `.data/roms/computers/c64/bios/`; processing reports and retained
-source material belong under `.data/roms/_processed/c64/`. Neither BIOS nor
-game data belongs in generated output. Cartridge/quickload image loading and
-the 1541 floppy-drive composition are still unfinished.
+source material belong under `.data/roms/_processed/c64/`. The generator reads
+the audit's `_manifest.json` in each of those folders to build the shelf's
+availability index, keyed by the driver family so the PAL and NTSC machines
+share one collection. Neither BIOS nor game data belongs in generated output.
+Cartridge/quickload image loading and the 1541 floppy-drive composition are
+still unfinished, so those shelves are display only.
 
 SID oscillator, envelope, noise, mixing and filter behavior is compiled from
 MAME's `sid.cpp`, `sidvoice.cpp`, and `sidenvel.cpp`. The host renders that
@@ -210,6 +222,7 @@ The target is categorized from its MAME declaration:
 ```
 dist/games/arcade/<target>/
 dist/games/consoles/<target>/
+dist/games/computers/<target>/
 ```
 
 Inspect these files before opening the browser:
@@ -361,6 +374,8 @@ Choose the layer from evidence, not from the visible symptom.
 | A sound chip's pin is polled by a CPU | its engine belongs on the main thread, not the worklet |
 | A main-thread chip runs at double or half speed | `tickCpu` fires per processor; drive it from one, and not one that can be held in reset |
 | A machine's SCREEN carries no geometry | the video device that claimed it with `set_screen`, whose `device_config_complete` sets the raw params |
+| A compiled board is slow with a flat profile | `%HasFastProperties` on what its hot path reads; a dictionary-mode table wants a resolved links table, not a faster hardware model |
+| A device method the profile shows interpreted | its codegen decline (`supportsMethod` with `onUnsupported`), or a slot card/child never marked a root |
 | A device reads display memory no CPU map mentions | its own `device_memory_interface` space, not a board share |
 | A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |
 | A statement lowers with no diagnostic but wrong | a silently mis-parsed form; add the spec before the fix |

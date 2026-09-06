@@ -399,19 +399,22 @@ export async function runMenu(): Promise<void> {
       box.appendChild(ribbon);
     }
 
-    if (entry.kind === 'console') {
-      // async cart-count badge from the visitor's own cart library
+    if (entry.kind === 'console' || entry.kind === 'computer') {
+      // async count badge from the visitor's own library: a console's is
+      // cartridges, a computer's is whatever its software lists hold
       const badge = el('div', `position:absolute;left:10px;right:10px;bottom:76px;z-index:2;
         padding:6px 14px;font-size:11px;font-weight:600;letter-spacing:.6px;color:#f2c200;
         background:linear-gradient(transparent, rgba(4,5,12,.9) 45%);pointer-events:none`);
       badge.setAttribute('data-cart-badge', entry.game);
       box.appendChild(badge);
+      const noun = entry.kind === 'computer' ? 'title' : 'cart';
       void openCartStore()
         .then(s => s.list(entry.game))
         .then(carts => {
           badge.textContent = carts.length
-            ? `${carts.length} cart${carts.length === 1 ? '' : 's'} on the shelf`
-            : 'No carts yet — click to insert one';
+            ? `${carts.length} ${noun}${carts.length === 1 ? '' : 's'} on the shelf`
+            : entry.kind === 'computer' ? 'Nothing loaded yet — click to browse the shelf'
+              : 'No carts yet — click to insert one';
         })
         .catch(() => { badge.textContent = ''; });
     }
