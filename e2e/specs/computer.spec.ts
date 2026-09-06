@@ -66,6 +66,13 @@ test.describe('software room', () => {
       await expect(page.locator(`[data-media-tab="${shelf.list}"]`)).toBeVisible();
     }
     expect(mountable, 'no shelf can mount its medium').toBeTruthy();
+    // A machine the build exposes before acceptance wears a BETA badge.
+    const manifest: { game: string; preview?: boolean; supported?: boolean }[] =
+      await (await page.request.get('/games.json')).json();
+    const entry = manifest.find(item => item.game === MACHINE);
+    if (entry?.preview || entry?.supported === false) {
+      await expect(page.locator('[data-beta]').first()).toBeVisible();
+    }
     await expect(page.locator(`[data-media-tab="${mountable!.list}"]`)).toHaveAttribute('aria-selected', 'true');
 
     const verified = firstVerified();

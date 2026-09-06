@@ -315,6 +315,23 @@ export interface ShellConfig {
   runtimeUrl: string;
   /** where Esc returns to (the boot menu) */
   menuUrl?: string;
+  /**
+   * The machine is exposed as a beta: compiled and playable, but without
+   * gameplay acceptance yet. Set by the room from the manifest's preview flag
+   * so the page says so wherever the machine is named.
+   */
+  preview?: boolean;
+}
+
+/** A small BETA pill for a machine exposed before its acceptance exists. */
+export function betaBadge(): HTMLElement {
+  const badge = document.createElement('span');
+  badge.setAttribute('data-beta', '');
+  badge.textContent = 'BETA';
+  badge.title = 'This machine is in beta: it boots and plays, but its emulation has not passed gameplay acceptance yet';
+  badge.style.cssText = `display:inline-block;vertical-align:middle;margin-left:8px;padding:2px 7px;border-radius:5px;
+    font:800 10px ui-monospace,monospace;letter-spacing:1.2px;color:#1b1b1b;background:#f2c200`;
+  return badge;
 }
 
 /** The medium a software list arrives on, as its part interface says. */
@@ -921,7 +938,7 @@ export async function runShell(
     audio.setVolume(on ? 0 : masterVolume);
   };
   if (cfg.kind === 'computer') {
-    const deck = deckPanel('COMPUTER');
+    const deck = deckPanel(cfg.preview ? 'COMPUTER · BETA' : 'COMPUTER');
     deck.setAttribute('data-computer-deck', '');
     const reset = deckButton('⏻ Reset', { solid: false });
     reset.title = 'Reset the computer (like the RESTORE/reset line)';
@@ -1165,6 +1182,7 @@ function buildDom(cfg: ShellConfig) {
   const h1 = document.createElement('h1');
   h1.textContent = cfg.title;
   h1.style.cssText = 'font-size:15px;font-weight:600;margin:0';
+  if (cfg.preview) h1.appendChild(betaBadge());
   root.appendChild(h1);
 
   // cabinet column: screen inside cropped bezel art — no banner/marquee or

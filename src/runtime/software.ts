@@ -17,7 +17,7 @@
 // set holds; the shell's own transport controls mount them at power-on and
 // the machine's firmware is asked for the way any romset is.
 
-import { runShell, type MountedImage, type ShellConfig, type SoftwareShelf } from './shell.ts';
+import { betaBadge, runShell, type MountedImage, type ShellConfig, type SoftwareShelf } from './shell.ts';
 import { openCartStore, type CartRecord } from './cartstore.ts';
 import { readZip, crc32 } from './zip.ts';
 import { cartAvailability, fetchRomBytes, type CartAvailability } from './rom-source.ts';
@@ -335,6 +335,10 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   const heading = el('div', '');
   const h1 = el('div', `font-size:30px;font-weight:900;color:${GOLD};line-height:1.1`);
   h1.textContent = (entry?.fullname ?? cfg.title).replace(/\s*\(.*\)$/, '');
+  // A preview machine says so where it is named: it plays, but its emulation
+  // has no gameplay acceptance yet, so a failed tape is a known possibility.
+  const preview = entry?.preview === true || entry?.supported === false;
+  if (preview) h1.appendChild(betaBadge());
   const sub = el('div', 'color:#8f99d2;font-size:13px;margin-top:4px');
   sub.textContent = [entry?.manufacturer, entry?.year, cfg.title.replace(/^.*\((\w+)\)\s*\(.*$/, '$1')]
     .filter(Boolean).join(' · ');
@@ -787,6 +791,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       ...cfg,
       title,
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
+      ...(preview ? { preview: true } : {}),
     };
     history.pushState({ set: rec?.id ?? null }, '', location.href);
     await runShell(cfg2, undefined, images);
