@@ -198,6 +198,13 @@ export function collectDynamicMacros(source: string, liveNames: ReadonlySet<stri
   });
   const selected = new Set<string>();
   for (const macro of candidates) {
+    // An identity macro -- `#define NAMCO_52XX_P_DATA(base) (base)` -- adds
+    // no arithmetic; its name is the interface. The host binds such discrete
+    // node names to input offsets, so expanding one to its argument hands the
+    // audio protocol a raw node identity instead: Pole Position's 52xx wrote
+    // its samples to a node nothing listened to.
+    if (macro.parameters?.length === 1 &&
+        macro.body.replace(/[()\s]/g, '') === macro.parameters[0]) continue;
     const calls = [...macro.body.matchAll(/\b(\w+)\s*\(/g)].map(match => match[1]!);
     // Pure arithmetic parameter macros (raster-coordinate conversion, for
     // example) need expansion too. Symbolic host interfaces such as

@@ -470,8 +470,14 @@ finder.capture_screen();
 const busWriteTime = timingDevice.get('m_seconds');
 clockHost.cpuSliceCycles.set('maincpu', 8);
 finder.capture_screen();
-assert.equal(timingDevice.get('m_seconds'), busWriteTime,
-  'a delayed timer must not observe time earlier than an already delivered bus write');
+// A plain device reads the scheduler, which stands at a timer's own expiry
+// even when the lump that carried the clock past it already exposed a later
+// bus-write time: scanline interrupts re-arm from that expiry (Space
+// Invaders drifted a cycle when every device was clamped instead). Only an
+// image transport -- a device carrying a cassette -- is given a reading that
+// never rewinds, because it differences two readings to move its tape.
+assert.ok(timingDevice.get('m_seconds') < busWriteTime,
+  'a plain device observes the scheduler at the expiry, not a clamped later reading');
 clockHost.cpuSliceCycles.set('maincpu', 11);
 finder.capture_screen();
 assert.ok(timingDevice.get('m_seconds') > busWriteTime);

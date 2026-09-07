@@ -545,7 +545,14 @@ function preparedHandlerRuntime(
     member: name => {
       const getter = bindings.getters?.[name];
       if (getter) return getter();
-      if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      // Presence is a value, not a key: the board pre-declares every state
+      // name as `undefined` so V8 keeps the state object in fast mode, and an
+      // own-key test then answered "present, undefined" for a device finder or
+      // a reference that has to resolve further down. Double Dragon's ADPCM,
+      // Kung-Fu Master's MSM5205s and Q*bert's whole sound board went silent
+      // on exactly that.
+      const value = bindings.members?.[name];
+      if (value !== undefined) return value;
       if (bindings.referenceCalls?.[name]) return bindings.referenceCalls[name];
       // The device set lives on the prepared table, not on the bindings this
       // runtime closes over: an interpreted handler gets it grafted on per
@@ -1147,7 +1154,9 @@ function compileFastExpression(
     return () => {
       const getter = bindings.getters?.[name];
       if (getter) return getter();
-      if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      // A value, not an own key: see preparedHandlerRuntime's member lookup.
+      const value = bindings.members?.[name];
+      if (value !== undefined) return value;
       if (bindings.referenceCalls?.[name]) return bindings.referenceCalls[name];
       return bindings.concreteDeviceMembers?.has(name)
         ? { reference: name, resolved: true }
@@ -1529,8 +1538,10 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     }
     const getter = context.bindings.getters?.[expression.name];
     if (getter) return getter();
-    if (Object.hasOwn(context.bindings.members ?? {}, expression.name)) {
-      return context.bindings.members![expression.name];
+    {
+      // A value, not an own key: see preparedHandlerRuntime's member lookup.
+      const value = context.bindings.members?.[expression.name];
+      if (value !== undefined) return value;
     }
     if (expression.name === 'ACCESSING_BITS_0_7') {
       return toNumber(context.locals.mem_mask) & 0x00ff ? 1 : 0;
@@ -2620,7 +2631,7 @@ function indexValue(object: unknown, index: number): unknown {
 
 function addressOf(expression: GeneratedExpression, context: ExecutionContext): unknown {
   if (expression.kind === 'identifier' && !Object.hasOwn(context.locals, expression.name) &&
-      !Object.hasOwn(context.bindings.members ?? {}, expression.name) &&
+      context.bindings.members?.[expression.name] === undefined &&
       context.bindings.referenceCalls?.[expression.name]) {
     return context.bindings.referenceCalls[expression.name];
   }

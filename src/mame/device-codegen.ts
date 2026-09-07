@@ -419,9 +419,12 @@ export function supportsMethod(
               // interpreter builds it -- a pointer whose target is the slot's
               // get/set pair. The cassette hands `get_sample` its `m_value`
               // this way, and declining it left the tape transport
-              // interpreted at two thousand calls a frame.
-              members.has(expression.operand.name) ||
-              locals.has(expression.operand.name)
+              // interpreted at two thousand calls a frame. Members only: a
+              // local's address (`k053247_get_ram(&dst)`) feeds pointer
+              // arithmetic whose emitted form does not yet match the
+              // interpreter -- The Simpsons' sprite DMA compiled that way and
+              // its attract drifted from the golden.
+              members.has(expression.operand.name)
             )
           );
       } else if (expression.kind === 'binary') {

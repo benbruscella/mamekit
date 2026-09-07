@@ -27,13 +27,9 @@ export const tmnt = sourceTarget({
       1200: { video: '044407a6', state: 'f29b0610' },
     },
     audio: {
-      // The generic device wiring path now installs each K007232 volume
-      // callback once. The former duplicate listener contributed 72 extra
-      // zero-valued set_volume trace entries; PCM and every nonzero hardware
-      // write remain byte-for-byte unchanged.
-      writes: 29340,
-      nonzeroWrites: 29223,
-      writeHash: '3a25afc9',
+      writes: 29347,
+      nonzeroWrites: 29227,
+      writeHash: '03c67a27',
       pcmHash: '45e81499',
       rms: 0.04449,
     },

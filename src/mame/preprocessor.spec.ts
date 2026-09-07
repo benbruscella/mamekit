@@ -163,4 +163,14 @@ check('caller locals do not expand symbolic audio interfaces through their forma
   assert.doesNotMatch(result, /BITMAPADDR|NODE_00/);
 });
 
+check('an identity parameter macro is an interface name, not arithmetic to fold', () => {
+  const macros = collectDynamicMacros(`
+#define NAMCO_52XX_P_DATA(base)     (base)
+#define DOUBLE(x) ((x) * 2)
+`);
+  const result = expandDynamicMacros('m_discrete->write(NAMCO_52XX_P_DATA(m_basenode), DOUBLE(data) & 15);', macros);
+  assert.match(result, /NAMCO_52XX_P_DATA\(m_basenode\)/, 'the host binds this name to a discrete input offset');
+  assert.match(result, /\(data\)\) \* 2\)/, 'a real arithmetic macro still expands');
+});
+
 console.log(`preprocessor.spec: ${passed} passed`);

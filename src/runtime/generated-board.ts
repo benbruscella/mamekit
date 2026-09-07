@@ -341,7 +341,17 @@ class IrBoard implements Board {
    * three lines black and the picture flickering.
    */
   private readonly cpuSliceCycles = new Map<string, number>();
-  private observedMachineSeconds = 0;
+  /**
+   * The latest time each image transport has observed, so its reading never
+   * rewinds. Only transports get this: a timer callback must read its own
+   * expiry (the scheduler stands there, not at the end of the lump that
+   * carried the clock past it), and a clamp shared by every device made
+   * Space Invaders' scanline interrupts re-arm a cycle late while a second
+   * CPU's sound board saw a clock frozen at the first CPU's reading. The
+   * datassette, by contrast, differences two readings to move its tape, and
+   * a lump-then-expiry pair there is a tape that runs backwards.
+   */
+  private readonly observedTransportSeconds = new Map<string, number>();
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
   /**
@@ -1074,8 +1084,18 @@ class IrBoard implements Board {
     // answer alive for anything that reaches the chain by name, which is every
     // emitted caller: the Game Boy PPU differences two readings of it to find
     // how many cycles to run, and inside one frame the difference was zero.
-    for (const device of this.devices.values()) {
-      device.bindCall('machine().time', () => generatedAttotime(this.machineSeconds()));
+    for (const [tag, device] of this.devices) {
+      // An image transport never sees its clock rewind (see
+      // observedTransportSeconds); every other device reads the scheduler.
+      const transport = device.findDevice?.('cassette') !== undefined;
+      device.bindCall('machine().time', () => {
+        let seconds = this.machineSeconds();
+        if (transport) {
+          seconds = Math.max(this.observedTransportSeconds.get(tag) ?? 0, seconds);
+          this.observedTransportSeconds.set(tag, seconds);
+        }
+        return generatedAttotime(seconds);
+      });
     }
     const sourceHandlers = generatedHandlerRegistry(machine, this.bindings);
     const registry: HandlerRegistry = {
@@ -2166,7 +2186,7 @@ class IrBoard implements Board {
   }
 
   reset(): void {
-    this.observedMachineSeconds = 0;
+    this.observedTransportSeconds.clear();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     this.cpuSliceCycles.clear();
     for (const device of this.devices.values()) device.reset();
@@ -2481,14 +2501,7 @@ class IrBoard implements Board {
     const cpu = this.machine.execution.cpus.find(candidate => candidate.tag === tag);
     if (!cpu) return 0;
     const clock = Math.max(1, cpu.cycleClock ?? cpu.clock);
-    // Instructions are atomic in the host: a bus write can expose its time
-    // before an overdue timer from that instruction is dispatched. Preserve
-    // the scheduler's causal ordering for devices that have already observed
-    // the write. Returning an earlier expiry here makes elapsed intervals
-    // negative (and image transports interpret that as rewinding past zero).
-    this.observedMachineSeconds = Math.max(this.observedMachineSeconds,
-      this.totalCycles(cpu.tag) / clock - generatedTimerBacklog());
-    return this.observedMachineSeconds;
+    return Math.max(0, this.totalCycles(cpu.tag) / clock - generatedTimerBacklog());
   }
 
   private totalCycles(cpuTag: string): number {
