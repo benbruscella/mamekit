@@ -470,7 +470,8 @@ or a real browser. Required checks:
 4. local ROM file picker accepts and validates the correct set;
 5. framebuffer is nonblank and correctly oriented;
 6. status PC values progress and frame rate is stable;
-7. coin, start and gameplay inputs are observed;
+7. coin, start and gameplay inputs are observed, from the keyboard and from
+   a connected gamepad (`e2e/specs/gamepad.spec.ts` drives a synthetic one);
 8. generated audio worklet loads after a user gesture;
 9. page and console error logs remain empty;
 10. desktop/mobile layout has no overlap.

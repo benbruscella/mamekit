@@ -453,7 +453,12 @@ own fractional line position for the same reason.
 
 - `bus.ts`: builds memory and I/O buses from generated ranges;
 - `shell.ts`: ROM validation, machine startup and frame presentation;
-- `input.ts`: keyboard state, MAME polarity and DIP defaults;
+- `input.ts`: port state, MAME polarity, SOCD and DIP defaults, with the
+  keyboard as one edge source;
+- `gamepad.ts`: the other edge source -- the W3C Standard Gamepad layout
+  mapped onto MAME input types and polled once per emulated frame, so which
+  fields a pad drives comes from the generated bindings' `type`, never from a
+  device or a game;
 - `audio.ts`: Web Audio startup and generated worklet transport;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;

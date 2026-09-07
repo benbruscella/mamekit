@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   fieldConditionHolds,
   handlerOwnsSharedRam,
+  inputPlayer,
   isKeyboardPlayerInput,
   keypadKeys,
   computerKeyboardKeys,
@@ -57,6 +58,14 @@ assert.equal(isKeyboardPlayerInput(['PORT_8WAY', 'PORT_PLAYER(1)']), true);
 assert.equal(isKeyboardPlayerInput(['PORT_PLAYER(2)']), false);
 assert.equal(isKeyboardPlayerInput(['PORT_PLAYER(3)']), false);
 assert.equal(isKeyboardPlayerInput(['PORT_PLAYER(4)']), false);
+// A second gamepad serves player two, so the generator needs the number, not
+// just "not player one": a cocktail cabinet's second control set is player
+// two's, exactly as MAME assigns it.
+assert.equal(inputPlayer([]), 1);
+assert.equal(inputPlayer(['PORT_8WAY', 'PORT_PLAYER(1)']), 1);
+assert.equal(inputPlayer(['PORT_PLAYER(2)']), 2);
+assert.equal(inputPlayer(['PORT_8WAY', 'PORT_COCKTAIL']), 2);
+assert.equal(inputPlayer(['PORT_PLAYER(3)']), 3);
 
 // --- PORT_CONDITION ---------------------------------------------------------
 //

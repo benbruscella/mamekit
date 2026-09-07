@@ -1,10 +1,11 @@
 // Browser shell: ROM loading, canvas presentation (with screen rotation),
-// keyboard input, audio bring-up, and the fixed-timestep run loop.
+// keyboard and gamepad input, audio bring-up, and the fixed-timestep run loop.
 // Pure DOM — no libraries.
 
 import { createBoard } from './generated-board.ts';
 import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
+import { GamepadInput, padName } from './gamepad.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig, CassetteMedia } from './types.ts';
@@ -797,6 +798,13 @@ export async function runShell(
   input.debug = new URLSearchParams(location.search).has('debug');
   input.attach(window);
   if (input.debug) console.log('[input] debug on — bindings:', cfg.bindings, 'ports:', cfg.ports);
+  // A pad drives the same generated fields, polled once per emulated frame
+  // below. The Gamepad API reports nothing until the page has had a gesture,
+  // and the click that chose this machine is one.
+  const pads = new GamepadInput(input, cfg.bindings, () => navigator.getGamepads?.() ?? []);
+  pads.debug = input.debug;
+  pads.attach(window);
+  pads.onChange(() => ui.controls(controlsHelp(cfg, pads)));
 
   const audio = new AudioOutput();
   // Counted, not just forwarded: browser QA compares these against the token's
@@ -844,6 +852,7 @@ export async function runShell(
 
   /** One emulated frame, without presenting it. */
   const runFrame = (): void => {
+    pads.poll();
     input.advance();
     board.frame(fb);
     // Fast-forward outruns the worklet, and a queued frame is permanent
@@ -866,7 +875,7 @@ export async function runShell(
 
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
   (window as unknown as Record<string, unknown>).mamekit = {
-    board, input, config: cfg, audio, regions,
+    board, input, pads, config: cfg, audio, regions,
     framebuffer: fb,
     step: stepFrames,
     qaDrive,
@@ -1142,32 +1151,48 @@ function fnLabel(label: string): string {
   return name.length <= 2 ? name : name.toLowerCase();
 }
 
-/** Build the on-screen controls hint from the generated bindings. */
-function controlsHelp(cfg: ShellConfig): string {
+/**
+ * Build the on-screen controls hint from the generated bindings. With a pad
+ * connected, each control also names the pad button that drives it, and the
+ * pad itself is announced first.
+ */
+function controlsHelp(cfg: ShellConfig, pads?: GamepadInput): string {
   const parts: string[] = [];
   const dirKeys = new Set<string>();
+  const dirPads = new Set<string>();
   const seen = new Set<string>();
+  const padNames = (b: FieldBinding): string[] => (pads?.controlNames(b) ?? []).map(name => `🎮 ${name}`);
   for (const b of cfg.bindings) {
+    // Player two's controls are the same panel again; the pad note says
+    // which pad is player two, and the buttons read the same.
+    if ((b.player ?? 1) !== 1) continue;
     const fn = fnLabel(b.label);
-    if (fn === 'move') { for (const k of b.keys) dirKeys.add(k); continue; }
+    if (fn === 'move') {
+      for (const k of b.keys) dirKeys.add(k);
+      for (const name of padNames(b)) dirPads.add(name);
+      continue;
+    }
     // One visible key per alias: a control bound to both the number row and the
     // keypad is one key to the player, and "2 or Numpad2" reads as two.
-    const keys = [...new Set(b.keys.map(keyLabel))].join(' or ');
+    const keys = [...new Set([...b.keys.map(keyLabel), ...padNames(b)])].join(' or ');
+    if (!keys) continue;
     const line = `${keys}: ${fn}`;
     if (seen.has(line)) continue;
     seen.add(line);
     parts.push(line);
   }
-  const head: string[] = [];
+  const connected = pads?.connected() ?? [];
+  const head = connected.map(pad =>
+    `🎮 ${padName(pad.id)}${connected.length > 1 ? ` (player ${pad.player})` : ''} connected`);
   if (cfg.kind === 'computer') {
     const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
-    return ['Keyboard: type directly', ...specialKeys, 'Esc: menu'].join(' · ');
+    return [...head, 'Keyboard: type directly', ...specialKeys, 'Esc: menu'].join(' · ');
   }
-  if (dirKeys.size) {
+  if (dirKeys.size || dirPads.size) {
     const order = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-    const arrows = order.every(k => dirKeys.has(k))
-      ? 'Arrows' : order.filter(k => dirKeys.has(k)).map(keyLabel).join('');
-    head.push(`${arrows}: move`);
+    const arrows = !dirKeys.size ? []
+      : [order.every(k => dirKeys.has(k)) ? 'Arrows' : order.filter(k => dirKeys.has(k)).map(keyLabel).join('')];
+    head.push(`${[...arrows, ...dirPads].join(' or ')}: move`);
   }
   return [...head, ...parts, 'F: fast-forward', 'Esc: menu'].join(' · ');
 }
@@ -1274,6 +1299,8 @@ function buildDom(cfg: ShellConfig) {
   return {
     overlay,
     addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
+    /** replace the controls hint, e.g. when a gamepad arrives or leaves */
+    controls: (text: string) => { help.textContent = text; fit(); },
     status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none' && !overlay.querySelector('[data-dropzone]')) overlay.textContent = text; },
     overlayHide: () => { overlay.style.display = 'none'; },
     /** adopt the board's real framebuffer size when it differs from config */
