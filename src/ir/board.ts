@@ -241,6 +241,21 @@ export interface GeneratedHandler {
  * declined by codegen and runs interpreted: the TMS9928A's `update_line` calls
  * `screen().vpos()` on its first line, which took the ColecoVision to 17 fps.
  */
+/**
+ * MAME discrete-sound node macros the host binds BY NAME to its compact
+ * four-channel audio protocol (NODE_01..NODE_04 -> inputs 0..3). Shared by
+ * both sides of the compiler boundary on purpose: the runtime binds these
+ * names, and the preprocessor must never expand them -- an expanded
+ * `NAMCO_52XX_P_DATA(base)` is just `base`, a raw node identity the protocol
+ * does not route, and Pole Position's sample player wrote into silence.
+ */
+export const DISCRETE_INPUT_CALLS: Readonly<Record<string, number>> = {
+  NAMCO_54XX_0_DATA: 0,
+  NAMCO_54XX_1_DATA: 1,
+  NAMCO_54XX_2_DATA: 2,
+  NAMCO_52XX_P_DATA: 3,
+};
+
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'machine().sample_rate',
   // The scheduler's clock, bound on every device; a chip that measures time

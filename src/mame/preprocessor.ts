@@ -1,3 +1,5 @@
+import { DISCRETE_INPUT_CALLS } from '../ir/board.ts';
+
 // Function-like `#define` expansion, the one preprocessor pass the lowering
 // still owed MAME.
 //
@@ -198,13 +200,13 @@ export function collectDynamicMacros(source: string, liveNames: ReadonlySet<stri
   });
   const selected = new Set<string>();
   for (const macro of candidates) {
-    // An identity macro -- `#define NAMCO_52XX_P_DATA(base) (base)` -- adds
-    // no arithmetic; its name is the interface. The host binds such discrete
-    // node names to input offsets, so expanding one to its argument hands the
-    // audio protocol a raw node identity instead: Pole Position's 52xx wrote
-    // its samples to a node nothing listened to.
-    if (macro.parameters?.length === 1 &&
-        macro.body.replace(/[()\s]/g, '') === macro.parameters[0]) continue;
+    // A discrete node name the host binds is the interface, whatever its
+    // body: `#define NAMCO_52XX_P_DATA(base) (base)` expanded to its argument
+    // handed the audio protocol a raw node identity and Pole Position's 52xx
+    // wrote its samples to a node nothing listened to. Every other identity
+    // macro is plain arithmetic and expands -- the VIC-II's PAL
+    // `VIC6569_X_2_EMU(a) (a)` left symbolic answered 0 for every x.
+    if (macro.name in DISCRETE_INPUT_CALLS) continue;
     const calls = [...macro.body.matchAll(/\b(\w+)\s*\(/g)].map(match => match[1]!);
     // Pure arithmetic parameter macros (raster-coordinate conversion, for
     // example) need expansion too. Symbolic host interfaces such as

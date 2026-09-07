@@ -31,6 +31,7 @@ import {
 } from './generated-handler.ts';
 import {
   HOST_SERVICE_CALLS,
+  DISCRETE_INPUT_CALLS,
   type BoardIr,
   type GeneratedStateMember,
 } from '../ir/board.ts';
@@ -2108,12 +2109,10 @@ class IrBoard implements Board {
           : Number(line) || 0;
       return device.call('execute_set_input', inputLine, state);
     });
-    host.bindCall('NAMCO_54XX_0_DATA', () => 0);
-    host.bindCall('NAMCO_54XX_1_DATA', () => 1);
-    host.bindCall('NAMCO_54XX_2_DATA', () => 2);
     // Normalize the adjacent MAME discrete nodes (NODE_01..NODE_04) to the
-    // compact four-channel protocol consumed by the generated audio core.
-    host.bindCall('NAMCO_52XX_P_DATA', () => 3);
+    // compact four-channel protocol consumed by the generated audio core. The
+    // names are the contract the preprocessor keeps symbolic.
+    for (const [name, input] of Object.entries(DISCRETE_INPUT_CALLS)) host.bindCall(name, () => input);
     host.bindCall('m_discrete.write', (channel, value) => {
       sinks.soundWrite(channel, value, this.soundFraction(), 'discrete');
       return 0;
