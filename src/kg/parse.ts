@@ -7,7 +7,7 @@
 // small helpers
 // ---------------------------------------------------------------------------
 
-/** Strip // and /* *​/ comments while preserving string literals. */
+/** Strip // and /* *​/ comments while preserving string and character literals. */
 export function stripComments(src: string): string {
   let out = '';
   let i = 0;
@@ -17,6 +17,17 @@ export function stripComments(src: string): string {
       const end = findStringEnd(src, i);
       out += src.slice(i, end + 1);
       i = end + 1;
+    } else if (c === "'" && !(
+      /[0-9a-fA-F]/.test(src[i - 1] ?? '') && /[0-9a-fA-F]/.test(src[i + 1] ?? '')
+    )) {
+      // A keyboard PORT_CHAR('"') must not open a string spanning the rest
+      // of the driver. Apostrophes within numeric literals are separators.
+      const start = i++;
+      while (i < src.length) {
+        if (src[i] === '\\') i += 2;
+        else if (src[i++] === "'") break;
+      }
+      out += src.slice(start, i);
     } else if (c === '/' && src[i + 1] === '/') {
       while (i < src.length && src[i] !== '\n') i++;
     } else if (c === '/' && src[i + 1] === '*') {
@@ -465,6 +476,7 @@ function expandRomMacros(source: string, initial: string): string {
 export function parseRomSets(
   src: string,
   consts: Record<string, number> = parseDefines(src),
+  strings = parseTextMacros(src).strings,
 ): RomSetDef[] {
   const out: RomSetDef[] = [];
   const re = /ROM_START\s*\(\s*(\w+)\s*\)([\s\S]*?)ROM_END/g;
@@ -472,6 +484,13 @@ export function parseRomSets(
   while ((m = re.exec(src)) !== null) {
     const set: RomSetDef = { name: m[1], regions: [] };
     const body = maskDisabledIfZero(expandRomMacros(src, m[2]));
+    const defaultName = /\bROM_DEFAULT_BIOS\s*\(\s*"([^"]+)"\s*\)/.exec(body)?.[1];
+    const selectedBios = defaultName === undefined ? 0 : [...body.matchAll(
+      /\bROM_SYSTEM_BIOS\s*\(\s*([^,]+),\s*"([^"]+)"/g,
+    )].find(entry => entry[2] === defaultName)?.[1];
+    if (selectedBios === undefined) throw new Error(`${set.name}: unknown default BIOS ${defaultName}`);
+    const defaultIndex = typeof selectedBios === 'number' ? selectedBios : evalExpr(selectedBios, consts);
+    if (defaultIndex === null || defaultIndex === undefined) throw new Error(`${set.name}: cannot evaluate default BIOS index`);
     const stmtRe = /(ROM_REGION(?:16_BE|16_LE|32_BE|32_LE|64_BE|64_LE)?|ROM_LOAD(?:16_BYTE|16_WORD(?:_SWAP)?|32_BYTE|32_WORD(?:_SWAP)?|64_BYTE|64_WORD(?:_SWAP)?|_NIB_(?:LOW|HIGH))?|ROMX_LOAD|ROM_RELOAD|ROM_CONTINUE|ROM_IGNORE|ROM_FILL)\s*\(/g;
     let sm: RegExpExecArray | null;
     let region: RomRegionDef | null = null;
@@ -486,7 +505,7 @@ export function parseRomSets(
       if (statement.startsWith('ROM_REGION')) {
           region = {
             size: evalExpr(args[0], consts) ?? 0,
-            tag: unquote(args[1]),
+            tag: strings[args[1].trim()] ?? unquote(args[1]),
             flags: args[2] ?? '',
             loads: [],
             fills: [],
@@ -503,7 +522,7 @@ export function parseRomSets(
           // declares another default. Loading every selectable BIOS in source
           // order would overwrite the real default with the final alternative.
           const bios = /ROM_BIOS\(\s*([^)]+)\s*\)/.exec(flags);
-          if (bios && (evalExpr(bios[1]!, consts) ?? 0) !== 0) {
+          if (bios && (evalExpr(bios[1]!, consts) ?? 0) !== defaultIndex) {
             lastLoad = null;
             fileOffset = 0;
             continue;
@@ -563,6 +582,18 @@ export function parseRomSets(
       }
     }
     out.push(set);
+  }
+  const aliases = [...src.matchAll(/^\s*#define\s+rom_(\w+)\s+rom_(\w+)\s*$/gm)];
+  for (let pass = 0; pass < aliases.length; pass++) {
+    let added = false;
+    for (const [, name, original] of aliases) {
+      if (out.some(set => set.name === name)) continue;
+      const target = out.find(set => set.name === original);
+      if (!target) continue;
+      out.push({ ...structuredClone(target), name: name! });
+      added = true;
+    }
+    if (!added) break;
   }
   return out;
 }
@@ -1171,14 +1202,15 @@ function regionPointer(
  * referenced as `m_ym[0]`/`m_ym[1]` in the machine config while the address map
  * uses the formatted tags, so both spellings are recorded here.
  */
-export function parseMemberTags(src: string): Record<string, string> {
+export function parseMemberTags(src: string, strings = parseTextMacros(src).strings): Record<string, string> {
   const out: Record<string, string> = {};
   const counts = arrayFinderCounts(src);
-  const re = /m_(\w+)\(\*this,\s*"([^"]+)"(?:\s*,\s*('?[\w']+'?)\s*)?\)/g;
+  const re = /m_(\w+)\(\*this,\s*("[^"]+"|\w+)(?:\s*,\s*('?[\w']+'?)\s*)?\)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const member = `m_${m[1]}`;
-    const format = m[2];
+    const format = m[2].startsWith('"') ? unquote(m[2]) : strings[m[2]];
+    if (format === undefined) continue;
     const start = m[3];
     out[member] = format;
     if (start === undefined || !/%[-0-9.]*[a-z]/i.test(format)) continue;
@@ -1247,7 +1279,9 @@ export function parseMachineConfigs(
   src: string,
   memberTags: Record<string, string>,
   consts: Record<string, number>,
+  helpers: readonly { className: string; name: string; parameters: string; body: string }[] = [],
 ): MachineConfigDef[] {
+  const tagConstants = parseTextMacros(src).strings;
   const fns = extractFunctionBody(src, /void\s+(\w+)::(\w+)\(machine_config\s*&\s*config\)/g);
   return fns.map(({ cls, name, body }) => {
     const cfg: MachineConfigDef = {
@@ -1270,10 +1304,26 @@ export function parseMachineConfigs(
       // A leading ':' is MAME's absolute-tag syntax, not part of the device
       // name or its ROM region (TRACKFLD_AUDIO exposes ":audiocpu").
       if (r.startsWith('"')) return unquote(r).replace(/^:/, '');
-      return (memberTags[r] ?? r.replace(/^m_/, '')).replace(/^:/, '');
+      return (memberTags[r] ?? tagConstants[r] ?? r.replace(/^m_/, '')).replace(/^:/, '');
     };
 
-    const statements = splitStatements(body);
+    const expandHelper = (statement: string, depth = 0): string[] => {
+      const call = /^(\w+)::(\w+)\s*\(([\s\S]*)\)$/.exec(statement.trim());
+      const helper = call && helpers.find(candidate => candidate.className === call[1] && candidate.name === call[2]);
+      if (!call || !helper) return [statement];
+      if (depth >= 8) throw new Error(`recursive machine-config helper ${call[1]}::${call[2]}`);
+      const parameters = splitArgs(helper.parameters).map(parameter => /([\w]+)\s*$/.exec(parameter)?.[1]);
+      const args = splitArgs(call[3]!);
+      if (parameters.length !== args.length || parameters.some(parameter => !parameter)) {
+        throw new Error(`unsupported machine-config helper arguments: ${statement}`);
+      }
+      const bindings = new Map(parameters.map((parameter, index) => [parameter!, args[index]!]));
+      // Forwarding only changes the C++ value category, not the device tag.
+      const forwarded = stripComments(helper.body).replace(/std::forward\s*<\w+>\s*\(\s*(\w+)\s*\)/g, '$1');
+      const expanded = forwarded.replace(/"(?:[^"\\]|\\.)*"|\b\w+\b/g, token => bindings.get(token) ?? token);
+      return splitStatements(expanded).flatMap(child => expandHelper(child, depth + 1));
+    };
+    const statements = splitStatements(body).flatMap(statement => expandHelper(statement));
     // MAME occasionally instantiates a finder array in a small counted loop
     // instead of spelling out each device (Mario's four sound latches). Expand
     // those declarations into the same source forms handled below.
@@ -1404,26 +1454,23 @@ export function parseMachineConfigs(
         }
         // Slot device with an options table + quoted default.  Most option
         // tables use a *_devices name (NES), but MAME also uses board-specific
-        // names such as neogeo_arc_edge.  Verify the third argument against an
+        // names such as neogeo_arc_edge. Verify the options argument against an
         // actual device_slot_interface function instead of relying on naming.
         //
         //   NES_CONTROL_PORT(..., nes_control_port1_devices, "joypad")
         //   NEOGEO_CTRL_EDGE_CONNECTOR(..., neogeo_arc_edge, "joy", false)
-        const slotOptions = args[2]?.trim() ?? '';
-        const hasSlotOptions = slotOptions.length > 0 && new RegExp(
-          `\\b(?:void\\s+)?${slotOptions}\\s*\\(\\s*device_slot_interface\\s*&`,
-        ).test(src);
-        if (
-          args.length >= 4
-          && (
-            /_devices$/.test(slotOptions)
-            || hasSlotOptions
-            || /(?:_PORT|_CONNECTOR)$/.test(type)
-          )
-          && args[3].trim().startsWith('"')
-        ) {
-          dev.slotOptions = slotOptions;
-          dev.slotDefault = unquote(args[3]);
+        // Bus slots may insert an address before the options table, as the
+        // IEC slot does. That address is not an emulated clock frequency.
+        const slotIndex = args.findIndex((argument, index) => {
+          const options = argument.trim();
+          if (index < 2 || !/^\w+$/.test(options) || !args[index + 1]?.trim().startsWith('"')) return false;
+          return /_devices$/.test(options) || new RegExp(
+            `\\b(?:void\\s+)?${options}\\s*\\(\\s*device_slot_interface\\s*&`,
+          ).test(src) || (index === 2 && /(?:_PORT|_CONNECTOR)$/.test(type));
+        });
+        if (slotIndex >= 0) {
+          dev.slotOptions = args[slotIndex].trim();
+          dev.slotDefault = unquote(args[slotIndex + 1]);
           dev.clock = null;
           delete dev.clockExpr;
         }

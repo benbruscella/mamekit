@@ -1,3 +1,5 @@
+import { DISCRETE_INPUT_CALLS } from '../ir/board.ts';
+
 // Function-like `#define` expansion, the one preprocessor pass the lowering
 // still owed MAME.
 //
@@ -22,7 +24,9 @@ export interface FunctionMacro {
 }
 
 /** Names the IR answers itself; expanding a redefinition would shadow them. */
-const INTRINSICS = new Set(['BIT', 'BITSWAP', 'TABLE', 'COMBINE_DATA']);
+const INTRINSICS = new Set(['BIT', 'BITSWAP', 'TABLE', 'COMBINE_DATA',
+  // Discrete node identities are translated by the host audio protocol.
+  'NODE', 'NODE_INDEX', 'NODE_RELATIVE']);
 
 /**
  * MAME's per-device tracing macros, which the execution-source normalizer
@@ -174,6 +178,61 @@ export function collectMemberAliasMacros(source: string): MemberAliasMacro[] {
     aliases.push({ name, body });
   }
   return aliases;
+}
+
+/** Object-like BIT aliases may read a handler parameter, so cannot be constants. */
+export function collectBitAliasMacros(source: string): MemberAliasMacro[] {
+  const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
+  return [...joined.matchAll(/^[ \t]*#define[ \t]+([A-Z_][A-Z0-9_]*)[ \t]+(.+)$/gm)].flatMap(match => {
+    const body = match[2]!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/, '').trim();
+    return /^BIT\s*\([^;{}#]*\)$/.test(body) ? [{ name: match[1]!, body }] : [];
+  });
+}
+
+/** Expressions over live device state cannot be folded as numeric defines. */
+export function collectDynamicMacros(source: string, liveNames: ReadonlySet<string> = new Set()): { aliases: MemberAliasMacro[]; functions: FunctionMacro[] } {
+  const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
+  const candidates = [...joined.matchAll(/^[ \t]*#define[ \t]+(\w+)(\([^\n)]*\))?[ \t]+(.+)$/gm)].flatMap(match => {
+    const body = match[3]!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/, '').trim();
+    if (INTRINSICS.has(match[1]!) || TRACING.test(match[1]!) || /[;{}#]/.test(body)) return [];
+    return [{ name: match[1]!, body, parameters: match[2] === undefined ? undefined
+      : match[2].slice(1, -1).split(',').map(value => value.trim()).filter(Boolean) }];
+  });
+  const selected = new Set<string>();
+  for (const macro of candidates) {
+    // A discrete node name the host binds is the interface, whatever its
+    // body: `#define NAMCO_52XX_P_DATA(base) (base)` expanded to its argument
+    // handed the audio protocol a raw node identity and Pole Position's 52xx
+    // wrote its samples to a node nothing listened to. Every other identity
+    // macro is plain arithmetic and expands -- the VIC-II's PAL
+    // `VIC6569_X_2_EMU(a) (a)` left symbolic answered 0 for every x.
+    if (macro.name in DISCRETE_INPUT_CALLS) continue;
+    const calls = [...macro.body.matchAll(/\b(\w+)\s*\(/g)].map(match => match[1]!);
+    // Pure arithmetic parameter macros (raster-coordinate conversion, for
+    // example) need expansion too. Symbolic host interfaces such as
+    // NODE_RELATIVE remain named calls, preserving audio routing identity.
+    if (/\bm_\w+\b/.test(macro.body) || (macro.parameters === undefined && [...liveNames].some(name => new RegExp(`\\b${name}\\b`).test(macro.body))) || (macro.parameters?.length && !calls.length
+      && macro.parameters.some(parameter => new RegExp(`\\b${parameter}\\b`).test(macro.body)))) selected.add(macro.name);
+  }
+  for (let pass = 0; pass < candidates.length; pass++) {
+    const before = selected.size;
+    for (const macro of candidates) if ([...selected].some(name => new RegExp(`\\b${name}\\b`).test(macro.body))) selected.add(macro.name);
+    if (selected.size === before) break;
+  }
+  return {
+    aliases: candidates.filter(macro => macro.parameters === undefined && selected.has(macro.name)).map(({ name, body }) => ({ name, body })),
+    functions: candidates.filter(macro => macro.parameters !== undefined && selected.has(macro.name)).map(({ name, body, parameters }) => ({ name, body, parameters: parameters! })),
+  };
+}
+
+export function expandDynamicMacros(body: string, macros: ReturnType<typeof collectDynamicMacros>): string {
+  let result = body;
+  for (let pass = 0; pass < 12; pass++) {
+    const next = expandMemberAliasMacros(expandFunctionMacros(result, macros.functions), macros.aliases);
+    if (next === result) break;
+    result = next;
+  }
+  return result;
 }
 
 /**

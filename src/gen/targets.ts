@@ -37,9 +37,7 @@ export const REQUIRED_TARGETS: readonly string[] = [
 export const GENERATION_TARGETS: readonly string[] = REQUIRED_TARGETS;
 
 /**
- * Targets included in the generated public app/catalog.
+ * Targets included in the generated app/catalog. Candidates remain labelled
+ * experimental and do not become accepted by appearing in the menu.
  */
-export const PUBLISHED_TARGETS: readonly string[] = [
-  ...ACCEPTED_TARGETS,
-  ...SYSTEM_TARGETS,
-];
+export const PUBLISHED_TARGETS: readonly string[] = REQUIRED_TARGETS;

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { indexMameHardware } from './hardware.ts';
 import { compileMameDevice, constructorInitialValues } from './device-compiler.ts';
+import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import {
   clearGeneratedDevices,
   createDevice,
@@ -109,6 +110,10 @@ const mb8844Definition = hardware.get('MB8844');
 assert.ok(mb8844Definition, 'MAME hardware index should resolve MB8844');
 const generatedMb8844 = compileMameDevice(mameSrc, mb8844Definition);
 assert.equal(generatedMb8844.summary.diagnostics, 0);
+for (const name of ['m_cache', 'm_data']) {
+  assert.ok(generatedMb8844.members.some(member => member.name === name),
+    `template-qualified memory_access members must retain ${name} for host address-space binding`);
+}
 assert.equal(
   generatedMb8844.members.find(member => member.name === 'm_SP')?.values?.length,
   4,
@@ -272,5 +277,28 @@ assert.deepEqual(
 // A device with no address space of its own must not gain one.
 const latchSpaces = compileMameDevice(mameSrc, hardware.get('LS259')!, 'LS259').spaces;
 assert.equal(latchSpaces, undefined, 'a device without a declared space must have none');
+
+const vicDefinition = compileMameDevice(mameSrc, hardware.get('MOS6567')!, 'MOS6567');
+assert.deepEqual(vicDefinition.members.filter(member => ['m_colors', 'm_spritemulti'].includes(member.name))
+  .map(member => [member.name, member.arrayLength]), [['m_colors', 4], ['m_spritemulti', 4]],
+  'comma-separated array declarations must allocate both VIC colour tables');
+const vicMethods = generatedDeviceMethodsSource(vicDefinition).methods;
+for (const method of ['execute_run', 'read', 'write']) {
+  assert.ok(vicMethods.includes(method), `${method} must compile with its source-owned memory and colour tables`);
+}
+assert.deepEqual(vicDefinition.spaces?.map(space => [space.index, space.addressBits]), [[0, 14], [1, 10]],
+  'numeric space indices must retain both source-declared VIC memory spaces');
+registerGeneratedDevice(vicDefinition);
+const mappedVic = createDevice('MOS6567');
+mappedVic.bindAddressSpace!(0, address => address === 0x1234 ? 0xa5 : 0, () => {});
+mappedVic.bindAddressSpace!(1, address => address === 0x234 ? 7 : 0, () => {});
+assert.equal(mappedVic.call('read_videoram', 0x5234), 0xa5,
+  'VIC DMA reads must reach the configured machine map with source address masking');
+assert.equal(mappedVic.call('read_colorram', 0x6234), 7,
+  'colour RAM must use the independent configured space');
+assert.equal(vicDefinition.clockDivider, undefined,
+  'MOS6567 must not inherit a clock divider from its MOS8564 sibling');
+assert.equal(compileMameDevice(mameSrc, hardware.get('MOS8564')!, 'MOS8564').clockDivider, 8,
+  'MOS8564 retains its own source-declared divider');
 
 console.log('device-compiler.spec: source-derived latch, ER2055, MB8844 and TMS9928A devices passed');

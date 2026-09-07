@@ -112,7 +112,8 @@ dist/
 │   └── generated/               MAME-derived hardware, IR and audio modules
 ├── games/
 │   ├── arcade/<game>/           arcade graph, machine, metadata and dossier
-│   └── consoles/<system>/       console graph, machine, metadata and dossier
+│   ├── consoles/<system>/       console graph, machine, metadata and dossier
+│   └── computers/<system>/      computer graph, machine, dossier and software shelves
 ├── games.json                   generated catalog
 └── index.html                   redirect to app/
 ```

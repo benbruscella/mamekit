@@ -15,6 +15,7 @@ import {
   type GeneratedHandlerBindings,
   GENERATED_FIELD_WIDTHS,
 } from './generated-handler.ts';
+import { buildCallLinks, noteCallLinksChanged } from '../ir/execute.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
 import { GeneratedM68705P5Device } from './generated-m68705.ts';
@@ -71,6 +72,8 @@ interface DeviceMethod {
 }
 
 type DeviceResource =
+  | { kind: 'owner' }
+  | { kind: 'sample-image'; region: string; sampleRate: number }
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
   | { kind: 'region-object'; name: string }
@@ -101,6 +104,12 @@ export interface GeneratedDeviceExecutionContext {
   readonly members: Record<string, unknown>;
   /** Late-bound host calls, exposed directly to generated hot paths. */
   readonly calls: Record<string, (...args: any[]) => unknown>;
+  /**
+   * The calls this device's emitted methods name, resolved once into a small
+   * fast-mode table (see buildCallLinks). Rebuilt by refreshCallLinks whenever
+   * the device's own bindings change.
+   */
+  links?: Record<string, ((...args: any[]) => unknown) | undefined>;
   readonly palette: number[];
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;
@@ -143,6 +152,9 @@ export type GeneratedDeviceMethodMap = Record<string, GeneratedDeviceMethodExecu
 
 export interface GeneratedDeviceDefinition {
   type: string;
+  hierarchy?: string[];
+  allocations?: Record<string, GeneratedDeviceDefinition>;
+  construct?: string;
   constants: Record<string, number>;
   members: DeviceMember[];
   callbacks: DeviceCallback[];
@@ -172,6 +184,8 @@ export interface GeneratedDeviceDefinition {
     ranges: GeneratedDeviceBusRange[];
   };
   role?: string;
+  imageFormats?: { extension: string; definition: GeneratedDeviceDefinition;
+    sizeMethod: string; fillMethod: string; mountMethod: string; sampleRate: number }[];
   links?: GeneratedDeviceLink[];
   /** Machine-config setter -> device_delegate member it assigns. */
   delegates?: Record<string, string>;
@@ -190,6 +204,8 @@ export interface GeneratedDeviceDefinition {
     ram: true;
   }[];
   compiledMethods?: GeneratedDeviceMethodMap;
+  /** the host call names those methods reach, resolved once into `links` */
+  compiledMethodLinks?: string[];
   start?: string;
   reset?: string;
   summary: {
@@ -200,11 +216,25 @@ export interface GeneratedDeviceDefinition {
 export type DeviceCallbackListener = (...args: number[]) => number | void;
 
 export interface Device {
+  findDevice?(role: string): Device | undefined;
+  imageExtensions?(): string[];
+  mountImage?(extension: string, bytes: Uint8Array): void;
+  /** Install a machine-config map over a declared byte-wide device space. */
+  bindAddressSpace?(index: number, read: (address: number) => number,
+    write: (address: number, data: number) => void): void;
   reset(): void;
   tick(seconds: number): void;
+  /** Whether this device or a composed child owns a scheduled timer. */
+  needsTick?(): boolean;
+  /** Host a device_execute_interface time slice in device cycles. */
+  runCycles?(cycles: number): number;
   call(name: string, ...args: number[]): number;
   /** Call a method preserving non-numeric results (memory pointers). */
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
+  /** Resolve an unambiguous generated method once for a hot bus connection. */
+  prepareCall?(name: string): (...args: GeneratedCallArgument[]) => unknown;
+  /** Connect source-typed calls and refresh them when the host overrides a method. */
+  connectCall?(name: string, receive: (call: (...args: GeneratedCallArgument[]) => unknown) => void): void;
   get(name: string): number;
   set(name: string, value: number): void;
   hasMember(name: string): boolean;
@@ -286,6 +316,8 @@ export function hasGeneratedDevice(type: string): boolean {
 }
 
 export interface GeneratedDeviceOptions {
+  owner?: unknown;
+  constructorArgs?: GeneratedCallArgument[];
   clock?: number;
   /** Device tag, resolving MAME's DEVICE_SELF memory share binding. */
   tag?: string;
@@ -341,6 +373,10 @@ class IrAttotime {
 
   as_ticks(frequency: number): number {
     return Math.floor(this.seconds * Math.max(0, frequency));
+  }
+
+  as_double(): number {
+    return this.seconds;
   }
 
   valueOf(): number {
@@ -451,6 +487,7 @@ class IrDevice implements Device {
   private readonly methodParams = new Map<DeviceMethod, string[]>();
   /** C++ default argument values, applied when a caller omits a parameter. */
   private readonly methodDefaults = new Map<DeviceMethod, (number | undefined)[]>();
+  private readonly callConnections = new Map<string, (() => void)[]>();
   private readonly listeners = new Map<string, DeviceCallbackListener[][][]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
@@ -458,6 +495,9 @@ class IrDevice implements Device {
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private readonly clock: number;
+  private executedCycles = 0;
+  private runningCycles: number | undefined;
+  private executeEntry?: (...args: GeneratedCallArgument[]) => unknown;
   /** Samples published through `sound_stream::put_int` since the last collection. */
   private streamSamples: number[] = [];
   private slotChild?: IrDevice;
@@ -514,6 +554,8 @@ class IrDevice implements Device {
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength }, () => new IrMemoryBank())
                 : new IrMemoryBank())
+          : /^simple_list<[^>]+>$/.test(member.valueType)
+            ? new IrSimpleList()
           // A struct the device declares: build the shape its source gives it,
           // so the fields a method writes exist to be written.
           : member.fields
@@ -527,6 +569,7 @@ class IrDevice implements Device {
         // second subscript can store into one: `m_wave_ram[bank][offset] = x`
         // indexes a number otherwise, and the write goes nowhere.
         : member.arrayShape ? nestedArrayMember(member.arrayShape)
+        : member.arrayLength ? Array(member.arrayLength).fill(0)
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
@@ -538,6 +581,18 @@ class IrDevice implements Device {
       }
     }
     Object.assign(this.members, options.members);
+    const self: Record<string, unknown> = {};
+    for (const method of definition.methods) self[method.name] = (...args: GeneratedCallArgument[]) => this.invoke(method.name, ...args);
+    for (const member of definition.members) Object.defineProperty(self, member.name, {
+      // A later lowered declaration may refine a member into a struct array.
+      // Match the member store's last-declaration-wins initialization.
+      enumerable: true, configurable: true, get: () => this.members[member.name],
+      set: value => { this.members[member.name] = wrap(value, member.bits, member.signed); },
+    });
+    self.tag = () => options.tag ?? '';
+    self.machine = () => ({ sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000) });
+    self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
+    this.members.this = self;
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
       // One signal can name two different devcbs, told apart in MAME by how
@@ -585,6 +640,12 @@ class IrDevice implements Device {
       this.members[specification.member] = timer;
     }
 
+    // Materialise the completed source-declared state in one operation. Adding
+    // hundreds of fields incrementally leaves it in dictionary storage in V8,
+    // making every generated register access a hash lookup. Do this before
+    // publishing the state to either execution context.
+    this.members = Object.fromEntries(Object.entries(this.members));
+
     const getters: Record<string, () => unknown> = {};
     const setters: Record<string, (value: number) => void> = {};
     for (const member of definition.members) {
@@ -594,6 +655,12 @@ class IrDevice implements Device {
       };
     }
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {};
+    for (const [name, allocated] of Object.entries(definition.allocations ?? {})) {
+      referenceCalls[`new::${name}`] = (...args) => {
+        const instance = new IrDevice(allocated, clock, { constructorArgs: args });
+        return instance.members.this;
+      };
+    }
     const callParameters: NonNullable<GeneratedHandlerBindings['callParameters']> = {};
     const palette: number[] = [];
     this.bindings = {
@@ -606,6 +673,10 @@ class IrDevice implements Device {
         save_pointer: () => 0,
         logerror: () => 0,
         clock: () => clock,
+        'machine().sample_rate': () => 48000,
+        stream_alloc: () => ({ update: () => this.bindings.calls?.['stream.update']?.() ?? 0 }),
+        total_cycles: () => this.executedCycles + (this.runningCycles === undefined
+          ? 0 : this.runningCycles - Number(this.members.m_icount)),
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
         // MAME `device_t::attotime_to_clocks`, the inverse. A chip that
         // measures an interval in its own clocks needs it: the Game Boy APU
@@ -653,6 +724,8 @@ class IrDevice implements Device {
         pow: (value, exponent) => Math.pow(value, exponent),
         sqrt: value => Math.sqrt(value),
         exp: value => Math.exp(value),
+        expf: value => Math.fround(Math.exp(Math.fround(value))),
+        logf: value => Math.fround(Math.log(Math.fround(value))),
         log: value => Math.log(value),
         log10: value => Math.log10(value),
         fabs: value => Math.abs(value),
@@ -700,6 +773,7 @@ class IrDevice implements Device {
     this.executionContext = {
       members: this.members,
       calls: this.bindings.calls!,
+      links: undefined,
       palette,
       readIndex: (value, index) => {
         if (isGeneratedPointer(value)) {
@@ -736,6 +810,7 @@ class IrDevice implements Device {
       writableMember: name => this.members[name] ?? 0,
       wide: generatedWideBinary,
       invoke: (name, ...args) => {
+        if (name.startsWith('new::') && referenceCalls[name]) return referenceCalls[name]!(...args);
         const method = this.selectMethod(name, args);
         if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);
         const binding = this.bindings.calls?.[name];
@@ -785,6 +860,7 @@ class IrDevice implements Device {
         const cartSpace = definition.slot.install?.space;
         const child = this.slotChild = new IrDevice(childDefinition, clock, {
           ...resourceOptions,
+          owner: this.members.this,
           // A child card may itself be a slot in a future bus; do not pass
           // the parent's selected option through accidentally.
           slot: undefined,
@@ -820,6 +896,7 @@ class IrDevice implements Device {
     for (const child of definition.children ?? []) {
       const instance = new IrDevice(child.definition, clock, {
         ...resourceOptions,
+        owner: this.members.this,
         slot: undefined,
       });
       this.children.push(instance);
@@ -831,6 +908,10 @@ class IrDevice implements Device {
       );
     }
 
+    // Every binding the constructor installs is in place; resolve the links
+    // the emitted methods read before any of them can run.
+    this.refreshCallLinks();
+    if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
     if (definition.start) this.call(definition.start);
     for (const initialize of definition.resources?.initialize ?? []) {
       if (!this.methodNames().includes(initialize.method)) continue;
@@ -844,6 +925,8 @@ class IrDevice implements Device {
   }
 
   reset(): void {
+    this.executedCycles = 0;
+    this.runningCycles = undefined;
     for (const child of this.children) child.reset();
     if (this.definition.reset) this.call(this.definition.reset);
   }
@@ -861,8 +944,26 @@ class IrDevice implements Device {
     this.slotChild?.tick(seconds);
   }
 
+  needsTick(): boolean {
+    return this.timers.size > 0 || this.children.some(child => child.needsTick()) ||
+      Boolean(this.slotChild?.needsTick());
+  }
+
   call(name: string, ...args: number[]): number {
     return Number(this.invoke(name, ...args)) || 0;
+  }
+
+  runCycles(cycles: number): number {
+    if (!this.executeEntry) this.connectCall('execute_run', call => { this.executeEntry = call; });
+    this.members.m_icount = cycles;
+    this.runningCycles = cycles;
+    try {
+      this.executeEntry!();
+    } finally {
+      this.executedCycles += cycles - Number(this.members.m_icount);
+      this.runningCycles = undefined;
+    }
+    return cycles - Number(this.members.m_icount);
   }
 
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown {
@@ -883,6 +984,63 @@ class IrDevice implements Device {
     const method = this.selectMethod(name, args);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
     return this.executeMethod(method, this.methodParams.get(method)!, args);
+  }
+
+  prepareCall(name: string): (...args: GeneratedCallArgument[]) => unknown {
+    const methods = this.methods.get(name);
+    const compiled = this.definition.compiledMethods?.[name];
+    if (!compiled || methods?.length !== 1 ||
+        (this.definition.type === 'GENERIC_LATCH_8' && name === 'write')) {
+      return (...args) => this.invoke(name, ...args);
+    }
+    const method = methods[0]!;
+    const count = this.methodParams.get(method)!.length;
+    const defaults = this.methodDefaults.get(method)!;
+    const context = this.executionContext;
+    // Preserve late host overrides and default/reference arguments, while
+    // avoiding overload selection and argument-array allocation per bus read.
+    const value = (argument: GeneratedCallArgument | undefined, index: number) =>
+      generatedReferent(argument ?? defaults[index] ?? 0) as GeneratedCallArgument;
+    if (count === 0) return () => this.bindings.calls?.[name]
+      ? this.invoke(name) : compiled(context);
+    if (count === 1) return a => this.bindings.calls?.[name]
+      ? this.invoke(name, a) : compiled(context, value(a, 0));
+    if (count === 2) return (a, b) => this.bindings.calls?.[name]
+      ? this.invoke(name, a, b) : compiled(context, value(a, 0), value(b, 1));
+    if (count === 3) return (a, b, c) => this.bindings.calls?.[name]
+      ? this.invoke(name, a, b, c) : compiled(context, value(a, 0), value(b, 1), value(c, 2));
+    if (count === 4) return (a, b, c, d) => this.bindings.calls?.[name]
+      ? this.invoke(name, a, b, c, d) : compiled(context, value(a, 0), value(b, 1), value(c, 2), value(d, 3));
+    if (count === 5) return (a, b, c, d, e) => this.bindings.calls?.[name]
+      ? this.invoke(name, a, b, c, d, e) : compiled(context, value(a, 0), value(b, 1), value(c, 2), value(d, 3), value(e, 4));
+    if (count === 6) return (a, b, c, d, e, f) => this.bindings.calls?.[name]
+      ? this.invoke(name, a, b, c, d, e, f) : compiled(context, value(a, 0), value(b, 1), value(c, 2), value(d, 3), value(e, 4), value(f, 5));
+    if (count === 7) return (a, b, c, d, e, f, g) => this.bindings.calls?.[name]
+      ? this.invoke(name, a, b, c, d, e, f, g) : compiled(context, value(a, 0), value(b, 1), value(c, 2), value(d, 3), value(e, 4), value(f, 5), value(g, 6));
+    if (count === 8) return (a, b, c, d, e, f, g, h) => this.bindings.calls?.[name]
+      ? this.invoke(name, a, b, c, d, e, f, g, h) : compiled(context, value(a, 0), value(b, 1), value(c, 2), value(d, 3), value(e, 4), value(f, 5), value(g, 6), value(h, 7));
+    return (...args) => this.invoke(name, ...args);
+  }
+
+  connectCall(name: string, receive: (call: (...args: GeneratedCallArgument[]) => unknown) => void): void {
+    const refresh = () => {
+      const methods = this.methods.get(name);
+      const compiled = this.definition.compiledMethods?.[name];
+      const parameters = methods?.length === 1 ? splitParameters(methods[0]!.parameters) : undefined;
+      const scalarArguments = parameters?.every(parameter =>
+        /^(?:const\s+)?(?:bool|char|[us](?:8|16|32)|u?int(?:8|16|32)_t|int|unsigned|offs_t|size_t)\s+\w+$/.test(parameter));
+      // The generated caller supplies the declared scalar arguments. Binding
+      // the executable itself lets its caller inline tiny register accessors;
+      // a shared dispatch closure makes those sites polymorphic instead.
+      receive(compiled && methods?.length === 1 &&
+        scalarArguments && !this.bindings.calls?.[name] &&
+        !(this.definition.type === 'GENERIC_LATCH_8' && name === 'write')
+        ? compiled.bind(undefined, this.executionContext) : this.prepareCall(name));
+    };
+    const connections = this.callConnections.get(name) ?? [];
+    connections.push(refresh);
+    this.callConnections.set(name, connections);
+    refresh();
   }
 
   get(name: string): number {
@@ -971,11 +1129,39 @@ class IrDevice implements Device {
         this.bindings.referenceCalls![name] = listener;
       }
     }
+    this.refreshCallLinks();
+    for (const refresh of this.callConnections.get(name) ?? []) refresh();
     return this;
+  }
+
+  /**
+   * Re-resolve the links table the emitted methods read. Called after every
+   * change to this device's own call bindings -- bindCall here, and the
+   * board's direct assignments into a device's table -- so a link never
+   * outlives the binding it was resolved from.
+   */
+  refreshCallLinks(): void {
+    const keys = this.definition.compiledMethodLinks;
+    this.executionContext.links = keys?.length
+      ? buildCallLinks(this.bindings.calls, keys)
+      : undefined;
+    noteCallLinksChanged();
   }
 
   cycleClock(): number {
     return this.clock / (this.definition.clockDivider ?? 1);
+  }
+
+  bindAddressSpace(index: number, read: (address: number) => number,
+    write: (address: number, data: number) => void): void {
+    const config = this.definition.spaces?.find(space => space.index === index);
+    const space = this.spaces.get(index);
+    if (!config || !space || config.dataBits !== 8) {
+      throw new Error(`${this.definition.type}: no supported byte address space ${index}`);
+    }
+    const mask = 2 ** config.addressBits - 1;
+    space.read_byte = address => read(address & mask);
+    space.write_byte = (address, data) => { write(address & mask, data & 0xff); return 0; };
   }
 
   dataAddressBits(): number | undefined {
@@ -992,6 +1178,27 @@ class IrDevice implements Device {
 
   role(): string | undefined {
     return this.definition.role;
+  }
+
+  findDevice(role: string): Device | undefined {
+    if (this.role() === role) return this;
+    return this.slotChild?.findDevice(role) ?? this.children.map(child => child.findDevice(role)).find(Boolean);
+  }
+
+  imageExtensions(): string[] {
+    return this.definition.imageFormats?.map(format => format.extension) ?? [];
+  }
+
+  mountImage(extension: string, bytes: Uint8Array): void {
+    const format = this.definition.imageFormats?.find(candidate => candidate.extension === extension.toLowerCase());
+    if (!format) throw new Error(`${this.definition.type}: unsupported image extension ${extension}`);
+    const decoder = new IrDevice(format.definition, 0);
+    const count = Number(decoder.invoke(format.sizeMethod, bytes, bytes.length));
+    if (!Number.isSafeInteger(count) || count <= 0) throw new Error('image decoder returned no valid samples');
+    const pcm = new Int16Array(count);
+    const written = decoder.invoke(format.fillMethod, pcm, count, bytes, 0);
+    if (written !== count) throw new Error('image decoder sample count changed during decoding');
+    this.invoke(format.mountMethod, sampleImage(pcm, format.sampleRate));
   }
 
   links(): readonly GeneratedDeviceLink[] {
@@ -1055,8 +1262,6 @@ class IrDevice implements Device {
         return this.invoke('sync_callback', args[0] ?? 0);
       }
       const defaults = this.methodDefaults.get(method);
-      const resolvedArgs = parameterNames.map((_name, index) =>
-        args[index] ?? defaults?.[index] ?? 0);
       const compiled = this.definition.compiledMethods?.[method.name];
       // A `&` parameter always arrives as a get/set wrapper, because the caller
       // cannot know whether the callee reassigns it. Only methods that do NOT
@@ -1067,15 +1272,16 @@ class IrDevice implements Device {
       // emitted draw_tile_pixel wrote through `u32*& dest` as if the wrapper
       // itself were the pointer, and one background tile threw.
       if (compiled) {
+        if (parameterNames.length === 0) return compiled(this.executionContext);
         return compiled(
           this.executionContext,
-          ...resolvedArgs.map(argument =>
-            generatedReferent(argument) as GeneratedCallArgument),
+          ...parameterNames.map((_name, index) =>
+            generatedReferent(args[index] ?? defaults?.[index] ?? 0) as GeneratedCallArgument),
         );
       }
       const locals: Record<string, unknown> = {};
       for (let index = 0; index < parameterNames.length; index++) {
-        locals[parameterNames[index]!] = resolvedArgs[index];
+        locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
       }
       return executeGeneratedProgram(method.program, this.bindings, locals).value;
     } catch (error) {
@@ -1090,6 +1296,7 @@ class IrDevice implements Device {
   ): DeviceMethod | undefined {
     const overloads = this.methods.get(name);
     if (!overloads?.length) return undefined;
+    if (overloads.length === 1 && this.methodParams.get(overloads[0]!)?.length === args.length) return overloads[0];
     const exact = overloads.filter(method =>
       (this.methodParams.get(method) ?? splitParameters(method.parameters)).length === args.length);
     if (exact.length) return exact.at(-1);
@@ -1173,6 +1380,13 @@ function resolveDeviceResource(
   resource: DeviceResource,
   options: GeneratedDeviceOptions,
 ): unknown {
+  if (resource.kind === 'owner') return options.owner ?? 0;
+  if (resource.kind === 'sample-image') {
+    const bytes = options.regions?.[resource.region];
+    if (!bytes?.length) return 0;
+    const pcm = new Int16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
+    return sampleImage(pcm, resource.sampleRate);
+  }
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
   const resourceName = 'name' in resource ? resource.name : '';
@@ -1271,6 +1485,16 @@ class GeneratedBitmap {
 
   height(): number {
     return this.bitmapHeight;
+  }
+
+  /** MAME bitmap_t::plot_box, clipped to this bitmap's bounds. */
+  plot_box(x: number, y: number, width: number, height: number, color: number): void {
+    const left = Math.max(0, x), right = Math.min(this.bitmapWidth, x + width);
+    const top = Math.max(0, y), bottom = Math.min(this.bitmapHeight, y + height);
+    if (right <= left || bottom <= top) return;
+    for (let row = top; row < bottom; row++) {
+      this.pixels.fill(color, row * this.bitmapWidth + left, row * this.bitmapWidth + right);
+    }
   }
 
   pix(y: number, x = 0): number {
@@ -1460,6 +1684,21 @@ function parameterDefault(parameter: string): number | undefined {
   return undefined;
 }
 
+/** MAME simple_list's intrusive container ABI; device behavior stays in IR. */
+class IrSimpleList {
+  private head: Record<string, unknown> | 0 = 0;
+  private tail: Record<string, unknown> | 0 = 0;
+  first(): unknown { return this.head; }
+  append(value: Record<string, unknown>): unknown {
+    value.m_next = 0;
+    if (this.tail) this.tail.m_next = value;
+    else this.head = value;
+    this.tail = value;
+    return value;
+  }
+  reset(): void { this.head = this.tail = 0; }
+}
+
 function wrap(value: number, bits?: 1 | 8 | 16 | 32, signed = false): number {
   if (bits === 1) return value ? 1 : 0;
   if (bits === 8) return signed ? value << 24 >> 24 : value & 0xff;
@@ -1480,6 +1719,17 @@ export interface GeneratedDeviceSpace {
   write_byte(address: number, data: number): number;
   /** The backing bytes, for board wiring and for reading state back in tests. */
   readonly memory: Uint8Array;
+}
+
+function sampleImage(pcm: Int16Array, sampleRate: number) {
+  return {
+    get_info: () => ({ sample_count: pcm.length, sample_frequency: sampleRate }),
+    get_sample: (_channel: number, time: number, _duration: number, output: unknown) => {
+      generatedPointerStore(output, (pcm[Math.floor(time * sampleRate)] ?? 0) * 65536);
+      return 0;
+    },
+    put_sample: () => { throw new Error('mounted sample image is read-only'); },
+  };
 }
 
 function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {

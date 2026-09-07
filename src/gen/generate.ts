@@ -58,6 +58,8 @@ import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
 import { compileDriverInitProgram } from '../mame/driver-init-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkSources } from '../runtime/artwork-source.ts';
+import { writeSoftwareShelves } from './software-shelves.ts';
+import type { SoftwareShelves } from '../runtime/shell.ts';
 import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
 import {
@@ -77,6 +79,7 @@ import {
   GAMEBOY_APU_TYPE,
   GAMEBOY_OUTPUT_RATE,
 } from '../hardware/gameboy/definition.ts';
+import { C64_AUDIO_RATE } from '../hardware/c64/definition.ts';
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
 
@@ -304,6 +307,17 @@ export function portCodeKeys(modifiers: readonly string[]): string[] | undefined
     PGUP: 'PageUp', PGDN: 'PageDown',
   };
   return named[code] ? [named[code]] : undefined;
+}
+
+/** Physical keyboard matrix bindings, including keys reserved by the browser. */
+export function computerKeyboardKeys(modifiers: readonly string[]): string[] | undefined {
+  const code = modifiers.map(modifier => /PORT_CODE\s*\(\s*KEYCODE_(\w+)\s*\)/.exec(modifier)?.[1]).find(Boolean);
+  // Keep Escape/Tab available to the shell, and never consume browser Control
+  // shortcuts. These keys remain reachable through the machine's key legend.
+  const reserved: Record<string, string> = {
+    ESC: 'F9', TAB: 'F10', LCONTROL: 'Pause', RCONTROL: 'Pause', CAPSLOCK: 'CapsLock',
+  };
+  return code && reserved[code] ? [reserved[code]!] : portCodeKeys(modifiers);
 }
 
 /**
@@ -708,7 +722,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -1171,6 +1185,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // the worklet; the DSP runs beside the CPU as a generated device because the
   // video half reaches it through a device finder (see the a2600 capability).
   const tiaChip = devices.find(device => device.props.type === 'TIA');
+  const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(String(device.props.type)));
   const gameboyApu = devices.find(device => device.props.type === GAMEBOY_APU_TYPE);
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
@@ -1335,6 +1350,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               clock: cpus[0].clock,
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
             }
+        : sidDevice
+          ? { kind: 'sid', clock: C64_AUDIO_RATE, deviceTag: String(sidDevice.props.tag) }
         : gameboyApu
           ? {
               kind: 'gameboy',
@@ -1955,6 +1972,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // a raw port rather than shadowing the first.
         let keys = type === 'IPT_KEYPAD'
           ? keypadKeys(named)
+          : type === 'IPT_KEYBOARD' ? computerKeyboardKeys(mods)
           : inputKeys(opts.game, type);
         if (type === 'IPT_KEYPAD') {
           if (boundKeypad && boundKeypad !== tag) keys = undefined;
@@ -1979,7 +1997,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           port: tag,
           mask,
           keys,
-          label: named ?? inputLabel(opts.game, type) ?? type,
+          label: named ?? (type === 'IPT_KEYBOARD' ? keys[0]?.replace(/^(Key|Digit)/, '') : undefined)
+            ?? inputLabel(opts.game, type) ?? type,
           activeLow,
           ...(/^IPT_PEDAL\d*$/.test(type)
             ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
@@ -2107,6 +2126,32 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (!cart) console.warn('  ! console machine has no resolvable software list — carts will be header-identified only');
   }
 
+  // Computer software shelves: one catalogue per software list the driver
+  // declares, because a computer's software arrives on several media. The
+  // dumps a shelf can offer are filed per driver family under .data/roms --
+  // the PAL and NTSC C64 share one tape collection -- so the machine's own
+  // directory is tried first and the family's is the fallback.
+  let software: SoftwareShelves | undefined;
+  if (kind === 'computer') {
+    const dumpsDir = [opts.game, family]
+      .map(name => join(romsDir(projectRoot), category, name))
+      .find(dir => existsSync(dir));
+    software = writeSoftwareShelves({
+      mameSrc: opts.mameSrc,
+      outDir: opts.outDir,
+      lists: softlistNodes.map(node => ({
+        name: String(node.props.name),
+        status: String(node.props.status),
+        ...(node.props.filter ? { filter: String(node.props.filter) } : {}),
+      })),
+      deviceTypes: devices.map(device => String(device.props.type)),
+      ...(dumpsDir ? { dumpsDir } : {}),
+      dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : family}`,
+      log: line => console.log(line),
+    });
+    if (!software) console.warn('  ! computer declares no software list this build can read — the room will accept dropped media only');
+  }
+
   // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
   // the shell after region assembly
   const romPatches = Array.isArray(game.props.romPatches)
@@ -2202,6 +2247,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ...(romPatches ? { romPatches } : {}),
     ...(romTransforms.length ? { romTransforms } : {}),
     ...(cart ? { cart } : {}),
+    ...(software ? { software } : {}),
     bindings,
     dipDefaults,
     ports: portSpecs,
@@ -2317,6 +2363,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ...(cart ? {
       cart: { list: String(cart.list), entries: cartEntries, slots: cart.slots as string[] },
     } : {}),
+    ...(software ? {
+      software: software.shelves.map(shelf => ({
+        list: shelf.list, kind: shelf.kind, entries: shelf.entries, mountable: shelf.mountable,
+      })),
+    } : {}),
   };
   const dossierMarkdown = renderDossierMarkdown(dossier);
   writeFileSync(join(opts.outDir, 'dossier.json'), JSON.stringify(dossier, null, 2));
@@ -2368,6 +2419,7 @@ function machineDossierMarkdown(d: {
   bindings: unknown[]; dipDefaults: unknown[];
   gitHistory?: Record<string, unknown>; historyText: string; historyCredit: string;
   cart?: { list: string; entries: number; slots: string[] };
+  software?: { list: string; kind: string; entries: number; mountable: boolean }[];
 }): string {
   const hex = (n: number) => '0x' + n.toString(16);
   const prettyKey = (k: string) => k.replace(/^Key|^Arrow|^Digit/, '');
@@ -2410,6 +2462,20 @@ function machineDossierMarkdown(d: {
       `cart files onto the console page to play.`);
     md.push('');
   } else {
+    if (d.software?.length) {
+      md.push('### Software');
+      md.push('');
+      md.push('The machine boots its own firmware; software arrives on the media its ' +
+        'MAME driver declares software lists for. Bring your own legally-dumped ' +
+        'images to the shelf on the machine page.');
+      md.push('');
+      md.push('| Software list | Medium | Titles | Mounts today |');
+      md.push('| --- | --- | --- | --- |');
+      for (const shelf of d.software) {
+        md.push(`| \`${shelf.list}\` | ${shelf.kind} | ${shelf.entries.toLocaleString('en-US')} | ${shelf.mountable ? 'yes' : 'display only'} |`);
+      }
+      md.push('');
+    }
     md.push('### ROM chips');
     md.push('');
     md.push('| Region | Chip | Offset | Size | CRC |');
@@ -2642,6 +2708,7 @@ export function generatedGamePath(game: string): string | undefined {
 // config (pure knowledge-graph data) and run it.
 import { runShell, type ShellConfig } from '../runtime/core/shell.ts';
 import { runConsole } from '../runtime/core/console.ts';
+import { runSoftwareRoom } from '../runtime/core/software.ts';
 import { runMenu } from '../runtime/core/menu.ts';
 import { generatedGamePath, registerGeneratedMachines } from './registry.ts';
 
@@ -2666,9 +2733,11 @@ if (game) {
   if (!dataPath) fail(new Error(\`no generated board for "\${game}"\`));
   else fetch(\`../\${dataPath}/config.json\`)
     .then(r => { if (!r.ok) throw new Error(\`no generated config for "\${game}" — run: mamekit \${game}\`); return r.json(); })
-    .then(cfg => (cfg as ShellConfig).kind === 'console' || (cfg as ShellConfig).kind === 'computer'
+    .then(cfg => (cfg as ShellConfig).kind === 'console'
       ? runConsole(cfg as ShellConfig)   // console room: cart shelf, drop zone, per-cart boot
-      : runShell(cfg as ShellConfig))
+      : (cfg as ShellConfig).kind === 'computer'
+        ? runSoftwareRoom(cfg as ShellConfig) // software room: one shelf per software list
+        : runShell(cfg as ShellConfig))
     .catch(fail);
 } else {
   runMenu().catch(fail);

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { dereferenceGeneratedValue } from '../ir/execute.ts';
+import { dereferenceGeneratedValue, executeGeneratedProgram } from '../ir/execute.ts';
 import type { GeneratedDeviceDefinition } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
@@ -471,12 +471,113 @@ assert.equal(
     emitted.methods.includes('line'),
     'a method calling a bound framework service must still compile',
   );
-  assert.match(emitted.source, /runtime\.calls\["screen\(\)\.vpos"\]/);
+  // Host calls are read from the per-runtime links table, which the module
+  // declares so the runtime can resolve it once; a runtime without one still
+  // works through the calls dictionary.
+  assert.match(emitted.source, /const __l = runtime\.links \?\? runtime\.calls;/);
+  assert.match(emitted.source, /__l\["screen\(\)\.vpos"\]/);
+  assert.deepEqual(emitted.links, ['screen', 'screen().vpos'], 'the chained service and its method both resolve through the table');
   const built = new Function(`return ${emitted.source}`)() as
     Record<string, (runtime: unknown) => unknown>;
   const runtime = { members: { m_total: 0 }, calls: { 'screen().vpos': () => 21 } };
   built.line!(runtime);
   assert.equal(runtime.members.m_total, 42);
+}
+
+// `&m_value` handed to a value method: the interpreter answers with a pointer
+// whose target is the slot's get/set pair, so the callee stores through it and
+// the member takes the value with its declared width. Declining it kept the
+// cassette transport's `update` interpreted, two thousand calls a frame.
+{
+  const scalarAddress: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['sample'],
+    members: [
+      ...definition.members,
+      { name: 'm_value', valueType: 'uint8_t', bits: 8, initial: 0 },
+      { name: 'm_image', valueType: 'cassette_image::ptr', bits: 32, initial: 0 },
+    ],
+    methods: [{
+      name: 'sample',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('m_image->get_sample(0, 1.5, &m_value);'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(scalarAddress);
+  assert.ok(emitted.methods.includes('sample'), 'a scalar address-of argument compiles');
+  assert.match(emitted.source, /generatedPointer: true, target: \(\{ generatedLValue: true/);
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown) => unknown>;
+  const stored: unknown[] = [];
+  const runtime = {
+    members: {
+      m_value: 0,
+      m_image: {
+        get_sample: (_channel: number, time: number, output: { target: { set(v: number): void } }) => {
+          stored.push(time);
+          output.target.set(0x1ff);
+          return 0;
+        },
+      },
+    },
+    calls: {},
+    dereference: (value: unknown) => value,
+  };
+  built.sample!(runtime);
+  assert.deepEqual(stored, [1.5]);
+  assert.equal(runtime.members.m_value, 0xff, 'the store lands in the member at its declared width');
+}
+
+// A tree of integer literals is a constant. The VIC-II's variant macros
+// substitute to `((4 == 4) || (4 == 5)) ? 48 : 48` and friends, and emitting
+// them as written put 464 literal comparisons in its per-cycle loop.
+{
+  const folded: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['fold'],
+    methods: [{
+      name: 'fold',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('m_total = ((4 == 4 || 4 == 5) ? 48 : 40) + (7 & 3) + (1 << 4) + !0;'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(folded);
+  assert.match(emitted.source, /members\.m_total = \(\(68\) & 0xffff\);/, emitted.source);
+  assert.doesNotMatch(emitted.source, /Number\(4\)/);
+}
+
+// A devcb line resolves like the interpreter's invoke: the board-bound call
+// first, then the device's own emitter, then the generic invoke.
+{
+  const line: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['raise'],
+    callbacks: [{ member: 'm_write_ba', signal: 'write_ba', kind: 'write_line' } as never],
+    methods: [{
+      name: 'raise',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('m_write_ba(1);'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(line);
+  assert.match(emitted.source, /__l\["m_write_ba"\] \? __l\["m_write_ba"\]\(Number\(1\)\) : typeof members\.m_write_ba === 'function' \? members\.m_write_ba\(1\) : runtime\.invoke\("m_write_ba", 1\)/);
+  assert.deepEqual(emitted.links, ['m_write_ba']);
+  // The board-bound line wins over the device's own emitter, as it does for
+  // the interpreter's invoke: a soundlatch's data-pending line is wired by
+  // the board, and the local emitter has no listeners.
+  const built = new Function(`return ${emitted.source}`)() as Record<string, (runtime: unknown) => unknown>;
+  const seen: string[] = [];
+  const runtime = {
+    members: { m_write_ba: () => { seen.push('member'); } },
+    calls: { m_write_ba: (value: number) => { seen.push(`bound:${value}`); } },
+    invoke: () => { seen.push('invoke'); },
+  };
+  built.raise!(runtime);
+  built.raise!({ ...runtime, calls: {} });
+  assert.deepEqual(seen, ['bound:1', 'member']);
 }
 
 // A chain the runtime does NOT bind still keeps its method interpreted, so the
@@ -564,4 +665,70 @@ assert.equal(
   }), 11);
 }
 
+{
+  const fixedArray = generatedDeviceMethodsSource({
+    ...definition, members: [{ name: 'm_bytes', valueType: 'uint8_t', arrayLength: 4 }],
+    hotMethods: ['access'], methods: [{
+      name: 'access', parameters: '', source: { file: 'fixture.cpp', line: 1 },
+      program: compileMameHandler('m_bytes[2] = 19; return m_bytes[2];'),
+    }],
+  });
+  assert.doesNotMatch(fixedArray.source, /runtime\.(readIndex|writeIndex|writableMember)/);
+  const built = new Function(`return ${fixedArray.source}`)();
+  assert.equal(built.access({ members: { m_bytes: new Uint8Array(4) } }), 19);
+}
+
+{
+  const nullTest = generatedDeviceMethodsSource({
+    ...definition, hotMethods: ['present'], methods: [{
+      name: 'present', parameters: 'uint8_t *memory', source: { file: 'fixture.cpp', line: 1 },
+      program: compileMameHandler('return memory != nullptr;'),
+    }],
+  });
+  assert.doesNotMatch(nullTest.source, /runtime\.same/);
+  const built = new Function(`return ${nullTest.source}`)();
+  assert.equal(built.present({ members: {} }, 0), 0);
+  assert.equal(built.present({ members: {} }, new Uint8Array(0)), 1);
+  assert.equal(built.present({ members: {} }, {
+    generatedPointer: true, source: Uint8Array.of(0), offset: 0,
+  }), 1, 'the value pointed to does not determine whether a pointer is null');
+}
+
+{
+  const dispatch = compileMameHandler('auto sampler = &sample; return (*sampler)(7);');
+  const pointers = generatedDeviceMethodsSource({
+    ...definition, hotMethods: ['dispatch', 'sample'], methods: [
+      { name: 'dispatch', parameters: '', source: { file: 'fixture.cpp', line: 1 }, program: dispatch },
+      { name: 'sample', parameters: 'int value', source: { file: 'fixture.cpp', line: 2 },
+        program: compileMameHandler('return value + 3;') },
+    ],
+  });
+  const built = new Function(`return ${pointers.source}`)();
+  assert.equal(built.dispatch({ members: {}, dereference: dereferenceGeneratedValue }), 10);
+  assert.equal(executeGeneratedProgram(dispatch, {
+    referenceCalls: { sample: value => Number(value) + 3 },
+  }).value, 10, 'the interpreter and emitted code preserve a function pointer');
+}
+
 console.log('device-codegen.spec: IR selection, dependency closure, case scoping, host services and pointer calls passed');
+
+{
+  const tables = generatedDeviceMethodsSource({
+    ...definition, hotMethods: ['fixed', 'dynamic', 'fractional'], methods: [
+      { name: 'fixed', parameters: 'int index', source: { file: 'fixture.cpp', line: 1 },
+        program: compileMameHandler('return TABLE(index, 11, 22, 33, 44);') },
+      { name: 'dynamic', parameters: 'int index, int value', source: { file: 'fixture.cpp', line: 2 },
+        program: compileMameHandler('return TABLE(index, value, 22, 33, 44);') },
+      { name: 'fractional', parameters: 'double index', source: { file: 'fixture.cpp', line: 3 },
+        program: compileMameHandler('return TABLE(index, 11, 22, 33, 44);') },
+    ],
+  });
+  const built = Function(`return ${tables.source}`)();
+  assert.equal(built.fixed({ members: {} }, -1), 44);
+  assert.equal(built.fixed({ members: {} }, 4), 11);
+  assert.equal(built.dynamic({ members: {} }, 0, 19), 19);
+  assert.equal(built.dynamic({ members: {} }, 0, 27), 27);
+  assert.equal(built.fractional({ members: {} }, 0.5), 0);
+  assert.equal(built.fractional({ members: {} }, -1), 44);
+  assert.match(tables.source, /const __mame_table_0/);
+}

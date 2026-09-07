@@ -9,6 +9,8 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
+import { noteCallLinksChanged } from '../ir/execute.ts';
+import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
   GeneratedMameVideoPrimitives,
@@ -29,6 +31,7 @@ import {
 } from './generated-handler.ts';
 import {
   HOST_SERVICE_CALLS,
+  DISCRETE_INPUT_CALLS,
   type BoardIr,
   type GeneratedStateMember,
 } from '../ir/board.ts';
@@ -339,6 +342,17 @@ class IrBoard implements Board {
    * three lines black and the picture flickering.
    */
   private readonly cpuSliceCycles = new Map<string, number>();
+  /**
+   * The latest time each image transport has observed, so its reading never
+   * rewinds. Only transports get this: a timer callback must read its own
+   * expiry (the scheduler stands there, not at the end of the lump that
+   * carried the clock past it), and a clamp shared by every device made
+   * Space Invaders' scanline interrupts re-arm a cycle late while a second
+   * CPU's sound board saw a clock frozen at the first CPU's reading. The
+   * datassette, by contrast, differences two readings to move its tape, and
+   * a lump-then-expiry pair there is a tape that runs backwards.
+   */
+  private readonly observedTransportSeconds = new Map<string, number>();
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
   /**
@@ -572,7 +586,11 @@ class IrBoard implements Board {
           tag: specification.tag,
           shares: this.shares,
           inputs,
-          ...(Object.keys(configuredMembers).length ? { members: configuredMembers } : {}),
+          members: {
+            ...configuredMembers,
+            ...Object.fromEntries(Object.entries(specification.memoryAllocations ?? {}).map(([name, allocation]) =>
+              [name, new Uint8Array(allocation.bytes).fill(allocation.fill)])),
+          },
           ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
           selectors: cartSelectors(config.cart),
           finder: (rawTag, member) => {
@@ -809,9 +827,10 @@ class IrBoard implements Board {
     const timerClockHz = timerClockCpu
       ? Math.max(1, timerClockCpu.cycleClock ?? timerClockCpu.clock)
       : 1;
+    const timedDevices = [...this.devices.values()].filter(device => device.needsTick?.() !== false);
     const tickGeneratedDevices = (seconds: number): void => {
       if (!(seconds > 0)) return;
-      for (const device of this.devices.values()) device.tick(seconds);
+      for (const device of timedDevices) device.tick(seconds);
     };
     let tickHostedProcessors = (_seconds: number): void => {};
     const advanceTimedHardware = (seconds: number): void => {
@@ -922,6 +941,31 @@ class IrBoard implements Board {
     // effect executors and prepared-call caches hold references to them, so
     // later packages (video framework calls) must extend them rather than
     // replace them, or those holders keep serving stale bindings.
+    const stateNames = new Set([
+      ...(machine.stateMembers ?? []).map(member => member.name),
+      ...(machine.devices ?? []).flatMap(device => device.member ? [device.member.replace(/\[.*$/, '')] : []),
+      ...Object.keys(regions).map(tag => `m_${tag.split(':').at(-1)}`),
+      ...Object.keys(machine.execution.regionBindings ?? {}),
+      ...Object.keys(machine.video?.regionBindings ?? {}),
+      ...(machine.execution.inputMembers ?? []).map(input => input.member),
+    ]);
+    for (const handler of machine.handlers ?? []) {
+      if (!handler.program) continue;
+      const locals = new Set((handler.parameters ?? '').split(',').map(parameter => /(?:\w+)\s*$/.exec(parameter)?.[0].trim()));
+      walkOperations(handler.program.operations, operation => {
+        if (operation.op === 'declare') locals.add(operation.name);
+      });
+      const remember = (target: import('../ir/board.ts').GeneratedExpression) => {
+        while (target.kind === 'index' || target.kind === 'member') target = target.object;
+        if (target.kind === 'identifier' && !locals.has(target.name)) stateNames.add(target.name);
+      };
+      walkOperations(handler.program.operations, operation => { if (operation.op === 'assign') remember(operation.target); });
+      walkExpressions(handler.program.operations, expression => { if (expression.kind === 'assignment') remember(expression.target); });
+    }
+    this.state = Object.fromEntries([
+      ...[...stateNames].map(name => [name, undefined]),
+      ...Object.entries(this.state),
+    ]);
     this.bindings = {
       members: this.state,
       constants: deviceConstants,
@@ -991,12 +1035,29 @@ class IrBoard implements Board {
     }
     for (const [tag, device] of this.devices) {
       const specification = machine.devices?.find(candidate => candidate.tag === tag);
+      const referent: Record<string, unknown> = {};
       for (const method of device.methodNames()) {
-        const invoke = (...args: unknown[]) =>
-          device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]);
+        const invoke = device.prepareCall?.(method) ?? ((...args: unknown[]) =>
+          device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]));
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
+        device.connectCall?.(method, call => {
+          calls[`${tag}.${method}`] = call;
+          calls[`m_${tag}.${method}`] = call;
+          if (specification?.member) calls[`${specification.member}.${method}`] = call;
+          // A handler runtime may already hold the previous target in its
+          // links table; make every prepared runtime re-resolve.
+          noteCallLinksChanged();
+        });
+        // A driver may copy a finder into a local pointer before calling it.
+        // The named call table alone cannot represent that pointer identity.
+        // The key is fixed for the life of the board; building it per call put
+        // a string concatenation and a dictionary probe on every VIC-II cycle
+        // (`m_cpu->total_cycles()`). The lookup itself stays late-bound.
+        const referentKey = `${specification?.member ?? tag}.${method}`;
+        referent[method] = (...args: unknown[]) =>
+          calls[referentKey]!(...args as number[]);
         // Tilemap callbacks are recorded by their declaring C++ class rather
         // than by the machine-config tag. When exactly one device of that
         // class is composed, preserve that source identity so its callback
@@ -1009,14 +1070,33 @@ class IrBoard implements Board {
           this.bindings.referenceCalls![`${specification.className}.${method}`] = invoke;
         }
       }
+      referent.found = () => 1;
+      referent.tag = () => tag;
+      referent.reset = () => device.reset();
+      if (specification?.member && (this.state[specification.member] === device || this.state[specification.member] == null)) {
+        this.state[specification.member] = referent;
+        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(specification.member);
+        const values = indexed && this.state[indexed[1]!];
+        if (Array.isArray(values) && values[Number(indexed![2])] === device) values[Number(indexed![2])] = referent;
+      }
     }
     // The same clock the `machine()` object answers with -- the scheduler's,
     // not the frame counter. A second binding here kept the old frame-granular
     // answer alive for anything that reaches the chain by name, which is every
     // emitted caller: the Game Boy PPU differences two readings of it to find
     // how many cycles to run, and inside one frame the difference was zero.
-    for (const device of this.devices.values()) {
-      device.bindCall('machine().time', () => generatedAttotime(this.machineSeconds()));
+    for (const [tag, device] of this.devices) {
+      // An image transport never sees its clock rewind (see
+      // observedTransportSeconds); every other device reads the scheduler.
+      const transport = device.findDevice?.('cassette') !== undefined;
+      device.bindCall('machine().time', () => {
+        let seconds = this.machineSeconds();
+        if (transport) {
+          seconds = Math.max(this.observedTransportSeconds.get(tag) ?? 0, seconds);
+          this.observedTransportSeconds.set(tag, seconds);
+        }
+        return generatedAttotime(seconds);
+      });
     }
     const sourceHandlers = generatedHandlerRegistry(machine, this.bindings);
     const registry: HandlerRegistry = {
@@ -1038,6 +1118,17 @@ class IrBoard implements Board {
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installSourceHandlerWidthAdapters(machine, registry);
     this.installInterruptVectorWriters(machine, registry);
+    for (const specification of machine.devices ?? []) {
+      for (const map of specification.addressMaps ?? []) {
+        const device = this.devices.get(specification.tag);
+        if (!device?.bindAddressSpace) {
+          throw new Error(`${specification.tag}: configured device address space is not executable`);
+        }
+        const bus = new Bus(map.ranges, new Uint8Array(), registry, this.shares, 8, regions);
+        device.bindAddressSpace(map.index, address => bus.read(address),
+          (address, data) => bus.write(address, data));
+      }
+    }
 
     if (hasDeviceType(machine, 'ATARI_MOTION_OBJECTS') && machine.video && !machine.video.ramPalette) {
       // PALETTE(...).set_format(IRGB_4444, 1024) is declared in the shared
@@ -1303,6 +1394,9 @@ class IrBoard implements Board {
       if (specification.interruptMixer !== undefined) {
         cpu.set('m_interrupt_mixer', Number(specification.interruptMixer));
       }
+      for (const configuration of machine.devices?.find(device => device.tag === specification.tag)?.configuration ?? []) {
+        if (cpu.hasMethod(configuration.method)) cpu.invoke(configuration.method, ...configuration.args);
+      }
       this.cpus.set(specification.tag, cpu);
       this.cpuCycles.set(specification.tag, 0);
       this.cpuStalls.set(specification.tag, 0);
@@ -1463,6 +1557,7 @@ class IrBoard implements Board {
           clock: device.cycleClock(),
           enabled: () => true,
           run: (cycles: number) => {
+            if (device.runCycles) return device.runCycles(cycles);
             device.set('m_icount', cycles);
             device.call('execute_run');
             return cycles - device.get('m_icount');
@@ -1486,22 +1581,43 @@ class IrBoard implements Board {
         clock: device.cycleClock(),
         enabled,
         run: (cycles: number) => {
+          if (device.runCycles) return device.runCycles(cycles);
           device.set('m_icount', cycles);
           device.call('execute_run');
           return cycles - device.get('m_icount');
         },
       }];
     });
-    // Firmware MCUs share elapsed board time with the primary CPU. Running
-    // them only after the primary CPU's whole scanline lets that CPU assert a
-    // chip-select and read the stale response before the child executes once.
-    // Accumulate each hosted processor's source clock at instruction
-    // boundaries so short handshakes (Namco 06xx/53xx is one example) retain
-    // MAME's causal ordering without any board-specific quantum.
-    const hostedCarry = new Map(hostedProcessors.map(processor => [processor.tag, 0]));
+    // Standalone bus masters expose MAME's execute_run/m_icount pair but have
+    // no firmware host. The Intel 8257 on Donkey Kong is one such processor.
+    const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
+      if (
+        specification.hostTag ||
+        machine.execution.cpus.some(cpu => cpu.tag === specification.tag)
+      ) return [];
+      const device = this.devices.get(specification.tag);
+      if (!device?.methodNames().includes('execute_run')) return [];
+      return [{
+        tag: specification.tag,
+        clock: device.cycleClock(),
+        enabled: () => true,
+        run: (cycles: number) => {
+          if (device.runCycles) return device.runCycles(cycles);
+          device.set('m_icount', cycles);
+          device.call('execute_run');
+          return cycles - device.get('m_icount');
+        },
+      }];
+    });
+    // Firmware MCUs and clocked peripherals share elapsed board time with the
+    // CPU. A whole-scanline slice leaves counter reads stale and can collapse
+    // several input transitions before the peripheral observes any of them.
+    // Deliver source clocks at instruction boundaries, as for device timers.
+    const synchronizedProcessors = [...hostedProcessors, ...autonomousProcessors];
+    const hostedCarry = new Map(synchronizedProcessors.map(processor => [processor.tag, 0]));
     tickHostedProcessors = seconds => {
       if (!(seconds > 0)) return;
-      for (const processor of hostedProcessors) {
+      for (const processor of synchronizedProcessors) {
         if (processor.enabled && !processor.enabled()) {
           hostedCarry.set(processor.tag, 0);
           continue;
@@ -1515,25 +1631,6 @@ class IrBoard implements Board {
         hostedCarry.set(processor.tag, carry - processor.run(target));
       }
     };
-    // Standalone bus masters expose MAME's execute_run/m_icount pair but have
-    // no firmware host. The Intel 8257 on Donkey Kong is one such processor.
-    const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
-      if (
-        specification.hostTag ||
-        machine.execution.cpus.some(cpu => cpu.tag === specification.tag)
-      ) return [];
-      const device = this.devices.get(specification.tag);
-      if (!device?.methodNames().includes('execute_run')) return [];
-      return [{
-        tag: specification.tag,
-        clock: device.cycleClock(),
-        run: (cycles: number) => {
-          device.set('m_icount', cycles);
-          device.call('execute_run');
-          return cycles - device.get('m_icount');
-        },
-      }];
-    });
     runAutonomousNow = () => {
       // Drivers use abort_timeslice after asserting short DMA request pulses so
       // the autonomous controller observes them before the CPU clears them.
@@ -1765,7 +1862,7 @@ class IrBoard implements Board {
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
-      })), ...autonomousProcessors],
+      }))],
       onEvent: event => {
         const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
         if (callback?.promGate && !generatedPromGateOpen(
@@ -1910,6 +2007,9 @@ class IrBoard implements Board {
       // not recreate it); the BIOS clears it through acknowledge_interrupt.
       this.cpus.get('maincpu')?.setInputLine(3, 1);
     }
+    // Construction assigned into the calls table freely; any handler runtime
+    // prepared during it re-resolves its links on the next dispatch.
+    noteCallLinksChanged();
   }
 
   private configureHostedProcessor(
@@ -1933,12 +2033,20 @@ class IrBoard implements Board {
       }
       return 0;
     });
-    device.bindCall('READOP', address => firmware[address & (firmware.length - 1)] ?? 0);
-    device.bindCall('RDMEM', address => ram[address & (ram.length - 1)]! & 0x0f);
-    device.bindCall('WRMEM', (address, value) => {
+    const readOpcode = (address: number) => firmware[address & (firmware.length - 1)] ?? 0;
+    const readData = (address: number) => ram[address & (ram.length - 1)]! & 0x0f;
+    const writeData = (address: number, value: number) => {
       ram[address & (ram.length - 1)] = value & 0x0f;
       return 0;
-    });
+    };
+    device.bindCall('READOP', readOpcode);
+    device.bindCall('RDMEM', readData);
+    device.bindCall('WRMEM', writeData);
+    // Source macros may lower to the address-space/cache APIs themselves.
+    // Both forms must see the same firmware and private RAM, rather than an
+    // unbound cache returning zero opcodes after macro expansion.
+    device.bindMember('m_cache', { read_byte: readOpcode });
+    device.bindMember('m_data', { read_byte: readData, write_byte: writeData });
     for (const [name, member] of [
       ['TEST_ST', 'm_st'],
       ['TEST_ZF', 'm_zf'],
@@ -2001,12 +2109,10 @@ class IrBoard implements Board {
           : Number(line) || 0;
       return device.call('execute_set_input', inputLine, state);
     });
-    host.bindCall('NAMCO_54XX_0_DATA', () => 0);
-    host.bindCall('NAMCO_54XX_1_DATA', () => 1);
-    host.bindCall('NAMCO_54XX_2_DATA', () => 2);
     // Normalize the adjacent MAME discrete nodes (NODE_01..NODE_04) to the
-    // compact four-channel protocol consumed by the generated audio core.
-    host.bindCall('NAMCO_52XX_P_DATA', () => 3);
+    // compact four-channel protocol consumed by the generated audio core. The
+    // names are the contract the preprocessor keeps symbolic.
+    for (const [name, input] of Object.entries(DISCRETE_INPUT_CALLS)) host.bindCall(name, () => input);
     host.bindCall('m_discrete.write', (channel, value) => {
       sinks.soundWrite(channel, value, this.soundFraction(), 'discrete');
       return 0;
@@ -2079,6 +2185,9 @@ class IrBoard implements Board {
   }
 
   reset(): void {
+    this.observedTransportSeconds.clear();
+    for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
+    this.cpuSliceCycles.clear();
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
@@ -2086,7 +2195,6 @@ class IrBoard implements Board {
       this.cpuReportedSuspended.set(tag, false);
     }
     this.videoPrimitives?.reset?.();
-    for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     this.frameRunner.reset();
     this.soundRuntime?.reset?.();
@@ -2166,6 +2274,30 @@ class IrBoard implements Board {
       }
       executeGeneratedMachineHandler(this.machine, handler, this.bindings, {});
     }
+  }
+
+  media() {
+    return [...this.devices.entries()].flatMap(([tag, device]) => {
+      const cassette = device.findDevice?.('cassette');
+      if (!cassette) return [];
+      const constant = (name: string) => {
+        const value = cassette.constant(name);
+        if (value === undefined) throw new Error(`cassette source constant ${name} is missing`);
+        return value;
+      };
+      return [{ tag, extensions: cassette.imageExtensions?.() ?? [],
+        mount: (extension: string, bytes: Uint8Array) => cassette.mountImage!(extension, bytes),
+        play: () => { cassette.call('change_state', constant('CASSETTE_PLAY'), constant('CASSETTE_MASK_UISTATE')); },
+        stop: () => { cassette.call('change_state', constant('CASSETTE_STOPPED'), constant('CASSETTE_MASK_UISTATE')); },
+        rewind: () => { cassette.call('seek', 0, constant('SEEK_SET')); },
+        position: () => Number(cassette.invoke('get_position')),
+        // MAME's own cassette_image_device accessors: the deck reads the
+        // transport back rather than remembering what it pressed.
+        length: () => Number(cassette.invoke('get_length')) || 0,
+        playing: () => Boolean(Number(cassette.invoke('is_playing'))),
+        motorOn: () => Boolean(Number(cassette.invoke('motor_on'))),
+      }];
+    });
   }
 
   snapshot(): BoardSnapshot {
@@ -4097,6 +4229,8 @@ class IrBoard implements Board {
         sinks.soundWrite(offset, data, frac, method),
       soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
+      time: () => this.machineSeconds(),
+      bindDeviceCall: (tag, name, callback) => this.devices.get(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
         const device = this.devices.get(tag);
         if (!device?.methodNames().includes(method)) return undefined;
@@ -4575,10 +4709,12 @@ export function generatedPromGateOpen(
 
 /** Minimal numeric attotime value for compiled device source methods. */
 function generatedAttotime(seconds: number): {
+  as_double(): number;
   as_ticks(frequency: number): number;
   valueOf(): number;
 } {
   return {
+    as_double: () => seconds,
     as_ticks: frequency => Math.floor(seconds * Math.max(0, frequency)),
     valueOf: () => seconds,
   };
@@ -4708,7 +4844,7 @@ export function generatedStateSetters(
       state[member.name] ??= generatedStateArray(member);
       continue;
     }
-    state[member.name] ??= 0;
+    state[member.name] ??= generatedStateWidth(member.initial ?? 0, member.bits, member.signed);
     setters[member.name] = value => {
       state[member.name] = generatedStateWidth(value, member.bits, member.signed);
     };

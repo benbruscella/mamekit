@@ -329,5 +329,71 @@ assert.equal(overloaded.call('override_me', 3), 5, 'the most-derived exact signa
 overloaded.call('write');
 assert.equal(overloaded.get('m_ready'), 1, 'scheduler synchronization invokes its generated delegate');
 
+registerGeneratedDevice({
+  type: 'BITMAP_BOX_TEST', constants: {}, callbacks: [],
+  members: [{ name: 'm_bitmap', valueType: 'bitmap_rgb32' }],
+  methods: [method('draw', '',
+    'm_bitmap.allocate(4, 3); m_bitmap.plot_box(-1, 1, 3, 4, 7); return m_bitmap;')],
+  summary: { diagnostics: 0 },
+});
+const bitmap = createDevice('BITMAP_BOX_TEST').invoke('draw') as { pixels: Uint32Array };
+assert.deepEqual([...bitmap.pixels], [0, 0, 0, 0, 7, 7, 0, 0, 7, 7, 0, 0],
+  'plot_box must clip on all edges without spilling into adjacent rows');
+
+registerGeneratedDevice({
+  type: 'REFINED_MEMBER_TEST', constants: {}, callbacks: [],
+  members: [
+    { name: 'm_channel', valueType: 'channel', fields: [{ name: 'value', bits: 16 }] },
+    { name: 'm_channel', valueType: 'channel[]', values: [{ value: 7 }, { value: 9 }] },
+  ],
+  methods: [method('read', '', 'return this->m_channel[1].value;')], summary: { diagnostics: 0 },
+});
+assert.equal(createDevice('REFINED_MEMBER_TEST').call('read'), 9,
+  'source this pointer must expose the final struct-array declaration');
+
+registerGeneratedDevice({
+  type: 'PREPARED_CALL_TEST', constants: {}, callbacks: [], members: [],
+  methods: [method('scalar', 'int value', 'return value;'), method('read', 'int value = 7', 'return value;'),
+    method('identity', 'object &value', 'return value;')],
+  compiledMethods: { scalar: (_runtime, value) => value, read: (_runtime, value) => value,
+    identity: (_runtime, value) => value },
+  summary: { diagnostics: 0 },
+});
+const preparedDevice = createDevice('PREPARED_CALL_TEST');
+const preparedRead = preparedDevice.prepareCall!('read');
+assert.equal(preparedRead(), 7, 'prepared calls retain source default arguments');
+assert.equal(preparedRead(0), 0, 'zero is an explicit argument');
+const referent = { value: 19 };
+assert.equal(preparedDevice.prepareCall!('identity')({
+  generatedLValue: true, get: () => referent, set: () => {},
+}), referent, 'prepared calls preserve reference identity');
+preparedDevice.bindCall('read', value => Number(value) + 3);
+assert.equal(preparedRead(9), 12, 'late host overrides remain visible');
+let connected: (...args: any[]) => unknown = () => undefined;
+preparedDevice.connectCall!('scalar', call => { connected = call; });
+assert.equal(connected(19), 19);
+const firstConnection = connected;
+preparedDevice.bindCall('scalar', value => Number(value) + 1);
+assert.notEqual(connected, firstConnection, 'a direct connection is republished on override');
+assert.equal(connected(19), 20);
+
+registerGeneratedDevice({
+  type: 'EXECUTION_CLOCK_TEST', constants: {}, callbacks: [],
+  members: [{ name: 'm_icount', valueType: 'int', bits: 32, signed: true },
+    { name: 'm_last_cycle', valueType: 'int', bits: 32 }],
+  methods: [method('execute_run', '',
+    'do { m_last_cycle = total_cycles(); m_icount -= 2; } while (m_icount > 0);'),
+    method('cycles', '', 'return total_cycles();')],
+  summary: { diagnostics: 0 },
+});
+const executionClock = createDevice('EXECUTION_CLOCK_TEST');
+assert.equal(executionClock.runCycles!(3), 4, 'a time slice carries instruction overshoot');
+assert.equal(executionClock.get('m_last_cycle'), 2, 'total_cycles advances inside the slice');
+assert.equal(executionClock.call('cycles'), 4);
+assert.equal(executionClock.runCycles!(2), 2);
+assert.equal(executionClock.get('m_last_cycle'), 4, 'successive slices share one cycle clock');
+executionClock.reset();
+assert.equal(executionClock.call('cycles'), 0);
+
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

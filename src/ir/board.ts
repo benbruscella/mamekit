@@ -203,9 +203,13 @@ export interface GeneratedDevice {
   memberValues?: Record<string, number>;
   /** Constructor-configured shared-pointer member -> board share bindings. */
   memoryShares?: Record<string, string>;
+  /** Host-owned storage lowered from source device allocation/configuration. */
+  memoryAllocations?: Record<string, { bytes: number; fill: number }>;
   /** Source-declared slot option table/default from the machine config. */
   slotOptions?: string;
   slotDefault?: string;
+  /** Machine-config overrides for a device's source-declared address spaces. */
+  addressMaps?: { index: number; ranges: RangeSpec[] }[];
   /** Address spaces owned by an executing device rather than a board CPU. */
   addressSpaces?: {
     semantics: GeneratedAddressSpaceSemantics;
@@ -237,7 +241,27 @@ export interface GeneratedHandler {
  * declined by codegen and runs interpreted: the TMS9928A's `update_line` calls
  * `screen().vpos()` on its first line, which took the ColecoVision to 17 fps.
  */
+/**
+ * MAME discrete-sound node macros the host binds BY NAME to its compact
+ * four-channel audio protocol (NODE_01..NODE_04 -> inputs 0..3). Shared by
+ * both sides of the compiler boundary on purpose: the runtime binds these
+ * names, and the preprocessor must never expand them -- an expanded
+ * `NAMCO_52XX_P_DATA(base)` is just `base`, a raw node identity the protocol
+ * does not route, and Pole Position's sample player wrote into silence.
+ */
+export const DISCRETE_INPUT_CALLS: Readonly<Record<string, number>> = {
+  NAMCO_54XX_0_DATA: 0,
+  NAMCO_54XX_1_DATA: 1,
+  NAMCO_54XX_2_DATA: 2,
+  NAMCO_52XX_P_DATA: 3,
+};
+
 export const HOST_SERVICE_CALLS: readonly string[] = [
+  'machine().sample_rate',
+  // The scheduler's clock, bound on every device; a chip that measures time
+  // by differencing two readings -- the cassette transport advancing its
+  // tape -- reaches it by this name, emitted and interpreted alike.
+  'machine().time',
   'screen().vpos',
   'screen().hpos',
   'screen().width',
@@ -294,7 +318,7 @@ export type GeneratedExpression =
       pointer?: boolean;
       operand: GeneratedExpression;
     }
-  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression }
+  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression; precision?: 64 }
   | {
       kind: 'assignment';
       target: GeneratedExpression;
@@ -1095,6 +1119,8 @@ export interface GeneratedAudioRoute {
  */
 export interface GeneratedStateMember {
   name: string;
+  /** Constant scalar initializer from the source constructor/declaration. */
+  initial?: number;
   /** 1 for `bool`; otherwise the declared integer width. */
   bits: 1 | 8 | 16 | 32;
   signed?: boolean;
@@ -1146,6 +1172,12 @@ export interface BoardIr {
    * interpreter, which remains the semantic reference for all of them.
    */
   compiledHandlers?: Record<string, GeneratedCompiledHandler>;
+  /**
+   * Every host call name the compiled handlers reach. The runtime resolves
+   * them once into `GeneratedHandlerRuntime.links`, a small fast-mode table,
+   * instead of probing the ~1,800-entry calls dictionary on every access.
+   */
+  compiledHandlerLinks?: string[];
 }
 
 /**
@@ -1156,6 +1188,12 @@ export interface BoardIr {
 export interface GeneratedHandlerRuntime {
   readonly members: Record<string, unknown>;
   readonly calls: Record<string, (...args: any[]) => unknown>;
+  /**
+   * The subset of `calls` the emitted code names, resolved once. Emitted
+   * methods read `runtime.links ?? runtime.calls`, so a runtime without it
+   * still works, just through the dictionary.
+   */
+  links?: Record<string, ((...args: any[]) => unknown) | undefined>;
   readonly palette: number[];
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;

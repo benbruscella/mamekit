@@ -4,6 +4,7 @@ import {
   matchesMenuEntry,
   menuShelfMaxWidth,
   menuTabs,
+  menuTitle,
   runMenu,
 } from './menu.ts';
 
@@ -13,6 +14,9 @@ const pacman = {
   manufacturer: 'Namco',
   year: '1980',
 };
+assert.equal(menuTitle({ fullname: 'Commodore 64 (PAL)', kind: 'computer' }), 'Commodore 64 (PAL)');
+assert.equal(menuTitle({ fullname: 'Commodore 64 (NTSC)', kind: 'computer' }), 'Commodore 64 (NTSC)');
+assert.equal(menuTitle({ fullname: 'Pac-Man (Midway)' }), 'Pac-Man');
 assert.equal(matchesMenuEntry(pacman, 'arcade', ''), true);
 assert.equal(matchesMenuEntry(pacman, 'arcade', 'NAMCO'), true);
 assert.equal(matchesMenuEntry(pacman, 'arcade', '1980'), true);

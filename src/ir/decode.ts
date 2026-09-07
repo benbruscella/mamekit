@@ -150,6 +150,7 @@ function decodeStateMembers(reader: Reader, value: unknown): void {
       reader.fail(`${path}.bits`, `declares ${bits}, which is not a C integer width`);
     }
     reader.optionalNumber(member.arrayLength, `${path}.arrayLength`);
+    reader.optionalNumber(member.initial, `${path}.initial`);
   }
 }
 
@@ -535,6 +536,29 @@ function decodeDevices(reader: Reader, value: unknown): void {
     reader.optionalString(device.hostTag, `${path}.hostTag`, source);
     reader.optionalString(device.member, `${path}.member`, source);
     reader.optionalNumber(device.clock, `${path}.clock`, source);
+    if (device.memoryAllocations !== undefined) {
+      const allocations = reader.object(device.memoryAllocations, `${path}.memoryAllocations`, source);
+      for (const [member, raw] of Object.entries(allocations)) {
+        const allocationPath = `${path}.memoryAllocations.${member}`;
+        const allocation = reader.object(raw, allocationPath, source);
+        const bytes = reader.number(allocation.bytes, `${allocationPath}.bytes`, source);
+        const fill = reader.number(allocation.fill, `${allocationPath}.fill`, source);
+        if (!Number.isSafeInteger(bytes) || bytes <= 0) {
+          reader.fail(`${allocationPath}.bytes`, 'expected a positive safe integer', source);
+        }
+        if (!Number.isInteger(fill) || fill < 0 || fill > 255) {
+          reader.fail(`${allocationPath}.fill`, 'expected a byte from 0 to 255', source);
+        }
+      }
+    }
+    if (device.addressMaps !== undefined) {
+      for (const [position, raw] of reader.array(device.addressMaps, `${path}.addressMaps`, source).entries()) {
+        const mapPath = `${path}.addressMaps[${position}]`;
+        const map = reader.object(raw, mapPath, source);
+        reader.number(map.index, `${mapPath}.index`, source);
+        decodeRanges(reader, map.ranges, `${mapPath}.ranges`, source);
+      }
+    }
     if (device.addressSpaces !== undefined) {
       for (const [position, raw] of reader.array(
         device.addressSpaces, `${path}.addressSpaces`, source).entries()) {

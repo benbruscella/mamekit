@@ -6,7 +6,7 @@ import {
   type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
-import { collectMemberAliasMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
+import { collectBitAliasMacros, collectMemberAliasMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -15,6 +15,7 @@ import { deviceConfiguredScreen } from '../mame/screen-config.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import {
   integerBits,
+  constructorInitialValues,
   integerSigned,
   memberDeclarations,
 } from '../mame/device-compiler.ts';
@@ -172,9 +173,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   // nothing, and the handler that reads them could not be compiled either.
   const consts = parseEnumConstants(combined, parseDefines(combined, extConsts));
   const textMacros = parseTextMacros(combined);
+  textMacros.strings = Object.assign({}, ...externalSources.map(source => parseTextMacros(source).strings), textMacros.strings);
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
   emitSourceTimerCallbacks(g, ast, consts, definedIn);
-  const memberTags = parseMemberTags(combined);
+  const memberTags = { ...textMacros.strings, ...parseMemberTags(combined, textMacros.strings) };
   const stateClassConstants = parseStateClassConstants(combined);
   const deviceTypes = parseDeviceTypeDecls(combined);
 
@@ -237,7 +239,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   }
 
   // --- rom sets ---
-  for (const set of parseRomSets(combined, consts)) {
+  for (const set of parseRomSets(combined, consts, textMacros.strings)) {
     const setId = `romset:${set.name}`;
     const setSource = ast.findMacro('ROM_START', 0, set.name)?.span;
     g.node('RomSet', setId, { name: set.name, ...spanProps(setSource) });
@@ -357,7 +359,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
 
   // --- machine configs ---
   const gfxDecodes = parseGfxDecodes(combined, consts);
-  const machineConfigs = parseMachineConfigs(combined, memberTags, consts);
+  const configHelpers = externalSources.flatMap((source, index) =>
+    /static\s+void\s+\w+\s*\(\s*machine_config/.test(source)
+      ? parseMameAst([{ file: `external-config-${index}.h`, source }]).units.flatMap(unit =>
+          unit.functions.filter(fn => /^machine_config\s*&/.test(fn.parameters)))
+      : []);
+  const machineConfigs = parseMachineConfigs(combined, memberTags, consts, configHelpers);
   const cfgByName = new Map(machineConfigs.map(c => [c.name, c]));
   const resolveConfig = (cfg: (typeof machineConfigs)[number], callee: string) => {
     const qualified = /^(\w+)::(\w+)$/.exec(callee);
@@ -724,8 +731,16 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       // config called device_add_mconfig, and different classes reuse tags
       // (m52/m62 audio boards both have an "iremsound" cpu)
       const devId = `device:${cfg.cls}.${cfg.name}/${dev.tag}`;
+      const owners = sourceClassHierarchy(ast, cfg.cls);
+      const finders = [...new Set(ast.ast.units.flatMap(unit => unit.classes)
+        .filter(declaration => owners.includes(declaration.name))
+        .flatMap(declaration => memberDeclarations(declaration))
+        .filter(member => /^(?:required|optional)_device\s*</.test(member.valueType)
+          && memberTags[member.name] === dev.tag)
+        .map(member => member.name))];
       const props: Record<string, PropValue> = {
         type: dev.type, tag: dev.tag, clock: dev.clock, config: dev.config,
+        ...(finders.length === 1 ? { member: finders[0]! } : {}),
         // The C++ classes DEFINE_DEVICE_TYPE gave this device type, most
         // derived first. Composition needs them to tell whose compiled
         // handlers a `m_member->method()` call belongs to when the device has
@@ -1444,12 +1459,12 @@ export function attotimeSeconds(
 function driverStateMembers(
   ast: MameAstIndex,
   className: string,
-): { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number }[] {
+): { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; initial?: number }[] {
   const classes = new Map(
     ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
   );
   const members: {
-    name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number;
+    name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; initial?: number;
   }[] = [];
   // A member the driver uses to carry an input line. MAME's own
   // `INPUT_LINE_NMI` is 64 and sits in a `uint8_t` happily -- Double Dragon
@@ -1470,6 +1485,9 @@ function driverStateMembers(
   for (const name of sourceClassHierarchy(ast, className).reverse()) {
     const declaration = classes.get(name);
     if (!declaration) continue;
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const initial = constructorInitialValues(name, declaration.body.replace(
+      new RegExp(`\\b${escapedName}\\s*\\(`, 'g'), `${name}::${name}(`));
     for (const member of memberDeclarations(declaration)) {
       // A multi-dimensional member is left alone: its rows are objects, and
       // the width belongs to the innermost one.
@@ -1485,6 +1503,8 @@ function driverStateMembers(
         bits,
         ...(integerSigned(member.valueType) ? { signed: true } : {}),
         ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+        ...(!member.arrayLength && initial[member.name] !== undefined
+          ? { initial: initial[member.name] } : {}),
       };
       const existing = members.findIndex(candidate => candidate.name === member.name);
       if (existing >= 0) members[existing] = entry;
@@ -1686,7 +1706,7 @@ function emitCallbacks(
       if (target) g.edge(callbackId, target.id, 'TARGETS_DEVICE');
     } else {
       const targetArg = operation.args.find(arg =>
-        /^m_\w+(?:\[\d+\])?$/.test(arg.trim()));
+        memberTags[arg.trim()] !== undefined);
       const targetTag = targetArg ? memberTags[targetArg.trim()] : undefined;
       if (targetTag) {
         props.targetTag = targetTag;
@@ -1719,7 +1739,7 @@ function handlerProps(
     // The name stands for nothing but the subscript, so it has to become the
     // subscript before lowering -- unexpanded, the Game Boy's joypad register
     // was never written and every button read as held down.
-    body = expandMemberAliasMacros(body, collectMemberAliasMacros(source));
+    body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
     for (const table of source.matchAll(
       /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g,
     )) {

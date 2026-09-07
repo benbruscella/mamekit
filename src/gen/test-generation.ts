@@ -3,7 +3,7 @@ import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { auditGenerated } from './audit-generated.ts';
+import { requiresPlayableGeneration, auditGenerated } from './audit-generated.ts';
 import { REQUIRED_TARGETS } from './targets.ts';
 import { gamesManifest } from '../serve.ts';
 import { artworkDir } from '../paths.ts';
@@ -46,10 +46,18 @@ const games = JSON.parse(
 ) as {
   game: string;
   supported: boolean;
+  preview?: boolean;
   generationGaps: string[];
 }[];
+assert.deepEqual(games.map(game => game.game).sort(), [...REQUIRED_TARGETS].sort(),
+  'the generated catalogue must retain every target, including experimental computers');
+for (const game of games) {
+  if (!requiresPlayableGeneration(game.game, true)) {
+    assert.equal(game.preview, true, `${game.game}: a candidate must be labelled experimental`);
+  }
+}
 const blocked = games
-  .filter(game => !game.supported)
+  .filter(game => !game.supported && requiresPlayableGeneration(game.game, true))
   .map(game => `${game.game}: ${game.generationGaps.join(', ')}`)
   .sort();
 assert.deepEqual(

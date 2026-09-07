@@ -159,7 +159,25 @@ export interface BoardSnapshot {
 }
 
 /** A composed machine: CPUs + devices + video, stepped one frame at a time. */
+export interface CassetteMedia {
+  tag: string;
+  extensions: string[];
+  mount(extension: string, bytes: Uint8Array): void;
+  play(): void;
+  stop(): void;
+  rewind(): void;
+  /** tape position in seconds */
+  position(): number;
+  /** mounted image length in seconds, 0 with nothing mounted */
+  length(): number;
+  /** the transport is in PLAY; the computer's motor line decides whether tape moves */
+  playing(): boolean;
+  /** the computer is driving the motor */
+  motorOn(): boolean;
+}
+
 export interface Board {
+  media?(): CassetteMedia[];
   readonly fbWidth: number;
   readonly fbHeight: number;
   frame(fb: Uint32Array): void;

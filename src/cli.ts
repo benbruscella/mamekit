@@ -433,7 +433,7 @@ if (generateAll) {
     console.log(`\nmamekit: distribution generated at ${outRoot}`);
   }
 } else if (buildAppOnly || buildRuntimeOnly) {
-  const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
+  const { REQUIRED_TARGETS, PUBLISHED_TARGETS } = await import('./gen/targets.ts');
   const targets = opts.targets
     ? opts.targets.split(',').map(target => target.trim()).filter(Boolean)
     : [...REQUIRED_TARGETS];
@@ -447,13 +447,14 @@ if (generateAll) {
   await emitClosureFromGraphs(targets);
   if (!buildAppOnly) process.exit(0);
   const { buildApp } = await import('./gen/generate.ts');
-  if (!await buildApp(outRoot, targets)) {
+  const publishedTargets = targets.filter(target => PUBLISHED_TARGETS.includes(target));
+  if (!await buildApp(outRoot, publishedTargets)) {
     process.exitCode = 1;
   } else {
     const { writeBuildManifest } = await import('./gen/build-manifest.ts');
     // gamesManifest validates the catalog against this manifest, so make the
     // updated closure self-describing before asking it to build games.json.
-    writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()));
+    writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()), publishedTargets);
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(outRoot, 'games.json'),
       await gamesManifest(outRoot, artworkDir(projectRoot)));
@@ -608,9 +609,6 @@ async function initializeGame(game: string): Promise<void> {
   const outputDir = existingGameOutputDir(outRoot, game);
   if (!outputDir) throw new Error(`${game}: generator did not create an output directory`);
   const graph = JSON.parse(readFileSync(join(outputDir, 'graph.json'), 'utf8'));
-  const config = JSON.parse(readFileSync(join(outputDir, 'config.json'), 'utf8'));
-  const { deriveCandidateContract, writeCandidateScaffold } = await import('./games/onboarding.ts');
-  const written = writeCandidateScaffold(projectRoot, deriveCandidateContract(graph, config));
   const { readCapabilityGapReports, writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
   writeCapabilityGapReport(
     outputDir,
@@ -618,6 +616,17 @@ async function initializeGame(game: string): Promise<void> {
     readCapabilityGapReports(join(projectRoot, '.cache/dev')),
     generationFailure ? [String((generationFailure as Error).message)] : [],
   );
+  // Early compiler failures (such as an unsupported CPU) have no shell config
+  // to scaffold from. Preserve their diagnostic and dossier instead of hiding
+  // the cause behind a missing-config filesystem error.
+  const configPath = join(outputDir, 'config.json');
+  if (!existsSync(configPath)) {
+    console.error(`mamekit: generation blocked; capability dossier written to ${join(outputDir, 'CAPABILITY_GAP.md')}`);
+    throw generationFailure ?? new Error(`${game}: generator did not create config.json`);
+  }
+  const config = JSON.parse(readFileSync(configPath, 'utf8'));
+  const { deriveCandidateContract, writeCandidateScaffold } = await import('./games/onboarding.ts');
+  const written = writeCandidateScaffold(projectRoot, deriveCandidateContract(graph, config));
   console.log(`\nmamekit: candidate registered at ${written.modulePath}`);
   console.log(`mamekit: edit ${written.specPath} after play-testing the input scenario`);
   if (generationFailure) {
@@ -639,7 +648,7 @@ async function developGame(game: string): Promise<void> {
   if (!outputDir) throw new Error(`${game}: generator did not create an output directory`);
   const graph = JSON.parse(readFileSync(join(outputDir, 'graph.json'), 'utf8'));
   const { readCapabilityGapReports, writeCapabilityGapReport } = await import('./gen/capability-gap.ts');
-  const report = writeCapabilityGapReport(
+  writeCapabilityGapReport(
     outputDir,
     graph,
     readCapabilityGapReports(join(projectRoot, '.cache/dev')),
@@ -650,7 +659,12 @@ async function developGame(game: string): Promise<void> {
     throw generationFailure;
   }
   await finishIsolatedBuild(game);
-  console.log(`mamekit: ${report.generationGaps.length} capability gaps; see ${join(outputDir, 'CAPABILITY_GAP.md')}`);
+  // Hardware extraction refreshes the runtime report during the isolated
+  // build. Reflect that result rather than the initial discovery-only gaps.
+  const finalReport = writeCapabilityGapReport(
+    outputDir, graph, readCapabilityGapReports(join(projectRoot, '.cache/dev')),
+  );
+  console.log(`mamekit: ${finalReport.generationGaps.length} capability gaps; see ${join(outputDir, 'CAPABILITY_GAP.md')}`);
 }
 
 async function finishIsolatedBuild(game: string): Promise<void> {

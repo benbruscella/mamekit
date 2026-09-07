@@ -4,6 +4,7 @@
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
+import { CANDIDATE_TARGETS } from './gen/targets.ts';
 import { buildClosureFailures, readBuildManifest } from './gen/build-manifest.ts';
 import { ROM_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
 import {
@@ -49,7 +50,8 @@ const MIME: Record<string, string> = {
  * all -- the former is `supported` and `silent`. */
 export async function gamesManifest(outRoot: string, artDir: string): Promise<string> {
   const games: unknown[] = [];
-  const published = new Set(readBuildManifest(outRoot)?.publishedTargets ?? []);
+  const manifest = readBuildManifest(outRoot);
+  const published = new Set(manifest?.publishedTargets ?? []);
   // Fail CLOSED on a mixed build too. Scanning dist for game directories will
   // happily find a target left over from an earlier --targets run, whose board
   // is registered against a hardware closure that was never built for it.
@@ -129,6 +131,8 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         // unplayable in the room over a chip nothing reads back.
         meta.supported = hardware !== null && boardCompiled &&
           (report?.playable === true || report?.playableWithoutSound === true);
+        meta.preview = hardware !== null && boardCompiled &&
+          (CANDIDATE_TARGETS.includes(entry) || (manifest?.development === true && !meta.supported));
         meta.silent = report?.playable !== true && report?.playableWithoutSound === true;
         if (report?.silentGaps?.length) meta.silentGaps = report.silentGaps;
         meta.generationGaps = generationGaps;

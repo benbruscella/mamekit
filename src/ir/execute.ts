@@ -10,6 +10,7 @@
 import type {
   BoardIr,
   GeneratedCallback,
+  GeneratedCompiledHandler,
   GeneratedHandlerRuntime,
   GeneratedExpression,
   GeneratedHandler,
@@ -119,6 +120,8 @@ interface ExecutionResult {
 }
 
 interface PreparedMachineCalls {
+  /** the host call names the compiled handlers reach (BoardIr.compiledHandlerLinks) */
+  linkKeys: readonly string[];
   referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']>;
   callParameters: NonNullable<GeneratedHandlerBindings['callParameters']>;
   concreteDeviceMembers: ReadonlySet<string>;
@@ -343,18 +346,85 @@ export function generatedPeriodicLines(
 }
 
 
+/**
+ * Resolve the call names emitted code uses into one fast-mode table.
+ *
+ * The bindings' `calls` dictionary is large enough that V8 keeps it in
+ * dictionary mode, so each constant-key read is a hash probe; the C64's memory
+ * path made a dozen per bus access and spent a third of its frame on them. A
+ * table holding only the names a module reaches is a small fast object, and a
+ * constant-key read of it is an inline-cached load.
+ */
+export function buildCallLinks(
+  calls: Record<string, unknown> | undefined,
+  keys: readonly string[],
+): Record<string, ((...args: any[]) => unknown) | undefined> {
+  // Built in one step on purpose: adding this many named properties to an
+  // object one keyed store at a time trips V8's fast-properties soft limit
+  // and hands back a dictionary-mode object -- exactly the thing the table
+  // exists to avoid. Object.fromEntries keeps it a fast-mode object.
+  return Object.fromEntries(keys.map(key =>
+    [key, calls?.[key] as ((...args: any[]) => unknown) | undefined]));
+}
+
+/**
+ * Bumped whenever a host binding changes after construction (bindCall, a
+ * device's connectCall refresh), so every prepared handler runtime rebuilds
+ * its links table on its next dispatch instead of calling a stale target.
+ */
+export let callLinksGeneration = 0;
+export function noteCallLinksChanged(): void {
+  callLinksGeneration++;
+}
+
+/** The handler runtime with its links table current for this dispatch. */
+function currentHandlerRuntime(
+  prepared: PreparedMachineCalls,
+  bindings: GeneratedHandlerBindings,
+): GeneratedHandlerRuntime & { linksGeneration?: number } {
+  const runtime = preparedHandlerRuntime(prepared, bindings) as GeneratedHandlerRuntime & { linksGeneration?: number };
+  if (runtime.linksGeneration !== callLinksGeneration) {
+    // A board whose module declares no link list (one emitted before the
+    // table existed, or a harness attaching handlers by hand) keeps reading
+    // the calls dictionary: an empty table would make every call look unbound.
+    runtime.links = prepared.linkKeys.length ? buildCallLinks(runtime.calls, prepared.linkKeys) : undefined;
+    runtime.linksGeneration = callLinksGeneration;
+  }
+  return runtime;
+}
+
+/** One handler's compiled dispatch, resolved once rather than per bus access. */
+interface HandlerDispatch {
+  machine: BoardIr;
+  compiled: GeneratedCompiledHandler | undefined;
+  names: string[];
+}
+const HANDLER_DISPATCH = new WeakMap<GeneratedHandler, HandlerDispatch>();
+
+function handlerDispatch(machine: BoardIr, handler: GeneratedHandler): HandlerDispatch {
+  const cached = HANDLER_DISPATCH.get(handler);
+  if (cached && cached.machine === machine &&
+      cached.compiled === machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`]) return cached;
+  const created: HandlerDispatch = {
+    machine,
+    compiled: machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`],
+    names: parameterNames(handler.parameters),
+  };
+  HANDLER_DISPATCH.set(handler, created);
+  return created;
+}
+
 export function executeGeneratedMachineProgram(
   machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown>,
 ): { returned: boolean; value?: unknown } {
-  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  const { compiled, names } = handlerDispatch(machine, handler);
   if (compiled) {
     const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
-    const names = parameterNames(handler.parameters);
     const value = compiled(
-      preparedHandlerRuntime(prepared, bindings),
+      currentHandlerRuntime(prepared, bindings),
       // An interpreted caller passes every C++ reference parameter as an
       // l-value standing in for its storage. Emitted code reads those by value
       // — a renderer mutates what `bitmap_ind16 &bitmap` points at without ever
@@ -475,7 +545,15 @@ function preparedHandlerRuntime(
     member: name => {
       const getter = bindings.getters?.[name];
       if (getter) return getter();
-      if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      // Presence is a value, not a key: the board pre-declares every state
+      // name as `undefined` so V8 keeps the state object in fast mode, and an
+      // own-key test then answered "present, undefined" for a device finder or
+      // a reference that has to resolve further down. Double Dragon's ADPCM,
+      // Kung-Fu Master's MSM5205s and Q*bert's whole sound board went silent
+      // on exactly that.
+      const value = bindings.members?.[name];
+      if (value !== undefined) return value;
+      if (bindings.referenceCalls?.[name]) return bindings.referenceCalls[name];
       // The device set lives on the prepared table, not on the bindings this
       // runtime closes over: an interpreted handler gets it grafted on per
       // call (see preparedHandlerBindings), so reading it off `bindings` here
@@ -571,6 +649,17 @@ function preparedMachineCalls(
     const names = parameterNames(target.parameters);
     MACHINE_CALL_STACK.push(key);
     try {
+      const executable = machine.compiledHandlers?.[key];
+      if (executable) {
+        // Cross-component bus calls already arrive in parameter order. Keep
+        // that ABI instead of allocating a locals dictionary only to unpack
+        // it again in executeGeneratedMachineProgram on every memory access.
+        const runtime = currentHandlerRuntime(
+          preparedMachineCalls(machine, bindings, target.ownerClass), bindings,
+        );
+        return executable(runtime, ...names.map((_, index) =>
+          generatedReferent(values[index] ?? 0))) ?? 0;
+      }
       return executeGeneratedMachineProgram(
         machine,
         target,
@@ -635,6 +724,7 @@ function preparedMachineCalls(
     seededConstants: bindings.constants,
     seededCalls: bindings.calls,
     handlerBindings: new WeakMap<GeneratedHandler, GeneratedHandlerBindings>(),
+    linkKeys: machine.compiledHandlerLinks ?? [],
   } as PreparedMachineCalls;
   byOwner.set(ownerClass, prepared);
   return prepared;
@@ -661,6 +751,28 @@ export function prepareGeneratedMachineHandler(
 ): (args: Record<string, unknown>) => number | undefined {
   let dispatch: ((args: Record<string, unknown>) => number | undefined) | undefined;
   return args => (dispatch ??= buildGeneratedMachineDispatch(machine, handler, bindings))(args);
+}
+
+/** Positional ABI for a host that already supplies the source signature.
+ * Bind lazily because board construction installs services after bus handlers.
+ */
+export function prepareGeneratedMachineCall(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): (...args: unknown[]) => unknown {
+  let call: ((...args: unknown[]) => unknown) | undefined;
+  return (...args) => {
+    if (!call) {
+      const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+      if (compiled) call = compiled.bind(undefined,
+        preparedHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings));
+      else {
+        const names = parameterNames(handler.parameters);
+        const dispatch = buildGeneratedMachineDispatch(machine, handler, bindings);
+        call = (...values) => dispatch(Object.fromEntries(names.map((name, index) => [name, values[index]])));
+      }
+    }
+    return call(...args);
+  };
 }
 
 function buildGeneratedMachineDispatch(
@@ -1042,7 +1154,10 @@ function compileFastExpression(
     return () => {
       const getter = bindings.getters?.[name];
       if (getter) return getter();
-      if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      // A value, not an own key: see preparedHandlerRuntime's member lookup.
+      const value = bindings.members?.[name];
+      if (value !== undefined) return value;
+      if (bindings.referenceCalls?.[name]) return bindings.referenceCalls[name];
       return bindings.concreteDeviceMembers?.has(name)
         ? { reference: name, resolved: true }
         : reference(name);
@@ -1067,6 +1182,7 @@ function compileFastExpression(
     const left = compileFastExpression(expression.left, bindings, locals);
     const right = compileFastExpression(expression.right, bindings, locals);
     const operator = expression.operator;
+    if (expression.precision === 64) return context => wideBinary(operator, left(context), right(context));
     if (operator === '&&') {
       return context => truthy(left(context)) && truthy(right(context)) ? 1 : 0;
     }
@@ -1300,7 +1416,7 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
   if (declared === 'uint32_t' || declared === 'u32' || declared === 'offs_t') {
     return value => toNumber(value) >>> 0;
   }
-  if (declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
+  if (declared === 'int' || declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
   if (declared === 'uint64_t' || declared === 'u64' ||
       declared === 'int64_t' || declared === 's64') {
     return value => Math.trunc(toNumber(value));
@@ -1422,8 +1538,10 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     }
     const getter = context.bindings.getters?.[expression.name];
     if (getter) return getter();
-    if (Object.hasOwn(context.bindings.members ?? {}, expression.name)) {
-      return context.bindings.members![expression.name];
+    {
+      // A value, not an own key: see preparedHandlerRuntime's member lookup.
+      const value = context.bindings.members?.[expression.name];
+      if (value !== undefined) return value;
     }
     if (expression.name === 'ACCESSING_BITS_0_7') {
       return toNumber(context.locals.mem_mask) & 0x00ff ? 1 : 0;
@@ -1442,6 +1560,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       DEFAULT_CONSTANTS[expression.name] ??
       DEFAULT_CONSTANTS[constantName];
     if (constant !== undefined) return constant;
+    if (context.bindings.referenceCalls?.[expression.name]) return context.bindings.referenceCalls[expression.name];
     return context.bindings.concreteDeviceMembers?.has(expression.name)
       ? { reference: expression.name, resolved: true }
       : reference(expression.name);
@@ -1478,6 +1597,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       return truthy(leftValue) || truthy(evaluate(expression.right, context)) ? 1 : 0;
     }
     const rightValue = evaluate(expression.right, context);
+    if (expression.precision === 64) return wideBinary(expression.operator, leftValue, rightValue);
     if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
       return offsetPointer(leftValue, toNumber(rightValue));
     }
@@ -1611,6 +1731,24 @@ export function isFloatingExpression(expression: GeneratedExpression): boolean {
  * for a name it does not know, so callers keep their own fallbacks.
  */
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
+  if (name === 'get_u24le') {
+    const bytes = args[0] as ArrayLike<number>;
+    return (bytes[0]! | bytes[1]! << 8 | bytes[2]! << 16) >>> 0;
+  }
+  if (name === 'strcmp') {
+    const string = (value: unknown): string => {
+      if (typeof value === 'string') return value.split('\0')[0]!;
+      if (Array.isArray(value) || ArrayBuffer.isView(value)) {
+        const bytes = Array.from(value as ArrayLike<number>);
+        const end = bytes.indexOf(0);
+        return String.fromCharCode(...bytes.slice(0, end < 0 ? undefined : end));
+      }
+      throw new Error('strcmp requires a string or byte array');
+    };
+    const left = string(args[0]);
+    const right = string(args[1]);
+    return left === right ? 0 : left < right ? -1 : 1;
+  }
   // What `stripTracingCalls` leaves where a MAME `LOG(...)` stood. It is a
   // placeholder, not hardware, and it is answered first because a renderer
   // carries dozens of them through its hottest loop.
@@ -1891,7 +2029,7 @@ function applyIdentifierCall(
   if (['u16', 'uint16_t'].includes(name)) return toNumber(args[0]) & 0xffff;
   if (['s16', 'int16_t'].includes(name)) return (toNumber(args[0]) << 16) >> 16;
   if (['u32', 'uint32_t'].includes(name)) return toNumber(args[0]) >>> 0;
-  if (['s32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
+  if (['int', 's32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
   if (['u64', 'uint64_t', 's64', 'int64_t'].includes(name)) {
     return Math.trunc(toNumber(args[0]));
   }
@@ -2065,7 +2203,8 @@ function evaluateCall(
       }
     }
   }
-  if (expression.callee.kind === 'index') {
+  if (expression.callee.kind === 'index' ||
+      (expression.callee.kind === 'unary' && expression.callee.operator === '*')) {
     const callable = evaluate(expression.callee, context);
     const args = expression.args.map(arg => evaluate(arg, context));
     if (typeof callable === 'function') return callable(...args.map(callArgument));
@@ -2491,6 +2630,11 @@ function indexValue(object: unknown, index: number): unknown {
 }
 
 function addressOf(expression: GeneratedExpression, context: ExecutionContext): unknown {
+  if (expression.kind === 'identifier' && !Object.hasOwn(context.locals, expression.name) &&
+      context.bindings.members?.[expression.name] === undefined &&
+      context.bindings.referenceCalls?.[expression.name]) {
+    return context.bindings.referenceCalls[expression.name];
+  }
   if (expression.kind === 'index') {
     const source = evaluate(expression.object, context);
     const offset = toNumber(evaluate(expression.index, context));
@@ -2799,8 +2943,7 @@ export function generatedAdd(left: unknown, right: unknown): unknown {
 
 export function generatedPointerStore(pointer: unknown, value: unknown): unknown {
   if (isGeneratedPointer(pointer)) {
-    const source = pointer.source as Record<number, unknown> | undefined;
-    if (source) source[pointer.offset] = value;
+    setPointerValue(pointer, 0, value);
     return value;
   }
   if (isIndexableMemory(pointer)) {

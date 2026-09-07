@@ -16,7 +16,34 @@ import {
   compileMameV30,
   compileMameZ8002,
   compileMameZ80,
+  stripInactivePreprocessorBranches,
 } from './cpu-compiler.ts';
+
+const conditionalFixture = `
+#if defined(DIRECT_FIXPOINT)
+wrong_fixed();
+#elif defined(SID_FPUENVE)
+wrong_float();
+#else
+#if 0
+wrong_nested();
+#else
+selected();
+#endif
+#endif
+after();`;
+assert.deepEqual(stripInactivePreprocessorBranches(conditionalFixture).trim().split(/\s*\n\s*/).filter(Boolean),
+  ['selected();', 'after();']);
+for (const [expression, expected] of [
+  ['defined(DIRECT_FIXPOINT) && !defined(SID_FPUENVE)', 'no'],
+  ['!!1 && 0', 'no'], ['0 && 0 && 1 || 1', 'yes'],
+  ['(1 || 0) && 0', 'no'], ['!defined(A) && (0 || !defined(B))', 'yes'],
+]) {
+  assert.equal(stripInactivePreprocessorBranches(`#if ${expression}\nyes\n#else\nno\n#endif`).trim(), expected);
+}
+const unknownAlternative = '#if 0\na();\n#elif CONFIG_VALUE > 2\nb();\n#endif';
+assert.equal(stripInactivePreprocessorBranches(unknownAlternative), unknownAlternative,
+  'an unresolved alternative must survive for diagnostics');
 import { generatedCpuExecutableSource } from './cpu-codegen.ts';
 import {
   clearGeneratedCpus,

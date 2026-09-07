@@ -4,6 +4,7 @@ import {
   handlerOwnsSharedRam,
   isKeyboardPlayerInput,
   keypadKeys,
+  computerKeyboardKeys,
   sourceHandlerDataWidth,
 } from './generate.ts';
 
@@ -42,6 +43,11 @@ assert.deepEqual(keypadKeys('*'), ['NumpadMultiply', 'Minus']);
 assert.equal(keypadKeys('Purple Action Button P1'), undefined);
 assert.equal(keypadKeys(undefined), undefined);
 assert.equal(keypadKeys('10'), undefined, 'a two-digit label is not one key');
+assert.deepEqual(computerKeyboardKeys(['PORT_CODE(KEYCODE_A)']), ['KeyA']);
+assert.deepEqual(computerKeyboardKeys(['PORT_CODE(KEYCODE_LCONTROL)']), ['Pause']);
+assert.deepEqual(computerKeyboardKeys(['PORT_CODE(KEYCODE_ESC)']), ['F9']);
+assert.deepEqual(computerKeyboardKeys(['PORT_CODE(KEYCODE_TAB)']), ['F10']);
+assert.deepEqual(computerKeyboardKeys(['PORT_CODE(KEYCODE_CAPSLOCK)']), ['CapsLock']);
 
 // Multiplayer cabinet macros carry PORT_PLAYER on every direction and button.
 // Only player one owns the shared keyboard map; otherwise P3/P4 silently pick

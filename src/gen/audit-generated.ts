@@ -7,8 +7,13 @@ import { validateBoardIr } from '../ir/validate.ts';
 import { generatedDirectScreenShape } from '../runtime/generated-video.ts';
 import { buildClosureFailures, readBuildManifest } from './build-manifest.ts';
 import { gameDataPath, generatedGameOutputs } from './output-layout.ts';
+import { CANDIDATE_TARGETS } from './targets.ts';
 
 export { REQUIRED_TARGETS } from './targets.ts';
+
+export function requiresPlayableGeneration(target: string, published: boolean): boolean {
+  return published && !CANDIDATE_TARGETS.includes(target);
+}
 
 export interface GeneratedAudit {
   targets: number;
@@ -50,8 +55,9 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
   let sourceMapHandlers = 0;
   let familyAdapters = 0;
   const generatedTargets = generatedGameOutputs(outRoot);
+  const buildManifest = readBuildManifest(outRoot);
   const publishedTargets = new Set(
-    readBuildManifest(outRoot)?.publishedTargets ?? generatedTargets.map(target => target.game),
+    buildManifest?.publishedTargets ?? generatedTargets.map(target => target.game),
   );
   if (!generatedTargets.length) failures.push('no generated games found');
   const registryPath = join(outRoot, 'app/registry.js');
@@ -297,7 +303,11 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         console.warn(
           `note: ${target} runs without sound (${(report.silentGaps ?? []).join(', ')})`,
         );
-      } else if (report.playable !== true) {
+      } else if (requiresPlayableGeneration(target, publishedTargets.has(target)) &&
+        report.playable !== true) {
+        // Candidates remain in the compiler/IR audit while their source
+        // capabilities are incomplete. Playability remains an acceptance gate;
+        // catalogue visibility does not promote a candidate.
         failures.push(
           `${target}: generation report is not playable` +
           (report.generationGaps?.length

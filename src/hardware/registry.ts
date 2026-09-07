@@ -58,6 +58,8 @@ import {
   COLECO_PORTS,
 } from './coleco/definition.ts';
 import { extractColeco } from './coleco/extract.ts';
+import { C64_ID, C64_MAME_TYPES, C64_PORTS } from './c64/definition.ts';
+import { extractC64 } from './c64/extract.ts';
 import {
   A2600_ID,
   A2600_MAME_TYPES,
@@ -180,6 +182,7 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: COLECO_PORTS,
     extract: extractColeco,
   },
+  { id: C64_ID, mameTypes: C64_MAME_TYPES, ports: C64_PORTS, extract: extractC64 },
   {
     id: A2600_ID,
     mameTypes: A2600_MAME_TYPES,
