@@ -73,6 +73,8 @@ import {
   type DossierData,
 } from './dossier.ts';
 import { emitArchiveRoutes } from './archive.ts';
+import { emitHomePage } from './home.ts';
+import { readBuildManifest } from './build-manifest.ts';
 import { stageGeneratedBoards } from './app-targets.ts';
 
 import {
@@ -2805,9 +2807,6 @@ if (game) {
 </html>
 `);
 
-  // root convenience redirect: / -> app/ (relative — works under a Pages base path)
-  writeFileSync(join(outRoot, 'index.html'),
-    '<!doctype html><meta http-equiv="refresh" content="0;url=app/">');
 
   // pretty per-game routes: /app/g/<game>/ as REAL directories (static hosts
   // have no rewrites). <base href="../../"> makes every relative URL resolve
@@ -2897,6 +2896,15 @@ if (game) {
   }
   const archive = emitArchiveRoutes(outRoot, appDir, included);
   await shipWebArtwork(outRoot);
+  // The front door at / (relative links, so it works under a Pages base
+  // path): what this is, how it is built, and what plays it. It reads the
+  // shipped flyers, so it is written after the artwork lands.
+  const home = emitHomePage(outRoot, {
+    keyFor: type => inputKeys('', type),
+    mameRevision: readBuildManifest(outRoot)?.mameRevision,
+    included,
+  });
+  console.log(`home page: ${home.machines} machines, ${home.covers} flyers -> ${join(outRoot, 'index.html')}`);
   rmSync(buildDir, { recursive: true, force: true });
   console.log(
     `archive ready: ${archive.games} games, ${archive.facetValues} facet pages, ` +

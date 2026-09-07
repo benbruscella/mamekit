@@ -78,6 +78,17 @@ const STANDARD_NAMES: Record<string, string> = {
 };
 
 /**
+ * The standard-layout button that drives one MAME input type, in the Xbox
+ * spelling browsers use, or undefined when the layout has no button for it.
+ * The generator's home page reads its controller legend from here so the
+ * page and the poll can never disagree.
+ */
+export function standardPadButton(type: string): string | undefined {
+  const control = STANDARD[type];
+  return control ? STANDARD_NAMES[control] ?? control : undefined;
+}
+
+/**
  * Which pad serves a binding. Start and coin carry their player in the type
  * rather than in PORT_PLAYER — IPT_START2 is a player-one keyboard binding —
  * and MAME's defaults put them on the second pad's Start and Select.

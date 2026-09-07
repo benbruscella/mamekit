@@ -566,6 +566,13 @@ All runtime paths must remain relative. Pretty routes are real
 `app/g/<target>/index.html` files with `<base href="../../">`. Production audio
 requires HTTPS because AudioWorklet requires a secure context.
 
+`dist/index.html` is the front door, written by `src/gen/home.ts` after the
+artwork ships: machine counts, the year span and the flyer strip are read from
+the generated tree, and its controller legend comes from the generator's key
+table and the runtime's standard gamepad mapping, so the page cannot drift
+from what the app binds. It links only relatively (`app/`, `app/browse/`,
+`artwork/covers/`).
+
 ## 12. CHANGE COMPLETION CHECKLIST
 
 Before considering compiler/runtime work complete:
