@@ -177,6 +177,11 @@ const CPS1_SIX_BUTTON: Record<string, string[]> = {
   IPT_BUTTON6: ['KeyC'],           // Roundhouse Kick
 };
 
+/** The six-button fighter layout, by MAME input type, for the home page's legend. */
+export function sixButtonKeys(type: string): string[] | undefined {
+  return CPS1_SIX_BUTTON[type];
+}
+
 // Games whose physical control order differs from the shared two-button
 // convention. Keep these local: swapping the global X/Z mapping would silently
 // change every established game and the NES pad.
@@ -2909,6 +2914,7 @@ if (game) {
   // shipped flyers, so it is written after the artwork lands.
   const home = emitHomePage(outRoot, {
     keyFor: type => inputKeys('', type),
+    fighterKeyFor: sixButtonKeys,
     mameRevision: readBuildManifest(outRoot)?.mameRevision,
     included,
   });

@@ -22,6 +22,10 @@ export interface HomeMachine {
   kind: HomeKind;
   /** a web-sized flyer exists at artwork/covers/<game>.webp */
   cover: boolean;
+  /** a cabinet photo exists at artwork/media/cabinets/<game>.webp */
+  cabinet: boolean;
+  /** a console photo exists at artwork/media/consoles/<game>.webp */
+  photo: boolean;
 }
 
 export interface HomeData {
@@ -30,6 +34,10 @@ export interface HomeData {
   mameRevision?: string;
   /** the generator's shared keyboard table, by MAME input type */
   keyFor: (type: string) => string[] | undefined;
+  /** the generator's six-button fighter table (punch row, kick row), when it has one */
+  fighterKeyFor?: (type: string) => string[] | undefined;
+  /** the build's clock, for the vintage tile; defaults to now */
+  now?: Date;
 }
 
 interface MetaShape {
@@ -72,6 +80,8 @@ export function readHomeMachines(outRoot: string, included?: Set<string>): HomeM
       manufacturer: String(meta.manufacturer ?? ''),
       kind,
       cover: existsSync(join(outRoot, 'artwork', 'covers', `${output.game}.webp`)),
+      cabinet: existsSync(join(outRoot, 'artwork', 'media', 'cabinets', `${output.game}.webp`)),
+      photo: existsSync(join(outRoot, 'artwork', 'media', 'consoles', `${output.game}.webp`)),
     });
   }
   return machines.sort((a, b) => a.year.localeCompare(b.year) || a.game.localeCompare(b.game));
@@ -82,11 +92,15 @@ export function readHomeMachines(outRoot: string, included?: Set<string>): HomeM
  * a timeline rather than the alphabet.
  */
 export function featuredCovers(machines: HomeMachine[], count = 12): HomeMachine[] {
-  const withCover = machines.filter(machine => machine.cover);
-  if (withCover.length <= count) return withCover;
-  const picked: HomeMachine[] = [];
+  return spread(machines.filter(machine => machine.cover), count);
+}
+
+/** Up to `count` of a year-sorted list, evenly spaced from first to last. */
+export function spread<T>(items: T[], count: number): T[] {
+  if (items.length <= count) return items;
+  const picked: T[] = [];
   for (let i = 0; i < count; i++) {
-    picked.push(withCover[Math.floor(i * (withCover.length - 1) / (count - 1))]!);
+    picked.push(items[Math.floor(i * (items.length - 1) / (count - 1))]!);
   }
   return picked;
 }
@@ -135,6 +149,17 @@ h1 em{font-style:normal;color:var(--gold)}
 .strip img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--panel);transition:.16s transform,.16s border-color}
 .strip a:hover img{transform:translateY(-4px);border-color:var(--gold)}
 .strip small{display:block;margin-top:8px;color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.room{display:flex;flex-direction:column;gap:12px;text-decoration:none;background:rgba(18,23,50,.88);border:1px solid var(--line);border-radius:18px;padding:22px;transition:.16s transform,.16s border-color}
+.room:hover{transform:translateY(-3px);border-color:var(--gold)}
+.room h3{margin:0;font-size:22px;color:var(--gold)}.room .count{font:800 13px ui-monospace,monospace;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.room p{margin:0;color:var(--muted);font-size:14px}
+.room .go{margin-top:auto;color:var(--ink);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.shelf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end;min-height:0}
+.shelf img{width:100%;height:auto;aspect-ratio:3/4;object-fit:contain;object-position:bottom;display:block;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5))}
+.shelf.photos{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.shelf.photos img{aspect-ratio:3/2}
+.names{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.names li{font-size:12px;color:var(--ink);background:#1b2148;border:1px solid #3b4680;border-radius:999px;padding:3px 9px}
 section{margin-top:76px}
 h2{font-size:clamp(26px,3.4vw,38px);margin:8px 0 10px;line-height:1.1}
 .lede{max-width:720px;color:var(--muted);font-size:17px;margin:0 0 28px}
@@ -150,16 +175,14 @@ h2{font-size:clamp(26px,3.4vw,38px);margin:8px 0 10px;line-height:1.1}
 .pad{background:rgba(18,23,50,.88);border:1px solid var(--line);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:14px}
 .pad h3{margin:0;font-size:20px;color:var(--gold)}.pad h3 small{display:block;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
 .pad p{margin:0;color:var(--muted);font-size:14px}
-.keys{display:grid;grid-template-columns:auto 1fr;gap:9px 16px;align-items:center;margin:4px 0 0;font-size:13px}
-.keys dt{margin:0;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.keys dd{margin:0;color:var(--muted)}
-kbd{display:inline-block;min-width:30px;padding:5px 8px;border-radius:7px;background:#1b2148;border:1px solid #3b4680;border-bottom-width:3px;color:var(--ink);font:700 12px ui-monospace,monospace;text-align:center}
+.legend{margin:0;font-size:12px;color:var(--muted)}.legend .gold{color:var(--gold)}.legend .green{color:#3ccf6a}
 .art{width:100%;height:auto;display:block}
 .partner{display:flex;gap:12px;align-items:center;border:1px solid rgba(242,194,0,.55);background:linear-gradient(90deg,rgba(242,194,0,.12),rgba(242,194,0,.03));border-radius:12px;padding:10px 14px}
 .partner .mark{font-size:22px;line-height:1}.partner b{display:block;color:var(--gold);font-size:14px}.partner em{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:2px}
 .note{font-size:12px;color:var(--dim);margin:0}
 footer{margin-top:80px;border-top:1px solid var(--line);padding-top:24px;color:var(--muted);font-size:13px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
 footer a{text-decoration:none}footer a:hover{color:var(--gold)}footer .rev{margin-left:auto;font:12px ui-monospace,monospace;color:var(--dim)}
-@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:48px}.pipe,.tenets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:48px}.pipe,.tenets{grid-template-columns:repeat(2,minmax(0,1fr))}.rooms{grid-template-columns:1fr}}
 @media(max-width:640px){.pads{grid-template-columns:1fr}.pipe,.tenets{grid-template-columns:1fr}nav{gap:14px;flex-wrap:wrap}nav strong{width:100%;margin-bottom:6px}.wrap{padding-inline:18px}.strip{margin-inline:-18px;padding-inline:18px}}
 </style>`;
 
@@ -210,12 +233,120 @@ function fightBoxSvg(top: string[], bottom: string[], small: [string, string]): 
   return `<svg class="art" viewBox="0 0 580 240" role="img" aria-label="Fight box layout with trackball and spinner">${defs}${parts.join('')}</svg>`;
 }
 
+/** What a key does: its role on every cabinet, and its role on a six-button fighter. */
+interface KeyRole { arcade?: string; fighter?: string }
+
+/**
+ * The keyboard, drawn, with every bound key lit and captioned. The rows are
+ * a compact ANSI layout; which keys light up comes from the generator's
+ * tables, never from this drawing.
+ */
+function keyboardSvg(roles: Map<string, KeyRole>): string {
+  const font = 'ui-sans-serif,system-ui';
+  const mono = 'ui-monospace,monospace';
+  const size = 34, gap = 4, step = size + gap;
+  type Key = { code: string; label: string; x: number; y: number; w?: number };
+  const keys: Key[] = [];
+  const row = (y: number, offset: number, codes: [string, string][]): void => {
+    codes.forEach(([code, label], i) => keys.push({ code, label, x: offset + i * step, y }));
+  };
+  const letters = (text: string): [string, string][] => [...text].map(ch => [`Key${ch}`, ch]);
+  row(0, 0, [...'1234567890'].map(ch => [`Digit${ch}`, ch] as [string, string]));
+  row(step, 18, letters('QWERTYUIOP'));
+  row(step * 2, 28, letters('ASDFGHJKL'));
+  row(step * 3, 46, letters('ZXCVBNM'));
+  keys.push({ code: 'Space', label: 'Space', x: 46 + step * 1.5, y: step * 4, w: step * 4 - gap });
+  const ax = 10 * step + 30;
+  keys.push({ code: 'ArrowUp', label: '↑', x: ax + step, y: step * 3 });
+  keys.push({ code: 'ArrowLeft', label: '←', x: ax, y: step * 4 });
+  keys.push({ code: 'ArrowDown', label: '↓', x: ax + step, y: step * 4 });
+  keys.push({ code: 'ArrowRight', label: '→', x: ax + step * 2, y: step * 4 });
+  const width = ax + step * 3;
+  const height = step * 5;
+  const parts = keys.map(key => {
+    const role = roles.get(key.code);
+    const w = key.w ?? size;
+    const lit = role?.arcade ? '#f2c200' : role?.fighter ? '#3ccf6a' : '#3b4680';
+    const fill = role ? '#1f2757' : '#141a3c';
+    const captions: string[] = [];
+    if (role?.arcade) captions.push(`<text x="${key.x + w / 2}" y="${key.y + 22}" text-anchor="middle" font-size="7" font-weight="800" fill="#f2c200" font-family="${mono}">${escapeHtml(role.arcade)}</text>`);
+    if (role?.fighter) captions.push(`<text x="${key.x + w / 2}" y="${key.y + 30}" text-anchor="middle" font-size="7" font-weight="800" fill="#3ccf6a" font-family="${mono}">${escapeHtml(role.fighter)}</text>`);
+    return `<rect x="${key.x}" y="${key.y}" width="${w}" height="${size}" rx="5" fill="${fill}" stroke="${lit}" stroke-width="${role ? 2 : 1}"/>` +
+      `<text x="${key.x + 5}" y="${key.y + 12}" font-size="${key.label.length > 1 ? 8 : 10}" font-weight="700" fill="${role ? '#eef0ff' : '#5f689c'}" font-family="${font}">${escapeHtml(key.label)}</text>` +
+      captions.join('');
+  });
+  return `<svg class="art" viewBox="-2 -2 ${width + 4} ${height + 4}" role="img" aria-label="Keyboard">${parts.join('')}</svg>`;
+}
+
+/** A home computer's slab keyboard, drawn: the tree ships photos of consoles, not computers. */
+function computerSvg(): string {
+  const keys: string[] = [];
+  const rows = [12, 12, 11, 10];
+  rows.forEach((count, r) => {
+    const y = 48 + r * 17;
+    const x0 = 22 + r * 6;
+    for (let i = 0; i < count; i++) keys.push(`<rect x="${x0 + i * 17}" y="${y}" width="14" height="13" rx="2" fill="#2a2f57" stroke="#3b4680"/>`);
+  });
+  keys.push('<rect x="58" y="116" width="120" height="13" rx="2" fill="#2a2f57" stroke="#3b4680"/>');
+  return '<svg class="art" viewBox="0 0 240 150" role="img" aria-label="Home computer">' +
+    '<rect x="6" y="30" width="228" height="112" rx="10" fill="#c9bfa5"/>' +
+    '<rect x="6" y="30" width="228" height="12" rx="6" fill="#ddd3b8"/>' +
+    '<rect x="14" y="44" width="212" height="94" rx="6" fill="#1b1e3a"/>' +
+    keys.join('') + '</svg>';
+}
+
+const ROOM: Record<HomeKind, { title: string; href: string; blurb: string; go: string }> = {
+  arcade: {
+    title: 'Arcade', href: 'app/',
+    blurb: 'The coin-op boards, with their flyers, bezels and marquees. Drop a ROM set and the cabinet lights up.',
+    go: 'Walk the arcade',
+  },
+  console: {
+    title: 'Consoles', href: 'app/?tab=consoles',
+    blurb: 'Living-room hardware with a cartridge shelf per machine. Pick a cart and boot it, no dump wrangling.',
+    go: 'Open the console room',
+  },
+  computer: {
+    title: 'Computers', href: 'app/?tab=computers',
+    blurb: 'Home computers with a software shelf per list: tapes, disks and carts, and a keyboard you type on directly.',
+    go: 'Open the software room',
+  },
+};
+
+function roomCard(kind: HomeKind, machines: HomeMachine[]): string {
+  const room = ROOM[kind];
+  const years = machines.map(machine => machine.year).filter(year => /^\d{4}$/.test(year));
+  const span = years.length ? `${years[0]}–${years[years.length - 1]}` : '';
+  let art = '';
+  if (kind === 'arcade') {
+    const cabinets = spread(machines.filter(machine => machine.cabinet), 4);
+    art = cabinets.length ? `<div class="shelf">${cabinets.map(machine =>
+      `<img src="artwork/media/cabinets/${encodeURIComponent(machine.game)}.webp" alt="${escapeHtml(machine.title)} cabinet" loading="lazy" width="300" height="400">`).join('')}</div>` : '';
+  } else if (kind === 'console') {
+    const photos = spread(machines.filter(machine => machine.photo), 4);
+    art = photos.length ? `<div class="shelf photos">${photos.map(machine =>
+      `<img src="artwork/media/consoles/${encodeURIComponent(machine.game)}.webp" alt="${escapeHtml(machine.title)}" loading="lazy" width="400" height="300">`).join('')}</div>` : '';
+  } else {
+    art = computerSvg();
+  }
+  // Names, deduplicated: NTSC and PAL of one machine are one name here.
+  const names = [...new Set(machines.map(machine => machine.title))];
+  const shown = spread(names, 6);
+  const list = `<ul class="names">${shown.map(name => `<li>${escapeHtml(name)}</li>`).join('')}` +
+    `${names.length > shown.length ? `<li>+${names.length - shown.length} more</li>` : ''}</ul>`;
+  return `<a class="room" href="${room.href}"><span class="count">${escapeHtml(plural(machines.length, KIND_LABEL[kind]))}${span ? ` · ${escapeHtml(span)}` : ''}</span>` +
+    `<h3>${escapeHtml(room.title)}</h3>${art}<p>${escapeHtml(room.blurb)}</p>${list}<span class="go">${escapeHtml(room.go)} →</span></a>`;
+}
+
 export function homePageHtml(data: HomeData): string {
   const { machines } = data;
   const counts: Record<HomeKind, number> = { arcade: 0, console: 0, computer: 0 };
   for (const machine of machines) counts[machine.kind]++;
   const years = machines.map(machine => machine.year).filter(year => /^\d{4}$/.test(year)).sort();
   const span = years.length ? `${years[0]}–${years[years.length - 1]}` : '';
+  // How long ago the oldest machine shipped, as of this build: the one
+  // number on the page that grows on its own.
+  const vintage = years.length ? (data.now ?? new Date()).getFullYear() - Number(years[0]) : 0;
   const kinds = (Object.keys(counts) as HomeKind[]).filter(kind => counts[kind] > 0);
   const summary = kinds.map(kind => plural(counts[kind], KIND_LABEL[kind])).join(' · ');
 
@@ -224,19 +355,29 @@ export function homePageHtml(data: HomeData): string {
     `<img src="artwork/covers/${encodeURIComponent(machine.game)}.webp" alt="${escapeHtml(machine.title)} flyer" loading="lazy" width="300" height="400">` +
     `<small>${escapeHtml(machine.title)}</small>${escapeHtml([machine.manufacturer, machine.year].filter(Boolean).join(' · '))}</a>`).join('');
 
-  const keyRows: [string, string][] = [
-    ['IPT_JOYSTICK_LEFT|IPT_JOYSTICK_RIGHT|IPT_JOYSTICK_UP|IPT_JOYSTICK_DOWN', 'Move'],
-    ['IPT_BUTTON1', 'Button 1 / fire'],
-    ['IPT_BUTTON2', 'Button 2'],
-    ['IPT_BUTTON3', 'Button 3'],
-    ['IPT_START1', 'Start'],
-    ['IPT_COIN1', 'Insert coin'],
+  // Every cabinet's keys, from the shared table, and the six-button fighter
+  // rows from theirs, laid onto one drawn keyboard.
+  const roles = new Map<string, KeyRole>();
+  const role = (code: string, patch: KeyRole): void => { roles.set(code, { ...roles.get(code), ...patch }); };
+  const arcadeRoles: [string, string][] = [
+    ['IPT_JOYSTICK_LEFT', 'MOVE'], ['IPT_JOYSTICK_RIGHT', 'MOVE'], ['IPT_JOYSTICK_UP', 'MOVE'], ['IPT_JOYSTICK_DOWN', 'MOVE'],
+    ['IPT_BUTTON1', 'FIRE'], ['IPT_BUTTON2', 'FIRE 2'], ['IPT_BUTTON3', 'FIRE 3'],
+    ['IPT_START1', 'START'], ['IPT_COIN1', 'COIN'],
   ];
-  const keys = keyRows.map(([types, role]) => {
-    const codes = [...new Set(types.split('|').flatMap(type => data.keyFor(type) ?? []))];
-    if (!codes.length) return '';
-    return `<dt>${codes.map(code => `<kbd>${escapeHtml(keycap(code))}</kbd>`).join('')}</dt><dd>${escapeHtml(role)}</dd>`;
-  }).join('');
+  for (const [type, caption] of arcadeRoles) for (const code of data.keyFor(type) ?? []) role(code, { arcade: caption });
+  const fighterRoles: [string, string][] = [
+    ['IPT_BUTTON1', 'LP'], ['IPT_BUTTON2', 'MP'], ['IPT_BUTTON3', 'HP'],
+    ['IPT_BUTTON4', 'LK'], ['IPT_BUTTON5', 'MK'], ['IPT_BUTTON6', 'HK'],
+  ];
+  const fighter = Boolean(data.fighterKeyFor);
+  if (data.fighterKeyFor) {
+    // one key per button: the first of each; Space's alias stays as the shared fire
+    for (const [type, caption] of fighterRoles) {
+      const code = data.fighterKeyFor(type)?.[0];
+      if (code) role(code, { fighter: caption });
+    }
+  }
+  const keyboard = keyboardSvg(roles);
 
   const pad = (type: string): string => standardPadButton(type) ?? '';
   // The fighting-game shorthand: light, medium and heavy punch on the top
@@ -248,7 +389,7 @@ export function homePageHtml(data: HomeData): string {
   );
 
   const revision = data.mameRevision ? data.mameRevision.slice(0, 10) : '';
-  const nav = '<strong>MAME HISTORY</strong><a href="app/">Play</a><a href="app/browse/">Archive</a>' +
+  const nav = '<strong>MAME HISTORY</strong><a href="app/">Play</a><a href="#rooms">Rooms</a><a href="app/browse/">Archive</a>' +
     '<a href="#controllers">Controllers</a><a href="#mamekit">How it works</a>' +
     '<a href="https://github.com/benbruscella/mamekit" rel="noopener" target="_blank">GitHub</a>';
 
@@ -256,7 +397,7 @@ export function homePageHtml(data: HomeData): string {
 <div class="hero">
   <div>
     <div class="eyebrow">${escapeHtml(summary)}${span ? ` · ${escapeHtml(span)}` : ''}</div>
-    <h1>The video arcade, <em>transpiled.</em></h1>
+    <h1>Retro gaming, <em>transpiled.</em></h1>
     <p class="dek">MAME History runs the classics in your browser, compiled straight from MAME's own source. No plugins, no native build, nothing to install. Bring a ROM, insert a coin.</p>
     <div class="cta"><a class="btn gold" href="app/">Insert coin</a><a class="btn" href="app/browse/">Browse the archive</a></div>
   </div>
@@ -264,9 +405,17 @@ export function homePageHtml(data: HomeData): string {
     ${kinds.map(kind => `<div class="stat"><b>${counts[kind]}</b><span>${escapeHtml(KIND_LABEL[kind][counts[kind] === 1 ? 0 : 1])}</span></div>`).join('')}
     <div class="stat"><b>${escapeHtml(span || '—')}</b><span>years covered</span></div>
     <div class="stat"><b>0</b><span>ROMs bundled. Yours stay on your machine.</span></div>
+    ${vintage ? `<div class="stat"><b>${vintage}</b><span>years of nostalgia. Free with every coin.</span></div>` : ''}
   </div>
 </div>
 ${strip ? `<div class="strip">${strip}</div>` : ''}
+
+<section id="rooms">
+  <div class="eyebrow">${kinds.length === 1 ? 'One room' : `${['', '', 'Two', 'Three'][kinds.length] ?? kinds.length} rooms`}</div>
+  <h2>${escapeHtml(kinds.map(kind => ROOM[kind].title).join(', ').replace(/, ([^,]*)$/, ' and $1'))}.</h2>
+  <p class="lede">The same compiler, three kinds of machine. Each room is a shelf you walk up to: arcade boards take a ROM set, consoles and computers take the software their real hardware took.</p>
+  <div class="rooms">${kinds.map(kind => roomCard(kind, machines.filter(machine => machine.kind === kind))).join('')}</div>
+</section>
 
 <section id="controllers">
   <div class="eyebrow">Controllers</div>
@@ -275,8 +424,9 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
   <div class="pads">
     <div class="pad">
       <h3><small>Always on</small>Keyboard</h3>
-      <p>The same keys on every cabinet. Six-button fighters put the punches on A, S, D and the kicks on Z, X, C; the game's own legend shows any title that differs.</p>
-      <dl class="keys">${keys}</dl>
+      <p>The same keys on every cabinet; the game's own legend shows any title that differs.</p>
+      ${keyboard}
+      <p class="legend"><span class="gold">■</span> every cabinet${fighter ? ' &nbsp; <span class="green">■</span> six-button fighters: punches on the home row, kicks below' : ''}</p>
       <p class="note">Control is never bound: macOS takes Ctrl+Arrow for itself.</p>
     </div>
     <div class="pad">
@@ -317,7 +467,7 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
 </footer>`;
 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
-    `<title>MAME History — the video arcade, transpiled</title>` +
+    `<title>MAME History — retro gaming, transpiled</title>` +
     `<meta name="description" content="${escapeHtml(`Classic arcade machines, consoles and computers running in the browser, compiled from MAME source by MAMEKIT. ${summary}.`)}">` +
     `<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>👾</text></svg>">` +
     `${STYLE}</head><body><div class="wrap"><nav>${nav}</nav>${body}</div></body></html>\n`;
@@ -326,13 +476,14 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
 /** Write dist/index.html from the generated tree. */
 export function emitHomePage(
   outRoot: string,
-  options: { keyFor: HomeData['keyFor']; mameRevision?: string; included?: Set<string> },
+  options: { keyFor: HomeData['keyFor']; fighterKeyFor?: HomeData['fighterKeyFor']; mameRevision?: string; included?: Set<string> },
 ): { machines: number; covers: number } {
   const machines = readHomeMachines(outRoot, options.included);
   writeFileSync(join(outRoot, 'index.html'), homePageHtml({
     machines,
     mameRevision: options.mameRevision,
     keyFor: options.keyFor,
+    fighterKeyFor: options.fighterKeyFor,
   }));
   return { machines: machines.length, covers: machines.filter(machine => machine.cover).length };
 }
