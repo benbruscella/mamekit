@@ -375,6 +375,7 @@ class IrBoard implements Board {
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
   private currentLineFraction = 0;
+  private inFrame = false;
   /**
    * Device time already delivered into the scanline the beam is on.
    *
@@ -2129,7 +2130,12 @@ class IrBoard implements Board {
   frame(framebuffer: Uint32Array): void {
     this.pollInputLatches();
     this.frameSound?.();
-    this.frameRunner.frame(framebuffer);
+    this.inFrame = true;
+    try {
+      this.frameRunner.frame(framebuffer);
+    } finally {
+      this.inFrame = false;
+    }
     if (this.watchdogLimitFrames && ++this.watchdogFrames >= this.watchdogLimitFrames) {
       this.watchdogReset();
     }
@@ -4304,6 +4310,17 @@ class IrBoard implements Board {
       };
     }
     return hooks;
+  }
+
+  /**
+   * How far through the current frame the machine is, 0..1, on the beam
+   * clock; 1 between frames. MAME's `ioport_manager::frame_interpolate`
+   * hands a relative control's frame of travel out gradually against this,
+   * so a game that reads a trackball counter several times a frame sees
+   * small steps rather than one lump.
+   */
+  frameFraction(): number {
+    return this.inFrame ? Math.min(1, this.soundFraction()) : 1;
   }
 
   private soundFraction(): number {

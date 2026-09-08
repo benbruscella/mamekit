@@ -73,6 +73,8 @@ import {
   type DossierData,
 } from './dossier.ts';
 import { emitArchiveRoutes } from './archive.ts';
+import { emitHomePage } from './home.ts';
+import { readBuildManifest } from './build-manifest.ts';
 import { stageGeneratedBoards } from './app-targets.ts';
 
 import {
@@ -175,6 +177,11 @@ const CPS1_SIX_BUTTON: Record<string, string[]> = {
   IPT_BUTTON6: ['KeyC'],           // Roundhouse Kick
 };
 
+/** The six-button fighter layout, by MAME input type, for the home page's legend. */
+export function sixButtonKeys(type: string): string[] | undefined {
+  return CPS1_SIX_BUTTON[type];
+}
+
 // Games whose physical control order differs from the shared two-button
 // convention. Keep these local: swapping the global X/Z mapping would silently
 // change every established game and the NES pad.
@@ -250,12 +257,21 @@ export function inputLabel(game: string, type: string): string | undefined {
   return GAME_INPUT_LABELS[game]?.[type];
 }
 
-/** Whether a source input field belongs to the one keyboard-driven player. */
-export function isKeyboardPlayerInput(modifiers: readonly string[]): boolean {
+/**
+ * Which player a source input field belongs to: PORT_PLAYER(n) where MAME
+ * says so, 2 for a cocktail cabinet's second control set, and 1 otherwise.
+ */
+export function inputPlayer(modifiers: readonly string[]): number {
   const player = modifiers
     .map(modifier => /PORT_PLAYER\s*\(\s*(\d+)\s*\)/.exec(modifier)?.[1])
     .find((value): value is string => value !== undefined);
-  return player === undefined || Number(player) === 1;
+  if (player !== undefined) return Number(player);
+  return modifiers.includes('PORT_COCKTAIL') ? 2 : 1;
+}
+
+/** Whether a source input field belongs to the one keyboard-driven player. */
+export function isKeyboardPlayerInput(modifiers: readonly string[]): boolean {
+  return inputPlayer(modifiers) === 1;
 }
 
 /**
@@ -1800,6 +1816,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               mask,
               keys: coded,
               label: named,
+              type: String(f.props.type ?? 'IPT_CONFIG'),
               activeLow,
               // The switch's other position, as MAME's own PORT_CONFSETTINGs
               // define it -- the default flipped within its mask. TV Type is
@@ -1909,8 +1926,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           });
           continue;
         }
-        if (mods.includes('PORT_COCKTAIL')) continue;  // player-2 cocktail path: unbound
-        if (!isKeyboardPlayerInput(mods)) continue;    // don't double-bind P1 keys
+        // One keyboard is one player, so only player one's fields get keys.
+        // Player two's are emitted keyless with their player: a second
+        // gamepad drives them and nothing else can. A cocktail cabinet's
+        // second set of controls is MAME's player two.
+        const player = inputPlayer(mods);
+        if (player > 2) continue;
         // An alternate controller's fields belong to a selector setting this
         // machine is not configured for. They stay in the port map -- the
         // source declares them -- but they are not bound or advertised.
@@ -1922,20 +1943,28 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         const keyDelta = mods
           .map(modifier => /PORT_KEYDELTA\s*\(\s*([^\)]+)\)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
+        // PORT_SENSITIVITY scales a relative device's travel (ioport.cpp
+        // apply_sensitivity): one mouse pixel is sensitivity/100 port units.
+        const sensitivityMod = mods
+          .map(modifier => /PORT_SENSITIVITY\s*\(\s*([^\)]+)\)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
+        const sensitivity = sensitivityMod ? sourceNumber(sensitivityMod[1]!) : 100;
         const named = portLabel(mods);
         if (type === 'IPT_DIAL') {
+          if (player !== 1) continue;
           const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
           bindings.push({
             port: tag, mask, keys: ['ArrowLeft'], label: named ? `${named} Left` : `${type}_LEFT`,
-            activeLow: false, relativeDelta: -delta,
+            type: `${type}_LEFT`, activeLow: false, relativeDelta: -delta, sensitivity,
           });
           bindings.push({
             port: tag, mask, keys: ['ArrowRight'], label: named ? `${named} Right` : `${type}_RIGHT`,
-            activeLow: false, relativeDelta: delta,
+            type: `${type}_RIGHT`, activeLow: false, relativeDelta: delta, sensitivity,
           });
           continue;
         }
         if (type === 'IPT_TRACKBALL_X' || type === 'IPT_TRACKBALL_Y') {
+          if (player !== 1) continue;
           const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
           const reversed = mods.includes('PORT_REVERSE');
           const negative = reversed ? delta : -delta;
@@ -1950,16 +1979,20 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             mask,
             keys: [negativeKey],
             label: named ? `${named} ${negativeName}` : `${type}_${negativeName.toUpperCase()}`,
+            type: `${type}_${negativeName.toUpperCase()}`,
             activeLow: false,
             relativeDelta: negative,
+            sensitivity,
           });
           bindings.push({
             port: tag,
             mask,
             keys: [positiveKey],
             label: named ? `${named} ${positiveName}` : `${type}_${positiveName.toUpperCase()}`,
+            type: `${type}_${positiveName.toUpperCase()}`,
             activeLow: false,
             relativeDelta: positive,
+            sensitivity,
           });
           continue;
         }
@@ -1970,11 +2003,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // the same twelve keys, and one keyboard cannot press "1" on one pad
         // without pressing it on the other -- so the second stays reachable as
         // a raw port rather than shadowing the first.
-        let keys = type === 'IPT_KEYPAD'
+        let keys = player !== 1
+          ? (inputKeys(opts.game, type) ? [] : undefined)
+          : type === 'IPT_KEYPAD'
           ? keypadKeys(named)
           : type === 'IPT_KEYBOARD' ? computerKeyboardKeys(mods)
           : inputKeys(opts.game, type);
-        if (type === 'IPT_KEYPAD') {
+        if (player === 1 && type === 'IPT_KEYPAD') {
           if (boundKeypad && boundKeypad !== tag) keys = undefined;
           else boundKeypad = tag;
         }
@@ -1988,7 +2023,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // names and sits behind a preprocessor guard the input parser does not
         // honour, so binding on the code alone put a compiled-out debug switch
         // on the keyboard.
-        if (!keys && named) {
+        if (player === 1 && !keys && named) {
           const coded = portCodeKeys(mods)?.filter(key => !boundKeys.has(key));
           if (coded?.length) keys = coded;
         }
@@ -1999,6 +2034,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           keys,
           label: named ?? (type === 'IPT_KEYBOARD' ? keys[0]?.replace(/^(Key|Digit)/, '') : undefined)
             ?? inputLabel(opts.game, type) ?? type,
+          type,
+          ...(player !== 1 ? { player } : {}),
           activeLow,
           ...(/^IPT_PEDAL\d*$/.test(type)
             ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
@@ -2013,10 +2050,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // Control ports may live on a default slot device rather than the driver
   // (NES joypads and Neo Geo's MVS edge connector are concrete examples).
   // Port tags are namespaced `${devTag}:${portTag}`. Only the first physical
-  // controller is keyboard-bound; player-2/cocktail fields remain available
-  // as raw ports without stealing player-1 keys.
+  // controller is keyboard-bound; the second is emitted keyless as player two
+  // for a second gamepad, and any further one remains a raw port.
   {
-    let boundController = false;
+    let controllers = 0;
     for (const dev of devices) {
       const slotInputs = g.out(dev.id, 'USES_INPUTS')[0]?.node;
       if (!slotInputs) continue;
@@ -2029,11 +2066,16 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           const activeLow = f.props.activeLow !== false;
           init = (init & ~mask) |
             (Number(f.props.defaultValue ?? (activeLow ? mask : 0)) & mask);
-          if (boundController) continue;
           const type = String(f.props.type ?? '');
           const mods = (f.props.modifiers as string[] | undefined) ?? [];
-          if (mods.includes('PORT_COCKTAIL') || mods.includes('PORT_PLAYER(2)')) continue;
-          const keys = inputKeys(opts.game, type);
+          // The slot says which player a controller is: the NES's second
+          // joypad carries no PORT_PLAYER, it is simply the second device,
+          // while one Neo Geo edge connector names both players itself.
+          const player = inputPlayer(mods) + controllers;
+          if (player > 2) continue;
+          const keys = player === 1
+            ? inputKeys(opts.game, type)
+            : inputKeys(opts.game, type) ? [] : undefined;
           if (!keys) continue;
           const named = portLabel(mods);
           bindings.push({
@@ -2041,13 +2083,15 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             mask,
             keys,
             label: named ?? inputLabel(opts.game, type) ?? type,
+            type,
+            ...(player !== 1 ? { player } : {}),
             activeLow,
             ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
           });
         }
         portSpecs.push({ tag, init });
       }
-      boundController = true;
+      controllers++;
     }
   }
 
@@ -2488,7 +2532,9 @@ function machineDossierMarkdown(d: {
     md.push('');
   }
 
-  const binds = d.bindings as { port: string; mask: number; keys: string[]; label: string }[];
+  // The keyboard table; a second player's pad-only fields have no key to list.
+  const binds = (d.bindings as { port: string; mask: number; keys: string[]; label: string }[])
+    .filter(b => b.keys.length);
   if (binds.length) {
     md.push('## Controls');
     md.push('');
@@ -2774,9 +2820,6 @@ if (game) {
 </html>
 `);
 
-  // root convenience redirect: / -> app/ (relative — works under a Pages base path)
-  writeFileSync(join(outRoot, 'index.html'),
-    '<!doctype html><meta http-equiv="refresh" content="0;url=app/">');
 
   // pretty per-game routes: /app/g/<game>/ as REAL directories (static hosts
   // have no rewrites). <base href="../../"> makes every relative URL resolve
@@ -2866,6 +2909,16 @@ if (game) {
   }
   const archive = emitArchiveRoutes(outRoot, appDir, included);
   await shipWebArtwork(outRoot);
+  // The front door at / (relative links, so it works under a Pages base
+  // path): what this is, how it is built, and what plays it. It reads the
+  // shipped flyers, so it is written after the artwork lands.
+  const home = emitHomePage(outRoot, {
+    keyFor: type => inputKeys('', type),
+    fighterKeyFor: sixButtonKeys,
+    mameRevision: readBuildManifest(outRoot)?.mameRevision,
+    included,
+  });
+  console.log(`home page: ${home.machines} machines, ${home.covers} flyers -> ${join(outRoot, 'index.html')}`);
   rmSync(buildDir, { recursive: true, force: true });
   console.log(
     `archive ready: ${archive.games} games, ${archive.facetValues} facet pages, ` +

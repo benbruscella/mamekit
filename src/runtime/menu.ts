@@ -118,7 +118,7 @@ const COVER_FRAMES = 900; // ~15 s of attract
 const COVER_KEY = (game: string) => `mamekit:cover:${game}:f${COVER_FRAMES}`;
 
 export async function runMenu(): Promise<void> {
-  document.title = 'MAME History — the video arcade, transpiled';
+  document.title = 'MAME History — retro gaming, transpiled';
   const games: GameEntry[] = await fetch('../games.json').then(r => r.json());
   games.sort((a, b) => a.year.localeCompare(b.year) || a.game.localeCompare(b.game));
   // NOTHING arcade is cached — no ROM bytes, no derived screenshots (hard

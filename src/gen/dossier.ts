@@ -96,12 +96,13 @@ export function machineDossierMarkdown(d: DossierData): string {
     md.push('');
   }
 
-  const bindings = d.bindings as {
+  // The keyboard table; a second player's pad-only fields have no key to list.
+  const bindings = (d.bindings as {
     port: string;
     mask: number;
     keys: string[];
     label: string;
-  }[];
+  }[]).filter(binding => binding.keys.length);
   if (bindings.length) {
     md.push('## Controls');
     md.push('');
@@ -187,12 +188,12 @@ export function machineDossierHtml(d: DossierData, options: DossierHtmlOptions):
   const romRows = d.roms.flatMap(region => region.loads.map(load =>
     `<tr><td>${escapeHtml(region.region)}</td><td>${escapeHtml(load.file)}</td>` +
     `<td>${hex(load.offset)}</td><td>${hex(load.size)}</td><td>${escapeHtml(load.crc)}</td></tr>`)).join('');
-  const bindings = d.bindings as {
+  const bindings = (d.bindings as {
     port: string;
     mask: number;
     keys: string[];
     label: string;
-  }[];
+  }[]).filter(binding => binding.keys.length);
   const bindingRows = bindings.map(binding =>
     `<tr><td>${escapeHtml(binding.keys.map(prettyKey).join(' / '))}</td>` +
     `<td>${escapeHtml(prettyIpt(binding.label))}</td><td>${escapeHtml(binding.port)}</td>` +

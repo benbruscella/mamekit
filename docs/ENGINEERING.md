@@ -470,7 +470,10 @@ or a real browser. Required checks:
 4. local ROM file picker accepts and validates the correct set;
 5. framebuffer is nonblank and correctly oriented;
 6. status PC values progress and frame rate is stable;
-7. coin, start and gameplay inputs are observed;
+7. coin, start and gameplay inputs are observed, from the keyboard, from a
+   connected gamepad (`e2e/specs/gamepad.spec.ts` drives a synthetic one) and,
+   for a machine with a dial or trackball, from mouse travel over the screen
+   (`e2e/specs/pointer.spec.ts`);
 8. generated audio worklet loads after a user gesture;
 9. page and console error logs remain empty;
 10. desktop/mobile layout has no overlap.
@@ -564,6 +567,13 @@ opt-in local artwork/history assets, so it is manual by design.
 All runtime paths must remain relative. Pretty routes are real
 `app/g/<target>/index.html` files with `<base href="../../">`. Production audio
 requires HTTPS because AudioWorklet requires a secure context.
+
+`dist/index.html` is the front door, written by `src/gen/home.ts` after the
+artwork ships: machine counts, the year span and the flyer strip are read from
+the generated tree, and its controller legend comes from the generator's key
+table and the runtime's standard gamepad mapping, so the page cannot drift
+from what the app binds. It links only relatively (`app/`, `app/browse/`,
+`artwork/covers/`).
 
 ## 12. CHANGE COMPLETION CHECKLIST
 
