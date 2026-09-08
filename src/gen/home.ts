@@ -154,6 +154,8 @@ h2{font-size:clamp(26px,3.4vw,38px);margin:8px 0 10px;line-height:1.1}
 .keys dt{margin:0;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.keys dd{margin:0;color:var(--muted)}
 kbd{display:inline-block;min-width:30px;padding:5px 8px;border-radius:7px;background:#1b2148;border:1px solid #3b4680;border-bottom-width:3px;color:var(--ink);font:700 12px ui-monospace,monospace;text-align:center}
 .art{width:100%;height:auto;display:block}
+.partner{display:flex;gap:12px;align-items:center;border:1px solid rgba(242,194,0,.55);background:linear-gradient(90deg,rgba(242,194,0,.12),rgba(242,194,0,.03));border-radius:12px;padding:10px 14px}
+.partner .mark{font-size:22px;line-height:1}.partner b{display:block;color:var(--gold);font-size:14px}.partner em{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:2px}
 .note{font-size:12px;color:var(--dim);margin:0}
 footer{margin-top:80px;border-top:1px solid var(--line);padding-top:24px;color:var(--muted);font-size:13px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
 footer a{text-decoration:none}footer a:hover{color:var(--gold)}footer .rev{margin-left:auto;font:12px ui-monospace,monospace;color:var(--dim)}
@@ -161,29 +163,37 @@ footer a{text-decoration:none}footer a:hover{color:var(--gold)}footer .rev{margi
 @media(max-width:640px){.pads{grid-template-columns:1fr}.pipe,.tenets{grid-template-columns:1fr}nav{gap:14px;flex-wrap:wrap}nav strong{width:100%;margin-bottom:6px}.wrap{padding-inline:18px}.strip{margin-inline:-18px;padding-inline:18px}}
 </style>`;
 
-/** A leverless fight-box panel with the roles the standard mapping gives each button. */
+/**
+ * A fight-box panel with the roles the standard mapping gives each button,
+ * plus the trackball and spinner a cabinet-style stick carries, which reach
+ * the browser as a mouse.
+ */
 function fightBoxSvg(top: string[], bottom: string[], small: [string, string]): string {
   const font = 'ui-sans-serif,system-ui';
   const button = (cx: number, cy: number, r: number, label: string, sub = '', dim = false): string =>
     `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${dim ? '#141a3c' : '#1b2148'}" stroke="${dim ? '#2b3467' : '#f2c200'}" stroke-width="2"/>` +
     (label ? `<text x="${cx}" y="${cy + (sub ? 2 : 5)}" text-anchor="middle" font-size="13" font-weight="800" fill="#eef0ff" font-family="${font}">${escapeHtml(label)}</text>` : '') +
     (sub ? `<text x="${cx}" y="${cy + 15}" text-anchor="middle" font-size="9" fill="#929bd0" font-family="ui-monospace,monospace">${escapeHtml(sub)}</text>` : '');
-  const caption = (x: number, y: number, text: string): string =>
-    `<text x="${x}" y="${y}" text-anchor="middle" font-size="10" font-weight="800" letter-spacing=".08em" fill="#eef0ff" font-family="${font}">${escapeHtml(text)}</text>`;
+  const caption = (x: number, y: number, text: string, sub = ''): string =>
+    `<text x="${x}" y="${y}" text-anchor="middle" font-size="10" font-weight="800" letter-spacing=".08em" fill="#eef0ff" font-family="${font}">${escapeHtml(text)}</text>` +
+    (sub ? `<text x="${x}" y="${y + 12}" text-anchor="middle" font-size="9" fill="#929bd0" font-family="ui-monospace,monospace">${escapeHtml(sub)}</text>` : '');
   const parts: string[] = [];
-  parts.push('<rect x="1" y="1" width="438" height="238" rx="18" fill="#0d1129" stroke="#2b3467" stroke-width="2"/>');
-  // the two small buttons sit on the top edge, away from the cluster: the
-  // first is start, the second the coin slot
+  parts.push('<rect x="1" y="1" width="578" height="238" rx="18" fill="#0d1129" stroke="#2b3467" stroke-width="2"/>');
+  // the two small buttons on the top edge: the first is start, the second the coin slot
   parts.push(button(40, 30, 10, ''), button(76, 30, 10, ''));
   parts.push(caption(40, 56, small[0]), caption(76, 56, small[1]));
+  // the trackball, left of the stick: a mouse to the browser
+  parts.push('<circle cx="62" cy="150" r="38" fill="#141a3c" stroke="#3ccf6a" stroke-width="2"/>');
+  parts.push('<circle cx="62" cy="150" r="30" fill="url(#ball)"/>');
+  parts.push('<ellipse cx="50" cy="136" rx="10" ry="6" fill="rgba(255,255,255,.35)"/>');
+  parts.push(caption(62, 212, 'TRACKBALL', 'mouse'));
   // directions: three in a row plus the thumb
-  parts.push(button(52, 132, 21, '←', 'left'));
-  parts.push(button(102, 116, 21, '↓', 'down'));
-  parts.push(button(152, 132, 21, '→', 'right'));
-  parts.push(button(126, 194, 23, '↑', 'up'));
-  // the two action rows, arched like a real panel; a column past the mapped
-  // six stays dim
-  const rowX = [218, 270, 322, 374];
+  parts.push(button(152, 132, 21, '←', 'left'));
+  parts.push(button(202, 116, 21, '↓', 'down'));
+  parts.push(button(252, 132, 21, '→', 'right'));
+  parts.push(button(226, 194, 23, '↑', 'up'));
+  // the two action rows, arched like a real panel; a column past the mapped six stays dim
+  const rowX = [318, 370, 422, 474];
   const arch = [0, 16, 22, 12];
   [top, bottom].forEach((row, r) => {
     rowX.forEach((x, i) => {
@@ -191,7 +201,13 @@ function fightBoxSvg(top: string[], bottom: string[], small: [string, string]): 
       parts.push(button(x, (r ? 168 : 110) - arch[i]!, 23, label ?? '', sub ?? '', !label));
     });
   });
-  return `<svg class="art" viewBox="0 0 440 240" role="img" aria-label="Leverless fight box layout">${parts.join('')}</svg>`;
+  // the spinner, top right: a knob with a pointer, also a mouse axis
+  parts.push('<circle cx="540" cy="112" r="22" fill="#141a3c" stroke="#3ccf6a" stroke-width="2"/>');
+  parts.push('<circle cx="540" cy="112" r="14" fill="#1b2148" stroke="#3ccf6a" stroke-width="1.5"/>');
+  parts.push('<line x1="540" y1="112" x2="550" y2="101" stroke="#eef0ff" stroke-width="2.5" stroke-linecap="round"/>');
+  parts.push(caption(540, 150, 'SPINNER', 'mouse'));
+  const defs = '<defs><radialGradient id="ball" cx="40%" cy="35%" r="65%"><stop offset="0" stop-color="#4f5c9e"/><stop offset="1" stop-color="#0b0e22"/></radialGradient></defs>';
+  return `<svg class="art" viewBox="0 0 580 240" role="img" aria-label="Fight box layout with trackball and spinner">${defs}${parts.join('')}</svg>`;
 }
 
 export function homePageHtml(data: HomeData): string {
@@ -264,10 +280,11 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
       <p class="note">Control is never bound: macOS takes Ctrl+Arrow for itself.</p>
     </div>
     <div class="pad">
-      <h3><small>Plug and play</small>Gamepad &amp; fight stick</h3>
-      <p>Any pad the browser recognises as a Standard Gamepad works. We test on the <b>FightBox R10-Pro</b> in XInput mode: the top row is the punches (light, medium, heavy), the bottom row the kicks, the first small button starts and the second inserts a coin. A second pad is player two.</p>
+      <h3><small>Plug and play</small>Gamepad, fight stick, spinner &amp; trackball</h3>
+      <div class="partner"><span class="mark">🕹</span><span><b>Works with the FightBox R10-Pro</b><em>Unofficial. We build and test on one; FightBox is not affiliated with MAME History.</em></span></div>
+      <p>Any pad the browser recognises as a Standard Gamepad works: the top row is the punches (light, medium, heavy), the bottom row the kicks, the first small button starts and the second inserts a coin. A second pad is player two. The spinner and trackball reach the browser as a mouse, and every dial and trackball machine takes them at MAME's own sensitivity, smoothed across the frame the way MAME does it.</p>
       ${art}
-      <p class="note">Press any button after the game opens: browsers keep a pad hidden until it is touched. Games with fewer buttons fold the bottom row onto the top. The R10-Pro's spinner and trackball arrive as a mouse, and dial games such as Arkanoid take them too: click the screen to capture it, Esc to let go.</p>
+      <p class="note">Press any button after the game opens: browsers keep a pad hidden until it is touched. Games with fewer buttons fold the bottom row onto the top. On a spinner or trackball game, click the screen to capture the pointer so the cursor stays put; Esc lets go.</p>
     </div>
   </div>
 </section>

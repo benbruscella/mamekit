@@ -74,6 +74,9 @@ assert.match(html, />RT<\/text>/, 'heavy kick sits on RT');
 assert.match(html, />START<\/text>/);
 assert.match(html, />COIN<\/text>/);
 assert.match(html, /FightBox R10-Pro/);
+assert.match(html, /Unofficial\. We build and test on one; FightBox is not affiliated/, 'the partnership is plainly unofficial');
+assert.match(html, />TRACKBALL<\/text>/);
+assert.match(html, />SPINNER<\/text>/);
 
 // Emitting reads the generated tree: meta.json per machine, covers by file.
 const outRoot = mkdtempSync(join(tmpdir(), 'mamekit-home-'));
