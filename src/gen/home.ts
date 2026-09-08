@@ -267,7 +267,7 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
       <h3><small>Plug and play</small>Gamepad &amp; fight stick</h3>
       <p>Any pad the browser recognises as a Standard Gamepad works. We test on the <b>FightBox R10-Pro</b> in XInput mode: the top row is the punches (light, medium, heavy), the bottom row the kicks, the first small button starts and the second inserts a coin. A second pad is player two.</p>
       ${art}
-      <p class="note">Press any button after the game opens: browsers keep a pad hidden until it is touched. Games with fewer buttons fold the bottom row onto the top.</p>
+      <p class="note">Press any button after the game opens: browsers keep a pad hidden until it is touched. Games with fewer buttons fold the bottom row onto the top. The R10-Pro's spinner and trackball arrive as a mouse, and dial games such as Arkanoid take them too: click the screen to capture it, Esc to let go.</p>
     </div>
   </div>
 </section>

@@ -6,6 +6,7 @@ import { createBoard } from './generated-board.ts';
 import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { GamepadInput, padName } from './gamepad.ts';
+import { PointerInput } from './pointer.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig, CassetteMedia } from './types.ts';
@@ -804,7 +805,29 @@ export async function runShell(
   const pads = new GamepadInput(input, cfg.bindings, () => navigator.getGamepads?.() ?? []);
   pads.debug = input.debug;
   pads.attach(window);
-  pads.onChange(() => ui.controls(controlsHelp(cfg, pads)));
+  // A spinner or trackball is a mouse to the browser: pointer travel over
+  // the screen turns the machine's dials, scaled by MAME's own sensitivity.
+  const pointer = new PointerInput(input, cfg.bindings);
+  pointer.debug = input.debug;
+  pointer.attach(ui.canvas);
+  // The legend is first drawn before either source exists; redraw it now
+  // that both do, and again whenever a pad or the pointer capture changes.
+  ui.controls(controlsHelp(cfg, pads, pointer));
+  pointer.onChange(() => ui.controls(controlsHelp(cfg, pads, pointer)));
+  // A pad arriving or leaving is announced three ways: the badge beside the
+  // title while it is here, a toast over the screen the moment it changes,
+  // and the legend naming its buttons.
+  let knownPads = new Map<number, string>();
+  pads.onChange(connected => {
+    ui.controls(controlsHelp(cfg, pads, pointer));
+    const label = (pad: { id: string; player: number }): string =>
+      `${padName(pad.id)}${connected.length > 1 || pad.player > 1 ? ` (player ${pad.player})` : ''}`;
+    ui.pads(connected.map(pad => `${label(pad)} connected`));
+    const now = new Map(connected.map(pad => [pad.index, label(pad)]));
+    for (const [index, name] of now) if (!knownPads.has(index)) ui.toast(`🎮 ${name} connected as player ${connected.find(pad => pad.index === index)!.player}`);
+    for (const [index, name] of knownPads) if (!now.has(index)) ui.toast(`🎮 ${name} disconnected`);
+    knownPads = now;
+  });
 
   const audio = new AudioOutput();
   // Counted, not just forwarded: browser QA compares these against the token's
@@ -854,6 +877,7 @@ export async function runShell(
   const runFrame = (): void => {
     pads.poll();
     input.advance();
+    pointer.advance();
     board.frame(fb);
     // Fast-forward outruns the worklet, and a queued frame is permanent
     // latency rather than a dropped one, so its audio is discarded instead.
@@ -875,7 +899,7 @@ export async function runShell(
 
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
   (window as unknown as Record<string, unknown>).mamekit = {
-    board, input, pads, config: cfg, audio, regions,
+    board, input, pads, pointer, config: cfg, audio, regions,
     framebuffer: fb,
     step: stepFrames,
     qaDrive,
@@ -1156,7 +1180,7 @@ function fnLabel(label: string): string {
  * connected, each control also names the pad button that drives it, and the
  * pad itself is announced first.
  */
-function controlsHelp(cfg: ShellConfig, pads?: GamepadInput): string {
+function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: PointerInput): string {
   const parts: string[] = [];
   const dirKeys = new Set<string>();
   const dirPads = new Set<string>();
@@ -1184,6 +1208,11 @@ function controlsHelp(cfg: ShellConfig, pads?: GamepadInput): string {
   const connected = pads?.connected() ?? [];
   const head = connected.map(pad =>
     `🎮 ${padName(pad.id)}${connected.length > 1 ? ` (player ${pad.player})` : ''} connected`);
+  // A dial or trackball also takes the mouse -- which is what a spinner is.
+  if (pointer?.active) {
+    const roles = [...new Set(pointer.bindings().map(b => fnLabel(b.label).replace(/ (left|right|up|down)$/i, '')))];
+    parts.push(`Mouse or spinner: ${roles.join(', ')}${pointer.isCaptured ? ' (Esc releases)' : ' (click screen to capture)'}`);
+  }
   if (cfg.kind === 'computer') {
     const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
     return [...head, 'Keyboard: type directly', ...specialKeys, 'Esc: menu'].join(' · ');
@@ -1206,8 +1235,14 @@ function buildDom(cfg: ShellConfig) {
 
   const h1 = document.createElement('h1');
   h1.textContent = cfg.title;
-  h1.style.cssText = 'font-size:15px;font-weight:600;margin:0';
+  h1.style.cssText = 'font-size:15px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center';
   if (cfg.preview) h1.appendChild(betaBadge());
+  // Controller badge: a pad in hand should be unmistakable, not a word in
+  // the legend. Filled by ui.pads() as pads come and go.
+  const padBadge = document.createElement('span');
+  padBadge.dataset.pads = '';
+  padBadge.style.cssText = 'display:none;align-items:center;gap:6px;background:#1f6f3a;color:#dfffe6;border:1px solid #3ccf6a;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;letter-spacing:.02em';
+  h1.appendChild(padBadge);
   root.appendChild(h1);
 
   // cabinet column: screen inside cropped bezel art — no banner/marquee or
@@ -1280,12 +1315,20 @@ function buildDom(cfg: ShellConfig) {
   overlay.textContent = 'Loading…';
   holder.appendChild(overlay);
 
+  // Toast over the screen for a moment: "controller connected" and the like.
+  const toast = document.createElement('div');
+  toast.dataset.toast = '';
+  toast.style.cssText = 'position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#f2c200;color:#1b1b1b;font-weight:800;font-size:13px;padding:10px 16px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;z-index:5;opacity:0;transition:opacity .25s;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis';
+  holder.appendChild(toast);
+  let toastTimer = 0;
+
   const statusEl = document.createElement('div');
   statusEl.style.cssText = 'color:#999;min-height:1.4em;max-width:640px;text-align:center';
   statusEl.textContent = 'Loading…';
   root.appendChild(statusEl);
 
   const help = document.createElement('div');
+  help.dataset.help = ''; // stable handle for browser QA
   help.style.cssText = 'color:#666';
   help.textContent = controlsHelp(cfg);
   root.appendChild(help);
@@ -1298,9 +1341,24 @@ function buildDom(cfg: ShellConfig) {
 
   return {
     overlay,
+    /** the machine's screen, for pointer capture */
+    canvas,
     addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
     /** replace the controls hint, e.g. when a gamepad arrives or leaves */
     controls: (text: string) => { help.textContent = text; fit(); },
+    /** show the connected pads beside the title; an empty list hides the badge */
+    pads: (names: string[]) => {
+      padBadge.style.display = names.length ? 'inline-flex' : 'none';
+      padBadge.textContent = names.length ? `🎮 ${names.join(' · ')}` : '';
+      fit();
+    },
+    /** flash a message over the screen for a few seconds */
+    toast: (text: string) => {
+      toast.textContent = text;
+      toast.style.opacity = '1';
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+    },
     status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none' && !overlay.querySelector('[data-dropzone]')) overlay.textContent = text; },
     overlayHide: () => { overlay.style.display = 'none'; },
     /** adopt the board's real framebuffer size when it differs from config */

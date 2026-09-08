@@ -459,6 +459,10 @@ own fractional line position for the same reason.
   mapped onto MAME input types and polled once per emulated frame, so which
   fields a pad drives comes from the generated bindings' `type`, never from a
   device or a game;
+- `pointer.ts`: the third source -- mouse travel over the screen (a spinner
+  or arcade trackball is a USB mouse) turns the generated relative pairs
+  (dials, trackballs) by MAME's own `PORT_SENSITIVITY`, one pixel per
+  sensitivity/100 units with the fraction carried across frames;
 - `audio.ts`: Web Audio startup and generated worklet transport;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;

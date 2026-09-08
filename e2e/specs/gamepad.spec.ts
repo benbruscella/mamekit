@@ -56,9 +56,14 @@ test.describe(`${game} gamepad`, () => {
     const legend = page.locator('body');
 
     await expect(legend).not.toContainText('🎮');
+    const badge = page.locator('[data-pads]');
+    await expect(badge).toBeHidden();
     await setPad([]);
     await step();
     await expect(legend, 'the legend announces the pad').toContainText('🎮 Synthetic Pad connected');
+    await expect(badge, 'the badge beside the title names the pad').toBeVisible();
+    await expect(badge).toContainText('Synthetic Pad connected');
+    await expect(page.locator('[data-toast]'), 'a toast flashes over the screen').toHaveText('🎮 Synthetic Pad connected as player 1');
 
     // Start is the coin slot on every cabinet, so it is the one control
     // every arcade contract has.
@@ -94,7 +99,11 @@ test.describe(`${game} gamepad`, () => {
     await unplug();
     await step();
     expect((await probe(page, 'IPT_COIN1'))!.value & coinRest!.mask, 'unplug releases').toBe(releasedBits(coinRest!));
-    await expect(legend).not.toContainText('🎮');
+    // The toast keeps its last words while it fades, so the withdrawal is
+    // read from the legend line and the badge, not the whole page.
+    await expect(page.locator('[data-help]')).not.toContainText('🎮');
+    await expect(badge, 'the badge goes with the pad').toBeHidden();
+    await expect(page.locator('[data-toast]')).toHaveText('🎮 Synthetic Pad disconnected');
     expect(faults.errors).toEqual([]);
   });
 });

@@ -1938,17 +1938,23 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         const keyDelta = mods
           .map(modifier => /PORT_KEYDELTA\s*\(\s*([^\)]+)\)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
+        // PORT_SENSITIVITY scales a relative device's travel (ioport.cpp
+        // apply_sensitivity): one mouse pixel is sensitivity/100 port units.
+        const sensitivityMod = mods
+          .map(modifier => /PORT_SENSITIVITY\s*\(\s*([^\)]+)\)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
+        const sensitivity = sensitivityMod ? sourceNumber(sensitivityMod[1]!) : 100;
         const named = portLabel(mods);
         if (type === 'IPT_DIAL') {
           if (player !== 1) continue;
           const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
           bindings.push({
             port: tag, mask, keys: ['ArrowLeft'], label: named ? `${named} Left` : `${type}_LEFT`,
-            type: `${type}_LEFT`, activeLow: false, relativeDelta: -delta,
+            type: `${type}_LEFT`, activeLow: false, relativeDelta: -delta, sensitivity,
           });
           bindings.push({
             port: tag, mask, keys: ['ArrowRight'], label: named ? `${named} Right` : `${type}_RIGHT`,
-            type: `${type}_RIGHT`, activeLow: false, relativeDelta: delta,
+            type: `${type}_RIGHT`, activeLow: false, relativeDelta: delta, sensitivity,
           });
           continue;
         }
@@ -1971,6 +1977,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             type: `${type}_${negativeName.toUpperCase()}`,
             activeLow: false,
             relativeDelta: negative,
+            sensitivity,
           });
           bindings.push({
             port: tag,
@@ -1980,6 +1987,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             type: `${type}_${positiveName.toUpperCase()}`,
             activeLow: false,
             relativeDelta: positive,
+            sensitivity,
           });
           continue;
         }

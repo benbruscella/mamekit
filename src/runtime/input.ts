@@ -48,6 +48,11 @@ export interface FieldBinding {
   activeValue?: number;
   /** Relative masked delta applied each emulated frame while held. */
   relativeDelta?: number;
+  /**
+   * MAME's PORT_SENSITIVITY for a relative control, percent: one pixel of
+   * mouse, spinner or trackball travel moves the port this/100 units.
+   */
+  sensitivity?: number;
 }
 
 export interface DipDefault { port: string; mask: number; value: number; name: string }
@@ -184,6 +189,18 @@ export class KeyboardInput implements InputPorts {
   press(binding: FieldBinding, down: boolean, source = 'press'): void {
     const field = this.byBinding.get(binding);
     if (field) this.drive(field, down, false, source);
+  }
+
+  /**
+   * Move a relative control by a whole number of port units, as a spinner,
+   * trackball or mouse does: no hold, no per-frame ramp, just the distance
+   * travelled this frame, wrapped within the field's mask like `advance()`.
+   */
+  nudge(binding: FieldBinding, units: number): void {
+    const field = this.byBinding.get(binding);
+    if (!field || field.relativeDelta === undefined || !units) return;
+    const current = this.state[field.port] & field.mask;
+    this.state[field.port] = (this.state[field.port] & ~field.mask) | ((current + units) & field.mask);
   }
 
   private drive(h: Field, down: boolean, repeat: boolean, source: string): void {

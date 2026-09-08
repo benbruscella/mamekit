@@ -18,6 +18,7 @@ e2e/
 │   ├── arcade.spec.ts     every accepted machine, boot -> coin -> play
 │   ├── console.spec.ts    the console room: tab, shelf, cartridge fetch
 │   ├── gamepad.spec.ts    a synthetic Standard Gamepad through the shell's poll
+│   ├── pointer.spec.ts    real mouse travel over the screen turning a dial (spinner)
 │   └── rom-search.spec.ts opt-in: is the romset findable on the web
 ├── support/
 │   ├── contracts.ts       the src/games inventory, as data
