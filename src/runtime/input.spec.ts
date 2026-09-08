@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { KeyboardInput, portHandlers } from './input.ts';
+import { KeyboardInput, portHandlers, type FieldBinding } from './input.ts';
 
 function keyEvent(type: 'keydown' | 'keyup', code: string, repeat = false): Event {
   const event = new Event(type, { cancelable: true });
@@ -153,3 +153,54 @@ console.log('input.spec: press() edges and release listeners passed');
   t.dispatchEvent(keyEvent('keyup', 'KeyX'));
   assert.equal(shared.read('IN0'), 0xff);
 }
+
+// Frame interpolation: with the board reporting its progress through the
+// frame, a relative port hands out the frame's travel gradually (MAME's
+// frame_interpolate), so a counter read four times a frame sees a quarter
+// of the distance each time; without a fraction it is the plain end value.
+{
+  const dial: FieldBinding[] = [
+    { port: 'TB', mask: 0xf0, keys: ['ArrowLeft'], label: 'IPT_TRACKBALL_X_LEFT', type: 'IPT_TRACKBALL_X_LEFT', activeLow: false, relativeDelta: -1 },
+    { port: 'TB', mask: 0xf0, keys: ['ArrowRight'], label: 'IPT_TRACKBALL_X_RIGHT', type: 'IPT_TRACKBALL_X_RIGHT', activeLow: false, relativeDelta: 1 },
+    { port: 'TB', mask: 0x01, keys: ['KeyX'], label: 'IPT_BUTTON1', type: 'IPT_BUTTON1' },
+  ];
+  const tb = new KeyboardInput(dial, [], [{ tag: 'TB', init: 0x01 }]);
+  let fraction = 1;
+  tb.frameFraction = () => fraction;
+  tb.advance();
+  tb.nudge(dial[1]!, 12); // 12 units this frame, in the high nibble
+  fraction = 0;
+  assert.equal(tb.read('TB'), 0x01, 'at the top of the frame the counter has not moved');
+  fraction = 0.25;
+  assert.equal(tb.read('TB'), 0x31, 'a quarter in, a quarter of the travel');
+  fraction = 0.5;
+  assert.equal(tb.read('TB'), 0x61);
+  fraction = 1;
+  assert.equal(tb.read('TB'), 0xc1, 'between frames the full travel is there');
+  // The next frame starts from where the last one ended, and a counter that
+  // wraps interpolates the short way round.
+  tb.advance();
+  tb.nudge(dial[1]!, 8); // 12 + 8 = 20 -> wraps to 4
+  fraction = 0.5;
+  assert.equal(tb.read('TB'), 0x01, '12 + 4 = 16 wraps to 0 halfway');
+  // 12 forward on a 4-bit counter looks like 4 back; the frame's own signed
+  // travel, not the wrapped bytes, decides the direction.
+  tb.advance();
+  tb.nudge(dial[1]!, 12);
+  fraction = 0.25;
+  assert.equal(tb.read('TB'), 0x71, 'a quarter of +12 from 4 is 7, never 3');
+  tb.advance();
+  tb.nudge(dial[1]!, -12); // back to 4
+  fraction = 1;
+  assert.equal(tb.read('TB'), 0x41);
+  tb.advance();
+  tb.nudge(dial[1]!, -6);
+  fraction = 0.5;
+  assert.equal(tb.read('TB'), 0x11, 'backwards travel interpolates backwards');
+  // The button bit in the same port is untouched by the blend.
+  fraction = 0.5;
+  assert.equal(tb.read('TB') & 0x01, 0x01);
+  tb.frameFraction = null;
+  assert.equal(tb.read('TB'), 0xe1, 'no fraction, no interpolation');
+}
+console.log('input.spec: frame interpolation of relative controls passed');

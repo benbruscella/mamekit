@@ -70,8 +70,10 @@ const screen = {
   addEventListener: (name: string, fn: (event: unknown) => void) => listeners.set(`screen:${name}`, fn),
   requestPointerLock: () => { locked = screen as unknown as Element; listeners.get('doc:pointerlockchange')!({}); },
 } as unknown as HTMLElement;
+let focused = true;
 const doc = {
   get pointerLockElement() { return locked; },
+  hasFocus: () => focused,
   addEventListener: (name: string, fn: (event: unknown) => void) => listeners.set(`doc:${name}`, fn),
 } as unknown as Document;
 pointer.attach(screen, doc);
@@ -87,9 +89,11 @@ listeners.get('doc:pointerlockchange')!({});
 assert.deepEqual(changes, [true, false], 'Escape releases');
 listeners.get('doc:mousemove')!({ target: null, movementX: 10, movementY: 0 });
 pointer.advance();
-assert.equal(input.read('P1'), (start + 3) & 0xff, 'uncaptured movement elsewhere on the page is ignored');
-listeners.get('doc:mousemove')!({ target: screen, movementX: 10, movementY: 0 });
+assert.equal(input.read('P1'), (start + 6) & 0xff, 'uncaptured movement counts wherever the cursor is, as in MAME');
+focused = false;
+listeners.get('doc:mousemove')!({ target: null, movementX: 10, movementY: 0 });
 pointer.advance();
-assert.equal(input.read('P1'), (start + 6) & 0xff, 'uncaptured movement over the screen still counts');
+assert.equal(input.read('P1'), (start + 6) & 0xff, 'a page without focus is not being played');
+focused = true;
 
 console.log('pointer.spec: sensitivity scaling, carry, reverse, axis isolation, capture and release passed');

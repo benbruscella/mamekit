@@ -89,6 +89,18 @@ export class KeyboardInput implements InputPorts {
   /** opposite joystick direction per field id (LEFT<->RIGHT, UP<->DOWN) */
   private opposite = new Map<string, Field>();
   private releaseListeners: (() => void)[] = [];
+  /** ports holding a relative control, and their bytes as the frame began */
+  private relativePorts = new Set<string>();
+  private frameStart: Record<string, number> = {};
+  /** signed units each relative control (port:mask) has moved this frame */
+  private frameDelta = new Map<string, number>();
+  /**
+   * Progress through the frame being emulated, 0..1, when the host knows it.
+   * With it, a relative control's frame of travel is handed out gradually
+   * -- MAME's `frame_interpolate` -- so a game that reads its trackball
+   * counter several times a frame sees steps its 4-bit counter can carry.
+   */
+  frameFraction: (() => number) | null = null;
   /** when true, every key event + resulting port bytes go to the console */
   debug = false;
 
@@ -109,6 +121,7 @@ export class KeyboardInput implements InputPorts {
       };
       fields.push(f);
       this.byBinding.set(b, f);
+      if (f.relativeDelta !== undefined) this.relativePorts.add(f.port);
       for (const key of b.keys) {
         let list = this.byKey.get(key);
         if (!list) { list = []; this.byKey.set(key, list); }
@@ -149,12 +162,24 @@ export class KeyboardInput implements InputPorts {
    * OS preference and may be delayed, disabled, or absent in automation.
    */
   advance(): void {
+    // Where each relative port stood as the frame begins; every delta landed
+    // from here to the board's frame() is what this frame interpolates.
+    for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
+    this.frameDelta.clear();
     for (const field of this.fields) {
       if (field.relativeDelta === undefined || !this.isHeld(field)) continue;
-      const current = this.state[field.port] & field.mask;
-      this.state[field.port] = (this.state[field.port] & ~field.mask) |
-        ((current + field.relativeDelta) & field.mask);
+      this.travel(field, field.relativeDelta);
     }
+  }
+
+  /** move a relative control by signed units, wrapped in its mask, and log the frame's travel */
+  private travel(field: Field, units: number): void {
+    const shift = Math.log2(field.mask & -field.mask);
+    const current = (this.state[field.port] & field.mask) >>> shift;
+    const width = field.mask >>> shift;
+    this.state[field.port] = (this.state[field.port] & ~field.mask) | (((current + units) & width) << shift);
+    const key = `${field.port}:${field.mask}`;
+    this.frameDelta.set(key, (this.frameDelta.get(key) ?? 0) + units);
   }
 
   /** drive a field active (pressed) or back to its resting bits */
@@ -199,21 +224,16 @@ export class KeyboardInput implements InputPorts {
   nudge(binding: FieldBinding, units: number): void {
     const field = this.byBinding.get(binding);
     if (!field || field.relativeDelta === undefined || !units) return;
-    const current = this.state[field.port] & field.mask;
-    this.state[field.port] = (this.state[field.port] & ~field.mask) | ((current + units) & field.mask);
+    this.travel(field, units);
   }
 
   private drive(h: Field, down: boolean, repeat: boolean, source: string): void {
     if (h.relativeDelta !== undefined) {
       if (repeat) return;
       this.hold(h, source, down);
-      if (down) {
-        // Make a tap observable immediately; advance() supplies subsequent
-        // MAME-style per-frame deltas for as long as the key remains held.
-        const current = this.state[h.port] & h.mask;
-        this.state[h.port] = (this.state[h.port] & ~h.mask) |
-          ((current + h.relativeDelta) & h.mask);
-      }
+      // Make a tap observable immediately; advance() supplies subsequent
+      // MAME-style per-frame deltas for as long as the key remains held.
+      if (down) this.travel(h, h.relativeDelta);
       return;
     }
     if (repeat) return; // digital auto-repeat carries no new information
@@ -266,6 +286,7 @@ export class KeyboardInput implements InputPorts {
   /** release every input back to its resting byte (dips keep their value) */
   releaseAll(): void {
     for (const tag of Object.keys(this.state)) this.state[tag] = this.init[tag];
+    for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
     this.holds.clear();
     for (const field of this.fields) {
       if (field.toggle && this.toggled.get(this.fid(field))) this.apply(field, true);
@@ -274,7 +295,27 @@ export class KeyboardInput implements InputPorts {
   }
 
   read(tag: string): number {
-    return this.state[tag] ?? 0xff;
+    const value = this.state[tag] ?? 0xff;
+    if (!this.frameFraction || !this.relativePorts.has(tag)) return value;
+    const fraction = this.frameFraction();
+    if (fraction >= 1) return value;
+    const start = this.frameStart[tag] ?? value;
+    let blended = value;
+    const done = new Set<string>();
+    for (const field of this.fields) {
+      if (field.relativeDelta === undefined || field.port !== tag) continue;
+      const key = `${field.port}:${field.mask}`;
+      if (done.has(key)) continue;
+      done.add(key);
+      const delta = this.frameDelta.get(key) ?? 0;
+      if (!delta) continue;
+      const shift = Math.log2(field.mask & -field.mask);
+      const width = field.mask >>> shift;
+      const from = (start & field.mask) >>> shift;
+      const now = (from + Math.trunc(delta * fraction)) & width;
+      blended = (blended & ~field.mask) | (now << shift);
+    }
+    return blended;
   }
 
   setDip(port: string, mask: number, value: number): void {

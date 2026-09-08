@@ -183,4 +183,6 @@ export interface Board {
   frame(fb: Uint32Array): void;
   reset(): void;
   snapshot(): BoardSnapshot;
+  /** progress through the frame being emulated, 0..1; 1 between frames */
+  frameFraction?(): number;
 }

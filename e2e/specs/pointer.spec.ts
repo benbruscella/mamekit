@@ -51,11 +51,19 @@ test.describe(`${game} pointer`, () => {
     await step();
     expect((await read()) & dial!.mask, 'the same travel left undoes it').toBe(rest & dial!.mask);
 
-    // Movement elsewhere on the page is not a spin.
+    // A spinner's cursor wanders off the screen at once, so movement
+    // anywhere on the focused page is a spin, as it is in MAME.
     await page.mouse.move(2, 2);
-    await page.mouse.move(60, 2);
     await step();
-    expect((await read()) & dial!.mask, 'off-screen movement is ignored').toBe(rest & dial!.mask);
+    const offscreen = await read();
+    await page.mouse.move(2 + pixels, 2, { steps: 5 });
+    await step();
+    // The jump to the corner leaves a fraction of a unit pending, so the
+    // next step may land one unit either side of the nominal distance.
+    const moved = (((await read()) - offscreen) * sign) & dial!.mask;
+    const nominal = Math.trunc(pixels * sensitivity / 100);
+    expect(moved, 'off-screen movement turns the dial too').toBeGreaterThanOrEqual(nominal - 1);
+    expect(moved).toBeLessThanOrEqual(nominal + 1);
 
     await expect(page.locator('body')).toContainText('spinner');
     expect(faults.errors).toEqual([]);

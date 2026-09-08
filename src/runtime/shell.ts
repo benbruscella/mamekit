@@ -873,6 +873,10 @@ export async function runShell(
   // window.mamekit and can run a frame before the run loop is set up.
   let fastForward = false;
 
+  // The board says how far through a frame it is, so a dial's frame of
+  // travel is handed out gradually, as MAME does, instead of in one lump.
+  input.frameFraction = () => board.frameFraction?.() ?? 1;
+
   /** One emulated frame, without presenting it. */
   const runFrame = (): void => {
     pads.poll();
@@ -951,6 +955,9 @@ export async function runShell(
     addEventListener('keydown', resumeAudio, { once: true });
   }
   ui.overlayHide();
+  // A dial machine takes the mouse from here on; say so, and how to keep the
+  // cursor from wandering off while a spinner turns.
+  if (pointer.active) ui.toast('🖱 Spinner or trackball ready — click the screen to capture it, Esc releases');
 
   // --- fast-forward -------------------------------------------------------------
   //
@@ -1264,7 +1271,9 @@ function buildDom(cfg: ShellConfig) {
   holder.style.cssText = 'position:relative';
   const canvas = document.createElement('canvas');
   canvas.width = dispW; canvas.height = dispH;
-  canvas.style.cssText = 'image-rendering:pixelated;background:#000';
+  // No cursor over the screen: a spinner's cursor is noise, and an arcade
+  // monitor never had one.
+  canvas.style.cssText = 'image-rendering:pixelated;background:#000;cursor:none';
   canvas.dataset.screen = '1'; // stable handle for browser QA screenshots
 
   // optional cabinet bezel: the game canvas sits inside its transparent

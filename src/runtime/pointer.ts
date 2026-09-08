@@ -66,10 +66,7 @@ export class PointerInput {
 
   get isCaptured(): boolean { return this.captured; }
 
-  /**
-   * Accumulate pointer travel in pixels. Only movement while captured, or
-   * over the screen itself, counts; a mouse crossing the page is not a spin.
-   */
+  /** Accumulate pointer travel in pixels. */
   move(dx: number, dy: number): void {
     for (const axis of this.axes.x) axis.pending += dx;
     for (const axis of this.axes.y) axis.pending += dy;
@@ -95,21 +92,30 @@ export class PointerInput {
   }
 
   /**
-   * Listen on the screen. A click captures the pointer so a spinner can turn
-   * forever without the cursor leaving; Escape (the browser's own exit) hands
-   * it back. Movement over the screen counts even without capture, which is
-   * what a trackpad user gets without a click.
+   * Listen on the screen. As in MAME, every mouse movement while the page
+   * has focus turns the dial -- a spinner's cursor wanders wherever it
+   * likes, and where it is means nothing. A click on the cabinet captures
+   * the pointer so the cursor stops wandering at all; Escape (the browser's
+   * own exit) hands it back.
    */
   attach(screen: Element, doc: Document = document): void {
     if (!this.active) return;
     this.target = screen;
-    screen.addEventListener('click', () => {
-      if (doc.pointerLockElement !== screen) (screen as HTMLElement).requestPointerLock?.();
+    (screen.parentElement ?? screen).addEventListener('click', () => {
+      if (doc.pointerLockElement === screen) return;
+      // Raw counts, please: the OS's pointer acceleration turns a fast roll
+      // of a trackball into a lurch. Older browsers reject the option, and
+      // then the plain lock is still better than none.
+      const lock = screen as HTMLElement & { requestPointerLock?: (options?: { unadjustedMovement: boolean }) => Promise<void> | void };
+      const attempt = lock.requestPointerLock?.({ unadjustedMovement: true });
+      if (attempt && typeof (attempt as Promise<void>).catch === 'function') {
+        (attempt as Promise<void>).catch(() => lock.requestPointerLock?.());
+      }
     });
     doc.addEventListener('pointerlockchange', () => this.setCaptured(doc.pointerLockElement === screen));
     doc.addEventListener('mousemove', event => {
       const mouse = event as MouseEvent;
-      if (this.captured || mouse.target === this.target) this.move(mouse.movementX, mouse.movementY);
+      if (this.captured || doc.hasFocus()) this.move(mouse.movementX, mouse.movementY);
     });
   }
 
