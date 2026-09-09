@@ -50,11 +50,13 @@ test.describe(`${game} save states`, () => {
     // clean slate: a previous run's saves would make "latest" ambiguous
     for (const record of await saves(page).list()) await saves(page).remove(record.id);
 
-    // Into gameplay, then save through the deck button
+    // Into gameplay, then save through the title-line button. The shelf of
+    // saves only drops under the screen once asked for.
     const first = contract.actions[0];
     await stepAndHash(page, Math.max(120, first?.atFrame ?? 120) + 60);
     const before = await saves(page).list();
     await deck.getByRole('button', { name: /save state/i }).click();
+    await deck.getByRole('button', { name: /show saves/i }).click();
     await expect(page.locator('[data-saves-shelf] [data-save]')).toHaveCount(before.length + 1);
     const [record] = await saves(page).list();
     expect(record?.frame).toBeGreaterThan(0);
@@ -76,6 +78,7 @@ test.describe(`${game} save states`, () => {
     // freshly booted machine.
     await page.reload();
     await bootGame(page, contract, { qa: true });
+    await page.locator('[data-saves-deck]').getByRole('button', { name: /show saves/i }).click();
     await expect(page.locator('[data-saves-shelf] [data-save]')).toHaveCount(before.length + 2);
     const loaded = await saves(page).load(record!.id);
     if (!loaded) {

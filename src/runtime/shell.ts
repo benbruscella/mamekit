@@ -1007,8 +1007,11 @@ export async function runShell(
     load: state => { input.releaseAll(); board.load(state); audio.discard(); },
     screen: ui.canvas,
     toast: ui.toast,
+    refit: ui.refit,
+    showShelf: ui.addControls,
+    hideShelf: ui.removeControls,
   });
-  ui.addControls(saves.deck);
+  ui.addTitleControls(saves.deck);
   (window as unknown as { mamekit: Record<string, unknown> }).mamekit.saves = saves;
   addEventListener('keydown', event => {
     if (cfg.kind === 'computer' || event.code !== 'F7' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -1374,6 +1377,11 @@ function buildDom(cfg: ShellConfig) {
     /** the machine's screen, for pointer capture */
     canvas,
     addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
+    removeControls: (controls: HTMLElement) => { controls.remove(); fit(); },
+    /** a small control group beside the title: costs the screen no height */
+    addTitleControls: (controls: HTMLElement) => { h1.appendChild(controls); fit(); },
+    /** a control changed height (a deck opened or closed): give the screen what is left */
+    refit: () => fit(),
     /** replace the controls hint, e.g. when a gamepad arrives or leaves */
     controls: (text: string) => { help.textContent = text; fit(); },
     /** show the connected pads beside the title; an empty list hides the badge */
@@ -1773,6 +1781,11 @@ function saveStateDeck(options: {
   load: (state: MachineState) => void;
   screen: HTMLCanvasElement;
   toast: (text: string) => void;
+  /** the deck changed height: the screen takes what is left */
+  refit: () => void;
+  /** put the shelf under the screen, and take it away again */
+  showShelf: (shelf: HTMLElement) => void;
+  hideShelf: (shelf: HTMLElement) => void;
 }): {
   deck: HTMLElement;
   save(): Promise<SaveRecord | undefined>;
@@ -1782,20 +1795,60 @@ function saveStateDeck(options: {
   remove(id: string): Promise<void>;
 } {
   const { cfg, identity, toast } = options;
-  const deck = deckPanel('SAVE STATES');
+  // Three small buttons beside the title, so the screen keeps every pixel it
+  // had; the shelf of thumbnails drops under the screen only while it is open.
+  const deck = document.createElement('span');
   deck.setAttribute('data-saves-deck', '');
+  deck.setAttribute('role', 'group');
   deck.setAttribute('aria-label', 'Save states');
+  deck.style.cssText = 'display:inline-flex;align-items:center;gap:6px';
   for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
-  const saveButton = deckButton('💾 Save state', { solid: true });
-  saveButton.title = cfg.kind === 'computer' ? 'Capture the whole machine as it is now' : 'Capture the whole machine as it is now (Shift+F7)';
-  const loadButton = deckButton('⟲ Load latest');
-  loadButton.title = cfg.kind === 'computer' ? 'Put the machine back to the newest save' : 'Put the machine back to the newest save (F7)';
+  const mini = (text: string, label: string, title: string): HTMLButtonElement => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = text;
+    button.setAttribute('aria-label', label);
+    button.title = title;
+    paintMini(button, false);
+    return button;
+  };
+  const paintMini = (button: HTMLButtonElement, active: boolean): void => {
+    const enabled = !button.disabled;
+    button.style.cssText = `padding:2px 9px;border-radius:999px;font:700 11px ui-sans-serif,system-ui,sans-serif;
+      cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
+      ${active
+        ? `background:${DECK_GOLD};color:#1b1b1b;border:1px solid ${DECK_GOLD}`
+        : `background:${enabled ? '#111633' : '#0c0f26'};border:1px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}`;
+  };
+  const shortcut = (key: string) => cfg.kind === 'computer' ? '' : ` (${key})`;
+  const saveButton = mini('💾 Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`);
+  const loadButton = mini('⟲ Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`);
+  const toggle = mini('▸ Saves', 'Show saves', 'Show or hide the shelf of saves');
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.setAttribute('aria-controls', 'mamekit-saves-shelf');
+  const body = deckPanel('SAVE STATES');
+  body.id = 'mamekit-saves-shelf';
+  body.setAttribute('aria-label', 'Saves in this browser');
+  for (const type of ['keydown', 'keyup']) body.addEventListener(type, event => event.stopPropagation());
   const note = document.createElement('span');
   note.style.cssText = 'color:#7f8ac9;font-size:11px;flex-basis:100%;text-align:center';
   const shelf = document.createElement('div');
   shelf.dataset.savesShelf = '';
   shelf.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;justify-content:center;flex-basis:100%';
-  deck.append(saveButton, loadButton, note, shelf);
+  body.append(note, shelf);
+  deck.append(saveButton, loadButton, toggle);
+  let open = false;
+  const paintToggle = () => {
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.textContent = `${open ? '▾' : '▸'} ${records.length ? `${records.length} save${records.length === 1 ? '' : 's'}` : 'Saves'}`;
+    paintMini(toggle, open);
+  };
+  toggle.onclick = () => {
+    open = !open;
+    if (open) options.showShelf(body); else options.hideShelf(body);
+    paintToggle();
+    toggle.blur();
+  };
   const store = openSaveStore();
 
   const when = (createdAt: number): string => {
@@ -1832,7 +1885,8 @@ function saveStateDeck(options: {
         : `${records.length} save${records.length === 1 ? '' : 's'} in this browser` +
           (foreign ? ` · ${foreign} from another ROM set or build` : '');
     loadButton.disabled = !records.some(record => record.identity === identity);
-    setDeckButtonState(loadButton, false);
+    paintMini(loadButton, false);
+    paintToggle();
     shelf.replaceChildren(...records.map(record => {
       const card = document.createElement('div');
       card.dataset.save = record.id;
@@ -1859,6 +1913,7 @@ function saveStateDeck(options: {
       card.append(picture, caption, row);
       return card;
     }));
+    if (open) options.refit();
   };
 
   const saveNow = async (): Promise<SaveRecord | undefined> => {
