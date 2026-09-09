@@ -4,7 +4,7 @@
 // RANDOM/ALLPOT immediately, so this small front end mirrors the readable
 // register state and forwards writes to the worklet in frame order.
 
-import { deviceAliases, soundTags, type SoundRuntimeContext } from '../sound-runtime.ts';
+import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
 
 const ALLPOT = 0x08;
 const KBCODE = 0x09;
@@ -15,7 +15,7 @@ const SKSTAT = 0x0f;
 const AUDCTL = 0x08;
 const SKCTL = 0x0f;
 
-export function installPokeyRuntime(context: SoundRuntimeContext): { reset(): void } {
+export function installPokeyRuntime(context: SoundRuntimeContext): SoundRuntimeHooks {
   const tags = soundTags(context.sound);
   const registers = new Map(tags.map(tag => [tag, new Uint8Array(16)]));
   const random = new Map(tags.map(tag => [tag, 0x1ffff]));
@@ -71,5 +71,5 @@ export function installPokeyRuntime(context: SoundRuntimeContext): { reset(): vo
     }
   });
 
-  return { reset };
+  return { reset, state: { registers, random } };
 }

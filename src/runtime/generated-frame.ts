@@ -196,6 +196,11 @@ export class GeneratedFrameRunner {
     this.frames = 0;
   }
 
+  /** Save-state roots (machine-state.ts): the carries and counters, never the schedule. */
+  stateKeys(): readonly string[] {
+    return ['processors', 'periodicEvents', 'fineLines', 'frames'];
+  }
+
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
     let rendered = false;

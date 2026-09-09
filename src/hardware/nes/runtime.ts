@@ -51,6 +51,7 @@ export function installNesRuntime(context: SoundRuntimeContext): SoundRuntimeHoo
   };
 
   return {
+    state: { apu },
     tickCpu: (tag, cycles) => {
       if (tag !== cpu.tag || cycles <= 0) return;
       apu.tick(cycles);

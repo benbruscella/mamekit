@@ -1,8 +1,10 @@
 import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
+import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
 import {
   createDevice,
+  createGeneratedAttotime,
   generatedTimerBacklog,
   hasGeneratedDevice,
   type Device,
@@ -51,6 +53,7 @@ import type {
   BoardConfig,
   BoardSinks,
   BoardSnapshot,
+  MachineState,
   InputPorts,
   Regions,
 } from './types.ts';
@@ -169,6 +172,11 @@ class SerialEepromEr5911 {
 
   constructor(data: Uint8Array) {
     this.data = data.length ? data : new Uint8Array(128).fill(0xff);
+  }
+
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['data', 'state', 'cs', 'clk', 'di', 'bits', 'accumulator', 'address', 'shift', 'locked'];
   }
 
   read(method: string): number {
@@ -302,6 +310,18 @@ export function pulseGeneratedCpuInputLine(cpu: Cpu, line: number): void {
 }
 
 /** What a generated call received, unwrapping a reference parameter's l-value. */
+/** Value objects a driver's state may hold, rebuilt from a save (machine-state.ts). */
+const STATE_FACTORIES = new Map<string, (data: Record<string, unknown>) => object>([
+  ['attotime', data => generatedAttotime(Number(data.seconds) || 0)],
+  ['device-attotime', data => createGeneratedAttotime(Number(data.seconds) || 0)],
+]);
+
+function bytesEqual(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index++) if (left[index] !== right[index]) return false;
+  return true;
+}
+
 function generatedCallValue(value: unknown): unknown {
   return value && typeof value === 'object' &&
     typeof (value as { get?: unknown }).get === 'function'
@@ -369,6 +389,23 @@ class IrBoard implements Board {
   private readonly shares: Record<string, Uint8Array> = {};
   private readonly declarativeEeprom = new Map<string, SerialEepromEr5911>();
   private videoPrimitives?: GeneratedMameVideoPrimitives;
+  private video?: GeneratedVideoRenderer;
+  private readonly regions: Regions;
+  /**
+   * Every region as assembled, so a save carries only the ones the machine
+   * has written to (NVRAM, EEPROM data, code decrypted in place) and a load
+   * puts the rest back without the save having to say so.
+   */
+  private readonly pristineRegions: Record<string, Uint8Array> = {};
+  /**
+   * State that board-composed models (a hosted MCU's private RAM, a CTC's
+   * channels, a DMA's registers) keep between frames. Each model registers
+   * its record here through `hostModel()` so a save state reaches it; a
+   * closure variable would be invisible.
+   */
+  private readonly hostState: Record<string, object> = {};
+  /** Closures a CPU slot may hold (its interrupt vector source), restorable by name. */
+  private readonly stateFunctions = new Map<string, (...args: never[]) => unknown>();
   /** Typed effects bound per callback id; see generated-effects.ts. */
   private effects: Map<string, BoundEffect> = new Map();
   private readonly frameRunner: GeneratedFrameRunner;
@@ -435,6 +472,7 @@ class IrBoard implements Board {
   ) {
     this.machine = machine;
     this.inputs = inputs;
+    this.regions = regions;
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
     // The first line boundary is the beam arriving at line 0 with nothing run
@@ -1313,7 +1351,7 @@ class IrBoard implements Board {
       const mask = specification.mask ?? 0xffff;
       const busAddress = (address: number) =>
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
-      let previousTimingCycles = 0;
+      const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       const cpu = createCpu(type, {
         read: address => bus.read(busAddress(address)),
@@ -1353,9 +1391,9 @@ class IrBoard implements Board {
             // deltas lets device timers assert lines between instructions,
             // matching MAME's scheduler instead of batching every edge at the
             // next scanline boundary.
-            if (current < previousTimingCycles) previousTimingCycles = 0;
-            advanceTimedHardware((current - previousTimingCycles) / timerClockHz);
-            previousTimingCycles = current === target ? 0 : current;
+            if (current < timing.previousCycles) timing.previousCycles = 0;
+            advanceTimedHardware((current - timing.previousCycles) / timerClockHz);
+            timing.previousCycles = current === target ? 0 : current;
           }
         },
         signal: (signal, state) => {
@@ -1406,7 +1444,7 @@ class IrBoard implements Board {
       const acknowledge = machine.callbacks.find(callback =>
         callback.ownerTag === specification.tag &&
         callback.signal === 'set_irq_acknowledge_callback');
-      const interruptVector = (): number => this.interruptVector(specification.tag);
+      const interruptVector = this.irqVectorSource(specification.tag);
       // A CPU is a MAME device like any other, and a driver reaches into it by
       // name: the Game Boy's 0xffff register is `m_maincpu->set_ie(data)`, and
       // its interrupt enable lives nowhere else. Every method the core lowered
@@ -1615,7 +1653,12 @@ class IrBoard implements Board {
     // several input transitions before the peripheral observes any of them.
     // Deliver source clocks at instruction boundaries, as for device timers.
     const synchronizedProcessors = [...hostedProcessors, ...autonomousProcessors];
-    const hostedCarry = new Map(synchronizedProcessors.map(processor => [processor.tag, 0]));
+    // The fractional cycles each processor is owed between instruction-time
+    // deliveries; registered so a save state carries it (machine-state.ts).
+    const hostedCarry = this.hostModel(
+      'hostedCarry',
+      new Map(synchronizedProcessors.map(processor => [processor.tag, 0])),
+    );
     tickHostedProcessors = seconds => {
       if (!(seconds > 0)) return;
       for (const processor of synchronizedProcessors) {
@@ -1828,6 +1871,7 @@ class IrBoard implements Board {
           }
         : undefined;
       video = new GeneratedVideoRenderer(machine, primitives, deviceUpdate);
+      this.video = video;
     }
     this.frameRunner = new GeneratedFrameRunner({
       machine,
@@ -2011,6 +2055,25 @@ class IrBoard implements Board {
     // Construction assigned into the calls table freely; any handler runtime
     // prepared during it re-resolves its links on the next dispatch.
     noteCallLinksChanged();
+    for (const [tag, bytes] of Object.entries(regions)) this.pristineRegions[tag] = bytes.slice();
+  }
+
+  /** The one closure that answers a CPU's interrupt acknowledge with the board's vector. */
+  private irqVectorSource(tag: string): () => number {
+    const name = `irqVector:${tag}`;
+    let source = this.stateFunctions.get(name) as (() => number) | undefined;
+    if (!source) {
+      source = namedStateFunction(name, () => this.interruptVector(tag));
+      this.stateFunctions.set(name, source);
+    }
+    return source;
+  }
+
+  /** Register a board-composed model's state record; see `hostState`. */
+  private hostModel<T extends object>(name: string, initial: T): T {
+    if (this.hostState[name]) throw new Error(`${this.machine.game}: host model "${name}" registered twice`);
+    this.hostState[name] = initial;
+    return initial;
   }
 
   private configureHostedProcessor(
@@ -2020,8 +2083,11 @@ class IrBoard implements Board {
     firmware: Uint8Array,
     sinks: BoardSinks,
   ): () => boolean {
-    let resetHeld = false;
-    const ram = new Uint8Array(1 << (device.dataAddressBits() ?? 7));
+    const model = this.hostModel(`${tag}.hosted`, {
+      resetHeld: false,
+      ram: new Uint8Array(1 << (device.dataAddressBits() ?? 7)),
+    });
+    const ram = model.ram;
     device.bindCall('GETPC', () => (device.get('m_PA') << 6) + device.get('m_PC'));
     device.bindCall('GETEA', () => (device.get('m_X') << 4) + device.get('m_Y'));
     device.bindCall('INCPC', () => {
@@ -2120,11 +2186,11 @@ class IrBoard implements Board {
     });
     if (host.signalNames().includes('reset')) {
       host.on('reset', state => {
-        resetHeld = state !== 0;
-        if (resetHeld) device.reset();
+        model.resetHeld = state !== 0;
+        if (model.resetHeld) device.reset();
       });
     }
-    return () => !resetHeld;
+    return () => !model.resetHeld;
   }
 
   frame(framebuffer: Uint32Array): void {
@@ -2323,6 +2389,98 @@ class IrBoard implements Board {
         [...this.devices].map(([tag, device]) => [tag, device.get('m_q')]),
       ),
     };
+  }
+
+  /**
+   * Save-state roots (machine-state.ts): every container that changes as
+   * frames run. The IR, the buses' handler tables, effects, bindings and
+   * listeners are wiring and stay out.
+   */
+  stateKeys(): readonly string[] {
+    return [
+      'cpus', 'cpuBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
+      'cpuSliceCycles', 'devices', 'generatedBanks', 'observedTransportSeconds',
+      'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
+      'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
+      'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'watchdogFrames',
+      'inputLatchPrevious', 'pendingExidyCollisions', 'vicdualCoinPrevious',
+      'vicdualCoinFrames', 'neoGeoRtc', 'hostState',
+    ];
+  }
+
+  /** Buffers restored by name, so their many views carry no bytes of their own. */
+  private namedBuffers(): Map<ArrayBufferLike, string> {
+    const named = new Map<ArrayBufferLike, string>();
+    for (const [tag, bytes] of Object.entries(this.regions)) named.set(bytes.buffer, `region:${tag}`);
+    for (const [tag, bytes] of Object.entries(this.shares)) named.set(bytes.buffer, `share:${tag}`);
+    return named;
+  }
+
+  /** An emitted core's own fields are its state; it cannot declare them without a re-emit. */
+  private walkOwnKeys(): (value: object) => boolean {
+    const cores = new Set<object>(this.cpus.values());
+    return value => cores.has(value);
+  }
+
+  private walkOptions(onOpaque?: (path: string, value: object) => void): WalkOptions {
+    return {
+      namedBuffers: this.namedBuffers(),
+      walkOwnKeys: this.walkOwnKeys(),
+      functions: this.stateFunctions,
+      factories: STATE_FACTORIES,
+      onOpaque,
+    };
+  }
+
+  save(options: { onOpaque?: (path: string, value: object) => void } = {}): MachineState {
+    if (this.inFrame) throw new Error(`${this.machine.game}: cannot save mid-frame`);
+    const regions: Record<string, Uint8Array> = {};
+    for (const [tag, bytes] of Object.entries(this.regions)) {
+      const pristine = this.pristineRegions[tag];
+      if (!pristine || pristine.length !== bytes.length || !bytesEqual(pristine, bytes)) regions[tag] = bytes.slice();
+    }
+    const shares: Record<string, Uint8Array> = {};
+    for (const [tag, bytes] of Object.entries(this.shares)) shares[tag] = bytes.slice();
+    return {
+      format: 1,
+      game: this.machine.game,
+      frame: this.frameRunner.frameCount,
+      regions,
+      shares,
+      roots: captureState(this, this.walkOptions(options.onOpaque)),
+    };
+  }
+
+  load(state: MachineState): void {
+    if (state.format !== 1) throw new Error(`${this.machine.game}: unknown save format ${String(state.format)}`);
+    if (state.game !== this.machine.game) throw new Error(`save is for "${state.game}", this machine is "${this.machine.game}"`);
+    if (this.inFrame) throw new Error(`${this.machine.game}: cannot load mid-frame`);
+    const problems: string[] = [];
+    for (const [tag, bytes] of Object.entries(this.regions)) {
+      const saved = state.regions[tag] ?? this.pristineRegions[tag];
+      if (!saved) { problems.push(`region ${tag}: nothing to restore from`); continue; }
+      if (saved.length !== bytes.length) { problems.push(`region ${tag}: length ${bytes.length}, saved ${saved.length}`); continue; }
+      bytes.set(saved);
+    }
+    for (const tag of Object.keys(state.regions)) {
+      if (!this.regions[tag]) problems.push(`region ${tag}: saved, but this machine has none`);
+    }
+    for (const [tag, bytes] of Object.entries(this.shares)) {
+      const saved = state.shares[tag];
+      if (!saved) { problems.push(`share ${tag}: missing from the save`); continue; }
+      if (saved.length !== bytes.length) { problems.push(`share ${tag}: length ${bytes.length}, saved ${saved.length}`); continue; }
+      bytes.set(saved);
+    }
+    for (const tag of Object.keys(state.shares)) {
+      if (!this.shares[tag]) problems.push(`share ${tag}: saved, but this machine has none`);
+    }
+    const diagnostics = restoreState(this, state.roots, this.walkOptions());
+    for (const diagnostic of diagnostics) problems.push(`${diagnostic.path}: ${diagnostic.message}`);
+    if (problems.length) {
+      throw new Error(`${this.machine.game}: save state does not match this machine:\n  ${problems.join('\n  ')}`);
+    }
+    // Everything a handler runtime resolved from the state it had is stale.
+    noteCallLinksChanged();
   }
 
   /**
@@ -2565,14 +2723,17 @@ class IrBoard implements Board {
         edge: number;
         elapsedCycles: number;
       };
-      let vector = 0;
-      const channels: Channel[] = Array.from({ length: 4 }, () => ({
-        mode: 0x02,
-        constant: 0x100,
-        down: 0x100,
-        edge: 0,
-        elapsedCycles: 0,
-      }));
+      const ctc = this.hostModel(`${specification.tag}.ctc`, {
+        vector: 0,
+        channels: Array.from({ length: 4 }, (): Channel => ({
+          mode: 0x02,
+          constant: 0x100,
+          down: 0x100,
+          edge: 0,
+          elapsedCycles: 0,
+        })),
+      });
+      const channels = ctc.channels;
       const interrupt = machine.callbacks.find(callback =>
         callback.ownerTag === specification.tag &&
         callback.signal === 'intr_callback');
@@ -2601,7 +2762,7 @@ class IrBoard implements Board {
           const cpuTag = interrupt?.targetTag ?? machine.execution.cpus[0]?.tag;
           // HOLD_LINE is cleared by GeneratedCpu after the IM2 acknowledge,
           // matching the CTC daisy device's interrupt_check/irq_ack handshake.
-          this.cpus.get(cpuTag ?? '')?.setIrqLine(true, (vector + index * 2) & 0xff, true);
+          this.cpus.get(cpuTag ?? '')?.setIrqLine(true, (ctc.vector + index * 2) & 0xff, true);
         }
         for (const callback of zeroCrossings.filter(candidate =>
           (candidate.slot ?? 0) === index)) {
@@ -2623,7 +2784,7 @@ class IrBoard implements Board {
           channel.elapsedCycles = 0;
           channel.mode &= ~(0x04 | 0x02);
         } else if (!(data & 1) && index === 0) {
-          vector = data & 0xf8;
+          ctc.vector = data & 0xf8;
         } else if (data & 1) {
           channel.mode = data;
           if (data & 0x02) {
@@ -2634,7 +2795,7 @@ class IrBoard implements Board {
       };
       const read = (offset: number): number => channels[offset & 3]!.down & 0xff;
       const reset = (): void => {
-        vector = 0;
+        ctc.vector = 0;
         for (const channel of channels) Object.assign(channel, {
           mode: 0x02,
           constant: 0x100,
@@ -2696,9 +2857,8 @@ class IrBoard implements Board {
       // live outside the machine's reachable handler closure. Model that
       // small PPI here so the canonical unprotected Shinobi set can complete
       // its startup checks and enable the tile/sprite hardware.
-      const ports = new Uint8Array(3);
-      let control = 0x9b;
-      let soundLatch = 0;
+      const ppi = this.hostModel('sys16a.ppi', { ports: new Uint8Array(3), control: 0x9b, soundLatch: 0 });
+      const ports = ppi.ports;
       const shareWord = (tag: string, offset: number) => {
         const bytes = this.shares[tag];
         if (!bytes || offset < 0 || offset * 2 + 1 >= bytes.length) return 0xffff;
@@ -2718,7 +2878,7 @@ class IrBoard implements Board {
       const outputPort = (port: number) => {
         const data = ports[port]!;
         if (port === 0) {
-          soundLatch = data;
+          ppi.soundLatch = data;
           this.state.m_to_sound = data;
         } else if (port === 1) {
           this.state.m_video_control = data;
@@ -2742,7 +2902,7 @@ class IrBoard implements Board {
             outputPort(2);
           }
         } else if (data & 0x80) {
-          control = data;
+          ppi.control = data;
           ports.fill(0);
           ports[2] = 0x80;
           outputPort(0);
@@ -2757,7 +2917,7 @@ class IrBoard implements Board {
       registry.read['segas16a_state.misc_io_r'] = (_address, rawOffset) => {
         const offset = rawOffset & 0x1fff;
         switch (offset & 0x1800) {
-          case 0x0000: return (offset & 3) === 3 ? control : ports[offset & 3]!;
+          case 0x0000: return (offset & 3) === 3 ? ppi.control : ports[offset & 3]!;
           case 0x0800:
             return this.bindings.inputs?.read(['SERVICE', 'P1', 'UNUSED', 'P2'][offset & 3]!)
               ?? 0xff;
@@ -2780,7 +2940,7 @@ class IrBoard implements Board {
         // /OBF (PC7 high), which clears the held NMI until the next PA write.
         ports[2] = (ports[2]! & ~0x40) | 0x80;
         outputPort(2);
-        return soundLatch;
+        return ppi.soundLatch;
       };
       for (const [handler, share] of [
         ['segaic16vid.tileram', 'tileram'],
@@ -2797,8 +2957,8 @@ class IrBoard implements Board {
       const reset = () => {
         ports.fill(0);
         ports[2] = 0x80;
-        control = 0x9b;
-        soundLatch = 0;
+        ppi.control = 0x9b;
+        ppi.soundLatch = 0;
         this.state.m_to_sound = 0;
         this.state.m_video_control = 0;
         this.state.__flip_screen = 0;
@@ -2815,7 +2975,7 @@ class IrBoard implements Board {
       // bootstrap relocates ROM, video RAM, work RAM and I/O by programming
       // registers $10-$1f through any otherwise-unmapped low byte address.
       const rom = regions.maincpu ?? new Uint8Array(0);
-      const registers = new Uint8Array(0x20);
+      const registers = this.hostModel('sys16b.mapper', { registers: new Uint8Array(0x20) }).registers;
       const sizeMasks = [0x00ffff, 0x01ffff, 0x07ffff, 0x1fffff] as const;
       type MapperWindow = {
         kind: 'rom' | 'ram' | 'io';
@@ -2997,8 +3157,9 @@ class IrBoard implements Board {
       // strands OutRun in the first-stage bootstrap.
       const rom = regions.maincpu ?? new Uint8Array(0);
       const subRom = regions.subcpu ?? new Uint8Array(0);
-      const registers = new Uint8Array(0x20);
-      const ppi = new Uint8Array(4);
+      const mapper = this.hostModel('outrun.mapper', { registers: new Uint8Array(0x20), ppi: new Uint8Array(4) });
+      const registers = mapper.registers;
+      const ppi = mapper.ppi;
       // The road device's control method mutates an internal road_info
       // structure that is deliberately opaque to the generic machine-handler
       // executor.  The OutRun board uses only the low two control bits here;
@@ -3318,35 +3479,39 @@ class IrBoard implements Board {
       // through its real I/O port and gates execution with the main LS259's
       // RDY output. Transfers are completed synchronously at the bus boundary;
       // their register protocol and byte/address semantics match z80dma.cpp.
-      const registers = new Uint8Array(50);
-      const follow: number[] = [];
-      let followIndex = 0;
-      let status = 0;
-      let ready = 0;
-      let forceReady = false;
-      let enabled = false;
-      let addressA = 0;
-      let addressB = 0;
-      let count = 0;
-      let byteCounter = 0;
-      let readIndex = 0;
+      const dma = this.hostModel('z80dma', {
+        registers: new Uint8Array(50),
+        follow: [] as number[],
+        followIndex: 0,
+        status: 0,
+        ready: 0,
+        forceReady: false,
+        enabled: false,
+        addressA: 0,
+        addressB: 0,
+        count: 0,
+        byteCounter: 0,
+        readIndex: 0,
+      });
+      const registers = dma.registers;
+      const follow = dma.follow;
 
       const register = (group: number, slot: number) => (group << 3) + slot;
       const word = (low: number, high: number) =>
         ((registers[high] ?? 0) << 8) | (registers[low] ?? 0);
-      const isReady = () => forceReady || ready === ((registers[register(5, 0)]! >>> 3) & 1);
+      const isReady = () => dma.forceReady || dma.ready === ((registers[register(5, 0)]! >>> 3) & 1);
       const reset = () => {
         registers.fill(0);
         follow.length = 0;
-        followIndex = 0;
-        status = 0;
-        ready = 0;
-        forceReady = false;
-        enabled = false;
-        addressA = addressB = count = byteCounter = readIndex = 0;
+        dma.followIndex = 0;
+        dma.status = 0;
+        dma.ready = 0;
+        dma.forceReady = false;
+        dma.enabled = false;
+        dma.addressA = dma.addressB = dma.count = dma.byteCounter = dma.readIndex = 0;
       };
       const transfer = () => {
-        if (!enabled || !isReady()) return;
+        if (!dma.enabled || !isReady()) return;
         const bus = this.cpuBuses.get('maincpu');
         if (!bus) return;
         const wr0 = registers[register(0, 0)]!;
@@ -3357,45 +3522,45 @@ class IrBoard implements Board {
         const destinationMemory = !((portASource ? wr2 : wr1) & 0x08);
         // Mario uses memory-to-memory mode; retain open-bus semantics for an
         // unconnected I/O side so unsupported modes cannot mutate RAM wildly.
-        for (byteCounter = 0; byteCounter <= count && enabled && isReady(); byteCounter++) {
-          const source = portASource ? addressA : addressB;
-          const destination = portASource ? addressB : addressA;
+        for (dma.byteCounter = 0; dma.byteCounter <= dma.count && dma.enabled && isReady(); dma.byteCounter++) {
+          const source = portASource ? dma.addressA : dma.addressB;
+          const destination = portASource ? dma.addressB : dma.addressA;
           const value = sourceMemory ? bus.read(source) : 0xff;
           if (destinationMemory) bus.write(destination, value);
-          if (!(wr1 & 0x20)) addressA = (addressA + (wr1 & 0x10 ? 1 : -1)) & 0xffff;
-          if (!(wr2 & 0x20)) addressB = (addressB + (wr2 & 0x10 ? 1 : -1)) & 0xffff;
+          if (!(wr1 & 0x20)) dma.addressA = (dma.addressA + (wr1 & 0x10 ? 1 : -1)) & 0xffff;
+          if (!(wr2 & 0x20)) dma.addressB = (dma.addressB + (wr2 & 0x10 ? 1 : -1)) & 0xffff;
         }
-        enabled = false;
-        status = 0x19 | (Number(!isReady()) << 1);
+        dma.enabled = false;
+        dma.status = 0x19 | (Number(!isReady()) << 1);
         if (registers[register(5, 0)]! & 0x20) {
-          addressA = word(register(0, 1), register(0, 2));
-          addressB = word(register(4, 1), register(4, 2));
-          count = word(register(0, 3), register(0, 4));
-          byteCounter = 0;
-          enabled = true;
+          dma.addressA = word(register(0, 1), register(0, 2));
+          dma.addressB = word(register(4, 1), register(4, 2));
+          dma.count = word(register(0, 3), register(0, 4));
+          dma.byteCounter = 0;
+          dma.enabled = true;
         }
       };
       const enable = () => {
-        enabled = true;
+        dma.enabled = true;
         transfer();
       };
       const write = (data: number) => {
         data &= 0xff;
         if (follow.length) {
-          const next = follow[followIndex++]!;
+          const next = follow[dma.followIndex++]!;
           registers[next] = data;
           if (next === register(4, 3)) {
             follow.length = 0;
             if (data & 0x08) follow.push(register(4, 5));
             if (data & 0x10) follow.push(register(4, 4));
-            followIndex = 0;
-          } else if (followIndex >= follow.length) {
+            dma.followIndex = 0;
+          } else if (dma.followIndex >= follow.length) {
             follow.length = 0;
-            followIndex = 0;
+            dma.followIndex = 0;
           }
           return;
         }
-        followIndex = 0;
+        dma.followIndex = 0;
         if ((data & 0x87) === 0) {
           registers[register(2, 0)] = data;
           if (data & 0x40) follow.push(register(2, 1));
@@ -3423,44 +3588,44 @@ class IrBoard implements Board {
         } else if ((data & 0x83) === 0x83) {
           registers[register(6, 0)] = data;
           if (data === 0xcf) {
-            forceReady = false;
-            addressA = word(register(0, 1), register(0, 2));
-            addressB = word(register(4, 1), register(4, 2));
-            count = word(register(0, 3), register(0, 4));
-            byteCounter = 0;
-            status |= 0x30;
+            dma.forceReady = false;
+            dma.addressA = word(register(0, 1), register(0, 2));
+            dma.addressB = word(register(4, 1), register(4, 2));
+            dma.count = word(register(0, 3), register(0, 4));
+            dma.byteCounter = 0;
+            dma.status |= 0x30;
           } else if (data === 0x87) enable();
-          else if (data === 0x83) enabled = false;
-          else if (data === 0xb3) { forceReady = true; transfer(); }
-          else if (data === 0xbf) { registers[register(6, 1)] = 1; readIndex = 0; }
+          else if (data === 0x83) dma.enabled = false;
+          else if (data === 0xb3) { dma.forceReady = true; transfer(); }
+          else if (data === 0xbf) { registers[register(6, 1)] = 1; dma.readIndex = 0; }
           else if (data === 0xbb) follow.push(register(6, 1));
           else if (data === 0xc3) {
-            enabled = false;
-            forceReady = false;
-            status = 0x38;
+            dma.enabled = false;
+            dma.forceReady = false;
+            dma.status = 0x38;
           }
         }
       };
       const read = () => {
         const values = [
-          status,
-          byteCounter & 0xff,
-          byteCounter >>> 8,
-          addressA & 0xff,
-          addressA >>> 8,
-          addressB & 0xff,
-          addressB >>> 8,
+          dma.status,
+          dma.byteCounter & 0xff,
+          dma.byteCounter >>> 8,
+          dma.addressA & 0xff,
+          dma.addressA >>> 8,
+          dma.addressB & 0xff,
+          dma.addressB >>> 8,
         ];
-        const value = values[readIndex] ?? status;
+        const value = values[dma.readIndex] ?? dma.status;
         const mask = registers[register(6, 1)]!;
         if (mask && (mask & (mask - 1))) {
-          do readIndex = (readIndex + 1) & 7; while (!(mask & (1 << readIndex)));
+          do dma.readIndex = (dma.readIndex + 1) & 7; while (!(mask & (1 << dma.readIndex)));
         }
         return value & 0xff;
       };
       const readyWrite = (state: number) => {
-        ready = Number(Boolean(state));
-        status = (status & 0xfd) | (Number(!isReady()) << 1);
+        dma.ready = Number(Boolean(state));
+        dma.status = (dma.status & 0xfd) | (Number(!isReady()) << 1);
         transfer();
       };
       registry.read['z80dma.read'] = read;
@@ -4142,8 +4307,9 @@ class IrBoard implements Board {
       if (!region && !ownedEntries?.some(Boolean)) {
         throw new Error(`${machine.game}: memory bank "${bank.tag}" has no backing storage`);
       }
-      let entry = bank.initialEntry ?? bank.entryOffsets.findIndex(value => value !== null);
-      if (entry < 0) entry = 0;
+      const selection = this.hostModel(`bank.${bank.tag}`, {
+        entry: Math.max(0, bank.initialEntry ?? bank.entryOffsets.findIndex(value => value !== null)),
+      });
       const setEntry = (value: number): number => {
         const configured = bank.entryOffsets[value];
         if (configured === undefined || configured === null) {
@@ -4151,7 +4317,7 @@ class IrBoard implements Board {
             `${machine.game}: memory bank "${bank.tag}" selected invalid entry ${value}`,
           );
         }
-        entry = value;
+        selection.entry = value;
         return value;
       };
       this.bankEntry.set(bank.tag, setEntry);
@@ -4187,26 +4353,26 @@ class IrBoard implements Board {
         }
       }
       registry.read[`bank.${bank.tag}`] = (_address, offset) => {
-        const owned = ownedEntries?.[entry];
+        const owned = ownedEntries?.[selection.entry];
         if (owned) return owned[offset] ?? 0xff;
-        const entryRegionName = bank.entryRegions?.[entry] ?? bank.region;
+        const entryRegionName = bank.entryRegions?.[selection.entry] ?? bank.region;
         const entryRegion = entryRegionName ? regions[entryRegionName] : region;
         const base = bank.dynamicShift !== undefined && entryRegion
-          ? 0x10000 + ((entry << bank.dynamicShift) & ((entryRegion.length - 0x10001) & 0x3ffff))
-          : bank.entryOffsets[entry] ?? 0;
+          ? 0x10000 + ((selection.entry << bank.dynamicShift) & ((entryRegion.length - 0x10001) & 0x3ffff))
+          : bank.entryOffsets[selection.entry] ?? 0;
         return entryRegion?.[base + offset] ?? 0xff;
       };
       registry.write[`bank.${bank.tag}`] = (_address, offset, data) => {
-        const owned = ownedEntries?.[entry];
+        const owned = ownedEntries?.[selection.entry];
         if (owned) {
           if (offset >= 0 && offset < owned.length) owned[offset] = data;
           return;
         }
-        const entryRegionName = bank.entryRegions?.[entry] ?? bank.region;
+        const entryRegionName = bank.entryRegions?.[selection.entry] ?? bank.region;
         const entryRegion = entryRegionName ? regions[entryRegionName] : region;
         const base = bank.dynamicShift !== undefined && entryRegion
-          ? 0x10000 + ((entry << bank.dynamicShift) & ((entryRegion.length - 0x10001) & 0x3ffff))
-          : bank.entryOffsets[entry] ?? 0;
+          ? 0x10000 + ((selection.entry << bank.dynamicShift) & ((entryRegion.length - 0x10001) & 0x3ffff))
+          : bank.entryOffsets[selection.entry] ?? 0;
         const index = base + offset;
         if (entryRegion && index >= 0 && index < entryRegion.length) entryRegion[index] = data;
       };
@@ -4300,12 +4466,12 @@ class IrBoard implements Board {
       // exact latch path on the host input edge as well as through the Z80's
       // normal polling loop: the M58715 then reads soundlatch1 and renders the
       // original external sound ROM through its DAC.
-      let coinDown = false;
+      const coin = this.hostModel('mario.coin', { down: false });
       this.frameSound = () => {
         const active = Boolean(this.inputs.read('IN1') & 0x20);
-        if (active !== coinDown) {
+        if (active !== coin.down) {
           this.cpuBuses.get('maincpu')?.write(0x7f06, Number(active));
-          coinDown = active;
+          coin.down = active;
         }
       };
     }
@@ -4548,7 +4714,7 @@ class IrBoard implements Board {
             callback.signal === 'set_irq_acknowledge_callback');
           this.cpus.get(tag)?.setIrqLine(
             state !== 0,
-            acknowledge ? () => this.interruptVector(tag) : 0xff,
+            acknowledge ? this.irqVectorSource(tag) : 0xff,
             delivery === 'hold' && state !== 0,
           );
         };
@@ -4726,15 +4892,19 @@ export function generatedPromGateOpen(
 
 /** Minimal numeric attotime value for compiled device source methods. */
 function generatedAttotime(seconds: number): {
+  seconds: number;
   as_double(): number;
   as_ticks(frequency: number): number;
   valueOf(): number;
 } {
-  return {
+  // A value object a driver keeps in its state (m_interrupt_time = machine().time()):
+  // the seconds are data a save state carries, the methods come back from the factory.
+  return stateValue('attotime', {
+    seconds,
     as_double: () => seconds,
     as_ticks: frequency => Math.floor(seconds * Math.max(0, frequency)),
     valueOf: () => seconds,
-  };
+  });
 }
 
 /**

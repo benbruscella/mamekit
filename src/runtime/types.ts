@@ -185,4 +185,25 @@ export interface Board {
   snapshot(): BoardSnapshot;
   /** progress through the frame being emulated, 0..1; 1 between frames */
   frameFraction?(): number;
+  /** The whole machine, restorable by `load()` into a board of the same game and ROM set. */
+  save(): MachineState;
+  /** Write a `save()` back in place; throws, changing nothing further, if any part cannot be matched. */
+  load(state: MachineState): void;
+}
+
+/**
+ * A captured machine (see machine-state.ts). Structured-clone friendly, so
+ * IndexedDB stores it as it is; nothing in it is a ROM byte the visitor did
+ * not already supply.
+ */
+export interface MachineState {
+  format: 1;
+  game: string;
+  frame: number;
+  /** Regions whose bytes moved since assembly: NVRAM, EEPROM data, decrypted-in-place code. */
+  regions: Record<string, Uint8Array>;
+  /** Every board share, whole. */
+  shares: Record<string, Uint8Array>;
+  /** The walked runtime containers. */
+  roots: unknown;
 }

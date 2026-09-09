@@ -7,17 +7,19 @@ import {
   deviceAliases,
   soundTags,
   type SoundRuntimeContext,
+  type SoundRuntimeHooks,
 } from '../sound-runtime.ts';
 
 /** Registers 14 and 15 are the general-purpose I/O ports. */
 const PORT_A = 14;
 const PORT_B = 15;
 
-export function installAy8910Runtime(context: SoundRuntimeContext): void {
+export function installAy8910Runtime(context: SoundRuntimeContext): SoundRuntimeHooks {
   const { board, sound, registry, calls, state } = context;
   const tags = soundTags(sound);
   const addresses = new Map(tags.map(tag => [tag, 0]));
   const registers = new Map(tags.map(tag => [tag, new Uint8Array(16)]));
+  const filters = new Map<string, number[]>();
 
   tags.forEach((tag, chip) => {
     const addressWrite = (data: number): void => {
@@ -84,7 +86,7 @@ export function installAy8910Runtime(context: SoundRuntimeContext): void {
     }
   });
 
-  bindAudioFilters(context);
+  bindAudioFilters(context, filters);
 
   // Secondary stream devices the worklet mixes: the board never instantiates
   // them, so their writes go straight to the sink, tagged by method name.
@@ -123,6 +125,10 @@ export function installAy8910Runtime(context: SoundRuntimeContext): void {
       };
     }
   }
+  // The selected register per chip, the register file the worklet mirrors,
+  // and the last filter settings sent: a save state carries them so a load
+  // resumes the same write stream (machine-state.ts).
+  return { state: { addresses, registers, filters } };
 }
 
 /** Register-space extension carrying MAME filter_rc_device settings. */
@@ -134,7 +140,7 @@ const FILTER_CONTROL_STRIDE = 5;
  * reconfigures at run time. The member the handlers write to is bound here so
  * those writes reach the worklet as control values.
  */
-function bindAudioFilters(context: SoundRuntimeContext): void {
+function bindAudioFilters(context: SoundRuntimeContext, filters: Map<string, number[]>): void {
   const { sound, state } = context;
   const rows: unknown[][] = [];
   for (const route of sound.routes ?? []) {
@@ -142,12 +148,13 @@ function bindAudioFilters(context: SoundRuntimeContext): void {
     const { bank, channel, index } = route.filter;
     const row = (rows[bank] ??= []);
     if (row[channel]) continue;
-    let previous: number[] | undefined;
+    const key = `${bank}:${channel}`;
     row[channel] = {
       filter_rc_set_RC: (type: number, r1: number, r2: number, r3: number, c: number) => {
         const values = [type, r1, r2, r3, c];
+        const previous = filters.get(key);
         if (previous?.every((value, position) => value === values[position])) return;
-        previous = values;
+        filters.set(key, values);
         const base = FILTER_CONTROL_BASE + index * FILTER_CONTROL_STRIDE;
         values.forEach((value, parameter) =>
           context.soundWrite(base + parameter, value, context.fraction()));

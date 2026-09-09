@@ -466,6 +466,18 @@ own fractional line position for the same reason.
   (dials, trackballs) by MAME's own `PORT_SENSITIVITY`, one pixel per
   sensitivity/100 units with the fraction carried across frames;
 - `audio.ts`: Web Audio startup and generated worklet transport;
+- `machine-state.ts`: save states -- a structural walk that captures every
+  container the execution model holds (an emitted core's own fields, a
+  device's members, shares, timers, the frame schedule's carries) and writes
+  it back IN PLACE, so every alias and hot-path link survives a load. A
+  runtime class names its state through `stateKeys()`; a board-composed model
+  that once lived in a closure registers its record through the board's
+  `hostModel()`; a closure a CPU slot may hold (its interrupt vector source)
+  is a `namedStateFunction`. Nothing here knows a chip: what is saved is
+  whatever the generated definitions declared;
+- `savestore.ts`: the visitor's own save states (IndexedDB `mamekit-saves`),
+  keyed by machine, ROM-set hashes and board facts so a save never loads into
+  a different machine;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;
 - `software.ts`: computer software workflow, one shelf per software list;
@@ -473,6 +485,39 @@ own fractional line position for the same reason.
 
 A checked-in file implementing a specific MAME CPU, sound chip, device, board,
 or renderer is an architectural regression.
+
+### HOST FEATURES: MAMEKIT-SPECIFIC VERSUS MAME-DERIVED
+
+Not everything the application does is a MAME fact. The boundary is drawn
+around *what the machine does* versus *what the exhibit does with the
+machine*:
+
+| MAME-derived (generated, never handwritten) | MAMEKIT host feature (handwritten, hardware-neutral) |
+|---|---|
+| CPU opcode semantics and cycle charges | run loop, timestep, fast-forward |
+| device registers, timers, callbacks | input sources: keyboard, gamepad, pointer, and any remote player |
+| address maps, shares, taps, port polarity | ROM ingestion, validation and the picker |
+| video plans, palettes, tilemaps, sprites | canvas presentation, artwork, box-art snapshots |
+| sound chip DSP and routing | Web Audio transport and worklet hosting |
+| screen timing and the frame schedule | menu, dossier, console and software rooms |
+| DIP defaults, coin and start bindings | persistence: cart store, save states, session logs |
+| NVRAM and battery semantics | netplay: rooms, transport, lockstep, desync detection |
+| what a machine's state *is* | capturing and restoring that state |
+
+A host feature is legitimately MAMEKIT's own design and owes MAME nothing:
+it does not need a MAME counterpart, a source span, or a lowering rule. What
+it does owe is hardware neutrality. It must reach every board through the
+generic execution model -- a generated definition's declared members, the
+regions and shares the board composed, the port bytes the input model owns,
+the frame runner's schedule -- and never through a per-machine list, a
+per-family adapter or a check on a game's name. A save-state walker that
+enumerates `definition.members` is a host feature; one that knows which
+registers a Z80 has is a hardware implementation and belongs nowhere in
+`src/runtime`.
+
+The test for a proposed host feature is therefore not "did this come from
+MAME source" (design test question 1 does not apply) but "would this work
+unchanged for the next generated machine".
 
 ## 9. BROWSER BOOT SEQUENCE
 
@@ -627,5 +672,10 @@ Before accepting a change, ask:
    same source shape?
 6. Does a new hardware family arrive as one capability package, or does it need
    edits in several unrelated central files?
+7. If this is a host feature (see section 8), does it reach the machine only
+   through the generic execution model, so the next generated board gets it
+   for free?
 
 If the answer to any question is no, the change is probably at the wrong layer.
+Question 1 is asked of machine behavior; a host feature answers question 7
+instead.

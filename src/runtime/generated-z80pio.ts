@@ -72,6 +72,11 @@ export class GeneratedZ80PioDevice implements Device {
     this.reset();
   }
 
+  /** Save-state roots (machine-state.ts): the two port records. */
+  stateKeys(): readonly string[] {
+    return ['ports'];
+  }
+
   reset(): void {
     for (let index = 0; index < this.ports.length; index++) {
       const port = this.ports[index]!;

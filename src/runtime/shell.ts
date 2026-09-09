@@ -9,11 +9,12 @@ import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig, CassetteMedia } from './types.ts';
+import type { Regions, BoardConfig, CassetteMedia, MachineState } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes } from './rom-source.ts';
+import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;
@@ -995,6 +996,26 @@ export async function runShell(
     deck.append(reset, fast);
     ui.addControls(deck);
   }
+  // --- save states (issue #129) ---------------------------------------------
+  // The whole machine, captured between frames and kept in the visitor's own
+  // browser. Shift+F7 saves and F7 loads the latest, as in MAME; a computer
+  // keeps its function keys, so it has the deck buttons only.
+  const saves = saveStateDeck({
+    cfg,
+    identity: machineIdentity(cfg.game, cfg.board, regions),
+    save: () => board.save(),
+    load: state => { input.releaseAll(); board.load(state); audio.discard(); },
+    screen: ui.canvas,
+    toast: ui.toast,
+  });
+  ui.addControls(saves.deck);
+  (window as unknown as { mamekit: Record<string, unknown> }).mamekit.saves = saves;
+  addEventListener('keydown', event => {
+    if (cfg.kind === 'computer' || event.code !== 'F7' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+    event.preventDefault();
+    if (event.shiftKey) void saves.save();
+    else void saves.loadLatest();
+  });
   addEventListener('keydown', event => {
     if (cfg.kind === 'computer' || event.code !== 'KeyF' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
     event.preventDefault();
@@ -1742,6 +1763,167 @@ function deckPanel(title: string): HTMLElement {
   label.style.cssText = 'color:#7f8ac9;font:700 10px ui-monospace,monospace;letter-spacing:2px;margin-right:4px';
   panel.appendChild(label);
   return panel;
+}
+
+/** The save-state deck: two buttons, a shelf of what this browser holds, and the store behind them. */
+function saveStateDeck(options: {
+  cfg: ShellConfig;
+  identity: string;
+  save: () => MachineState;
+  load: (state: MachineState) => void;
+  screen: HTMLCanvasElement;
+  toast: (text: string) => void;
+}): {
+  deck: HTMLElement;
+  save(): Promise<SaveRecord | undefined>;
+  load(id: string): Promise<boolean>;
+  loadLatest(): Promise<boolean>;
+  list(): Promise<SaveRecord[]>;
+  remove(id: string): Promise<void>;
+} {
+  const { cfg, identity, toast } = options;
+  const deck = deckPanel('SAVE STATES');
+  deck.setAttribute('data-saves-deck', '');
+  deck.setAttribute('aria-label', 'Save states');
+  for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
+  const saveButton = deckButton('💾 Save state', { solid: true });
+  saveButton.title = cfg.kind === 'computer' ? 'Capture the whole machine as it is now' : 'Capture the whole machine as it is now (Shift+F7)';
+  const loadButton = deckButton('⟲ Load latest');
+  loadButton.title = cfg.kind === 'computer' ? 'Put the machine back to the newest save' : 'Put the machine back to the newest save (F7)';
+  const note = document.createElement('span');
+  note.style.cssText = 'color:#7f8ac9;font-size:11px;flex-basis:100%;text-align:center';
+  const shelf = document.createElement('div');
+  shelf.dataset.savesShelf = '';
+  shelf.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;justify-content:center;flex-basis:100%';
+  deck.append(saveButton, loadButton, note, shelf);
+  const store = openSaveStore();
+
+  const when = (createdAt: number): string => {
+    const date = new Date(createdAt);
+    return `${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+  };
+  const thumbnail = (): string | undefined => {
+    try {
+      const source = options.screen;
+      if (!source.width || !source.height) return undefined;
+      const scale = 120 / Math.max(source.width, source.height);
+      const small = document.createElement('canvas');
+      small.width = Math.max(1, Math.round(source.width * scale));
+      small.height = Math.max(1, Math.round(source.height * scale));
+      const context = small.getContext('2d');
+      if (!context) return undefined;
+      context.imageSmoothingEnabled = true;
+      context.drawImage(source, 0, 0, small.width, small.height);
+      return small.toDataURL('image/jpeg', 0.7);
+    } catch {
+      return undefined;
+    }
+  };
+
+  let records: SaveRecord[] = [];
+  const render = async (): Promise<void> => {
+    const opened = await store;
+    records = await opened.list(cfg.game);
+    const foreign = records.filter(record => record.identity !== identity).length;
+    note.textContent = !opened.persistent
+      ? 'Saves last only this session: browser storage is unavailable.'
+      : records.length === 0
+        ? 'Saves stay in this browser and never leave it.'
+        : `${records.length} save${records.length === 1 ? '' : 's'} in this browser` +
+          (foreign ? ` · ${foreign} from another ROM set or build` : '');
+    loadButton.disabled = !records.some(record => record.identity === identity);
+    setDeckButtonState(loadButton, false);
+    shelf.replaceChildren(...records.map(record => {
+      const card = document.createElement('div');
+      card.dataset.save = record.id;
+      const usable = record.identity === identity;
+      card.style.cssText = `display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border-radius:8px;
+        background:#0c0f26;border:1px solid ${usable ? '#303a78' : '#4a2a2a'};font-size:11px;color:#cbd1ff;${usable ? '' : 'opacity:.6'}`;
+      const picture = document.createElement(record.thumbnail ? 'img' : 'div');
+      picture.style.cssText = 'width:96px;height:72px;object-fit:contain;background:#000;border-radius:4px';
+      if (record.thumbnail) (picture as HTMLImageElement).src = record.thumbnail;
+      const caption = document.createElement('span');
+      caption.textContent = `frame ${record.frame} · ${when(record.createdAt)}`;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:6px';
+      const load = deckButton('Load');
+      load.title = usable ? 'Put the machine back to this save' : 'Made with a different ROM set or build';
+      load.disabled = !usable;
+      setDeckButtonState(load, false);
+      load.onclick = () => { void loadRecord(record); load.blur(); };
+      const remove = deckButton('✕');
+      remove.title = 'Delete this save';
+      remove.setAttribute('aria-label', 'Delete this save');
+      remove.onclick = () => { void opened.remove(record.id).then(render); };
+      row.append(load, remove);
+      card.append(picture, caption, row);
+      return card;
+    }));
+  };
+
+  const saveNow = async (): Promise<SaveRecord | undefined> => {
+    let state: MachineState;
+    try {
+      state = options.save();
+    } catch (error) {
+      toast(`Could not save: ${(error as Error).message.split('\n')[0]}`);
+      return undefined;
+    }
+    const createdAt = Date.now();
+    const record: SaveRecord = {
+      id: saveId(cfg.game, createdAt),
+      game: cfg.game,
+      identity,
+      title: cfg.title,
+      frame: state.frame,
+      createdAt,
+      thumbnail: thumbnail(),
+      state,
+    };
+    try {
+      await (await store).put(record);
+    } catch (error) {
+      toast(`Could not store the save: ${(error as Error).message}`);
+      return undefined;
+    }
+    toast(`Saved · frame ${state.frame}`);
+    await render();
+    return record;
+  };
+  const loadRecord = async (record: SaveRecord): Promise<boolean> => {
+    if (record.identity !== identity) {
+      toast('That save was made with a different ROM set or build');
+      return false;
+    }
+    try {
+      options.load(record.state);
+    } catch (error) {
+      toast(`Could not load: ${(error as Error).message.split('\n')[0]}`);
+      return false;
+    }
+    toast(`Loaded · frame ${record.frame}`);
+    return true;
+  };
+  saveButton.onclick = () => { void saveNow(); saveButton.blur(); };
+  loadButton.onclick = () => { void loadLatest(); loadButton.blur(); };
+  const loadLatest = async (): Promise<boolean> => {
+    if (!records.length) await render();
+    const latest = records.find(record => record.identity === identity);
+    if (!latest) { toast('No save for this machine yet (Shift+F7 makes one)'); return false; }
+    return loadRecord(latest);
+  };
+  void render();
+  return {
+    deck,
+    save: saveNow,
+    load: async id => {
+      const record = await (await store).get(id);
+      return record ? loadRecord(record) : false;
+    },
+    loadLatest,
+    list: async () => (await store).list(cfg.game),
+    remove: async id => { await (await store).remove(id); await render(); },
+  };
 }
 
 function deckButton(text: string, options: { solid?: boolean } = {}): HTMLButtonElement {

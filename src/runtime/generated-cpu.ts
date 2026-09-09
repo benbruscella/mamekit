@@ -188,6 +188,15 @@ class IrCpu implements Cpu {
     return this.definition.addressMask ?? 0xffff;
   }
 
+  /** Save-state roots (machine-state.ts): the core's state, never its IR definition. */
+  stateKeys(): readonly string[] {
+    return [
+      'members', 'irqData', 'irqHold', 'internalRam', 'portData', 'portDirection',
+      'portHandshakeControl', 'portHandshakeInputState', 'portHandshakeLatched',
+      'portHandshakePendingClear',
+    ];
+  }
+
   constructor(definition: GeneratedCpuDefinition, bus: CpuBus) {
     this.definition = definition;
     this.bus = bus;

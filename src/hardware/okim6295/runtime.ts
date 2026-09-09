@@ -7,9 +7,8 @@ export function installAuxiliaryOkim6295Runtime(
   device: GeneratedAuxiliaryAudioDevice,
 ): SoundRuntimeHooks {
   const rom = context.regions?.[device.deviceTag] ?? new Uint8Array();
-  const remaining = new Float64Array(4);
-  let command = -1;
-  let pin7 = device.initialMode !== 'PIN7_LOW';
+  const state = { remaining: new Float64Array(4), command: -1, pin7: device.initialMode !== 'PIN7_LOW' };
+  const remaining = state.remaining;
   const aliases = deviceAliases(context.board, device.deviceTag);
   const methodName = (method: string) => `${device.deviceTag}.${method}`;
 
@@ -18,20 +17,20 @@ export function installAuxiliaryOkim6295Runtime(
   );
   const write = (data: number): number => {
     data &= 0xff;
-    if (command >= 0) {
+    if (state.command >= 0) {
       let mask = data >>> 4;
       for (let voice = 0; voice < 4; voice++, mask >>>= 1) {
         if (!(mask & 1) || remaining[voice]! > 0) continue;
-        const table = command * 8;
+        const table = state.command * 8;
         const start = (((rom[table] ?? 0) << 16) |
           ((rom[table + 1] ?? 0) << 8) | (rom[table + 2] ?? 0)) & 0x3ffff;
         const stop = (((rom[table + 3] ?? 0) << 16) |
           ((rom[table + 4] ?? 0) << 8) | (rom[table + 5] ?? 0)) & 0x3ffff;
         if (start < stop) remaining[voice] =
-          (2 * (stop - start + 1)) / (device.clock / (pin7 ? 132 : 165));
+          (2 * (stop - start + 1)) / (device.clock / (state.pin7 ? 132 : 165));
       }
-      command = -1;
-    } else if (data & 0x80) command = data & 0x7f;
+      state.command = -1;
+    } else if (data & 0x80) state.command = data & 0x7f;
     else {
       let mask = data >>> 3;
       for (let voice = 0; voice < 4; voice++, mask >>>= 1) {
@@ -42,7 +41,7 @@ export function installAuxiliaryOkim6295Runtime(
     return 0;
   };
   const setPin7 = (value: number): number => {
-    pin7 = Boolean(value);
+    state.pin7 = Boolean(value);
     context.soundWrite(0, value, context.fraction(), methodName('set_pin7'));
     return 0;
   };
@@ -63,6 +62,7 @@ export function installAuxiliaryOkim6295Runtime(
         remaining[voice] = Math.max(0, remaining[voice]! - seconds);
       }
     },
-    reset: () => { command = -1; remaining.fill(0); },
+    reset: () => { state.command = -1; remaining.fill(0); },
+    state,
   };
 }

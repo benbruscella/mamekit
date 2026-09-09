@@ -18,6 +18,10 @@ historical evidence and may describe deleted architectures.
   imports nothing outside itself.
 - `src/runtime` is hardware-neutral browser hosting and generic IR execution.
   Do not add handwritten CPU, device, audio, video or board implementations.
+- Host features (input sources, persistence, save states, netplay, session
+  replay, presentation) are MAMEKIT's own design and need no MAME counterpart;
+  they must reach every board through the generic execution model, never a
+  per-machine list. See ARCHITECTURE.md section 8, "Host features".
 - A hardware family is one package under `src/hardware/<family>/`. Its
   `runtime`-facing code wires generated IR; DSP, opcode semantics, register
   models and pixel loops belong in generated artifacts, never handwritten there.

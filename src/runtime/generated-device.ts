@@ -16,6 +16,7 @@ import {
   GENERATED_FIELD_WIDTHS,
 } from './generated-handler.ts';
 import { buildCallLinks, noteCallLinksChanged } from '../ir/execute.ts';
+import { stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
 import { GeneratedM68705P5Device } from './generated-m68705.ts';
@@ -369,6 +370,12 @@ class IrAttotime {
 
   constructor(seconds: number) {
     this.seconds = seconds;
+    stateValue('device-attotime', this);
+  }
+
+  /** Save-state roots (machine-state.ts); the factory of the same name rebuilds one. */
+  stateKeys(): readonly string[] {
+    return ['seconds'];
   }
 
   as_ticks(frequency: number): number {
@@ -395,6 +402,11 @@ class IrAttotime {
  */
 let timerBacklogSeconds = 0;
 
+/** A device-side attotime value, for a save state's factory (machine-state.ts). */
+export function createGeneratedAttotime(seconds: number): object {
+  return new IrAttotime(seconds);
+}
+
 /** @see timerBacklogSeconds */
 export function generatedTimerBacklog(): number {
   return timerBacklogSeconds;
@@ -406,6 +418,11 @@ class IrTimer {
   private period = Infinity;
   private parameter = 0;
   private adjustmentGeneration = 0;
+
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['remainingSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration'];
+  }
 
   adjust(delay: number, parameter = 0, period = Infinity): void {
     this.remainingSeconds = Number.isFinite(delay) && delay >= 0 ? delay : Infinity;
@@ -931,6 +948,15 @@ class IrDevice implements Device {
     if (this.definition.reset) this.call(this.definition.reset);
   }
 
+  /**
+   * Save-state roots (machine-state.ts): everything the device's MAME source
+   * declared or allocated, and the composition it owns. The definition,
+   * bindings, listeners and resolved call links are wiring.
+   */
+  stateKeys(): readonly string[] {
+    return ['members', 'timers', 'spaces', 'executedCycles', 'streamSamples', 'children', 'slotChild', 'executionContext'];
+  }
+
   tick(seconds: number): void {
     for (const { timer, callback } of this.timers.values()) {
       timer.tick(seconds, parameter => this.call(callback, parameter));
@@ -1345,6 +1371,11 @@ class IrMemoryBank implements GeneratedMemoryBank {
     this.entry = Math.max(0, entry | 0);
   }
 
+  /** Save-state roots (machine-state.ts): the selection; the source is a region or share. */
+  stateKeys(): readonly string[] {
+    return ['entry', 'bases', 'stride'];
+  }
+
   /** MAME `memory_bank::base()`: the bytes the selected entry starts at. */
   base(): GeneratedPointer {
     return { generatedPointer: true, source: this.source as GeneratedPointer['source'], offset: this.offset() };
@@ -1471,6 +1502,15 @@ class GeneratedBitmap {
         ? Uint16Array
         : Uint32Array;
     this.pixels = new this.storage(0);
+  }
+
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['bitmapWidth', 'bitmapHeight', 'pixels'];
+  }
+
+  stateResizable(): readonly string[] {
+    return ['pixels'];
   }
 
   allocate(width: number, height: number): void {
@@ -1697,6 +1737,8 @@ class IrSimpleList {
     return value;
   }
   reset(): void { this.head = this.tail = 0; }
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] { return ['head', 'tail']; }
 }
 
 function wrap(value: number, bits?: 1 | 8 | 16 | 32, signed = false): number {
