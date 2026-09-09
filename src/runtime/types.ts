@@ -189,6 +189,49 @@ export interface Board {
   save(): MachineState;
   /** Write a `save()` back in place; throws, changing nothing further, if any part cannot be matched. */
   load(state: MachineState): void;
+  /**
+   * The memory MAME would carry between sessions: every share or region an
+   * `NVRAM` device declares, live (writes land in the machine). A board with
+   * no such device answers an empty list.
+   */
+  persistentMemory(): PersistentMemory[];
+  /**
+   * Byte access to one CPU's address space or to a board share, the way the
+   * hiscore plugin addresses memory (`cpu.spaces[space]:read_u8`). Reads
+   * and writes go through the bus, so a mapped handler answers as it would
+   * for the CPU. Undefined when the board has no such CPU, space or share.
+   */
+  memory(row: { cpu: string; space?: string; share?: string }): MemoryAccess | undefined;
+}
+
+/** One battery-backed memory the board composed, by the MAME tag that declared it. */
+export interface PersistentMemory {
+  kind: 'share' | 'region';
+  tag: string;
+  bytes: Uint8Array;
+}
+
+export interface MemoryAccess {
+  read(address: number): number;
+  write(address: number, value: number): void;
+}
+
+/** One run of bytes a game keeps its scores in; see mame/hiscore-dat.ts. */
+export interface HiscoreRow {
+  cpu: string;
+  space?: string;
+  share?: string;
+  address: number;
+  length: number;
+  first: number;
+  last: number;
+  fill?: number;
+}
+
+/** The target's hiscore.dat entry, compiled into its config. */
+export interface HiscoreTable {
+  delaySeconds?: number;
+  rows: HiscoreRow[];
 }
 
 /**

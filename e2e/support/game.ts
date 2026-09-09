@@ -53,18 +53,26 @@ export async function bootGame(
   await page.goto(`/app/g/${contract.game}/${options.qa ? '?qa=1' : ''}`);
 
   // The picker only exists once the drop screen is up; clicking the overlay is
-  // the same gesture a visitor makes.
-  await page.locator('[data-dropzone]').waitFor({ state: 'visible' });
-  const chooser = page.waitForEvent('filechooser');
-  await page.locator('[data-overlay]').click();
-  await (await chooser).setFiles(romFiles(contract));
-
-  // The drop screen holds its per-chip verdict on screen before booting.
-  await page.waitForFunction(
+  // the same gesture a visitor makes. A browser context that already keeps
+  // the set (a reload inside one test) boots straight in and shows no drop
+  // screen, so whichever comes first wins.
+  const booted = () => page.waitForFunction(
     () => Boolean((window as unknown as { mamekit?: unknown }).mamekit),
     undefined,
     { timeout: 60_000 },
   );
+  const dropScreen = page.locator('[data-dropzone]').waitFor({ state: 'visible', timeout: 60_000 })
+    .then(() => 'drop' as const, () => 'none' as const);
+  const first = await Promise.race([dropScreen, booted().then(() => 'booted' as const, () => 'none' as const)]);
+  if (first === 'drop') {
+    const chooser = page.waitForEvent('filechooser');
+    await page.locator('[data-overlay]').click();
+    await (await chooser).setFiles(romFiles(contract));
+    // The drop screen holds its per-chip verdict on screen before booting.
+    await booted();
+  } else if (first === 'none') {
+    throw new Error(`${contract.game}: neither the drop screen nor the machine appeared`);
+  }
   return faults;
 }
 

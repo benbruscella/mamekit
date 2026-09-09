@@ -9,12 +9,15 @@ import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig, CassetteMedia, MachineState } from './types.ts';
+import type { Regions, BoardConfig, CassetteMedia, HiscoreTable, MachineState } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
+import { openRomStore, type RomStore, type StoredZip } from './romstore.ts';
+import { openMemoryStore } from './memorystore.ts';
+import { createMachineMemory, type MachineMemory } from './machine-memory.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;
@@ -278,6 +281,8 @@ export interface ShellConfig {
   romPatches?: { region: string; offset: number; value: number }[];
   /** source-derived driver-init transforms applied before graphics decoding */
   romTransforms?: RomTransform[];
+  /** the machine's hiscore.dat rows (mame/hiscore-dat.ts), absent when it has none */
+  hiscore?: HiscoreTable;
   bindings: FieldBinding[];
   dipDefaults: DipDefault[];
   ports: PortSpec[];
@@ -755,13 +760,24 @@ export async function runShell(
 
   // --- ROM acquisition -------------------------------------------------------
   // ROMs never touch the mamekit server and are never auto-fetched. Arcade
-  // path: a drag-drop in this page load, bytes die with the page — plus the
-  // opt-in "Try web search" button, which fetches from the public mirror
-  // bucket only on an explicit click (user directive 2026-07-19, arcade only).
-  // Console path: the room hands in cart regions it already identified
-  // (persisted only in the visitor's own browser via cartstore, by explicit
-  // user approval 2026-07-07).
+  // path: the set this browser already keeps (romstore, by explicit user
+  // approval 2026-09-09, issue #132) boots straight in; otherwise a drag-drop
+  // in this page load — plus the opt-in "Try web search" button, which
+  // fetches from the public mirror bucket only on an explicit click (user
+  // directive 2026-07-19, arcade only) — and the accepted zips are kept for
+  // next time. Console path: the room hands in cart regions it already
+  // identified (persisted only in the visitor's own browser via cartstore, by
+  // explicit user approval 2026-07-07).
   let regions: Regions;
+  const romStore = await openRomStore();
+  const memoryStore = await openMemoryStore();
+  // What the machine kept between sessions (NVRAM, high scores); read now so
+  // it is in hand before the board's first frame.
+  const storedMemory = memoryStore.get(cfg.game).catch((error: unknown) => {
+    console.warn(`${cfg.game}: stored memory unreadable: ${(error as Error).message}`);
+    return null;
+  });
+  let keptRom = false;
   // A cartridge is the whole machine only when the machine needs no ROM files
   // of its own. The NES declares a maincpu region with nothing in it -- the
   // cartridge fills it -- while the ColecoVision declares a real BIOS, so its
@@ -776,13 +792,21 @@ export async function runShell(
     // stores it in a separate split-set zip.
     const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
     const dependencies = dependencyRomSets(cfg.roms, cfg.game);
-    const zone = ui.dropZone(cfg.game);
-    const companionText = dependencies.length
-      ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
-      : '';
-    ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (never stored).`);
-    const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey);
-    regions = assembleRegions(cfg.roms, files, ui.status, critical);
+    const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical);
+    if (kept) {
+      ui.status(`Booting ${cfg.title} from the ${cfg.game}.zip kept in this browser…`);
+      regions = assembleRegions(cfg.roms, kept, ui.status, critical);
+      keptRom = true;
+    } else {
+      const zone = ui.dropZone(cfg.game);
+      const companionText = dependencies.length
+        ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
+        : '';
+      ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
+      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey);
+      regions = assembleRegions(cfg.roms, files, ui.status, critical);
+      keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast);
+    }
     // The cartridge the console room already resolved wins over anything of
     // the same name in the machine set.
     if (preloaded) Object.assign(regions, preloaded);
@@ -845,6 +869,27 @@ export async function runShell(
     },
     soundData: (id, bytes) => audio.data(id, bytes),
   });
+  // --- memory between sessions (issue #132) ----------------------------------
+  // NVRAM and the hiscore.dat table go back into the machine before its first
+  // frame, as MAME loads them at start, and are written to this browser
+  // whenever they change and when the page is left.
+  const memory: MachineMemory = createMachineMemory({
+    board,
+    game: cfg.game,
+    refresh: cfg.board.screen.refresh,
+    table: cfg.hiscore,
+    write: record => {
+      memoryStore.put(record).catch((error: unknown) => {
+        console.warn(`${cfg.game}: could not keep the machine's memory: ${(error as Error).message}`);
+      });
+    },
+  });
+  const restored = memory.restore(await storedMemory);
+  if (restored.nvram.length) ui.toast('Battery-backed memory restored from this browser');
+  let hiscoreRestoreAnnounced = !restored.hiscorePending;
+  const flushMemory = (): void => { try { memory.flush(); } catch (error) { console.warn(`${cfg.game}: memory flush failed: ${(error as Error).message}`); } };
+  addEventListener('pagehide', flushMemory);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flushMemory(); });
   // Match MAME's soft-reset key. This is needed by boards such as Qix whose
   // first-boot operator flow stores a language in NVRAM and asks for a reset.
   addEventListener('keydown', event => {
@@ -852,6 +897,7 @@ export async function runShell(
     event.preventDefault();
     input.releaseAll();
     board.reset();
+    memory.reset();
   });
   ui.setNative(board.fbWidth, board.fbHeight); // the board owns true geometry
   // The software room's chosen tape rides in on `mounted`; the first transport
@@ -884,6 +930,11 @@ export async function runShell(
     input.advance();
     pointer.advance();
     board.frame(fb);
+    memory.tick();
+    if (!hiscoreRestoreAnnounced && memory.hiscoreArmed()) {
+      hiscoreRestoreAnnounced = true;
+      ui.toast('High scores restored from this browser');
+    }
     // Fast-forward outruns the worklet, and a queued frame is permanent
     // latency rather than a dropped one, so its audio is discarded instead.
     if (fastForward) audio.discard();
@@ -904,7 +955,7 @@ export async function runShell(
 
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
   (window as unknown as Record<string, unknown>).mamekit = {
-    board, input, pads, pointer, config: cfg, audio, regions,
+    board, input, pads, pointer, config: cfg, audio, regions, memory,
     framebuffer: fb,
     step: stepFrames,
     qaDrive,
@@ -983,7 +1034,7 @@ export async function runShell(
     deck.setAttribute('data-computer-deck', '');
     const reset = deckButton('⏻ Reset', { solid: false });
     reset.title = 'Reset the computer (like the RESTORE/reset line)';
-    reset.onclick = () => { input.releaseAll(); board.reset(); reset.blur(); };
+    reset.onclick = () => { input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
     const fast = deckButton('▶▶ Fast-forward', { solid: false });
     fast.title = 'Run unthrottled, muted, until pressed again';
     fast.setAttribute('aria-pressed', 'false');
@@ -1013,6 +1064,19 @@ export async function runShell(
   });
   ui.addTitleControls(saves.deck);
   (window as unknown as { mamekit: Record<string, unknown> }).mamekit.saves = saves;
+  const memoryDeck = machineMemoryDeck({
+    keptRom,
+    keepsMemory: memory.nvram.length > 0 || memory.hiscoreRows > 0,
+    persistent: romStore.persistent && memoryStore.persistent,
+    forgetRom: async () => { await romStore.remove(cfg.game); },
+    clearMemory: async () => {
+      memory.disable();
+      await memoryStore.remove(cfg.game);
+      location.reload();
+    },
+    toast: ui.toast,
+  });
+  if (memoryDeck) ui.addTitleControls(memoryDeck);
   addEventListener('keydown', event => {
     if (cfg.kind === 'computer' || event.code !== 'F7' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
     event.preventDefault();
@@ -1642,7 +1706,7 @@ function waitForZip(
   game: string,
   category: string,
   firmwareKey?: string,
-): Promise<Map<string, Uint8Array>> {
+): Promise<{ files: Map<string, Uint8Array>; zips: StoredZip[] }> {
   return new Promise(resolve => {
     const pick = document.createElement('input');
     pick.type = 'file';
@@ -1650,31 +1714,23 @@ function waitForZip(
     pick.multiple = true;
     let accepted = false;
     const files = new Map<string, Uint8Array>();
-    const mergeFiles = (incoming: Map<string, Uint8Array>) => {
-      for (const [name, bytes] of incoming) {
-        let key = name;
-        // Keep same-named chips with different contents: findRomBytes can
-        // still select the right one by CRC from this synthetic map key.
-        if (files.has(key) && crc32(files.get(key)!) !== crc32(bytes)) {
-          key = `${name}#${crc32(bytes).toString(16).padStart(8, '0')}`;
-        }
-        files.set(key, bytes);
-      }
-    };
+    /** every zip that took part, as it arrived, for the ROM library */
+    const zips: StoredZip[] = [];
     const ingest = async (name: string, raw: Uint8Array): Promise<boolean> => {
       if (accepted) return true;
       zone.busy(name);
       let incoming: Map<string, Uint8Array>;
       try { incoming = await readZip(raw); }
       catch { zone.error(`${name} isn’t a readable zip — try the original romset.`); return false; }
-      mergeFiles(incoming);
+      mergeRomFiles(files, incoming);
+      zips.push({ name, bytes: raw.slice().buffer });
       // grade the set against the manifest BEFORE booting: ticks in the
       // list. Previously supplied split-set zips remain accumulated.
       const check = checkRomSet(specs, files, critical);
       zone.verdict(check);
       if (check.missingCritical.length) return false; // stay in the loop for a retry
       accepted = true;
-      setTimeout(() => resolve(files), 1100); // let the verdict land before the screen lights up
+      setTimeout(() => resolve({ files, zips }), 1100); // let the verdict land before the screen lights up
       return true;
     };
     const handle = async (file: File) => ingest(file.name, new Uint8Array(await file.arrayBuffer()));
@@ -1753,6 +1809,138 @@ function waitForZip(
   });
 }
 
+/**
+ * Add one zip's chips to the set being assembled. Same-named chips with
+ * different contents are both kept: findRomBytes can still select the right
+ * one by CRC from the synthetic map key.
+ */
+export function mergeRomFiles(files: Map<string, Uint8Array>, incoming: Map<string, Uint8Array>): void {
+  for (const [name, bytes] of incoming) {
+    let key = name;
+    if (files.has(key) && crc32(files.get(key)!) !== crc32(bytes)) {
+      key = `${name}#${crc32(bytes).toString(16).padStart(8, '0')}`;
+    }
+    files.set(key, bytes);
+  }
+}
+
+/**
+ * The chips of the set this browser keeps for a machine, graded against the
+ * manifest exactly as a fresh drop is. A set that no longer satisfies the
+ * manifest (a regenerated ROM list, a zip that will not read) is forgotten
+ * so the drop screen returns rather than a broken boot.
+ */
+export async function storedRomFiles(
+  store: RomStore,
+  game: string,
+  specs: RomRegionSpec[],
+  critical: Set<string>,
+): Promise<Map<string, Uint8Array> | null> {
+  let record;
+  try { record = await store.get(game); } catch { return null; }
+  if (!record) return null;
+  const files = new Map<string, Uint8Array>();
+  try {
+    for (const zip of record.zips) mergeRomFiles(files, await readZip(new Uint8Array(zip.bytes)));
+  } catch {
+    await store.remove(game).catch(() => undefined);
+    return null;
+  }
+  if (checkRomSet(specs, files, critical).missingCritical.length) {
+    await store.remove(game).catch(() => undefined);
+    return null;
+  }
+  return files;
+}
+
+/** Keep an accepted set for next time; says so, or says why it could not. */
+async function keepRomSet(store: RomStore, game: string, zips: StoredZip[], toast: (text: string) => void): Promise<boolean> {
+  try {
+    await store.put({ game, zips, addedAt: Date.now() });
+  } catch (error) {
+    toast(`This browser could not keep ${game}.zip: ${(error as Error).message}`);
+    return false;
+  }
+  if (!store.persistent) {
+    toast(`${game}.zip is kept for this visit only: browser storage is unavailable`);
+    return false;
+  }
+  toast(`${game}.zip is kept in this browser — next time boots straight in`);
+  return true;
+}
+
+/**
+ * The two controls over what this browser keeps for the machine. Absent when
+ * there is nothing to forget: a console cartridge is ejected from its room,
+ * and a board with neither NVRAM nor a hiscore.dat entry keeps nothing.
+ */
+function machineMemoryDeck(options: {
+  keptRom: boolean;
+  keepsMemory: boolean;
+  persistent: boolean;
+  forgetRom: () => Promise<void>;
+  clearMemory: () => Promise<void>;
+  toast: (text: string) => void;
+}): HTMLElement | undefined {
+  if (!options.keptRom && !options.keepsMemory) return undefined;
+  const deck = document.createElement('span');
+  deck.setAttribute('data-memory-deck', '');
+  deck.setAttribute('role', 'group');
+  deck.setAttribute('aria-label', 'Kept in this browser');
+  deck.style.cssText = 'display:inline-flex;align-items:center;gap:6px';
+  for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
+  if (options.keptRom) {
+    const forget = titleButton('⏏ Forget ROM', 'Forget ROM', 'Remove the ROM set from this browser; the drop screen returns next time');
+    forget.onclick = () => {
+      forget.disabled = true;
+      paintTitleButton(forget, false);
+      options.forgetRom().then(
+        () => { options.toast('ROM forgotten: drop it again next time'); forget.remove(); if (!deck.childElementCount) deck.remove(); },
+        (error: unknown) => { options.toast(`Could not forget the ROM: ${(error as Error).message}`); forget.disabled = false; paintTitleButton(forget, false); },
+      );
+    };
+    deck.appendChild(forget);
+  }
+  if (options.keepsMemory) {
+    const clear = titleButton('🧹 Clear memory', 'Clear memory',
+      options.persistent
+        ? 'Forget the high scores and battery-backed settings kept in this browser and boot cold'
+        : 'Memory lasts only this visit: browser storage is unavailable');
+    clear.onclick = () => {
+      if (!confirm('Clear the high scores and settings this browser keeps for the machine, and boot it cold?')) return;
+      clear.disabled = true;
+      paintTitleButton(clear, false);
+      options.clearMemory().catch((error: unknown) => {
+        options.toast(`Could not clear the memory: ${(error as Error).message}`);
+        clear.disabled = false;
+        paintTitleButton(clear, false);
+      });
+    };
+    deck.appendChild(clear);
+  }
+  return deck;
+}
+
+/** A small pill button for the title line: the saves deck and the memory deck share it. */
+function titleButton(text: string, label: string, title: string): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = text;
+  button.setAttribute('aria-label', label);
+  button.title = title;
+  paintTitleButton(button, false);
+  return button;
+}
+
+function paintTitleButton(button: HTMLButtonElement, active: boolean): void {
+  const enabled = !button.disabled;
+  button.style.cssText = `padding:2px 9px;border-radius:999px;font:700 11px ui-sans-serif,system-ui,sans-serif;
+    cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
+    ${active
+      ? `background:${DECK_GOLD};color:#1b1b1b;border:1px solid ${DECK_GOLD}`
+      : `background:${enabled ? '#111633' : '#0c0f26'};border:1px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}`;
+}
+
 // --- control decks -------------------------------------------------------------
 // The shell's own controls share one look: a dark panel with the room's gold
 // accent, buttons that read as pressed when the thing they control is on, and
@@ -1803,23 +1991,8 @@ function saveStateDeck(options: {
   deck.setAttribute('aria-label', 'Save states');
   deck.style.cssText = 'display:inline-flex;align-items:center;gap:6px';
   for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
-  const mini = (text: string, label: string, title: string): HTMLButtonElement => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = text;
-    button.setAttribute('aria-label', label);
-    button.title = title;
-    paintMini(button, false);
-    return button;
-  };
-  const paintMini = (button: HTMLButtonElement, active: boolean): void => {
-    const enabled = !button.disabled;
-    button.style.cssText = `padding:2px 9px;border-radius:999px;font:700 11px ui-sans-serif,system-ui,sans-serif;
-      cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
-      ${active
-        ? `background:${DECK_GOLD};color:#1b1b1b;border:1px solid ${DECK_GOLD}`
-        : `background:${enabled ? '#111633' : '#0c0f26'};border:1px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}`;
-  };
+  const mini = titleButton;
+  const paintMini = paintTitleButton;
   const shortcut = (key: string) => cfg.kind === 'computer' ? '' : ` (${key})`;
   const saveButton = mini('💾 Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`);
   const loadButton = mini('⟲ Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`);

@@ -479,8 +479,12 @@ or a real browser. Required checks:
 9. a save state made on the deck (or Shift+F7) loads back (F7), survives a
    reload, and is refused when it came from another machine
    (`e2e/specs/savestate.spec.ts`);
-10. page and console error logs remain empty;
-11. desktop/mobile layout has no overlap.
+10. an accepted ROM set is kept in the browser and a reload boots without the
+    drop screen; a high score written into the machine's hiscore.dat table
+    survives that reload; Forget ROM brings the drop screen back
+    (`e2e/specs/memory.spec.ts`);
+11. page and console error logs remain empty;
+12. desktop/mobile layout has no overlap.
 
 Use screenshots and canvas-pixel checks for visual changes. A successful HTTP
 response alone does not validate an emulator frame.

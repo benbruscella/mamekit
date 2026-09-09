@@ -54,7 +54,9 @@ import type {
   BoardSinks,
   BoardSnapshot,
   MachineState,
+  MemoryAccess,
   InputPorts,
+  PersistentMemory,
   Regions,
 } from './types.ts';
 import {
@@ -2389,6 +2391,37 @@ class IrBoard implements Board {
         [...this.devices].map(([tag, device]) => [tag, device.get('m_q')]),
       ),
     };
+  }
+
+  /**
+   * What MAME's nvram_device would load at start and save at exit: the
+   * share (or region) each NVRAM device's tag names. Which devices those are
+   * is a fact of the decoded IR, not of any game.
+   */
+  persistentMemory(): PersistentMemory[] {
+    const memory: PersistentMemory[] = [];
+    for (const device of this.machine.devices ?? []) {
+      if (device.type !== 'NVRAM') continue;
+      const share = this.shares[device.tag];
+      if (share) { memory.push({ kind: 'share', tag: device.tag, bytes: share }); continue; }
+      const region = this.regions[device.tag];
+      if (region) memory.push({ kind: 'region', tag: device.tag, bytes: region });
+    }
+    return memory;
+  }
+
+  memory(row: { cpu: string; space?: string; share?: string }): MemoryAccess | undefined {
+    if (row.share !== undefined) {
+      const bytes = this.shares[row.share];
+      if (!bytes) return undefined;
+      return {
+        read: address => bytes[address] ?? 0,
+        write: (address, value) => { if (address < bytes.length) bytes[address] = value & 0xff; },
+      };
+    }
+    const bus = this.cpuBuses.get(row.cpu);
+    if (!bus || row.space !== 'program') return undefined;
+    return { read: address => bus.read(address), write: (address, value) => bus.write(address, value) };
   }
 
   /**

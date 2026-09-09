@@ -478,6 +478,17 @@ own fractional line position for the same reason.
 - `savestore.ts`: the visitor's own save states (IndexedDB `mamekit-saves`),
   keyed by machine, ROM-set hashes and board facts so a save never loads into
   a different machine;
+- `machine-memory.ts`: what MAME keeps when the machine is switched off --
+  every share or region an `NVRAM` device declares, and the target's
+  hiscore.dat rows (compiled into its config by `mame/hiscore-dat.ts`) run
+  exactly as MAME's hiscore plugin runs them: wait for the game to initialise
+  its table, put the kept bytes in through the CPU's own bus, write them out
+  when they change. The board answers `persistentMemory()` from its decoded
+  device list and `memory(row)` from its CPU buses and shares, so no part of
+  this knows a chip or a game;
+- `memorystore.ts` and `romstore.ts`: where that memory (IndexedDB
+  `mamekit-memory`) and the visitor's own arcade sets (`mamekit-roms`) are
+  kept, keyed by machine alone so both outlive a rebuild;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;
 - `software.ts`: computer software workflow, one shelf per software list;
@@ -500,8 +511,9 @@ machine*:
 | video plans, palettes, tilemaps, sprites | canvas presentation, artwork, box-art snapshots |
 | sound chip DSP and routing | Web Audio transport and worklet hosting |
 | screen timing and the frame schedule | menu, dossier, console and software rooms |
-| DIP defaults, coin and start bindings | persistence: cart store, save states, session logs |
-| NVRAM and battery semantics | netplay: rooms, transport, lockstep, desync detection |
+| DIP defaults, coin and start bindings | persistence: cart and ROM stores, save states, session logs |
+| NVRAM and battery semantics | keeping that memory between sessions, in the visitor's browser |
+| which bytes hold the score table (hiscore.dat) | when to load and write them, and where they are kept |
 | what a machine's state *is* | capturing and restoring that state |
 
 A host feature is legitimately MAMEKIT's own design and owes MAME nothing:
@@ -526,8 +538,12 @@ unchanged for the next generated machine".
    target's canonical generated board.
 3. The route `/app/g/<target>/` resolves the target's generated `dataPath`.
 4. The app fetches `games/<category>/<target>/config.json`.
-5. Arcade targets request a user-supplied ROM zip and validate every required
-   chip against graph-derived names and CRCs.
+5. Arcade targets boot from the set this browser already keeps for the
+   machine (`romstore.ts`, graded against the manifest exactly as a drop is),
+   or request a user-supplied ROM zip and validate every required chip
+   against graph-derived names and CRCs, keeping the accepted zips for next
+   time. The machine's NVRAM and hiscore.dat bytes go back in before the
+   first frame (`machine-memory.ts`).
 6. Console targets open their cartridge room instead: the generated softlist
    catalog identifies a dropped or fetched dump by chip CRC, and the shell is
    handed the identified PRG/CHR regions with the cart's mapper, mirroring and
@@ -652,9 +668,12 @@ paths.
 ## 14. CONTENT AND SECURITY BOUNDARY
 
 MAME source is a generation-time dependency and is not shipped. MAMEKIT does
-not publish ROMs. Arcade ROM bytes are accepted from the browser user, validated
-in memory, and discarded with the page. Console carts may be persisted only in
-the visitor's browser through the explicit console workflow.
+not publish ROMs. ROM bytes are accepted from the browser user and validated in
+memory. An accepted arcade set, like a console cart, may be kept only in the
+visitor's own browser (IndexedDB), by their own choice, so the next visit boots
+straight in; a control on the page forgets it. The machine's NVRAM and
+high-score bytes are kept the same way. Nothing the visitor supplies or the
+machine writes ever reaches the server.
 
 AudioWorklet requires a secure context outside localhost. Production therefore
 uses HTTPS. All static URLs remain relative so the distribution can run at a

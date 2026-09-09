@@ -15,6 +15,7 @@
 // generated config.json, the ROM bytes, and user-supplied art files.
 
 import { readZip, crc32 } from './zip.ts';
+import { openRomStore } from './romstore.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
 import { loadArtwork } from './artwork.ts';
 import { artworkSources, loadArtworkImage } from './artwork-source.ts';
@@ -121,11 +122,13 @@ export async function runMenu(): Promise<void> {
   document.title = 'MAME History — retro gaming, transpiled';
   const games: GameEntry[] = await fetch('../games.json').then(r => r.json());
   games.sort((a, b) => a.year.localeCompare(b.year) || a.game.localeCompare(b.game));
-  // NOTHING arcade is cached — no ROM bytes, no derived screenshots (hard
-  // user directive). Purge anything older builds may have stored: the legacy
-  // `mame2js-roms` DB plus mamekit:/mame2js:-prefixed web-storage keys ONLY.
-  // Console carts live in the `mamekit-carts` IndexedDB by explicit user
-  // approval (2026-07-07) — this purge must NEVER touch it.
+  // Purge what older builds may have stored: the legacy `mame2js-roms` DB
+  // plus mamekit:/mame2js:-prefixed web-storage keys ONLY. Everything the
+  // visitor keeps by their own choice lives in its own IndexedDB and this
+  // purge must NEVER touch it: console carts in `mamekit-carts` (approved
+  // 2026-07-07), arcade sets in `mamekit-roms` and the machines' NVRAM and
+  // high scores in `mamekit-memory` (approved 2026-09-09, issue #132), save
+  // states in `mamekit-saves`.
   try { indexedDB.deleteDatabase('mame2js-roms'); } catch { /* legacy DB name — unavailable is fine */ }
   try {
     for (const store of [localStorage, sessionStorage]) {
@@ -135,7 +138,10 @@ export async function runMenu(): Promise<void> {
       }
     }
   } catch { /* storage unavailable */ }
-  for (const g of games) g.hasRom = false; // covers use flyers/placeholders only
+  // A machine whose set this browser keeps boots straight in, so its box
+  // needs no INSERT ROM sash. Covers still come from flyers and placeholders.
+  const kept = new Set(await openRomStore().then(store => store.games(), () => [] as string[]));
+  for (const g of games) g.hasRom = kept.has(g.game);
 
   const root = el('div', `min-height:100vh;box-sizing:border-box;margin:0;padding:0 0 60px;
     background:linear-gradient(#06070f, #0b0d1d 30%, #10142a);color:#eee;

@@ -56,6 +56,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
 import { compileDriverInitProgram } from '../mame/driver-init-compiler.ts';
+import { hiscoreTable } from '../mame/hiscore-dat.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkSources } from '../runtime/artwork-source.ts';
 import { writeSoftwareShelves } from './software-shelves.ts';
@@ -2239,6 +2240,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (transform) romTransforms.push(transform as unknown as Record<string, unknown>);
   }
   const initialShares = sourceNvramInitializers(devices, opts.mameSrc);
+  // The bytes the game keeps its high-score table in, from MAME's own
+  // hiscore plugin data; the shell runs the plugin's logic against them
+  // (runtime/machine-memory.ts). Absent when the file has no entry.
+  const hiscore = hiscoreTable(opts.mameSrc, opts.game);
 
   const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
   if (compiledVideo?.plan.updateMode) {
@@ -2290,6 +2295,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     roms,
     ...(romPatches ? { romPatches } : {}),
     ...(romTransforms.length ? { romTransforms } : {}),
+    ...(hiscore ? { hiscore } : {}),
     ...(cart ? { cart } : {}),
     ...(software ? { software } : {}),
     bindings,
@@ -2297,7 +2303,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ports: portSpecs,
     // no romUrl: ROMs are never fetched — the shell only accepts user drops
     // (console carts are remembered per-browser in IndexedDB via
-    // runtime/cartstore.ts, by explicit user approval 2026-07-07)
+    // runtime/cartstore.ts, by explicit user approval 2026-07-07; arcade
+    // sets likewise via runtime/romstore.ts, approved 2026-09-09, #132)
     runtimeUrl: '../runtime/generated/audio/',
     menuUrl: './',
   };
