@@ -270,6 +270,9 @@ export class S14001aCore {
 
   constructor(rom: Uint8Array<ArrayBufferLike>) { this.rom = rom; }
 
+  /** Save-state roots (machine-state.ts): every field but the ROM. */
+  stateKeys(): readonly string[] { return Object.keys(this).filter(key => key !== 'rom'); }
+
   start(word: number): void {
     this.word = word & 0x3f;
     if (!this.startLine) this.state1 = SpeechState.WordWait;

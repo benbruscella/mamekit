@@ -164,6 +164,8 @@ export class Bus {
   private readonly addressMask: number;
   /** shared RAM blocks by tag, so the machine/video can alias them */
   shares: Record<string, Uint8Array>;
+  /** RAM ranges no share names, in map order: reachable only here, so a save state takes them from here. */
+  private readonly ram: Uint8Array[] = [];
   /** Optional board-provided AS_OPCODES read path. */
   readOpcode?: (addr: number) => number;
   /**
@@ -268,6 +270,7 @@ export class Bus {
         const bytes = r.share
           ? (this.shares[r.share] ??= new Uint8Array(size))
           : new Uint8Array(size);
+        if (!r.share) this.ram.push(bytes);
         if (dataWidth === 16) {
           const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
           read = (_a, off) => littleEndian
@@ -414,6 +417,15 @@ export class Bus {
     this.baseReadId = this.readId.slice();
     this.baseWriteId = this.writeId.slice();
     this.baseAddresses = this.base.slice();
+    this.rebuildViews();
+  }
+
+  /** Save-state roots (machine-state.ts): the view selection; the overlays derive from it. */
+  stateKeys(): readonly string[] {
+    return ['activeViews', 'ram'];
+  }
+
+  stateRestored(): void {
     this.rebuildViews();
   }
 

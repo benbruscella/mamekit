@@ -24,18 +24,19 @@ export function installA2600Runtime(context: SoundRuntimeContext): SoundRuntimeH
   // is pumped from one processor only -- counting every CPU would run it at a
   // multiple of its rate.
   const driver = context.board.execution.cpus[0];
-  let carry = 0;
+  const state = { carry: 0 };
 
   return {
+    state,
     reset: () => {
-      carry = 0;
+      state.carry = 0;
     },
     tickCpu: (cpuTag, cycles) => {
       if (!driver || cpuTag !== driver.tag || rate <= 0) return;
       const elapsed = cycles / Math.max(1, driver.cycleClock ?? driver.clock);
-      carry += elapsed * rate;
-      let due = Math.floor(carry);
-      carry -= due;
+      state.carry += elapsed * rate;
+      let due = Math.floor(state.carry);
+      state.carry -= due;
       if (due <= 0) return;
       if (due > MAX_SAMPLES_PER_TICK) due = MAX_SAMPLES_PER_TICK;
       if (context.callDevice(tag, 'sound_stream_update', due) === undefined) return;

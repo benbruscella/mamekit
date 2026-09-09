@@ -379,6 +379,7 @@ Choose the layer from evidence, not from the visible symptom.
 | A device reads display memory no CPU map mentions | its own `device_memory_interface` space, not a board share |
 | A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |
 | A statement lowers with no diagnostic but wrong | a silently mis-parsed form; add the spec before the fix |
+| A machine diverges after a save-state load | state the walker cannot see: a closure variable (lift it into `hostModel()`), a class without `stateKeys()`, a derived cache not rebuilt in `stateRestored()` |
 | A hardware family needs a new central branch | it needs a capability package instead |
 | Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
 | App cannot locate config/module | output layout, manifest `dataPath`, or relative URL |
@@ -475,8 +476,11 @@ or a real browser. Required checks:
    for a machine with a dial or trackball, from mouse travel over the screen
    (`e2e/specs/pointer.spec.ts`);
 8. generated audio worklet loads after a user gesture;
-9. page and console error logs remain empty;
-10. desktop/mobile layout has no overlap.
+9. a save state made on the deck (or Shift+F7) loads back (F7), survives a
+   reload, and is refused when it came from another machine
+   (`e2e/specs/savestate.spec.ts`);
+10. page and console error logs remain empty;
+11. desktop/mobile layout has no overlap.
 
 Use screenshots and canvas-pixel checks for visual changes. A successful HTTP
 response alone does not validate an emulator frame.

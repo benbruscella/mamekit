@@ -78,6 +78,15 @@ export class GeneratedM68705P5Device implements Device {
     this.reset();
   }
 
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return [
+      'ram', 'portLatch', 'portInput', 'portDdr', 'a', 'x', 'pc', 'sp', 'cc', 'irq', 'irqLine',
+      'timerIrq', 'timerData', 'timerControl', 'timerPrescale', 'timerDivisor', 'timerSource',
+      'waiting', 'resetHeld', 'icount',
+    ];
+  }
+
   reset(): void {
     this.portDdr.fill(0);
     this.portInput.fill(0xff);

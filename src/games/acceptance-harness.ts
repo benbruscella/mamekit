@@ -13,10 +13,12 @@ import {
   unresolvedDependencyRomSets,
   type ShellConfig,
 } from '../runtime/shell.ts';
-import type { Board, BoardSnapshot, Regions } from '../runtime/types.ts';
+import type { Board, BoardSnapshot, MachineState, Regions } from '../runtime/types.ts';
+import { captureState, restoreState } from '../runtime/machine-state.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
 import type {
   GameAcceptanceGolden,
+  GameCheckpointGolden,
   GameTestContract,
 } from './types.ts';
 import { assertExecutableActions } from './input-actions.ts';
@@ -135,6 +137,15 @@ export async function runGameAcceptance(
   }
 
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
+  const buildRegions = (): Regions => {
+    const assembled = assembleRegions(config.roms, files, () => {}, critical);
+    for (const patch of config.romPatches ?? []) {
+      const region = assembled[patch.region];
+      if (region && patch.offset < region.length) region[patch.offset] = patch.value;
+    }
+    applyRomTransforms(assembled, config.romTransforms ?? []);
+    return assembled;
+  };
   const romCheck = checkRomSet(config.roms, files, critical);
   // Every chip MAME says is dumped must be present. Zero-filling a missing
   // ROM and carrying on produces goldens for hardware that does not exist;
@@ -145,12 +156,7 @@ export async function runGameAcceptance(
     `${contract.game}: ROM set is incomplete`,
   );
   assert.deepEqual(romCheck.crcMismatch, []);
-  const regions = assembleRegions(config.roms, files, () => {}, critical);
-  for (const patch of config.romPatches ?? []) {
-    const region = regions[patch.region];
-    if (region && patch.offset < region.length) region[patch.offset] = patch.value;
-  }
-  applyRomTransforms(regions, config.romTransforms ?? []);
+  const regions = buildRegions();
 
   const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
     registerGeneratedMachines(): void;
@@ -184,6 +190,8 @@ export async function runGameAcceptance(
 
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
+  /** Set while the save-state round trip replays; its writes go here instead. */
+  let replayWrites: SoundWrite[] | undefined;
   const requiredAudioCounts = new Map<number, number>();
   const requiredAudioValues = new Map<number, Set<number>>();
   const board = generatedRuntime.createBoard(
@@ -193,6 +201,7 @@ export async function runGameAcceptance(
     {
       soundWrite: (offset, data, frac, method) => {
         const write = { offset, data, frac, method };
+        if (replayWrites) { replayWrites.push(write); return; }
         pendingWrites.push(write);
         allWrites.push(write);
       },
@@ -205,6 +214,54 @@ export async function runGameAcceptance(
   const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
   const checkpoints: GameAcceptanceGolden['checkpoints'] = {};
   const checkpointFrames = new Set(diagnosticCapture ? [] : contract.checkpoints);
+  // --- save-state round trip (machine-state.ts) ------------------------------
+  // The state is taken at the second-to-last checkpoint and the run carries
+  // on to the end; afterwards the board is put back to that state, the same
+  // key edges are replayed from the log, and every frame from there must
+  // hash exactly as it did the first time. A field the walker misses shows
+  // up here as a diverged trajectory rather than surviving as a desync.
+  const roundTripFrame = diagnosticCapture || contract.checkpoints.length < 2 ||
+    process.env.MAMEKIT_STATE_ROUNDTRIP === '0'
+    ? undefined
+    : contract.checkpoints.at(-2)!;
+  // A candidate built before the runtime could save is still a candidate.
+  const canSave = typeof (board as { save?: unknown }).save === 'function';
+  /** Frames run so far; the key log and the per-step hashes are keyed by it. */
+  let step = 0;
+  const inputLog: { step: number; type: 'keydown' | 'keyup' | 'reset'; code?: string }[] = [];
+  const stepHashes = new Map<number, GameCheckpointGolden>();
+  const stepSnapshots = new Map<number, string>();
+  let debugNext: MachineState | undefined;
+  /** Time the harness spends on its own round-trip bookkeeping, excluded from throughput. */
+  let bookkeepingMs = 0;
+  let debugTrace: string[] = [];
+  const traceLog: string[] = [];
+  if (process.env.MAMEKIT_STATE_DEBUG === '1' && process.env.MAMEKIT_TRACE_CPU) {
+    const cpu = (board as unknown as { cpus: Map<string, Record<string, unknown>> }).cpus.get(process.env.MAMEKIT_TRACE_CPU)!;
+    const proto = Object.getPrototypeOf(cpu) as { step(): number };
+    (cpu as { step?: () => number }).step = function (this: { get(name: string): number; stallCycles?: number } & Record<string, unknown>) {
+      const before = `${this.get('PC').toString(16)} a=${this.get('A').toString(16)} sp=${this.get('SP').toString(16)} st=${this.stallCycles} ` +
+        `nmi=${String(this.m_nmi_pending)}/${String(this.m_nmi_state)} irq=${String(this.m_irq_state)} P=${String(this.m_P)} ir=${String(this.m_IR)} ref=${String(this.m_ref)}`;
+      const took = proto.step.call(this);
+      traceLog.push(`${before} -> ${took}`);
+      return took;
+    };
+    const bus = cpu.bus as { read(address: number): number };
+    const read = bus.read;
+    bus.read = (address: number) => {
+      const value = read(address);
+      if (address >= 0x1000) traceLog.push(`R ${address.toString(16)}=${value.toString(16)}`);
+      return value;
+    };
+    const run = (proto as unknown as { run(target: number): number }).run;
+    (cpu as { run?: (target: number) => number }).run = function (this: object, target: number) {
+      const total = run.call(this, target);
+      traceLog.push(`RUN ${target} -> ${total}`);
+      return total;
+    };
+  }
+  let roundTrip: { step: number; state: MachineState; input: unknown; writes: number } | undefined;
+  const opaque = new Map<string, number>();
   const startedAt = performance.now();
   const runFrame = (): void => {
     const nextFrame = board.snapshot().frame + 1;
@@ -217,7 +274,9 @@ export async function runGameAcceptance(
       bus.write(write.address, write.data);
     }
     input.advance();
+    traceLog.length = 0;
     board.frame(framebuffer);
+    step++;
     if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {
       const devices = (board as unknown as {
         devices?: Map<string, { invoke(name: string): unknown }>;
@@ -287,24 +346,56 @@ export async function runGameAcceptance(
         state: stateHash(snapshot),
       };
     }
+    if (roundTrip) {
+      const started = performance.now();
+      stepHashes.set(step, {
+        video: hash(new Uint8Array(framebuffer.buffer)),
+        state: stateHash(snapshot),
+      });
+      if (process.env.MAMEKIT_STATE_DEBUG === '1') {
+        stepSnapshots.set(step, stableJson(snapshot));
+        if (step === roundTrip.step + 1) { debugNext = board.save(); debugTrace = [...traceLog]; }
+      }
+      bookkeepingMs += performance.now() - started;
+    } else if (snapshot.frame === roundTripFrame && canSave) {
+      const started = performance.now();
+      roundTrip = {
+        step,
+        state: (board as Board & { save(options?: { onOpaque?: (path: string, value: object) => void }): MachineState })
+          .save({
+            onOpaque: (path, value) => {
+              const key = `${path.replace(/\.\d+(?=\.|$)/g, '.#')}: ${value.constructor.name}`;
+              opaque.set(key, (opaque.get(key) ?? 0) + 1);
+            },
+          }),
+        input: captureState(input),
+        writes: allWrites.length,
+      };
+      bookkeepingMs += performance.now() - started;
+    }
+  };
+  const send = (type: 'keydown' | 'keyup', code: string): void => {
+    inputLog.push({ step, type, code });
+    key(eventTarget, type, code);
   };
 
   const captureActions = !diagnosticCapture || options.captureActions;
   for (const action of captureActions ? contract.actions : []) {
     while (board.snapshot().frame < action.atFrame) runFrame();
     if ('reset' in action) {
+      inputLog.push({ step, type: 'reset' });
       board.reset();
       continue;
     }
     if ('codes' in action) {
-      pulseMany(eventTarget, action.codes, runFrame, action.heldFrames, action.releasedFrames);
+      pulseMany(send, action.codes, runFrame, action.heldFrames, action.releasedFrames);
       continue;
     }
     if ('analog' in action || 'signal' in action) {
       throw new Error(`${contract.game}: unsupported input action`);
     }
     pulse(
-      eventTarget,
+      send,
       action.code,
       runFrame,
       action.heldFrames,
@@ -313,6 +404,111 @@ export async function runGameAcceptance(
   }
   while (board.snapshot().frame < framesToRun) runFrame();
   const finalSnapshot = board.snapshot();
+  // Throughput is the machine's own run: the save-state round trip below
+  // replays part of it again, and the per-step hashing that feeds it is the
+  // harness's bookkeeping, so neither counts against the floor.
+  const elapsedSeconds = (performance.now() - startedAt - bookkeepingMs) / 1000;
+  const emulatedFps = framesToRun / elapsedSeconds;
+  if (roundTrip) {
+    if (process.env.MAMEKIT_STATE_REPORT === '1') {
+      const bytes = roundTrip.state.shares && Object.values(roundTrip.state.shares).reduce((t, b) => t + b.length, 0);
+      console.log(`${contract.game}: save state at frame ${roundTripFrame}: ` +
+        `${Object.keys(roundTrip.state.regions).length} dirty regions, ${bytes} share bytes`);
+      for (const [key, count] of [...opaque].sort()) console.log(`  opaque ${key} x${count}`);
+    }
+    // The same board, rewound: its every container holds end-of-run values,
+    // so anything the load leaves behind is a value that has moved on.
+    await replayFromState(board, input, roundTrip.step, roundTrip.state, roundTrip.input, 'rewind');
+    if (process.env.MAMEKIT_STATE_DEEP === '1') {
+      // A second board that lived a different life for the same number of
+      // frames (attract mode, no coins), then takes the saved state.
+      const deepInput = new KeyboardInput(config.bindings, config.dipDefaults, config.ports);
+      const deepBoard = generatedRuntime.createBoard(
+        { ...config.board, game: config.game },
+        buildRegions(),
+        deepInput,
+        { soundWrite: (offset, data, frac, method) => { replayWrites?.push({ offset, data, frac, method }); } },
+      );
+      const scratch = new Uint32Array(deepBoard.fbWidth * deepBoard.fbHeight);
+      for (let index = 0; index < roundTrip.step; index++) { deepInput.advance(); deepBoard.frame(scratch); }
+      await replayFromState(deepBoard, deepInput, roundTrip.step, roundTrip.state, roundTrip.input, 'divergent');
+    }
+  }
+
+  async function replayFromState(
+    target: Board,
+    targetInput: KeyboardInput,
+    fromStep: number,
+    state: MachineState,
+    inputState: unknown,
+    label: string,
+  ): Promise<void> {
+    if (!roundTrip) return;
+    try {
+      target.load(state);
+    } catch (error) {
+      assert.fail(`${contract.game}: save state ${label} load failed: ${(error as Error).message}`);
+    }
+    const inputDiagnostics = restoreState(targetInput, inputState);
+    assert.deepEqual(inputDiagnostics, [], `${contract.game}: input state did not restore (${label})`);
+    const replayTarget = new EventTarget();
+    targetInput.attach(replayTarget);
+    const replayFramebuffer = new Uint32Array(target.fbWidth * target.fbHeight);
+    const writes: SoundWrite[] = [];
+    replayWrites = writes;
+    const mismatches: string[] = [];
+    let replayStep = fromStep;
+    let logIndex = inputLog.findIndex(entry => entry.step >= fromStep);
+    if (logIndex < 0) logIndex = inputLog.length;
+    try {
+      while (replayStep < step) {
+        for (; logIndex < inputLog.length && inputLog[logIndex]!.step === replayStep; logIndex++) {
+          const entry = inputLog[logIndex]!;
+          if (entry.type === 'reset') target.reset();
+          else key(replayTarget, entry.type, entry.code!);
+        }
+        targetInput.advance();
+        traceLog.length = 0;
+        target.frame(replayFramebuffer);
+        replayStep++;
+        const expected = stepHashes.get(replayStep);
+        const actual = {
+          video: hash(new Uint8Array(replayFramebuffer.buffer)),
+          state: stateHash(target.snapshot()),
+        };
+        if (expected && (expected.video !== actual.video || expected.state !== actual.state)) {
+          mismatches.push(`step ${replayStep} (frame ${target.snapshot().frame}): ` +
+            `video ${expected.video}/${actual.video} state ${expected.state}/${actual.state}`);
+          if (process.env.MAMEKIT_STATE_DEBUG === '1') {
+            console.log(`original: ${stepSnapshots.get(replayStep)}`);
+            console.log(`replayed: ${stableJson(target.snapshot())}`);
+            if (debugNext && replayStep === fromStep + 1) {
+              for (const line of [...diffStates(debugNext, target.save())].slice(0, 40)) console.log(`  differs: ${line}`);
+              const index = debugTrace.findIndex((line, at) => line !== traceLog[at]);
+              console.log(`  trace lengths ${debugTrace.length} vs ${traceLog.length}, first difference at ${index}`);
+              for (let at = Math.max(0, index - 4); at < index + 4 && index >= 0; at++) console.log(`    ${at}: ${debugTrace[at]} | ${traceLog[at]}`);
+            }
+          }
+          if (mismatches.length >= 3) break;
+        }
+      }
+    } finally {
+      replayWrites = undefined;
+    }
+    assert.deepEqual(
+      mismatches,
+      [],
+      `${contract.game}: trajectory diverged after a save-state ${label} load at step ${fromStep}`,
+    );
+    const original = allWrites.slice(roundTrip.writes);
+    const trace = (list: SoundWrite[]) => hash(new TextEncoder().encode(
+      list.map(write => `${write.offset}:${write.data}:${write.method ?? ''}:${write.frac ?? ''}`).join('\n')));
+    assert.equal(
+      `${writes.length}/${trace(writes)}`,
+      `${original.length}/${trace(original)}`,
+      `${contract.game}: sound writes diverged after a save-state ${label} load`,
+    );
+  }
   if (process.env.MAMEKIT_CAPTURE_FRAME) {
     writeFramePpm(
       process.env.MAMEKIT_CAPTURE_FRAME,
@@ -321,8 +517,6 @@ export async function runGameAcceptance(
       board.fbHeight,
     );
   }
-  const elapsedSeconds = (performance.now() - startedAt) / 1000;
-  const emulatedFps = framesToRun / elapsedSeconds;
 
   const result: GameAcceptanceGolden = {
     regions: Object.fromEntries(
@@ -734,6 +928,36 @@ function writePcm16Wav(path: string, pcm: Float32Array, sampleRate: number): voi
   writeFileSync(path, bytes);
 }
 
+/** Every path where two captured machines differ (MAMEKIT_STATE_DEBUG=1). */
+function* diffStates(a: unknown, b: unknown, path = ''): Generator<string> {
+  if (a === b) return;
+  if (typeof a === 'number' && typeof b === 'number' && Number.isNaN(a) && Number.isNaN(b)) return;
+  if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
+    const x = a as unknown as ArrayLike<number>;
+    const y = b as unknown as ArrayLike<number>;
+    if (x.length !== y.length) { yield `${path}: length ${x.length} vs ${y.length}`; return; }
+    let count = 0;
+    let first = -1;
+    for (let index = 0; index < x.length; index++) if (x[index] !== y[index]) { count++; if (first < 0) first = index; }
+    if (count) yield `${path}: ${count} elements differ (first at ${first}: ${x[first]} vs ${y[first]})`;
+    return;
+  }
+  if (a instanceof Map && b instanceof Map) {
+    for (const key of new Set([...a.keys(), ...b.keys()])) yield* diffStates(a.get(key), b.get(key), `${path}[${String(key)}]`);
+    return;
+  }
+  if (a instanceof Set && b instanceof Set) { if ([...a].join() !== [...b].join()) yield `${path}: set differs`; return; }
+  if (typeof a === 'object' && a && typeof b === 'object' && b) {
+    const left = a as Record<string, unknown>;
+    const right = b as Record<string, unknown>;
+    for (const key of new Set([...Object.keys(left), ...Object.keys(right)])) {
+      yield* diffStates(left[key], right[key], path ? `${path}.${key}` : key);
+    }
+    return;
+  }
+  yield `${path}: ${String(a)} vs ${String(b)}`;
+}
+
 function stateHash(snapshot: BoardSnapshot): string {
   return hash(new TextEncoder().encode(stableJson({
     cpus: snapshot.cpus,
@@ -753,29 +977,31 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
+type KeySender = (type: 'keydown' | 'keyup', code: string) => void;
+
 function pulse(
-  target: EventTarget,
+  send: KeySender,
   code: string,
   frame: () => void,
   heldFrames: number,
   releasedFrames: number,
 ): void {
-  key(target, 'keydown', code);
+  send('keydown', code);
   for (let index = 0; index < heldFrames; index++) frame();
-  key(target, 'keyup', code);
+  send('keyup', code);
   for (let index = 0; index < releasedFrames; index++) frame();
 }
 
 function pulseMany(
-  target: EventTarget,
+  send: KeySender,
   codes: string[],
   frame: () => void,
   heldFrames: number,
   releasedFrames: number,
 ): void {
-  for (const code of codes) key(target, 'keydown', code);
+  for (const code of codes) send('keydown', code);
   for (let index = 0; index < heldFrames; index++) frame();
-  for (const code of [...codes].reverse()) key(target, 'keyup', code);
+  for (const code of [...codes].reverse()) send('keyup', code);
   for (let index = 0; index < releasedFrames; index++) frame();
 }
 

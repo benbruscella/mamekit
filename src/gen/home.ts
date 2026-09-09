@@ -390,7 +390,7 @@ export function homePageHtml(data: HomeData): string {
 
   const revision = data.mameRevision ? data.mameRevision.slice(0, 10) : '';
   const nav = '<strong>MAME HISTORY</strong><a href="app/">Play</a><a href="#rooms">Rooms</a><a href="app/browse/">Archive</a>' +
-    '<a href="#controllers">Controllers</a><a href="#mamekit">How it works</a>' +
+    '<a href="#controllers">Controllers</a><a href="#saves">Save states</a><a href="#mamekit">How it works</a>' +
     '<a href="https://github.com/benbruscella/mamekit" rel="noopener" target="_blank">GitHub</a>';
 
   const body = `
@@ -437,6 +437,13 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
       <p class="note">Press any button after the game opens: browsers keep a pad hidden until it is touched. Games with fewer buttons fold the bottom row onto the top. On a spinner or trackball game, click the screen to capture the pointer so the cursor stays put; Esc lets go.</p>
     </div>
   </div>
+</section>
+
+<section id="saves">
+  <div class="eyebrow">Save states</div>
+  <h2>Stop anywhere. Pick it up later.</h2>
+  <p class="lede">Every machine can be captured mid-game and put back exactly as it was: every register, every byte of RAM, every timer. <b>Shift+F7</b> saves and <b>F7</b> loads the newest; the deck under the screen keeps a shelf of them with a picture of each moment.</p>
+  <p class="note">Saves live in your own browser and never leave it. A save loads only into the machine that made it: the same game, the same ROM set, the same build.</p>
 </section>
 
 <section id="mamekit">

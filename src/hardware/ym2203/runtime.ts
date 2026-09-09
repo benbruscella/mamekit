@@ -205,6 +205,7 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
   }
 
   return {
+    state: { timers },
     tickCpu: (cpuTag, cycles) => {
       const cpu = board.execution.cpus.find(candidate => candidate.tag === cpuTag);
       if (!cpu) return;

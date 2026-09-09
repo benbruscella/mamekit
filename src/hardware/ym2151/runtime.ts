@@ -1,4 +1,4 @@
-import { deviceAliases, soundTags, type SoundRuntimeContext } from '../sound-runtime.ts';
+import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
 import { installAuxiliaryOkim6295Runtime } from '../okim6295/runtime.ts';
 
 interface OpmTimerState {
@@ -60,6 +60,9 @@ class Upd7759Runtime {
     this.ownerCpu = ownerCpu;
     this.dispatch = dispatch;
   }
+
+  /** Save-state roots (machine-state.ts): every field; the dispatch closure is skipped as a function. */
+  stateKeys(): readonly string[] { return Object.keys(this); }
 
   write(method: string, data: number): void {
     if (method === 'port_w') this.fifo = data & 0xff;
@@ -208,10 +211,7 @@ class Upd7759Runtime {
   }
 }
 
-export function installYm2151Runtime(context: SoundRuntimeContext): {
-  reset(): void;
-  tickCpu?(cpuTag: string, cycles: number): void;
-} {
+export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntimeHooks {
   const cpuFor = (tag: string): string =>
     context.board.execution.cpus.find(cpu =>
       [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])].some(range =>
@@ -386,10 +386,13 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
       };
     }
   }
+  /** Channels each samples device is playing, by tag (state a save carries). */
+  const samples = new Map<string, Set<number>>();
   for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
     if (auxiliary.type !== 'SAMPLES') continue;
     const tag = auxiliary.deviceTag;
     const playing = new Set<number>();
+    samples.set(tag, playing);
     for (const alias of deviceAliases(context.board, tag)) {
       const originalStart = context.calls[`${alias}.start`];
       context.calls[`${alias}.start`] = (...args: number[]) => {
@@ -490,6 +493,9 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
     }
   }
   return {
+    // The speech chips' sample carries ride along with the timers: a save
+    // that lost one put Gauntlet's /READY pin a sample out (machine-state.ts).
+    state: { timers, upd, auxiliaries, speech, samples },
     reset: () => {
       for (const timer of timers) {
         timer.address = 0;

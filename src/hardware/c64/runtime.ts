@@ -8,26 +8,25 @@ export function installC64AudioRuntime(context: SoundRuntimeContext): SoundRunti
   const tag = context.sound.deviceTag;
   const driver = context.board.execution.cpus[0]?.tag;
   const gain = context.sound.routes?.find(route => route.channel === 0 || route.channel === -1)?.gain ?? 1;
-  let rendered = 0;
-  let due = 0;
+  const state = { rendered: 0, due: 0 };
   const stream = {
-    samples: () => due,
+    samples: () => state.due,
     put: (_channel: number, _index: number, value: number) =>
       context.soundWrite(0, Number(value) * gain, context.fraction(), `${tag}.pcm`),
   };
   const update = () => {
     const target = Math.floor(time() * C64_AUDIO_RATE);
-    due = target - rendered;
-    if (due <= 0) return 0;
+    state.due = target - state.rendered;
+    if (state.due <= 0) return 0;
     // Rendering is synchronous with emulation, so no wall-clock catch-up or
     // discarded chip time is needed. Bound each stream buffer's allocation.
-    while (rendered < target) {
-      due = Math.min(4096, target - rendered);
+    while (state.rendered < target) {
+      state.due = Math.min(4096, target - state.rendered);
       context.callDevice(tag, 'sound_stream_update', stream);
-      rendered += due;
+      state.rendered += state.due;
     }
     return 0;
   };
   context.bindDeviceCall(tag, 'stream.update', update);
-  return { reset: () => { rendered = 0; due = 0; }, tickCpu: cpu => { if (cpu === driver) update(); } };
+  return { state, reset: () => { state.rendered = 0; state.due = 0; }, tickCpu: cpu => { if (cpu === driver) update(); } };
 }

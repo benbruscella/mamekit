@@ -96,6 +96,8 @@ const FRAME_5_LEN = 37282;
 
 /** Pulse/noise envelope unit: constant volume or 15->0 decay with loop. */
 export class Envelope {
+  /** Save-state roots (machine-state.ts): every field; callbacks are skipped as functions. */
+  stateKeys(): readonly string[] { return Object.keys(this); }
   start = false;
   /** doubles as the length counter halt flag on pulse/noise */
   loop = false;
@@ -130,6 +132,8 @@ export class Envelope {
 }
 
 class Pulse {
+  /** Save-state roots (machine-state.ts): every field; callbacks are skipped as functions. */
+  stateKeys(): readonly string[] { return Object.keys(this); }
   enabled = false;
   length = 0;
   timerPeriod = 0;
@@ -219,6 +223,8 @@ class Pulse {
 }
 
 class Triangle {
+  /** Save-state roots (machine-state.ts): every field; callbacks are skipped as functions. */
+  stateKeys(): readonly string[] { return Object.keys(this); }
   enabled = false;
   length = 0;
   private control = false; // $4008 bit 7: length halt + linear control
@@ -281,6 +287,8 @@ class Triangle {
 }
 
 export class Noise {
+  /** Save-state roots (machine-state.ts): every field; callbacks are skipped as functions. */
+  stateKeys(): readonly string[] { return Object.keys(this); }
   enabled = false;
   length = 0;
   readonly env = new Envelope();
@@ -330,6 +338,8 @@ export class Noise {
 }
 
 class Dmc {
+  /** Save-state roots (machine-state.ts): every field; callbacks are skipped as functions. */
+  stateKeys(): readonly string[] { return Object.keys(this); }
   irqEnable = false;
   loop = false;
   rate = NES_DMC_RATES[0]; // CPU cycles per output bit
@@ -455,6 +465,8 @@ export interface NesApuOpts {
 }
 
 export class NesApu {
+  /** Save-state roots (machine-state.ts): every field; callbacks are skipped as functions. */
+  stateKeys(): readonly string[] { return Object.keys(this); }
   /** clock/2 — one output sample per APU cycle (~894886 Hz NTSC) */
   readonly sampleRate: number;
   private readonly onDmcStart: ((addr: number, len: number) => void) | undefined;

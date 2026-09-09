@@ -71,6 +71,8 @@ export interface SoundRuntimeHooks {
   /** Advance an integrated sound device by CPU cycles actually elapsed. */
   tickCpu?(cpuTag: string, cycles: number): void;
   reset?(): void;
+  /** What the hooks carry between calls, so a save state can take it (machine-state.ts). */
+  state?: Record<string, unknown>;
 }
 
 export type SoundRuntimeInstaller =

@@ -59,4 +59,5 @@ export function installNamcoWsgRuntime(
       }
     }
   }
+  return { state: { registers } };
 }

@@ -152,6 +152,11 @@ export function exidySpriteCollisionMask(
  * compiled from the selected MAME driver.
  */
 export class GeneratedVideoRenderer implements VideoRenderer {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['penBuffer', 'partialNextY'];
+  }
+
   readonly width: number;
   readonly height: number;
 
@@ -465,6 +470,11 @@ type GeneratedPriorityOp =
 
 /** Minimal bitmap_ind16 surface used by generated temporary pixmaps. */
 class GeneratedIndexedBitmap implements BitmapTarget {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['pixels'];
+  }
+
   readonly pixels: Uint32Array;
   readonly width: number;
   readonly height: number;
@@ -573,6 +583,11 @@ class GeneratedRectangle {
  * them back through the same screen offset and render scale the bitmap does.
  */
 class GeneratedPriorityBitmap {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['pixels'];
+  }
+
   private readonly pixels: Uint8Array;
   private readonly width: number;
   private readonly height: number;
@@ -641,6 +656,15 @@ interface GeneratedPaletteDevice {
  * they do in MAME.
  */
 class GeneratedRamPalette implements GeneratedPaletteDevice {
+  /**
+   * Save-state roots (machine-state.ts). The colors are saved as they are,
+   * not recomputed from the RAM: a driver-owned writer (Centipede's) sets
+   * pens directly, and recomputing them from RAM painted every pen black.
+   */
+  stateKeys(): readonly string[] {
+    return ['ram', 'ext', 'colors'];
+  }
+
   readonly colors: Uint32Array;
   private readonly plan: GeneratedRamPalettePlan;
   private readonly ram: Uint8Array;
@@ -744,6 +768,11 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
 
 /** Palette-device RAM used by a packed framebuffer plan. */
 class GeneratedBitmapPalette implements GeneratedPaletteDevice {
+  /** Save-state roots (machine-state.ts): the RAM and the colors as they stand. */
+  stateKeys(): readonly string[] {
+    return ['ram', 'colors'];
+  }
+
   colors: Uint32Array;
   readonly ram: Uint8Array;
   private readonly plan:
@@ -795,6 +824,11 @@ class GeneratedBitmapPalette implements GeneratedPaletteDevice {
  * here against the palette_device operations it calls in MAME.
  */
 class GeneratedProgramPalette implements GeneratedPaletteDevice {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['colors', 'indirect', 'indirectColors'];
+  }
+
   readonly colors: Uint32Array;
   readonly indirect: Uint16Array;
   private readonly indirectColors: Uint32Array;
@@ -906,6 +940,11 @@ function palExpand(value: number, bits: number): number {
 }
 
 class GeneratedPalette implements GeneratedPaletteDevice {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['colors', 'indirect', 'indirectColors'];
+  }
+
   readonly colors: Uint32Array;
   readonly indirect: Uint16Array;
   private readonly indirectColors: Uint32Array;
@@ -1099,6 +1138,11 @@ function palettePromBit(
 
 /** TNX1's DMA-selected background/text/sprite PROM resistor networks. */
 class GeneratedTnx1Palette implements GeneratedPaletteDevice {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['bank', 'colors'];
+  }
+
   readonly colors = new Uint32Array(80);
   private readonly colorProm: Uint8Array;
   private readonly spriteProm: Uint8Array;
@@ -1183,6 +1227,11 @@ class GeneratedTnx1Palette implements GeneratedPaletteDevice {
  * why nothing here composes with the screen itself.
  */
 class GeneratedMotionObjects {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['bitmap', 'bank', 'xscroll', 'yscroll', 'nextXpos', 'lastXpos'];
+  }
+
   readonly bitmap: GeneratedIndexedBitmap;
   private readonly plan: GeneratedMotionObjectsPlan;
   private readonly gfx: GeneratedGfxElement;
@@ -1361,6 +1410,11 @@ class GeneratedMotionObjects {
 }
 
 export class GeneratedGfxElement {
+  /** Save-state roots (machine-state.ts): what a driver can change; the decode is from ROM. */
+  stateKeys(): readonly string[] {
+    return ['penGranularity', 'colorCount'];
+  }
+
   readonly entry: GeneratedGfxEntry;
   readonly decoded: GfxSet;
   /** Pens per color entry; drivers can widen it (mario's set_granularity(8)). */
@@ -1788,6 +1842,15 @@ function drawModeMask(drawModes: ArrayLike<number>): number {
 }
 
 class GeneratedTilemap {
+  /** Save-state roots (machine-state.ts): what the driver set; the tile cache derives from RAM. */
+  stateKeys(): readonly string[] {
+    return ['scrollX', 'scrollY', 'flip', 'active', 'dynamicTransmasks'];
+  }
+
+  stateRestored(): void {
+    this.mark_all_dirty();
+  }
+
   private readonly plan: GeneratedTilemapPlan;
   private readonly mapper?: GeneratedHandler;
   private readonly tileInfo: GeneratedHandler;
@@ -2525,6 +2588,11 @@ export function segaSystem16PaletteEntry(raw: number): {
  * from `gb_state::gb_palette`, and another machine's from its own routine.
  */
 class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
+  /** Save-state roots (machine-state.ts). */
+  stateKeys(): readonly string[] {
+    return ['colors'];
+  }
+
   readonly colors: Uint32Array;
 
   constructor(entries: number) {
@@ -2551,6 +2619,15 @@ class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
  * tile callbacks, sprite loops and initial state come from generated IR.
  */
 export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, Renderer {
+  /** Save-state roots (machine-state.ts); tilemaps and gfx handles are reached through the driver state. */
+  stateKeys(): readonly string[] {
+    return ['motionObjects', 'gfx', 'palette', 'palettes', 'ramPalette', 'bitmapPalette', 'priorityBitmap'];
+  }
+
+  stateRestored(): void {
+    this.ramPaletteMirror = undefined;
+  }
+
   readonly width: number;
   readonly height: number;
   private readonly machine: BoardIr;

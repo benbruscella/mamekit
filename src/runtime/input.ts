@@ -270,6 +270,11 @@ export class KeyboardInput implements InputPorts {
     }
   }
 
+  /** Save-state roots (machine-state.ts): port bytes, holds, toggles and this frame's travel. */
+  stateKeys(): readonly string[] {
+    return ['state', 'init', 'holds', 'toggled', 'frameStart', 'frameDelta'];
+  }
+
   /** all port bytes as hex, for logging/overlay */
   dump(): string {
     return Object.entries(this.state).map(([t, v]) => `${t}=${v.toString(16).padStart(2, '0')}`).join(' ');

@@ -34,18 +34,19 @@ export function installGameboyRuntime(context: SoundRuntimeContext): SoundRuntim
     1,
     new Set(routes.map(route => route.targetInput ?? 0)).size,
   );
-  let carry = 0;
+  const state = { carry: 0 };
 
   return {
+    state,
     reset: () => {
-      carry = 0;
+      state.carry = 0;
     },
     tickCpu: (cpuTag, cycles) => {
       if (!driver || cpuTag !== driver.tag) return;
       const elapsed = cycles / Math.max(1, driver.cycleClock ?? driver.clock);
-      carry += elapsed * GAMEBOY_OUTPUT_RATE;
-      let due = Math.floor(carry);
-      carry -= due;
+      state.carry += elapsed * GAMEBOY_OUTPUT_RATE;
+      let due = Math.floor(state.carry);
+      state.carry -= due;
       if (due <= 0) return;
       if (due > MAX_SAMPLES_PER_TICK) due = MAX_SAMPLES_PER_TICK;
       // MAME's own `sound_stream &` surface, which is all the generated

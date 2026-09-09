@@ -1,7 +1,7 @@
-import { deviceAliases, type SoundRuntimeContext } from '../sound-runtime.ts';
+import { deviceAliases, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
 
 /** Bind MAME samples_device calls made from source-compiled driver handlers. */
-export function installSamplesRuntime(context: SoundRuntimeContext): { reset(): void } {
+export function installSamplesRuntime(context: SoundRuntimeContext): SoundRuntimeHooks {
   const looping = new Set<number>();
   const tag = context.sound.deviceTag;
   const aliases = deviceAliases(context.board, tag);
@@ -38,5 +38,5 @@ export function installSamplesRuntime(context: SoundRuntimeContext): { reset(): 
   for (const alias of aliases) {
     context.calls[`${alias}.playing`] = channel => looping.has(channel) ? 1 : 0;
   }
-  return { reset: () => looping.clear() };
+  return { reset: () => looping.clear(), state: { looping } };
 }

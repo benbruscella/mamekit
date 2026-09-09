@@ -101,6 +101,17 @@ each supported game it checks:
 - visible frame progression and non-silent output;
 - measured full-contract throughput above the token's minimum fps.
 
+Every contract with at least two checkpoints also proves the machine survives
+a save state: the board is captured at the second-to-last checkpoint, the run
+carries on to the end, the board is put back to the capture and the logged key
+edges are replayed, and every frame from there must hash exactly as it did
+the first time -- framebuffer, state and sound writes. Runtime state the save
+walker cannot see (a closure variable, a class without `stateKeys()`) shows
+up here as a diverged trajectory rather than surviving as a silent desync.
+`MAMEKIT_STATE_DEEP=1` adds a second board that lived a different life for
+the same number of frames before taking the save; `MAMEKIT_STATE_REPORT=1`
+prints what the walker skipped as opaque.
+
 Each token owns its checkpoint and input schedule because machines reach their
 input-ready attract state at different times. Frame counts range from 600 to
 2,400 so each golden reaches active gameplay; Galaga and Dig Dug use longer
