@@ -232,6 +232,8 @@ export async function runGameAcceptance(
   const stepHashes = new Map<number, GameCheckpointGolden>();
   const stepSnapshots = new Map<number, string>();
   let debugNext: MachineState | undefined;
+  /** Time the harness spends on its own round-trip bookkeeping, excluded from throughput. */
+  let bookkeepingMs = 0;
   let debugTrace: string[] = [];
   const traceLog: string[] = [];
   if (process.env.MAMEKIT_STATE_DEBUG === '1' && process.env.MAMEKIT_TRACE_CPU) {
@@ -345,6 +347,7 @@ export async function runGameAcceptance(
       };
     }
     if (roundTrip) {
+      const started = performance.now();
       stepHashes.set(step, {
         video: hash(new Uint8Array(framebuffer.buffer)),
         state: stateHash(snapshot),
@@ -353,7 +356,9 @@ export async function runGameAcceptance(
         stepSnapshots.set(step, stableJson(snapshot));
         if (step === roundTrip.step + 1) { debugNext = board.save(); debugTrace = [...traceLog]; }
       }
+      bookkeepingMs += performance.now() - started;
     } else if (snapshot.frame === roundTripFrame && canSave) {
+      const started = performance.now();
       roundTrip = {
         step,
         state: (board as Board & { save(options?: { onOpaque?: (path: string, value: object) => void }): MachineState })
@@ -366,6 +371,7 @@ export async function runGameAcceptance(
         input: captureState(input),
         writes: allWrites.length,
       };
+      bookkeepingMs += performance.now() - started;
     }
   };
   const send = (type: 'keydown' | 'keyup', code: string): void => {
@@ -398,9 +404,10 @@ export async function runGameAcceptance(
   }
   while (board.snapshot().frame < framesToRun) runFrame();
   const finalSnapshot = board.snapshot();
-  // Throughput is the contract's own run; the save-state round trip below
-  // replays part of it again and must not count against the floor.
-  const elapsedSeconds = (performance.now() - startedAt) / 1000;
+  // Throughput is the machine's own run: the save-state round trip below
+  // replays part of it again, and the per-step hashing that feeds it is the
+  // harness's bookkeeping, so neither counts against the floor.
+  const elapsedSeconds = (performance.now() - startedAt - bookkeepingMs) / 1000;
   const emulatedFps = framesToRun / elapsedSeconds;
   if (roundTrip) {
     if (process.env.MAMEKIT_STATE_REPORT === '1') {
