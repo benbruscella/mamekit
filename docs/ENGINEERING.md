@@ -380,6 +380,7 @@ Choose the layer from evidence, not from the visible symptom.
 | A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |
 | A statement lowers with no diagnostic but wrong | a silently mis-parsed form; add the spec before the fix |
 | A machine diverges after a save-state load | state the walker cannot see: a closure variable (lift it into `hostModel()`), a class without `stateKeys()`, a derived cache not rebuilt in `stateRestored()` |
+| A save state is refused with "missing from the save" | a slot the machine allocates as it runs (`generatedResources`, a driver-state member): an open record is restored key set and all, so check the container is not one that declares fixed keys |
 | Two browsers in a room drift apart | something reached a port outside `input.advance()`, or the two machines did not start from the same place; the room names the frame it happened on |
 | An input reaches the machine a frame late | it was posted after `input.advance()` ran; every source must post before that boundary (see the run loop in `shell.ts`) |
 | A hardware family needs a new central branch | it needs a capability package instead |

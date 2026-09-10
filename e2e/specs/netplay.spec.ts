@@ -149,4 +149,76 @@ test.describe(`${game} two player`, () => {
     expect(guestFaults.errors, 'no page errors on the joiner').toEqual([]);
     await context.close();
   });
+  test('two browsers play in real time, and both coin slots work', async ({ browser }) => {
+    test.slow();
+    // Two contexts: two people, two browsers, nothing shared between them.
+    // No ?qa=1 either — this is the wall-clock run loop a visitor gets, which
+    // is where a room has to survive the machine being busy at 60fps.
+    const contract = contractFor(game);
+    const one = await browser.newContext();
+    const two = await browser.newContext();
+    const host = await one.newPage();
+    const guest = await two.newPage();
+    const hostFaults = await bootGame(host, contract);
+    await host.locator('[data-netplay]').getByRole('button', { name: /two player game/i }).click();
+    const panel = host.locator('[data-netplay-panel]');
+    await panel.getByRole('button', { name: /invite a player/i }).click();
+    const inviteField = panel.getByLabel('invite link', { exact: true });
+    await expect(inviteField).toHaveValue(/#join=/, { timeout: 60_000 });
+    const invite = await inviteField.inputValue();
+
+    const guestFaults = await bootGame(guest, contract);
+    await guest.evaluate((url: string) => { window.location.href = url; }, invite);
+    const guestPanel = guest.locator('[data-netplay-panel]');
+    const replyField = guestPanel.getByLabel('reply code', { exact: true });
+    await expect(replyField).toHaveValue(/.{20,}/, { timeout: 60_000 });
+    await panel.getByPlaceholder('paste their code').fill(await replyField.inputValue());
+    await panel.getByRole('button', { name: /^connect$/i }).click();
+
+    await expect.poll(() => roomStatus(host), { timeout: 60_000 }).toMatch(/you are player 1/);
+    await expect.poll(() => roomStatus(guest), { timeout: 60_000 }).toMatch(/you are player 2/);
+
+    // The machine has to actually be running, not stalled waiting forever.
+    const frameOf = (page: Page) => page.evaluate(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } })
+        .mamekit.board.snapshot().frame);
+    const before = await frameOf(host);
+    await host.waitForTimeout(3000);
+    const rate = ((await frameOf(host)) - before) / 3;
+    expect(rate, `a room should run at something like full speed, not ${rate.toFixed(1)} fps`)
+      .toBeGreaterThan(30);
+
+    const coin = await guest.evaluate(() => {
+      const mamekit = (window as unknown as {
+        mamekit: { config: { bindings: { keys: string[]; type?: string }[] } };
+      }).mamekit;
+      return mamekit.config.bindings.find(binding => binding.type === 'IPT_COIN1')?.keys[0];
+    });
+    test.skip(!coin, `${game} has no coin slot to press`);
+
+    // Player one coins up. Both machines must see it, because both are
+    // running the same machine.
+    await host.keyboard.down(coin!);
+    await expect.poll(() => typeHeld(host, 'IPT_COIN1'), { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => typeHeld(guest, 'IPT_COIN1'), { timeout: 15_000 })
+      .toBe(true); // the host's coin crossed to the other browser
+    await host.keyboard.up(coin!);
+    await expect.poll(() => typeHeld(guest, 'IPT_COIN1'), { timeout: 15_000 }).toBe(false);
+
+    // And player two's own coin slot, from the other browser's keyboard.
+    await guest.keyboard.down(coin!);
+    await expect.poll(() => typeHeld(host, 'IPT_COIN2'), { timeout: 15_000 }).toBe(true);
+    await guest.keyboard.up(coin!);
+    await expect.poll(() => typeHeld(host, 'IPT_COIN2'), { timeout: 15_000 }).toBe(false);
+
+    // Play on, then check the two machines never told each other they had
+    // drifted apart — they compare themselves every 60 frames.
+    await host.waitForTimeout(3000);
+    expect(await roomStatus(host)).not.toMatch(/stopped matching/);
+    expect(await roomStatus(guest)).not.toMatch(/stopped matching/);
+    expect(hostFaults.errors, 'no page errors on the host').toEqual([]);
+    expect(guestFaults.errors, 'no page errors on the joiner').toEqual([]);
+    await one.close();
+    await two.close();
+  });
 });

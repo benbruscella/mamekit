@@ -154,7 +154,13 @@ class DataChannelLink implements PeerLink {
   bind(channel: RTCDataChannel): void {
     if (this.closed) { try { channel.close(); } catch { /* already gone */ } return; }
     this.channel = channel;
+    // A channel handed over by `ondatachannel` can already be open, and
+    // assigning `onopen` to one that is open still fires it — so without a
+    // latch this announces itself twice and starts two heartbeats.
+    let announced = false;
     const opened = (): void => {
+      if (announced) return;
+      announced = true;
       this.post({ t: 'hello', identity: this.identity });
       for (const envelope of this.queued.splice(0)) this.post(envelope);
       // A heartbeat doubles as the round-trip measure the status line shows.
@@ -163,8 +169,6 @@ class DataChannelLink implements PeerLink {
     channel.onopen = opened;
     channel.onmessage = event => this.receive(String(event.data));
     channel.onclose = () => this.shut('the other player disconnected');
-    // A channel handed over by `ondatachannel` is often already open, and its
-    // onopen has then been and gone.
     if (channel.readyState === 'open') opened();
   }
 

@@ -477,7 +477,12 @@ own fractional line position for the same reason.
   that once lived in a closure registers its record through the board's
   `hostModel()`; a closure a CPU slot may hold (its interrupt vector source)
   is a `namedStateFunction`. Nothing here knows a chip: what is saved is
-  whatever the generated definitions declared;
+  whatever the generated definitions declared. A record whose key set is
+  itself data -- driver state, a device's members, the board's lazily
+  allocated resources -- is restored key set and all, so a slot the machine
+  had not made when the save was taken goes back to not existing; where the
+  key set is fixed, a key the save lacks is a gap in the walker and is
+  reported instead;
 - `savestore.ts`: the visitor's own save states (IndexedDB `mamekit-saves`),
   keyed by machine, ROM-set hashes and board facts so a save never loads into
   a different machine;

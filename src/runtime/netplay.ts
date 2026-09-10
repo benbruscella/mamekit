@@ -208,6 +208,7 @@ export function createNetplay(options: NetplayOptions): Netplay {
    * them shipping its whole memory to the other.
    */
   const startRoom = (delay: number, local: number): void => {
+    if (session.room) return; // both hellos crossed, or a `begin` arrived twice
     player = local;
     desync = undefined;
     // Order matters. The old session stops taking events first, so the
@@ -217,7 +218,17 @@ export function createNetplay(options: NetplayOptions): Netplay {
     session.detach();
     input.reset();
     options.freezeMemory();
-    options.coldBoot();
+    try {
+      options.coldBoot();
+    } catch (error) {
+      // Both machines have to start from the same place or there is no game;
+      // say so rather than playing two different ones.
+      const why = (error as Error).message.split('\n').slice(0, 2).join(' ');
+      toast(`Could not start the two-player game: ${why}`);
+      console.warn(`netplay: cold boot failed: ${(error as Error).message}`);
+      link?.close();
+      return;
+    }
     session = new Session({
       input,
       bindings,
