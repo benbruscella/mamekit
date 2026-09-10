@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import { KeyboardInput, portHandlers, type FieldBinding } from './input.ts';
 
+/**
+ * A machine only ever sees input at a frame boundary (see KeyboardInput
+ * .advance), so settle what is queued before reading a port back.
+ */
+function settle<T extends { latch(): void }>(model: T): T {
+  model.latch();
+  return model;
+}
+
+
 function keyEvent(type: 'keydown' | 'keyup', code: string, repeat = false): Event {
   const event = new Event(type, { cancelable: true });
   Object.defineProperties(event, {
@@ -34,49 +44,49 @@ input.attach(target);
 const down = keyEvent('keydown', 'Space');
 target.dispatchEvent(down);
 assert.equal(down.defaultPrevented, true);
-assert.equal(input.read('IN0'), 0xfe);
+assert.equal(settle(input).read('IN0'), 0xfe);
 target.dispatchEvent(keyEvent('keyup', 'Space'));
-assert.equal(input.read('IN0'), 0xff);
+assert.equal(settle(input).read('IN0'), 0xff);
 
 target.dispatchEvent(keyEvent('keydown', 'Digit1'));
-assert.equal(input.read('IN1'), 0x01);
+assert.equal(settle(input).read('IN1'), 0x01);
 target.dispatchEvent(keyEvent('keyup', 'Digit1'));
-assert.equal(input.read('IN1'), 0x00);
+assert.equal(settle(input).read('IN1'), 0x00);
 
 target.dispatchEvent(keyEvent('keydown', 'Digit9'));
 target.dispatchEvent(keyEvent('keyup', 'Digit9'));
-assert.equal(input.read('IN1'), 0x02, 'a maintained switch must survive keyup');
+assert.equal(settle(input).read('IN1'), 0x02, 'a maintained switch must survive keyup');
 target.dispatchEvent(new Event('blur'));
-assert.equal(input.read('IN1'), 0x02, 'a maintained switch must survive focus loss');
+assert.equal(settle(input).read('IN1'), 0x02, 'a maintained switch must survive focus loss');
 target.dispatchEvent(keyEvent('keydown', 'Digit9'));
-assert.equal(input.read('IN1'), 0x00, 'the next keydown must release a maintained switch');
+assert.equal(settle(input).read('IN1'), 0x00, 'the next keydown must release a maintained switch');
 
 target.dispatchEvent(keyEvent('keydown', 'ArrowLeft'));
 target.dispatchEvent(keyEvent('keydown', 'ArrowRight'));
-assert.equal(input.read('IN0') & 0x06, 0x02, 'newest opposite direction must win');
+assert.equal(settle(input).read('IN0') & 0x06, 0x02, 'newest opposite direction must win');
 target.dispatchEvent(keyEvent('keyup', 'ArrowRight'));
-assert.equal(input.read('IN0') & 0x06, 0x04, 'releasing newest direction must restore held opposite');
+assert.equal(settle(input).read('IN0') & 0x06, 0x04, 'releasing newest direction must restore held opposite');
 target.dispatchEvent(new Event('blur'));
-assert.equal(input.read('IN0'), 0xff);
+assert.equal(settle(input).read('IN0'), 0xff);
 
 target.dispatchEvent(keyEvent('keydown', 'ArrowUp'));
-assert.equal(input.read('PEDAL'), 0x90, 'absolute pedal must use its source maximum');
+assert.equal(settle(input).read('PEDAL'), 0x90, 'absolute pedal must use its source maximum');
 target.dispatchEvent(keyEvent('keyup', 'ArrowUp'));
-assert.equal(input.read('PEDAL'), 0x00, 'absolute pedal must return to its source rest value');
+assert.equal(settle(input).read('PEDAL'), 0x00, 'absolute pedal must return to its source rest value');
 
 target.dispatchEvent(keyEvent('keydown', 'KeyA'));
-assert.equal(input.read('DIAL'), 0xfc, 'relative dial must wrap its hardware counter');
+assert.equal(settle(input).read('DIAL'), 0xfc, 'relative dial must wrap its hardware counter');
 input.advance();
-assert.equal(input.read('DIAL'), 0xf8, 'held relative dial must advance every emulated frame');
+assert.equal(settle(input).read('DIAL'), 0xf8, 'held relative dial must advance every emulated frame');
 target.dispatchEvent(keyEvent('keydown', 'KeyD', true));
-assert.equal(input.read('DIAL'), 0xf8, 'browser key repeat must not double-advance a relative dial');
+assert.equal(settle(input).read('DIAL'), 0xf8, 'browser key repeat must not double-advance a relative dial');
 target.dispatchEvent(keyEvent('keyup', 'KeyA'));
 input.advance();
-assert.equal(input.read('DIAL'), 0xf8, 'released relative dial must retain its hardware counter');
+assert.equal(settle(input).read('DIAL'), 0xf8, 'released relative dial must retain its hardware counter');
 
 input.setDip('IN0', 0x80, 0);
-assert.equal(input.read('IN0'), 0x7f);
-assert.equal(input.read('missing'), 0xff);
+assert.equal(settle(input).read('IN0'), 0x7f);
+assert.equal(settle(input).read('missing'), 0xff);
 assert.equal(input.dump(), 'IN0=7f IN1=00 PEDAL=00 DIAL=f8');
 
 const handlers = portHandlers([
@@ -110,31 +120,53 @@ console.log('input.spec: polarity, SOCD, release, DIP and generated port handler
   pads.onReleaseAll(() => released++);
 
   pads.press(bindings[0]!, true);
-  assert.equal(pads.read('IN0'), 0xfe, 'a pressed edge from another source drives the field');
+  assert.equal(settle(pads).read('IN0'), 0xfe, 'a pressed edge from another source drives the field');
   pads.press(bindings[0]!, false);
-  assert.equal(pads.read('IN0'), 0xff);
+  assert.equal(settle(pads).read('IN0'), 0xff);
 
   padTarget.dispatchEvent(keyEvent('keydown', 'ArrowLeft'));
   pads.press(bindings[2]!, true);
-  assert.equal(pads.read('IN0') & 0x06, 0x02, 'a pad direction over a held key resolves SOCD the same way');
+  assert.equal(settle(pads).read('IN0') & 0x06, 0x02, 'a pad direction over a held key resolves SOCD the same way');
   pads.press(bindings[2]!, false);
-  assert.equal(pads.read('IN0') & 0x06, 0x04, 'and hands back to the still-held key');
+  assert.equal(settle(pads).read('IN0') & 0x06, 0x04, 'and hands back to the still-held key');
   padTarget.dispatchEvent(keyEvent('keyup', 'ArrowLeft'));
 
   pads.press(bindings[3]!, true);
   pads.press(bindings[1]!, true);
-  assert.equal(pads.read('IN0'), 0xff & ~0x20 & ~0x02, 'the two players\' lefts are not each other\'s opposite');
+  assert.equal(settle(pads).read('IN0'), 0xff & ~0x20 & ~0x02, 'the two players\' lefts are not each other\'s opposite');
   pads.press(bindings[4]!, true);
-  assert.equal(pads.read('IN0'), 0xff & ~0x40 & ~0x02, 'player two\'s right displaces player two\'s left only');
+  assert.equal(settle(pads).read('IN0'), 0xff & ~0x40 & ~0x02, 'player two\'s right displaces player two\'s left only');
 
   pads.press(bindings[5]!, true);
   pads.press(bindings[5]!, false);
-  assert.equal(pads.read('IN1'), 0x02, 'a maintained switch toggles on the press edge only');
+  assert.equal(settle(pads).read('IN1'), 0x02, 'a maintained switch toggles on the press edge only');
 
   padTarget.dispatchEvent(new Event('blur'));
   assert.equal(released, 1, 'release listeners hear a blur');
-  assert.equal(pads.read('IN0'), 0xff);
-  assert.equal(pads.read('IN1'), 0x02);
+  assert.equal(settle(pads).read('IN0'), 0xff);
+  assert.equal(settle(pads).read('IN1'), 0x02);
+}
+
+// reset(): back to a known place, which is what a shared machine needs.
+{
+  // Fire rests high and is active-low; the service switch rests low, is
+  // active-high, and stays where it is put.
+  const fresh = new KeyboardInput([
+    { port: 'IN0', mask: 0x01, keys: ['Space'], label: 'FIRE' },
+    { port: 'IN0', mask: 0x02, keys: ['Digit9'], label: 'SERVICE', activeLow: false, toggle: true },
+  ], [], [{ tag: 'IN0', init: 0xfd }]);
+  const t = new EventTarget();
+  fresh.attach(t);
+  t.dispatchEvent(keyEvent('keydown', 'Digit9'));  // a maintained switch, flipped
+  t.dispatchEvent(keyEvent('keydown', 'Space'));   // and a button, held
+  assert.equal(settle(fresh).read('IN0'), 0xfe, 'the switch is on and the button is down');
+  fresh.releaseAll();
+  assert.equal(settle(fresh).read('IN0'), 0xff, 'a lost keyup drops the button and leaves the switch');
+  t.dispatchEvent(keyEvent('keydown', 'Space'));
+  fresh.reset();
+  assert.equal(fresh.read('IN0'), 0xfd, 'reset clears the switch, the hold and the queue at once');
+  fresh.latch();
+  assert.equal(fresh.read('IN0'), 0xfd, 'and nothing was left queued to land afterwards');
 }
 
 console.log('input.spec: press() edges and release listeners passed');
@@ -149,9 +181,9 @@ console.log('input.spec: press() edges and release listeners passed');
   t.dispatchEvent(keyEvent('keydown', 'Space'));
   t.dispatchEvent(keyEvent('keydown', 'KeyX'));
   t.dispatchEvent(keyEvent('keyup', 'Space'));
-  assert.equal(shared.read('IN0'), 0xfe, 'X still holds fire after Space is released');
+  assert.equal(settle(shared).read('IN0'), 0xfe, 'X still holds fire after Space is released');
   t.dispatchEvent(keyEvent('keyup', 'KeyX'));
-  assert.equal(shared.read('IN0'), 0xff);
+  assert.equal(settle(shared).read('IN0'), 0xff);
 }
 
 // Frame interpolation: with the board reporting its progress through the
@@ -170,37 +202,37 @@ console.log('input.spec: press() edges and release listeners passed');
   tb.advance();
   tb.nudge(dial[1]!, 12); // 12 units this frame, in the high nibble
   fraction = 0;
-  assert.equal(tb.read('TB'), 0x01, 'at the top of the frame the counter has not moved');
+  assert.equal(settle(tb).read('TB'), 0x01, 'at the top of the frame the counter has not moved');
   fraction = 0.25;
-  assert.equal(tb.read('TB'), 0x31, 'a quarter in, a quarter of the travel');
+  assert.equal(settle(tb).read('TB'), 0x31, 'a quarter in, a quarter of the travel');
   fraction = 0.5;
-  assert.equal(tb.read('TB'), 0x61);
+  assert.equal(settle(tb).read('TB'), 0x61);
   fraction = 1;
-  assert.equal(tb.read('TB'), 0xc1, 'between frames the full travel is there');
+  assert.equal(settle(tb).read('TB'), 0xc1, 'between frames the full travel is there');
   // The next frame starts from where the last one ended, and a counter that
   // wraps interpolates the short way round.
   tb.advance();
   tb.nudge(dial[1]!, 8); // 12 + 8 = 20 -> wraps to 4
   fraction = 0.5;
-  assert.equal(tb.read('TB'), 0x01, '12 + 4 = 16 wraps to 0 halfway');
+  assert.equal(settle(tb).read('TB'), 0x01, '12 + 4 = 16 wraps to 0 halfway');
   // 12 forward on a 4-bit counter looks like 4 back; the frame's own signed
   // travel, not the wrapped bytes, decides the direction.
   tb.advance();
   tb.nudge(dial[1]!, 12);
   fraction = 0.25;
-  assert.equal(tb.read('TB'), 0x71, 'a quarter of +12 from 4 is 7, never 3');
+  assert.equal(settle(tb).read('TB'), 0x71, 'a quarter of +12 from 4 is 7, never 3');
   tb.advance();
   tb.nudge(dial[1]!, -12); // back to 4
   fraction = 1;
-  assert.equal(tb.read('TB'), 0x41);
+  assert.equal(settle(tb).read('TB'), 0x41);
   tb.advance();
   tb.nudge(dial[1]!, -6);
   fraction = 0.5;
-  assert.equal(tb.read('TB'), 0x11, 'backwards travel interpolates backwards');
+  assert.equal(settle(tb).read('TB'), 0x11, 'backwards travel interpolates backwards');
   // The button bit in the same port is untouched by the blend.
   fraction = 0.5;
-  assert.equal(tb.read('TB') & 0x01, 0x01);
+  assert.equal(settle(tb).read('TB') & 0x01, 0x01);
   tb.frameFraction = null;
-  assert.equal(tb.read('TB'), 0xe1, 'no fraction, no interpolation');
+  assert.equal(settle(tb).read('TB'), 0xe1, 'no fraction, no interpolation');
 }
 console.log('input.spec: frame interpolation of relative controls passed');

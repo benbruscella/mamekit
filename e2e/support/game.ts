@@ -47,10 +47,11 @@ export interface ReplayResult {
 export async function bootGame(
   page: Page,
   contract: GameContract,
-  options: { qa?: boolean } = {},
+  options: { qa?: boolean; hash?: string } = {},
 ): Promise<PageFaults> {
   const faults = watchFaults(page);
-  await page.goto(`/app/g/${contract.game}/${options.qa ? '?qa=1' : ''}`);
+  await page.goto(
+    `/app/g/${contract.game}/${options.qa ? '?qa=1' : ''}${options.hash ?? ''}`);
 
   // The picker only exists once the drop screen is up; clicking the overlay is
   // the same gesture a visitor makes. A browser context that already keeps

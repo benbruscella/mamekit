@@ -162,12 +162,26 @@ class Keyed implements StatefulKeys {
   const wrongType = structuredClone(saved);
   wrongType.bytes = new Uint16Array(4);
   assert.match(restoreState(live, wrongType)[0]!.message, /Uint8Array, saved Uint16Array/);
+  // An open record's key set is data: a key the save does not have is one
+  // the machine had not made when it was taken, so the slot goes back to
+  // not existing. This is the mirror of gaining a key, below.
   const missing = structuredClone(saved);
   delete missing.n;
-  assert.deepEqual(restoreState(live, missing).map(d => d.path), ['n']);
+  assert.deepEqual(restoreState(live, missing), [], 'an open record may lose a key');
+  assert.equal('n' in live, false, 'and the slot goes back to not existing');
+  assert.deepEqual(restoreState(live, saved), [], 'and takes it again from a save that has it');
+  assert.equal(live.n, 1);
   const extraOnKeyed = structuredClone(saved);
   (extraOnKeyed.keyed as Record<string, unknown>).definition = {};
   assert.deepEqual(restoreState(live, extraOnKeyed).map(d => d.path), ['keyed.definition']);
+  // A core whose fields are fixed says so instead of quietly dropping one.
+  const core = { walkOwnKeys: (value: object) => value === live };
+  const goneFromCore = structuredClone(saved);
+  delete goneFromCore.n;
+  assert.deepEqual(restoreState(live, goneFromCore, core).map(d => d.path), ['n'],
+    'a fixed key set reports what the save is missing');
+  live.n = 1;
+
   const shape = structuredClone(saved);
   shape.nested = 5;
   assert.deepEqual(restoreState(live, shape), [], 'a slot may change kind: the save decides');

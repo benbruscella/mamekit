@@ -773,8 +773,12 @@ export function verifyInputBindings(
     'code' in action ? [action.code] : 'codes' in action ? action.codes : []))) {
     const binding = config.bindings.find(candidate => candidate.keys.includes(code));
     assert.ok(binding, `${contract.game}: ${code} has no generated input binding`);
+    input.latch();
     const released = input.read(binding.port);
     key(target, 'keydown', code);
+    // A machine only ever sees input at a frame boundary, so settle the
+    // queue before reading the port back: this probe runs no frames.
+    input.latch();
     const pressed = input.read(binding.port);
     const expected = binding.relativeDelta !== undefined
       ? (released & ~binding.mask) |
@@ -786,10 +790,12 @@ export function verifyInputBindings(
           : released | binding.mask;
     assert.equal(pressed, expected, `${contract.game}: ${code} did not reach ${binding.port}`);
     key(target, 'keyup', code);
+    input.latch();
     if (binding.toggle) {
       assert.equal(input.read(binding.port), expected);
       key(target, 'keydown', code);
       key(target, 'keyup', code);
+      input.latch();
     }
     if (binding.relativeDelta !== undefined) {
       // A dial is a persistent hardware counter, not a switch that springs

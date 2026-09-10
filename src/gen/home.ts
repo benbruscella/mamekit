@@ -441,7 +441,7 @@ export function homePageHtml(data: HomeData): string {
   const revision = data.mameRevision ? data.mameRevision.slice(0, 10) : '';
   const nav = '<strong>MAME HISTORY</strong><a href="app/">Play</a><a href="#rooms">Rooms</a><a href="app/browse/">Archive</a>' +
     '<a href="#controllers">Controllers</a>' + (memory ? '<a href="#memory">Memory</a>' : '') +
-    '<a href="#saves">Save states</a><a href="#mamekit">How it works</a>' +
+    '<a href="#saves">Save states</a><a href="#twoplayer">Two player</a><a href="#mamekit">How it works</a>' +
     '<a href="https://github.com/benbruscella/mamekit" rel="noopener" target="_blank">GitHub</a>';
 
   const body = `
@@ -496,6 +496,14 @@ ${memory}
   <h2>Stop anywhere. Pick it up later.</h2>
   <p class="lede">Every machine can be captured mid-game and put back exactly as it was: every register, every byte of RAM, every timer. <b>Shift+F7</b> saves and <b>F7</b> loads the newest; the deck under the screen keeps a shelf of them with a picture of each moment.</p>
   <p class="note">Saves live in your own browser and never leave it. A save loads only into the machine that made it: the same game, the same ROM set, the same build.</p>
+</section>
+
+<section id="twoplayer">
+  <div class="eyebrow">Two player</div>
+  <h2>Take the other joystick, wherever you are.</h2>
+  <p class="lede">Press <b>2 player</b> beside the title and you get a link to send somebody. They open it, bring their own copy of the same ROM set, and take player two: two browsers, a machine each, running the same game frame for frame.</p>
+  <p>You both use the controls you already know: your own arrows and fire buttons drive your own player, so nobody has to learn a second set. Coin and start are the cabinet's, as they are on the real thing.</p>
+  <p class="note">Your machines talk to each other directly, not through us — there is no server in the middle and nothing to sign up for. All that crosses is which control moved and when; no ROM and no game data ever leaves either browser. Both machines restart together when the game begins, so high scores are set aside for the duration.</p>
 </section>
 
 <section id="mamekit">

@@ -15,8 +15,25 @@ interface AcceptanceResult {
   durationMs: number;
   attempts: number;
   signal?: string;
+  /** The contract stopped answering and was killed; see TARGET_TIMEOUT_MS. */
+  timedOut?: boolean;
   detail?: string;
 }
+
+/**
+ * The longest any one contract may take before it is treated as stuck.
+ *
+ * The slowest accepted contract runs a couple of thousand frames and lands
+ * well inside a minute and a half, hosted runner included. Without a cap a
+ * child that never exits takes the whole run down with it: the job sits
+ * silent for the rest of its hour, GitHub kills it for time, and nothing in
+ * the log says which contract stopped. Five minutes is several times the
+ * slowest and still leaves the run its budget.
+ */
+const TARGET_TIMEOUT_MS = 5 * 60_000;
+
+/** Grace between asking a stuck child to stop and insisting. */
+const KILL_GRACE_MS = 5_000;
 
 interface AcceptanceReport {
   schemaVersion: 1;
@@ -44,21 +61,33 @@ function runOne(target: string, attempt: number): Promise<AcceptanceResult> {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '';
+    let timedOut = false;
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');
     child.stdout.on('data', chunk => { output += chunk; });
     child.stderr.on('data', chunk => { output += chunk; });
     child.once('error', error => { output += `${error.stack ?? error.message}\n`; });
+    // A contract that stops answering is killed and reported by name, rather
+    // than left to run the whole job out of time in silence.
+    const insist = setTimeout(() => { child.kill('SIGKILL'); }, TARGET_TIMEOUT_MS + KILL_GRACE_MS);
+    const stop = setTimeout(() => {
+      timedOut = true;
+      output += `no result after ${TARGET_TIMEOUT_MS / 1000}s; stopping it\n`;
+      child.kill('SIGTERM');
+    }, TARGET_TIMEOUT_MS);
     child.once('close', (code, signal) => {
-      const status = code === 0 ? 'passed' as const : 'failed' as const;
+      clearTimeout(stop);
+      clearTimeout(insist);
+      const status = code === 0 && !timedOut ? 'passed' as const : 'failed' as const;
       resolveRun({
         target,
         status,
         durationMs: Date.now() - started,
         attempts: attempt,
-        ...(signal ? { signal } : {}),
+        ...(signal && !timedOut ? { signal } : {}),
+        ...(timedOut ? { timedOut: true } : {}),
         ...(status === 'failed'
-          ? { detail: `${signal ? `signal ${signal}\n` : ''}${output.trimEnd()}` }
+          ? { detail: `${signal && !timedOut ? `signal ${signal}\n` : ''}${output.trimEnd()}` }
           : {}),
       });
     });
@@ -68,10 +97,11 @@ function runOne(target: string, attempt: number): Promise<AcceptanceResult> {
 async function runTarget(target: string): Promise<AcceptanceResult> {
   let result = await runOne(target, 1);
   // macOS can occasionally terminate a large generated Node module during
-  // rapid process churn. Retry only native signals; deterministic assertion
-  // failures remain single-shot and visible.
-  if (result.status === 'failed' && result.signal) {
-    console.warn(`RETRY ${target} after ${result.signal}`);
+  // rapid process churn, and a machine that stops answering is the same kind
+  // of accident. Retry both; deterministic assertion failures remain
+  // single-shot and visible.
+  if (result.status === 'failed' && (result.signal || result.timedOut)) {
+    console.warn(`RETRY ${target} after ${result.signal ?? 'no result in time'}`);
     await new Promise(resolveWait => setTimeout(resolveWait, 10_000));
     result = await runOne(target, 2);
   }
@@ -97,7 +127,8 @@ for (const [index, target] of targets.entries()) {
   const result = await runTarget(target);
   results.push(result);
   const seconds = (result.durationMs / 1000).toFixed(1);
-  console.log(`${result.status === 'passed' ? 'PASS' : 'FAIL'} ${target} (${seconds}s)`);
+  console.log(`${result.status === 'passed' ? 'PASS' : 'FAIL'} ${target} (${seconds}s` +
+    `${result.timedOut ? ', stopped for taking too long' : ''})`);
   if (result.detail) console.error(result.detail);
   if (index < targets.length - 1 && !process.argv.includes('--no-gap')) {
     await new Promise(resolveWait => setTimeout(resolveWait, 5_000));

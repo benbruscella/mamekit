@@ -449,9 +449,22 @@ class Restore {
         const kind = kindOf(item, this.options);
         if (kind === 'skip' || kind === 'opaque') continue;
         if (!Object.hasOwn(record, key)) {
-          // A container the capture walked but found cyclic is absent from
-          // the record; only a value the save should have carried is missing.
-          if (kind === 'scalar' || kind === 'bytes' || kind === 'ref') this.report(child(path, key), 'missing from the save');
+          // A key the save does not have is one the machine had not made yet
+          // when it was taken. On an open record — driver state, a device's
+          // members, the board's lazily allocated resources — the key set is
+          // itself data, so putting the machine back means taking the key
+          // away again, exactly as the mirror case below adds one.
+          // A container missing from the record was a back-reference the
+          // capture stepped over as a cycle, not a value it lost; leave it be.
+          if (kind !== 'scalar' && kind !== 'bytes' && kind !== 'ref') continue;
+          // Where the key set is fixed — a class that declares its keys, an
+          // emitted core whose fields are its MAME source's members — a key
+          // the save does not have is a gap in the walker, and is said.
+          if (keyed || this.options.walkOwnKeys?.(live)) {
+            this.report(child(path, key), 'missing from the save');
+          } else {
+            this.drop(live, key, child(path, key));
+          }
           continue;
         }
         this.into(item, record[key], live, key, child(path, key));
@@ -466,6 +479,15 @@ class Restore {
       if (keyed) this.restored.push(live as unknown as StatefulKeys);
     } finally {
       this.leave(live);
+    }
+  }
+
+  /** Put a slot back to not existing, for a record whose key set is data. */
+  private drop(holder: Record<string, unknown>, key: string, path: string): void {
+    try {
+      delete holder[key];
+    } catch (error) {
+      this.report(path, `cannot remove: ${(error as Error).message}`);
     }
   }
 

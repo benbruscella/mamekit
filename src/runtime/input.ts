@@ -59,7 +59,31 @@ export interface DipDefault { port: string; mask: number; value: number; name: s
 
 export interface PortSpec { tag: string; init: number }
 
+/**
+ * One thing a control did, in the only form a session can log, send to a peer
+ * and replay: the generated binding's index -- both peers hold the same
+ * generated table -- and what happened to it. Nothing here names a key, a pad
+ * or a port, so a remote player's events replay through exactly the path a
+ * local one's take.
+ */
+export type InputEvent =
+  | { kind: 'edge'; binding: number; down: boolean; source: string }
+  | { kind: 'travel'; binding: number; units: number }
+  | { kind: 'release' };
+
+/**
+ * Which player a binding serves. Start and coin carry their player in the
+ * type rather than in PORT_PLAYER -- IPT_START2 is a player-one keyboard
+ * binding -- so the type wins when it names one.
+ */
+export function bindingPlayer(binding: FieldBinding): number {
+  const numbered = /^IPT_(?:START|COIN)(\d)$/.exec(binding.type ?? '');
+  return numbered ? Number(numbered[1]) : binding.player ?? 1;
+}
+
 interface Field {
+  /** this field's index in the generated bindings table; an event's identity */
+  index: number;
   port: string;
   mask: number;
   activeLow: boolean;
@@ -69,6 +93,17 @@ interface Field {
   activeValue?: number;
   relativeDelta?: number;
 }
+
+/**
+ * When a queued event takes effect within one frame.
+ *
+ * `hold` runs before the frame's interpolation baseline is taken, so what a
+ * press changes is already in place when the frame begins -- which is where
+ * an immediately-applied press used to land. `travel` runs after the baseline
+ * and after MAME's per-frame ramp, so a spinner's distance is handed out
+ * across the frame instead of appearing whole at its start.
+ */
+type Phase = 'hold' | 'travel';
 
 const OPPOSITE_SUFFIX: Record<string, string> = { _LEFT: '_RIGHT', _RIGHT: '_LEFT', _UP: '_DOWN', _DOWN: '_UP' };
 
@@ -103,13 +138,28 @@ export class KeyboardInput implements InputPorts {
   frameFraction: (() => number) | null = null;
   /** when true, every key event + resulting port bytes go to the console */
   debug = false;
+  /**
+   * Where an input event goes instead of this frame's queue.
+   *
+   * A machine only ever sees input at a frame boundary, so every source --
+   * keyboard, pad, pointer, or a peer across the network -- posts an event
+   * and `advance()` applies it. A session installs itself here to stamp each
+   * event with the frame it lands on, log it and send it on; with nothing
+   * installed the events simply wait for the next frame.
+   */
+  sink: ((event: InputEvent) => void) | null = null;
+  /** Events posted since the last frame, when no sink has taken them. */
+  private pending: InputEvent[] = [];
+  private readonly bindings: readonly FieldBinding[];
 
   constructor(bindings: FieldBinding[], _dipDefaults: DipDefault[], ports: PortSpec[]) {
     // dip defaults are already folded into each port's init byte by the generator
     for (const p of ports) { this.init[p.tag] = p.init; this.state[p.tag] = p.init; }
+    this.bindings = bindings;
     const fields: Field[] = [];
-    for (const b of bindings) {
+    for (const [index, b] of bindings.entries()) {
       const f: Field = {
+        index,
         port: b.port,
         mask: b.mask,
         activeLow: b.activeLow !== false,
@@ -157,19 +207,80 @@ export class KeyboardInput implements InputPorts {
   }
 
   /**
-   * Advance relative cabinet controls once per emulated frame. MAME's
-   * PORT_KEYDELTA describes a frame-rate input ramp; browser key-repeat is an
-   * OS preference and may be delayed, disabled, or absent in automation.
+   * Settle every port byte for the frame about to run.
+   *
+   * This is the machine's only input boundary: what is queued is applied
+   * here, and nothing touches a port again until the frame is over. That is
+   * what lets a session say which frame an event belongs to -- and replay a
+   * peer's events into exactly that frame -- instead of depending on when a
+   * browser happened to deliver a key.
+   *
+   * `events` is the session's list for this frame; without one the queue this
+   * input model filled itself is used.
    */
-  advance(): void {
-    // Where each relative port stood as the frame begins; every delta landed
+  advance(events?: readonly InputEvent[]): void {
+    const list = events ?? this.takePending();
+    // 1. What the controls did since the last frame, in the order it happened.
+    for (const event of list) this.applyEvent(event, 'hold');
+    // 2. Where each relative port stood as the frame begins; every delta landed
     // from here to the board's frame() is what this frame interpolates.
     for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
     this.frameDelta.clear();
+    // 3. MAME's PORT_KEYDELTA ramp: browser key-repeat is an OS preference and
+    // may be delayed, disabled, or absent in automation, so a held relative
+    // control moves once per emulated frame regardless.
     for (const field of this.fields) {
       if (field.relativeDelta === undefined || !this.isHeld(field)) continue;
       this.travel(field, field.relativeDelta);
     }
+    // 4. Distance a spinner, trackball or mouse covered, handed out across the
+    // frame rather than appearing whole at its start.
+    for (const event of list) this.applyEvent(event, 'travel');
+  }
+
+  /**
+   * Apply what is queued without running a frame's ramp -- for a preflight
+   * probe that presses a control and reads the port back without emulating
+   * anything. The run loop uses `advance()`.
+   */
+  latch(): void {
+    const list = this.takePending();
+    for (const event of list) this.applyEvent(event, 'hold');
+    for (const event of list) this.applyEvent(event, 'travel');
+  }
+
+  /** The generated binding an event names. */
+  binding(index: number): FieldBinding | undefined {
+    return this.bindings[index];
+  }
+
+  private takePending(): InputEvent[] {
+    const list = this.pending;
+    this.pending = [];
+    return list;
+  }
+
+  /** Queue one event for the next frame, or hand it to the session that took over. */
+  private post(event: InputEvent): void {
+    if (this.sink) this.sink(event);
+    else this.pending.push(event);
+  }
+
+  /** Apply one queued event in the phase of the frame that owns it. */
+  private applyEvent(event: InputEvent, phase: Phase): void {
+    if (event.kind === 'release') {
+      if (phase === 'hold') this.applyRelease();
+      return;
+    }
+    const field = this.fields[event.binding];
+    if (!field) return;
+    if (event.kind === 'travel') {
+      if (phase === 'travel' && field.relativeDelta !== undefined && event.units) {
+        this.travel(field, event.units);
+      }
+      return;
+    }
+    if (phase === 'hold') this.applyEdge(field, event.down, event.source);
   }
 
   /** move a relative control by signed units, wrapped in its mask, and log the frame's travel */
@@ -224,19 +335,23 @@ export class KeyboardInput implements InputPorts {
   nudge(binding: FieldBinding, units: number): void {
     const field = this.byBinding.get(binding);
     if (!field || field.relativeDelta === undefined || !units) return;
-    this.travel(field, units);
+    this.post({ kind: 'travel', binding: field.index, units });
   }
 
   private drive(h: Field, down: boolean, repeat: boolean, source: string): void {
+    if (repeat) return; // auto-repeat carries no new information
+    this.post({ kind: 'edge', binding: h.index, down, source });
+  }
+
+  private applyEdge(h: Field, down: boolean, source: string): void {
     if (h.relativeDelta !== undefined) {
-      if (repeat) return;
       this.hold(h, source, down);
-      // Make a tap observable immediately; advance() supplies subsequent
-      // MAME-style per-frame deltas for as long as the key remains held.
+      // Make a tap observable in the frame it happened, before the frame's
+      // interpolation baseline is taken; the ramp that follows supplies
+      // MAME's per-frame delta for as long as the control stays held.
       if (down) this.travel(h, h.relativeDelta);
       return;
     }
-    if (repeat) return; // digital auto-repeat carries no new information
     if (h.toggle) {
       if (!down) return;
       const active = !(this.toggled.get(this.fid(h)) ?? false);
@@ -272,7 +387,7 @@ export class KeyboardInput implements InputPorts {
 
   /** Save-state roots (machine-state.ts): port bytes, holds, toggles and this frame's travel. */
   stateKeys(): readonly string[] {
-    return ['state', 'init', 'holds', 'toggled', 'frameStart', 'frameDelta'];
+    return ['state', 'init', 'holds', 'toggled', 'frameStart', 'frameDelta', 'pending'];
   }
 
   /** all port bytes as hex, for logging/overlay */
@@ -290,13 +405,40 @@ export class KeyboardInput implements InputPorts {
 
   /** release every input back to its resting byte (dips keep their value) */
   releaseAll(): void {
+    this.post({ kind: 'release' });
+    // The sources forget at once, so a polled pad re-presses whatever is
+    // still physically held on its next poll rather than waiting for the
+    // port bytes to catch up at the frame boundary.
+    for (const listener of this.releaseListeners) listener();
+  }
+
+  /**
+   * Every control back to rest at once: nothing held, no maintained switch
+   * set, nothing queued.
+   *
+   * `releaseAll` is what a lost keyup deserves — it leaves toggles alone,
+   * because a service switch a player flipped is still flipped. This is for
+   * starting again from a known place, which is what two browsers have to do
+   * before they can share a machine.
+   */
+  reset(): void {
+    this.pending = [];
+    this.holds.clear();
+    this.toggled.clear();
+    for (const tag of Object.keys(this.state)) this.state[tag] = this.init[tag];
+    for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
+    this.frameDelta.clear();
+    for (const listener of this.releaseListeners) listener();
+  }
+
+  /** The port half of `releaseAll`, at the frame boundary. */
+  private applyRelease(): void {
     for (const tag of Object.keys(this.state)) this.state[tag] = this.init[tag];
     for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
     this.holds.clear();
     for (const field of this.fields) {
       if (field.toggle && this.toggled.get(this.fid(field))) this.apply(field, true);
     }
-    for (const listener of this.releaseListeners) listener();
   }
 
   read(tag: string): number {

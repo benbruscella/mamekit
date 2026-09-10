@@ -7,6 +7,7 @@
 // input types, and which fields those types name on this machine comes from
 // the generated bindings.
 
+import { bindingPlayer } from './input.ts';
 import type { FieldBinding, KeyboardInput } from './input.ts';
 
 /**
@@ -89,14 +90,11 @@ export function standardPadButton(type: string): string | undefined {
 }
 
 /**
- * Which pad serves a binding. Start and coin carry their player in the type
- * rather than in PORT_PLAYER — IPT_START2 is a player-one keyboard binding —
- * and MAME's defaults put them on the second pad's Start and Select.
+ * Which pad serves a binding: the same player a session gives it to, so a pad
+ * and a remote player reach a field through one rule. MAME's defaults put
+ * start and coin on the second pad's Start and Select.
  */
-function padPlayer(binding: FieldBinding): number {
-  const numbered = /^IPT_(?:START|COIN)(\d)$/.exec(binding.type ?? '');
-  return numbered ? Number(numbered[1]) : binding.player ?? 1;
-}
+const padPlayer = bindingPlayer;
 
 /** The pad's own name without the vendor/product decoration browsers append. */
 export function padName(id: string): string {
