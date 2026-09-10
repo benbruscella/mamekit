@@ -382,6 +382,7 @@ Choose the layer from evidence, not from the visible symptom.
 | A machine diverges after a save-state load | state the walker cannot see: a closure variable (lift it into `hostModel()`), a class without `stateKeys()`, a derived cache not rebuilt in `stateRestored()` |
 | A save state is refused with "missing from the save" | a slot the machine allocates as it runs (`generatedResources`, a driver-state member): an open record is restored key set and all, so check the container is not one that declares fixed keys |
 | Two browsers in a room drift apart | something reached a port outside `input.advance()`, or the two machines did not start from the same place; the room names the frame it happened on |
+| A room runs faster than the board's refresh | the input delay's frames in hand were counted as a backlog to catch up on; only unspent timestep time may run a frame |
 | An input reaches the machine a frame late | it was posted after `input.advance()` ran; every source must post before that boundary (see the run loop in `shell.ts`) |
 | A hardware family needs a new central branch | it needs a capability package instead |
 | Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
@@ -486,8 +487,9 @@ or a real browser. Required checks:
     drop screen; a high score written into the machine's hiscore.dat table
     survives that reload; Forget ROM brings the drop screen back
     (`e2e/specs/memory.spec.ts`);
-11. two pages in one browser join a room, restart together and stay frame for
-   frame identical (`e2e/specs/netplay.spec.ts`);
+11. two browsers join a room from the invite link, restart together, stay
+   frame for frame identical, run at the board's own refresh, and take every
+   coin and start button from both sides (`e2e/specs/netplay.spec.ts`);
 12. page and console error logs remain empty;
 13. desktop/mobile layout has no overlap.
 

@@ -502,6 +502,7 @@ ${memory}
   <div class="eyebrow">Two player</div>
   <h2>Take the other joystick, wherever you are.</h2>
   <p class="lede">Press <b>2 player</b> beside the title and you get a link to send somebody. They open it, bring their own copy of the same ROM set, and take player two: two browsers, a machine each, running the same game frame for frame.</p>
+  <p>You both use the controls you already know: your own arrows and fire buttons drive your own player, so nobody has to learn a second set. Coin and start are the cabinet's, as they are on the real thing.</p>
   <p class="note">Your machines talk to each other directly, not through us — there is no server in the middle and nothing to sign up for. All that crosses is which control moved and when; no ROM and no game data ever leaves either browser. Both machines restart together when the game begins, so high scores are set aside for the duration.</p>
 </section>
 

@@ -489,7 +489,14 @@ own fractional line position for the same reason.
 - `session.ts`: who is playing, which frame the machine is on, and every input
   event that got it there. Playing alone is a session of one with no input
   delay, so the run loop has one path and a room only adds a second player, a
-  few frames of delay and a peer to wait for;
+  few frames of delay and a peer to wait for. It also decides which control
+  reaches which player: a joystick and its buttons belong to whoever is
+  playing that player, so a joiner's own controls drive player two and the
+  other player's are dropped rather than fought over; coin and start are
+  buttons on the cabinet instead, so the host works both and a joiner's own
+  pair reach their own slot. Each frame is published exactly once, because
+  the run loop asks whether it may run far more often than there are frames
+  and a second publish would discard everything pressed in between;
 - `netlink.ts`: the WebRTC data channel between two browsers, and the offer
   and answer codes that set it up. The signalling that ships needs no server:
   the host's offer travels in the invite link and the joiner's answer comes
@@ -498,7 +505,10 @@ own fractional line position for the same reason.
 - `netplay.ts`: the two-player lifecycle -- the lobby, and putting both
   machines back to the state they booted in so a room starts from one agreed
   place. Neither browser sends the other a ROM or a machine state: only which
-  control moved, on which frame;
+  control moved, on which frame. A room never runs faster than the board's
+  own refresh: the frames an input delay keeps in hand are not a backlog, so
+  time for a frame the room would not let run is handed back to the timestep
+  rather than spent on an extra one;
 - `machine-memory.ts`: what MAME keeps when the machine is switched off --
   every share or region an `NVRAM` device declares, and the target's
   hiscore.dat rows (compiled into its config by `mame/hiscore-dat.ts`) run
