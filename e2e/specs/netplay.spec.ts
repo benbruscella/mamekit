@@ -149,7 +149,7 @@ test.describe(`${game} two player`, () => {
     expect(guestFaults.errors, 'no page errors on the joiner').toEqual([]);
     await context.close();
   });
-  test('two browsers play in real time, and both coin slots work', async ({ browser }) => {
+  test('two browsers play in real time at the board\'s own speed, with every cabinet button working', async ({ browser }) => {
     test.slow();
     // Two contexts: two people, two browsers, nothing shared between them.
     // No ?qa=1 either — this is the wall-clock run loop a visitor gets, which
@@ -182,11 +182,18 @@ test.describe(`${game} two player`, () => {
     const frameOf = (page: Page) => page.evaluate(() =>
       (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } })
         .mamekit.board.snapshot().frame);
+    const refresh = await host.evaluate(() =>
+      (window as unknown as { mamekit: { config: { board: { screen: { refresh: number } } } } })
+        .mamekit.config.board.screen.refresh);
     const before = await frameOf(host);
     await host.waitForTimeout(3000);
     const rate = ((await frameOf(host)) - before) / 3;
-    expect(rate, `a room should run at something like full speed, not ${rate.toFixed(1)} fps`)
-      .toBeGreaterThan(30);
+    // The board's own refresh, no faster: the frames an input delay keeps in
+    // hand are not a backlog to burn through.
+    expect(rate, `a room ran at ${rate.toFixed(1)} fps against a ${refresh.toFixed(1)} Hz board`)
+      .toBeGreaterThan(refresh * 0.8);
+    expect(rate, `a room ran at ${rate.toFixed(1)} fps against a ${refresh.toFixed(1)} Hz board`)
+      .toBeLessThan(refresh * 1.1);
 
     const coin = await guest.evaluate(() => {
       const mamekit = (window as unknown as {
@@ -210,6 +217,35 @@ test.describe(`${game} two player`, () => {
     await expect.poll(() => typeHeld(host, 'IPT_COIN2'), { timeout: 15_000 }).toBe(true);
     await guest.keyboard.up(coin!);
     await expect.poll(() => typeHeld(host, 'IPT_COIN2'), { timeout: 15_000 }).toBe(false);
+
+    // Start is a cabinet button too. The host's own two-player start works,
+    // and so does the joiner's own start key, which is their own slot.
+    const start2 = await host.evaluate(() => {
+      const mamekit = (window as unknown as {
+        mamekit: { config: { bindings: { keys: string[]; type?: string }[] } };
+      }).mamekit;
+      return mamekit.config.bindings.find(binding => binding.type === 'IPT_START2')?.keys[0];
+    });
+    const start1 = await guest.evaluate(() => {
+      const mamekit = (window as unknown as {
+        mamekit: { config: { bindings: { keys: string[]; type?: string }[] } };
+      }).mamekit;
+      return mamekit.config.bindings.find(binding => binding.type === 'IPT_START1')?.keys[0];
+    });
+    if (start2) {
+      await host.keyboard.down(start2);
+      await expect.poll(() => typeHeld(guest, 'IPT_START2'), { timeout: 15_000 })
+        .toBe(true); // the host works the whole cabinet
+      await host.keyboard.up(start2);
+      await expect.poll(() => typeHeld(guest, 'IPT_START2'), { timeout: 15_000 }).toBe(false);
+    }
+    if (start1) {
+      await guest.keyboard.down(start1);
+      await expect.poll(() => typeHeld(host, 'IPT_START2'), { timeout: 15_000 })
+        .toBe(true); // the joiner's own start key is player two's
+      await guest.keyboard.up(start1);
+      await expect.poll(() => typeHeld(host, 'IPT_START2'), { timeout: 15_000 }).toBe(false);
+    }
 
     // Play on, then check the two machines never told each other they had
     // drifted apart — they compare themselves every 60 frames.

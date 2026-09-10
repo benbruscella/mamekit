@@ -119,19 +119,30 @@ export class Session {
   }
 
   private buildRemap(bindings: readonly FieldBinding[]): (number | undefined)[] {
-    return bindings.map((binding, index) => {
-      const owner = bindingPlayer(binding);
-      // Alone, every control this browser can reach is this browser's.
-      if (!this.room) return index;
-      // In a room the other player's controls belong to the other browser,
-      // second gamepad or not: two sources driving player two would fight.
-      if (owner !== 1) return undefined;
-      if (this.player === 1) return index;
+    /** The control of the same kind that belongs to this browser's player. */
+    const mine = (binding: FieldBinding): number | undefined => {
       const family = typeFamily(binding.type);
       if (!family) return undefined;
-      const mine = bindings.findIndex(candidate =>
+      const found = bindings.findIndex(candidate =>
         typeFamily(candidate.type) === family && bindingPlayer(candidate) === this.player);
-      return mine < 0 ? undefined : mine;
+      return found < 0 ? undefined : found;
+    };
+    return bindings.map((binding, index) => {
+      // Alone, every control this browser can reach is this browser's.
+      if (!this.room) return index;
+      const family = typeFamily(binding.type);
+      if (family === 'IPT_START' || family === 'IPT_COIN') {
+        // Coin and start are buttons on the cabinet, not one player's
+        // controls. Whoever is at the cabinet works both of them, and a
+        // joiner's own start and coin operate their own slot whichever of
+        // the two they press — the labels on their keyboard still say 1 and
+        // 2, and neither should do nothing.
+        return this.player === 1 ? index : mine(binding);
+      }
+      // A player's own controls belong to whoever is playing that player,
+      // second local gamepad or not: two sources driving one would fight.
+      if (bindingPlayer(binding) !== 1) return undefined;
+      return this.player === 1 ? index : mine(binding);
     });
   }
 

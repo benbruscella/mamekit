@@ -64,6 +64,43 @@ function keyEvent(type: 'keydown' | 'keyup', code: string): Event {
   assert.equal(input.read('IN1'), 0xfd, 'and their start-one key drives start two');
 }
 
+// --- coin and start are the cabinet's, not one player's -------------------
+//
+// They are buttons somebody at the machine presses, and the keyboard in
+// front of each player is labelled 1 and 2 for them. Neither should do
+// nothing: the host works the whole cabinet, and the joiner's own start and
+// coin reach their own slot whichever of the two they press.
+{
+  const table = (player: number): string[] => {
+    const rows: string[] = [];
+    for (const binding of bindings) {
+      const input = new KeyboardInput(bindings, [], ports);
+      const session = new Session({ input, bindings, player, players: [1, 2], delay: 0, checkEvery: 0 });
+      input.press(binding, true, 'k');
+      session.publish();
+      const hit = session.take().find(event => event.kind === 'edge') as { binding: number } | undefined;
+      rows.push(`${binding.label} -> ${hit ? bindings[hit.binding]!.label : 'nothing'}`);
+    }
+    return rows;
+  };
+  assert.deepEqual(table(1), [
+    'P1 Left -> P1 Left',
+    'P1 Fire -> P1 Fire',
+    'P2 Left -> nothing',
+    'P2 Fire -> nothing',
+    'Start 1 -> Start 1',
+    'Start 2 -> Start 2',
+  ], 'the host plays player one and works both start buttons');
+  assert.deepEqual(table(2), [
+    'P1 Left -> P2 Left',
+    'P1 Fire -> P2 Fire',
+    'P2 Left -> nothing',
+    'P2 Fire -> nothing',
+    'Start 1 -> Start 2',
+    'Start 2 -> Start 2',
+  ], "the joiner's own controls play player two, and either start key is theirs");
+}
+
 // --- in a room, the other player's controls are not this browser's --------
 {
   const input = new KeyboardInput(bindings, [], ports);

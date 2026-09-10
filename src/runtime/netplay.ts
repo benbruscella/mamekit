@@ -71,8 +71,6 @@ export interface Netplay {
   take(): InputEvent[];
   /** The frame is over. */
   end(fingerprint: () => string): void;
-  /** Runnable frames already in hand, so a browser that fell behind can catch up. */
-  slack(): number;
   /** A phrase for the status line while a room is live. */
   status(): string | undefined;
   /** Answer an invite. Safe to call again: a game already under way is kept. */
@@ -344,7 +342,6 @@ export function createNetplay(options: NetplayOptions): Netplay {
     take: () => session.take(),
     join: code => { void join(code); },
     end: fingerprint => session.completed(fingerprint),
-    slack: () => Math.max(0, session.buffered - 1),
     status(): string | undefined {
       if (!session.room) return undefined;
       if (desync) return `⚠ ${desync}`;

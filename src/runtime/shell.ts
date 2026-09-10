@@ -995,18 +995,15 @@ export async function runShell(
     return true;
   };
 
-  const stepFrames = (count: number): void => {
-    // A browser that fell behind runs the frames its peer has already sent,
-    // so the room closes the gap instead of drifting further apart. Under
-    // ?qa=1 a caller asked for exactly this many frames and gets them: that
-    // mode exists to make frame advancement countable.
-    const budget = count + (count > 0 && !qaDrive ? Math.min(netplay.slack(), 4) : 0);
+  /** Run up to `count` frames, and say how many actually ran. */
+  const stepFrames = (count: number): number => {
     let ran = 0;
-    for (let index = 0; index < budget; index++) {
+    for (let index = 0; index < count; index++) {
       if (!runFrame()) break;
       ran++;
     }
     if (ran > 0) ui.blit(image);
+    return ran;
   };
 
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
@@ -1170,10 +1167,20 @@ export async function runShell(
       // press F again, and the cap stops a fast machine running away.
       const until = performance.now() + 10;
       let batch = 0;
-      do { runFrame(); batch++; } while (performance.now() < until && batch < 60);
+      do {
+        if (!runFrame()) break; // in a room, only as far as the other player
+        batch++;
+      } while (performance.now() < until && batch < 60);
       ui.blit(image);
       acc = 0; // the timestep's backlog means nothing at this speed
-    } else if (!qaDrive) stepFrames(due);
+    } else if (!qaDrive) {
+      // Time for a frame the room would not let run is not time spent: hand
+      // it back so the frame happens the moment the other player's input
+      // lands. Keeping it would have the machine quietly lose those frames;
+      // spending it on extra frames instead — the input delay always leaves
+      // a few in hand — would run the game faster than the board's refresh.
+      acc += (due - stepFrames(due)) * frameMs;
+    }
     if (now - fpsWindowStart >= 1000) {
       const snap = board.snapshot();
       const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];

@@ -128,7 +128,6 @@ const settle = async (): Promise<void> => { for (let i = 0; i < 6; i++) await Pr
   solo.input.advance(solo.net.take());
   assert.equal(solo.input.read('IN0'), 0xfd);
   solo.net.end(() => 'fingerprint');
-  assert.equal(solo.net.slack(), 0);
 }
 
 // --- two browsers find each other and restart together ---------------------
