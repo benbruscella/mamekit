@@ -2,9 +2,10 @@
 // MAME History is, how MAMEKIT builds it, and what you can play it with.
 //
 // Everything on it is read from the generated tree at emit time — machine
-// counts, the year span, which flyers exist — plus the same key and pad
-// tables the app binds from, so the legend it prints is the legend the
-// game shows. Nothing here is a hand-picked list of games.
+// counts, the year span, which flyers exist, which machines keep memory
+// between visits — plus the same key and pad tables the app binds from, so
+// the legend it prints is the legend the game shows. Nothing here is a
+// hand-picked list of games, and no count on it is typed by hand.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -26,6 +27,10 @@ export interface HomeMachine {
   cabinet: boolean;
   /** a console photo exists at artwork/media/consoles/<game>.webp */
   photo: boolean;
+  /** its high-score table is kept between visits: config.json carries hiscore.dat rows */
+  scores: boolean;
+  /** it has battery-backed RAM kept between visits: the machine declares an NVRAM device */
+  battery: boolean;
 }
 
 export interface HomeData {
@@ -38,6 +43,16 @@ export interface HomeData {
   fighterKeyFor?: (type: string) => string[] | undefined;
   /** the build's clock, for the vintage tile; defaults to now */
   now?: Date;
+}
+
+/** What `config.json` says about memory kept between visits. */
+interface ConfigShape {
+  hiscore?: { rows?: unknown[] };
+}
+
+/** The device list `runtime-report.json` already publishes, as `tag:TYPE`. */
+interface ReportShape {
+  requirements?: { devices?: { name?: string }[] };
 }
 
 interface MetaShape {
@@ -73,6 +88,12 @@ export function readHomeMachines(outRoot: string, included?: Set<string>): HomeM
       continue; // a half-generated directory must not break the front page
     }
     const kind: HomeKind = meta.kind === 'console' || meta.kind === 'computer' ? meta.kind : 'arcade';
+    // Which machines remember is a generated fact, read from the artifacts
+    // that already carry it: the compiled hiscore.dat rows in config.json,
+    // and the NVRAM device in the runtime report's own device list (25 MB of
+    // board IR says the same thing, and this page has no reason to open it).
+    const config = readJson<ConfigShape>(join(output.dir, 'config.json'));
+    const report = readJson<ReportShape>(join(output.dir, 'runtime-report.json'));
     machines.push({
       game: output.game,
       title: homeTitle({ ...meta, game: output.game }),
@@ -82,9 +103,21 @@ export function readHomeMachines(outRoot: string, included?: Set<string>): HomeM
       cover: existsSync(join(outRoot, 'artwork', 'covers', `${output.game}.webp`)),
       cabinet: existsSync(join(outRoot, 'artwork', 'media', 'cabinets', `${output.game}.webp`)),
       photo: existsSync(join(outRoot, 'artwork', 'media', 'consoles', `${output.game}.webp`)),
+      scores: Boolean(config?.hiscore?.rows?.length),
+      battery: (report?.requirements?.devices ?? [])
+        .some(device => String(device.name ?? '').split(':').at(-1) === 'NVRAM'),
     });
   }
   return machines.sort((a, b) => a.year.localeCompare(b.year) || a.game.localeCompare(b.game));
+}
+
+/** A generated artifact, or undefined: a half-generated tree must not break the page. */
+function readJson<T>(file: string): T | undefined {
+  try {
+    return JSON.parse(readFileSync(file, 'utf8')) as T;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -298,7 +331,7 @@ function computerSvg(): string {
 const ROOM: Record<HomeKind, { title: string; href: string; blurb: string; go: string }> = {
   arcade: {
     title: 'Arcade', href: 'app/',
-    blurb: 'The coin-op boards, with their flyers, bezels and marquees. Drop a ROM set and the cabinet lights up.',
+    blurb: 'The coin-op boards, with their flyers, bezels and marquees. Drop a ROM set once and the cabinet stays lit.',
     go: 'Walk the arcade',
   },
   console: {
@@ -388,9 +421,27 @@ export function homePageHtml(data: HomeData): string {
     ['START', 'COIN'],
   );
 
+  // What the machines on this build actually remember. A section with
+  // nothing behind it is left out, the way a room with nothing in it is.
+  const scoreCount = machines.filter(machine => machine.scores).length;
+  const batteryCount = machines.filter(machine => machine.battery).length;
+  const kept = [
+    scoreCount ? `<b>${scoreCount}</b> ${scoreCount === 1 ? 'machine keeps its high-score table' : 'machines keep their high-score tables'}` : '',
+    batteryCount ? `<b>${batteryCount}</b> ${batteryCount === 1 ? 'machine keeps' : 'machines keep'} the battery-backed RAM their settings and bookkeeping live in` : '',
+  ].filter(Boolean).join(', and ');
+  const memory = kept ? `
+<section id="memory">
+  <div class="eyebrow">Between visits</div>
+  <h2>The machine is never turned off.</h2>
+  <p class="lede">Drop your ROM set once and it stays in your own browser, so the next visit skips the drop screen and boots straight into the game. The machine keeps what it wrote down while you played, too: ${kept}.</p>
+  <p class="note">Which bytes those are comes from MAME itself — the operator memory each board declares, and the score tables MAME's own hiscore data names — so a machine remembers the same things the real one did. Your dump, your scores and your settings stay in your browser and never reach a server; <b>Forget ROM</b> and <b>Clear memory</b> on the game page throw either away.</p>
+</section>
+` : '';
+
   const revision = data.mameRevision ? data.mameRevision.slice(0, 10) : '';
   const nav = '<strong>MAME HISTORY</strong><a href="app/">Play</a><a href="#rooms">Rooms</a><a href="app/browse/">Archive</a>' +
-    '<a href="#controllers">Controllers</a><a href="#saves">Save states</a><a href="#mamekit">How it works</a>' +
+    '<a href="#controllers">Controllers</a>' + (memory ? '<a href="#memory">Memory</a>' : '') +
+    '<a href="#saves">Save states</a><a href="#mamekit">How it works</a>' +
     '<a href="https://github.com/benbruscella/mamekit" rel="noopener" target="_blank">GitHub</a>';
 
   const body = `
@@ -398,7 +449,7 @@ export function homePageHtml(data: HomeData): string {
   <div>
     <div class="eyebrow">${escapeHtml(summary)}${span ? ` · ${escapeHtml(span)}` : ''}</div>
     <h1>Retro gaming, <em>transpiled.</em></h1>
-    <p class="dek">MAME History runs the classics in your browser, compiled straight from MAME's own source. No plugins, no native build, nothing to install. Bring a ROM, insert a coin.</p>
+    <p class="dek">MAME History runs the classics in your browser, compiled straight from MAME's own source. No plugins, no native build, nothing to install. Bring a ROM once, insert a coin.</p>
     <div class="cta"><a class="btn gold" href="app/">Insert coin</a><a class="btn" href="app/browse/">Browse the archive</a></div>
   </div>
   <div class="stats">
@@ -439,6 +490,7 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
   </div>
 </section>
 
+${memory}
 <section id="saves">
   <div class="eyebrow">Save states</div>
   <h2>Stop anywhere. Pick it up later.</h2>

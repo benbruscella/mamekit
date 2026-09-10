@@ -159,7 +159,9 @@ project arrived here; it does not override current documentation or code.
 5. `dist` is cleaned before complete generation.
 6. Generated output is self-contained and has one canonical copy of each
    artifact.
-7. Arcade ROMs are never served, committed, or persisted by the application.
+7. ROMs are never served, committed, or deployed. A visitor's own dump may be
+   kept only in their own browser, by their own choice, and forgotten from
+   the page.
 8. Unsupported source shapes fail visibly through diagnostics and reports.
 
 ## LEGAL AND PROJECT SCOPE
