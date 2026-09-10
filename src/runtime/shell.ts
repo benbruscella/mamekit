@@ -9,12 +9,13 @@ import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig, CassetteMedia, HiscoreTable, MachineState } from './types.ts';
+import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, HiscoreTable, MachineState } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
+import { createNetplay, type Netplay } from './netplay.ts';
 import { openRomStore, type RomStore, type StoredZip } from './romstore.ts';
 import { openMemoryStore } from './memorystore.ts';
 import { createMachineMemory, type MachineMemory } from './machine-memory.ts';
@@ -869,6 +870,15 @@ export async function runShell(
     },
     soundData: (id, bytes) => audio.data(id, bytes),
   });
+  // The machine exactly as it booted, before anything was restored into it.
+  // Two browsers that construct the same machine from the same ROM construct
+  // the same state, so this is the one place a room can agree to start from
+  // (see netplay.ts); it is taken before memory is restored for that reason.
+  const coldMachine = board.save();
+  // An invite in the address bar: this page is joining somebody's game, so it
+  // must not put this browser's own high scores into the machine first.
+  const joinCode = /[#&]join=([A-Za-z0-9_-]+)/.exec(location.hash)?.[1];
+
   // --- memory between sessions (issue #132) ----------------------------------
   // NVRAM and the hiscore.dat table go back into the machine before its first
   // frame, as MAME loads them at start, and are written to this browser
@@ -884,7 +894,10 @@ export async function runShell(
       });
     },
   });
-  const restored = memory.restore(await storedMemory);
+  if (joinCode) memory.disable();
+  const restored = joinCode
+    ? { nvram: [], hiscorePending: false }
+    : memory.restore(await storedMemory);
   if (restored.nvram.length) ui.toast('Battery-backed memory restored from this browser');
   let hiscoreRestoreAnnounced = !restored.hiscorePending;
   const flushMemory = (): void => { try { memory.flush(); } catch (error) { console.warn(`${cfg.game}: memory flush failed: ${(error as Error).message}`); } };
@@ -924,11 +937,39 @@ export async function runShell(
   // travel is handed out gradually, as MAME does, instead of in one lump.
   input.frameFraction = () => board.frameFraction?.() ?? 1;
 
-  /** One emulated frame, without presenting it. */
-  const runFrame = (): void => {
+  // --- two players, one machine each (issue #128) ----------------------------
+  const netplay: Netplay = createNetplay({
+    input,
+    bindings: cfg.bindings,
+    identity: { game: cfg.game, identity: machineIdentity(cfg.game, cfg.board, regions) },
+    refresh: cfg.board.screen.refresh,
+    coldBoot: () => board.load(coldMachine),
+    freezeMemory: () => memory.disable(),
+    toast: ui.toast,
+    showPanel: panel => ui.addControls(panel),
+    hidePanel: panel => ui.removeControls(panel),
+    inviteUrl: code => `${location.href.split('#')[0]}#join=${code}`,
+    joinCode,
+  });
+  ui.addTitleControls(netplay.control);
+
+  // ?qa=1 parks the wall-clock timestep and hands frame advancement to
+  // window.mamekit.step(). The presentation path is unchanged — the same
+  // input, board, audio and blit calls run — so the app's own canvas can be
+  // compared against the deterministic goldens in src/games.
+  const qaDrive = new URLSearchParams(location.search).has('qa');
+
+  /** One emulated frame, without presenting it. False when it could not run. */
+  const runFrame = (): boolean => {
+    // Every source posts what it did, then one boundary settles the ports and
+    // the frame runs against them: a pad's poll, the pointer's travel and the
+    // keyboard's edges all land in the frame they happened in. In a two-player
+    // room the frame also waits here until the other browser has said what
+    // its player did, which is what keeps the two machines identical.
     pads.poll();
-    input.advance();
     pointer.advance();
+    if (!netplay.begin()) return false;
+    input.advance(netplay.take());
     board.frame(fb);
     memory.tick();
     if (!hiscoreRestoreAnnounced && memory.hiscoreArmed()) {
@@ -939,23 +980,28 @@ export async function runShell(
     // latency rather than a dropped one, so its audio is discarded instead.
     if (fastForward) audio.discard();
     else audio.flush(); // one batch message per emulated frame
+    netplay.end(() => machineFingerprint(board));
     frames++;
+    return true;
   };
 
   const stepFrames = (count: number): void => {
-    for (let index = 0; index < count; index++) runFrame();
-    if (count > 0) ui.blit(image);
+    // A browser that fell behind runs the frames its peer has already sent,
+    // so the room closes the gap instead of drifting further apart. Under
+    // ?qa=1 a caller asked for exactly this many frames and gets them: that
+    // mode exists to make frame advancement countable.
+    const budget = count + (count > 0 && !qaDrive ? Math.min(netplay.slack(), 4) : 0);
+    let ran = 0;
+    for (let index = 0; index < budget; index++) {
+      if (!runFrame()) break;
+      ran++;
+    }
+    if (ran > 0) ui.blit(image);
   };
-
-  // ?qa=1 parks the wall-clock timestep and hands frame advancement to
-  // window.mamekit.step(). The presentation path is unchanged — the same
-  // input, board, audio and blit calls run — so the app's own canvas can be
-  // compared against the deterministic goldens in src/games.
-  const qaDrive = new URLSearchParams(location.search).has('qa');
 
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
   (window as unknown as Record<string, unknown>).mamekit = {
-    board, input, pads, pointer, config: cfg, audio, regions, memory,
+    board, input, pads, pointer, config: cfg, audio, regions, memory, netplay,
     framebuffer: fb,
     step: stepFrames,
     qaDrive,
@@ -1124,6 +1170,8 @@ export async function runShell(
       if (fastForward) parts.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
       if (snap.cpus.length > 1) parts.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
       if (snap.credits !== undefined) parts.push(`credits=${snap.credits}`);
+      const room = netplay.status();
+      if (room) parts.unshift(room);
       if (input.debug) parts.push(input.dump());
       ui.status(`${cfg.title} — ${parts.join(' · ')}`);
       frames = 0;
@@ -1137,6 +1185,21 @@ export async function runShell(
 }
 
 function hex4(v: number): string { return v.toString(16).padStart(4, '0'); }
+
+/**
+ * A short description of where the machine has got to, for two browsers to
+ * compare. The same fields the acceptance contracts fingerprint a checkpoint
+ * with, so a room notices a divergence the same way the goldens would.
+ */
+function machineFingerprint(board: { snapshot(): BoardSnapshot }): string {
+  const snapshot = board.snapshot();
+  return JSON.stringify([
+    snapshot.frame,
+    snapshot.cpus.map(cpu => [cpu.tag, cpu.pc, cpu.sp, cpu.halted, cpu.cycles]),
+    snapshot.credits ?? null,
+    snapshot.generatedDevices ?? null,
+  ]);
+}
 
 // ---------------------------------------------------------------------------
 

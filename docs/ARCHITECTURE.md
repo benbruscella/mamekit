@@ -454,7 +454,10 @@ own fractional line position for the same reason.
 - `bus.ts`: builds memory and I/O buses from generated ranges;
 - `shell.ts`: ROM validation, machine startup and frame presentation;
 - `input.ts`: port state, MAME polarity, SOCD and DIP defaults, with the
-  keyboard as one edge source; a relative control's frame of travel is handed
+  keyboard as one edge source. Every source posts what its control did and
+  `advance()` settles the ports once per frame, so a machine only ever sees
+  input at a frame boundary -- which is what lets a session say which frame an
+  event belongs to and replay a peer's press into exactly that frame; a relative control's frame of travel is handed
   out against the board's `frameFraction()` (MAME's `frame_interpolate`), so
   a trackball counter read mid-frame sees a share of the frame, not a lump;
 - `gamepad.ts`: the other edge source -- the W3C Standard Gamepad layout
@@ -478,6 +481,19 @@ own fractional line position for the same reason.
 - `savestore.ts`: the visitor's own save states (IndexedDB `mamekit-saves`),
   keyed by machine, ROM-set hashes and board facts so a save never loads into
   a different machine;
+- `session.ts`: who is playing, which frame the machine is on, and every input
+  event that got it there. Playing alone is a session of one with no input
+  delay, so the run loop has one path and a room only adds a second player, a
+  few frames of delay and a peer to wait for;
+- `netlink.ts`: the WebRTC data channel between two browsers, and the offer
+  and answer codes that set it up. The signalling that ships needs no server:
+  the host's offer travels in the invite link and the joiner's answer comes
+  back as a code to paste, so the site stays static. A room service would
+  replace only those two hops;
+- `netplay.ts`: the two-player lifecycle -- the lobby, and putting both
+  machines back to the state they booted in so a room starts from one agreed
+  place. Neither browser sends the other a ROM or a machine state: only which
+  control moved, on which frame;
 - `machine-memory.ts`: what MAME keeps when the machine is switched off --
   every share or region an `NVRAM` device declares, and the target's
   hiscore.dat rows (compiled into its config by `mame/hiscore-dat.ts`) run

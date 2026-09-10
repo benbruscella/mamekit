@@ -2,6 +2,16 @@ import assert from 'node:assert/strict';
 import { GamepadInput, padName, type PadState } from './gamepad.ts';
 import { KeyboardInput, type FieldBinding } from './input.ts';
 
+/**
+ * A machine only ever sees input at a frame boundary (see KeyboardInput
+ * .advance), so settle what is queued before reading a port back.
+ */
+function settle<T extends { latch(): void }>(model: T): T {
+  model.latch();
+  return model;
+}
+
+
 // A Street Fighter panel and a coin door, with player two's stick and punches
 // sharing player one's ports the way the CPS boards wire them.
 const bindings: FieldBinding[] = [
@@ -59,62 +69,62 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   // Face buttons in the Street Fighter order: punches on X/Y/RB, kicks on A/B/RT.
   pads = [pressing(0, [2, 3, 5])];
   source.poll();
-  assert.equal(input.read('IN1') & 0x70, 0x00, 'X, Y and RB are the punch row');
-  assert.equal(input.read('IN2'), 0xff, 'the kick row is untouched');
+  assert.equal(settle(input).read('IN1') & 0x70, 0x00, 'X, Y and RB are the punch row');
+  assert.equal(settle(input).read('IN2'), 0xff, 'the kick row is untouched');
   pads = [pressing(0, [0, 1, 7])];
   source.poll();
-  assert.equal(input.read('IN1') & 0x70, 0x70, 'released punches return to rest');
-  assert.equal(input.read('IN2') & 0x07, 0x00, 'A, B and RT are the kick row');
+  assert.equal(settle(input).read('IN1') & 0x70, 0x70, 'released punches return to rest');
+  assert.equal(settle(input).read('IN2') & 0x07, 0x00, 'A, B and RT are the kick row');
 
   // The first small button (Select) is start; the second (Start) is coin.
   pads = [pressing(0, [9, 8])];
   source.poll();
-  assert.equal(input.read('IN0'), 0xff & ~0x11, 'Select and Start press start 1 and coin 1');
-  assert.equal(input.read('IN2'), 0xff);
+  assert.equal(settle(input).read('IN0'), 0xff & ~0x11, 'Select and Start press start 1 and coin 1');
+  assert.equal(settle(input).read('IN2'), 0xff);
 
   // The d-pad and the left stick both move; opposite directions resolve SOCD.
   pads = [pressing(0, [14])];
   source.poll();
-  assert.equal(input.read('IN1') & 0x0f, 0x0d, 'd-pad left');
+  assert.equal(settle(input).read('IN1') & 0x0f, 0x0d, 'd-pad left');
   pads = [pressing(0, [14], [0.9, 0, 0, 0])];
   source.poll();
-  assert.equal(input.read('IN1') & 0x0f, 0x0e, 'stick right, held after the d-pad, wins');
+  assert.equal(settle(input).read('IN1') & 0x0f, 0x0e, 'stick right, held after the d-pad, wins');
   pads = [pressing(0, [14], [0.2, -0.9, 0, 0])];
   source.poll();
-  assert.equal(input.read('IN1') & 0x0f, 0x05, 'inside the deadzone the stick releases; up is the y axis');
+  assert.equal(settle(input).read('IN1') & 0x0f, 0x05, 'inside the deadzone the stick releases; up is the y axis');
 
   // Held buttons are edges, not levels: nothing re-presses between polls.
   pads = [pressing(0, [2])];
   source.poll();
   source.poll();
-  assert.equal(input.read('IN1') & 0x10, 0x00);
+  assert.equal(settle(input).read('IN1') & 0x10, 0x00);
   pads = [pad(0)];
   source.poll();
-  assert.equal(input.read('IN1'), 0xffff, 'everything released');
+  assert.equal(settle(input).read('IN1'), 0xffff, 'everything released');
 
   // A second pad is player two, on player two's fields and coin/start slot.
   pads = [pressing(0, [2]), pressing(1, [2, 9, 8], [-0.9, 0, 0, 0])];
   source.poll();
   assert.deepEqual(changes.at(-1), [1, 2]);
-  assert.equal(input.read('IN1'), 0xffff & ~0x10 & ~0x1000 & ~0x200, 'both jabs and player two\'s left');
-  assert.equal(input.read('IN0'), 0xff & ~0x22, 'pad two\'s Select and Start are start 2 and coin 2');
+  assert.equal(settle(input).read('IN1'), 0xffff & ~0x10 & ~0x1000 & ~0x200, 'both jabs and player two\'s left');
+  assert.equal(settle(input).read('IN0'), 0xff & ~0x22, 'pad two\'s Select and Start are start 2 and coin 2');
   assert.deepEqual(source.controlNames(bindings[3]!), ['Select'], 'start 2 is named from pad two');
 
   // Unplugging releases what that pad held and frees its slot.
   pads = [pressing(0, [2]), null];
   source.poll();
   assert.deepEqual(changes.at(-1), [1]);
-  assert.equal(input.read('IN1'), 0xffff & ~0x10, 'player two\'s fields are released');
-  assert.equal(input.read('IN0'), 0xff);
+  assert.equal(settle(input).read('IN1'), 0xffff & ~0x10, 'player two\'s fields are released');
+  assert.equal(settle(input).read('IN0'), 0xff);
   pads = [pressing(0, [2]), pad(3)];
   source.poll();
   assert.deepEqual(source.connected().map(c => [c.player, c.index]), [[1, 0], [2, 3]], 'a new pad takes the free slot');
 
   // A blur releases every field; the still-held button comes back on the next poll.
   input.releaseAll();
-  assert.equal(input.read('IN1'), 0xffff);
+  assert.equal(settle(input).read('IN1'), 0xffff);
   source.poll();
-  assert.equal(input.read('IN1'), 0xffff & ~0x10, 'held X re-pressed after releaseAll');
+  assert.equal(settle(input).read('IN1'), 0xffff & ~0x10, 'held X re-pressed after releaseAll');
 
   // Legend names for the standard layout, including the fold aliases.
   assert.deepEqual(source.controlNames(bindings[8]!), ['X'], 'jab has a kick below it, so no alias');
@@ -135,16 +145,16 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   const source = new GamepadInput(input, two, () => pads);
   pads = [pressing(0, [0])];
   source.poll();
-  assert.equal(input.read('IN0'), 0xfe, 'A fires button 1 when there is no button 4');
+  assert.equal(settle(input).read('IN0'), 0xfe, 'A fires button 1 when there is no button 4');
   pads = [pressing(0, [1, 7])];
   source.poll();
-  assert.equal(input.read('IN0'), 0xfd, 'B is button 2; RT has no button 3 to echo');
+  assert.equal(settle(input).read('IN0'), 0xfd, 'B is button 2; RT has no button 3 to echo');
   pads = [pressing(0, [2, 0])];
   source.poll();
-  assert.equal(input.read('IN0'), 0xfe);
+  assert.equal(settle(input).read('IN0'), 0xfe);
   pads = [pressing(0, [2])];
   source.poll();
-  assert.equal(input.read('IN0'), 0xfe, 'releasing A while X is held keeps button 1 down');
+  assert.equal(settle(input).read('IN0'), 0xfe, 'releasing A while X is held keeps button 1 down');
   pads = [pad(0)];
   source.poll();
   assert.deepEqual(source.controlNames(two[0]!), ['X', 'A']);
@@ -171,14 +181,14 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   assert.deepEqual(source.controlNames(one[0]!), ['button 3', 'button 1']);
   pads = [pad(0, { mapping: '', buttons: Array.from({ length: 10 }, (_, i) => ({ pressed: i === 12, value: 0 })), axes: [-1, 0] })];
   source.poll();
-  assert.equal(input.read('IN0'), 0xfd, 'the stick moves an unmapped pad');
-  assert.equal(input.read('DIAL'), 0xfc, 'a relative dial takes its first pulse from the stick');
+  assert.equal(settle(input).read('IN0'), 0xfd, 'the stick moves an unmapped pad');
+  assert.equal(settle(input).read('DIAL'), 0xfc, 'a relative dial takes its first pulse from the stick');
   input.advance();
-  assert.equal(input.read('DIAL'), 0xf8, 'and ramps every frame while the stick is held');
+  assert.equal(settle(input).read('DIAL'), 0xf8, 'and ramps every frame while the stick is held');
   pads = [pad(0, { mapping: '', axes: [0, 0] })];
   source.poll();
   input.advance();
-  assert.equal(input.read('DIAL'), 0xf8, 'the counter holds when the stick centres');
+  assert.equal(settle(input).read('DIAL'), 0xf8, 'the counter holds when the stick centres');
 }
 
 assert.equal(padName('FightBox R10-Pro (Vendor: 1209 Product: 0001)'), 'FightBox R10-Pro');

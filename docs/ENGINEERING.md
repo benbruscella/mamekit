@@ -380,6 +380,8 @@ Choose the layer from evidence, not from the visible symptom.
 | A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |
 | A statement lowers with no diagnostic but wrong | a silently mis-parsed form; add the spec before the fix |
 | A machine diverges after a save-state load | state the walker cannot see: a closure variable (lift it into `hostModel()`), a class without `stateKeys()`, a derived cache not rebuilt in `stateRestored()` |
+| Two browsers in a room drift apart | something reached a port outside `input.advance()`, or the two machines did not start from the same place; the room names the frame it happened on |
+| An input reaches the machine a frame late | it was posted after `input.advance()` ran; every source must post before that boundary (see the run loop in `shell.ts`) |
 | A hardware family needs a new central branch | it needs a capability package instead |
 | Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
 | App cannot locate config/module | output layout, manifest `dataPath`, or relative URL |
@@ -483,8 +485,10 @@ or a real browser. Required checks:
     drop screen; a high score written into the machine's hiscore.dat table
     survives that reload; Forget ROM brings the drop screen back
     (`e2e/specs/memory.spec.ts`);
-11. page and console error logs remain empty;
-12. desktop/mobile layout has no overlap.
+11. two pages in one browser join a room, restart together and stay frame for
+   frame identical (`e2e/specs/netplay.spec.ts`);
+12. page and console error logs remain empty;
+13. desktop/mobile layout has no overlap.
 
 Use screenshots and canvas-pixel checks for visual changes. A successful HTTP
 response alone does not validate an emulator frame.

@@ -119,6 +119,12 @@ contracts to cover their three-CPU self-tests before coin and start input.
 Every action has deterministic press and release durations. A test failure
 therefore identifies a changed trajectory, not only a final screenshot.
 
+The same determinism is what two-player netplay rests on (#128): a machine
+sees input only at a frame boundary, so the same ROM and the same input log
+produce the same trajectory in another browser as surely as they do in a
+rerun here. `src/runtime/session.spec.ts` plays a game between two input
+models over an in-memory channel and fails if their ports ever disagree.
+
 Each contract runs in its own optimized Node process. The short gap between
 contracts lets macOS reclaim JIT mappings for the unusually large generated
 CPU modules; without it, rapid process churn can end in a native Node signal
