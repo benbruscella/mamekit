@@ -24,7 +24,7 @@ assert.equal(keycap('Digit5'), '5');
 assert.equal(keycap('Space'), 'Space');
 
 const machine = (game: string, year: string, kind: HomeMachine['kind'] = 'arcade', cover = true): HomeMachine =>
-  ({ game, title: game.toUpperCase(), year, manufacturer: 'Maker', kind, cover, cabinet: cover, photo: kind === 'console' });
+  ({ game, title: game.toUpperCase(), year, manufacturer: 'Maker', kind, cover, cabinet: cover, photo: kind === 'console', scores: false, battery: false });
 
 // The strip is a timeline: evenly spaced through the years, never the first N.
 const many = Array.from({ length: 30 }, (_, i) => machine(`g${String(i).padStart(2, '0')}`, String(1978 + i)));
@@ -46,7 +46,7 @@ const fighterKeyFor = (type: string): string[] | undefined => ({
 
 const html = homePageHtml({
   machines: [
-    { ...machine('pacman', '1980'), title: 'Pac-Man' },
+    { ...machine('pacman', '1980'), title: 'Pac-Man', scores: true },
     { ...machine('nes', '1985', 'console'), title: 'Nintendo <NES>' },
     machine('c64', '1982', 'computer', false),
   ],
@@ -104,6 +104,28 @@ const arcadeOnly = homePageHtml({ machines: [machine('pacman', '1980')], keyFor 
 assert.match(arcadeOnly, /One room/);
 assert.doesNotMatch(arcadeOnly, /tab=consoles/, 'a room with nothing in it is not offered');
 assert.match(html, /Unofficial\. We build and test on one; FightBox is not affiliated/, 'the partnership is plainly unofficial');
+
+// What the machines remember between visits is counted, never asserted: one
+// machine with a score table here, so the sentence is singular and the
+// battery half is left out entirely.
+assert.match(html, /<h2>The machine is never turned off\.<\/h2>/);
+assert.match(html, /<b>1<\/b> machine keeps its high-score table\./);
+assert.doesNotMatch(html, /battery-backed RAM/, 'no NVRAM machine, no NVRAM clause');
+assert.match(html, /<a href="#memory">Memory<\/a>/);
+const remembering = homePageHtml({
+  machines: [
+    { ...machine('pacman', '1980'), scores: true },
+    { ...machine('galaga', '1981'), scores: true },
+    { ...machine('joust', '1982'), scores: true, battery: true },
+    { ...machine('qix', '1981'), battery: true },
+  ],
+  keyFor,
+});
+assert.match(remembering, /<b>3<\/b> machines keep their high-score tables, and <b>2<\/b> machines keep the battery-backed RAM/);
+// A build where nothing remembers offers neither the section nor its link.
+const forgetful = homePageHtml({ machines: [machine('c64', '1982', 'computer', false)], keyFor });
+assert.doesNotMatch(forgetful, /never turned off/, 'nothing to remember, no section');
+assert.doesNotMatch(forgetful, /#memory/, 'and no nav link to it');
 assert.match(html, />TRACKBALL<\/text>/);
 assert.match(html, />SPINNER<\/text>/);
 
@@ -119,6 +141,12 @@ try {
     mkdirSync(dir, { recursive: true });
     if (meta) writeFileSync(join(dir, 'meta.json'), JSON.stringify(meta));
   }
+  // The two artifacts the memory facts are read from, for pacman only.
+  const pacmanDir = join(outRoot, 'games', 'arcade', 'pacman');
+  writeFileSync(join(pacmanDir, 'config.json'), JSON.stringify({ hiscore: { rows: [{ address: 0x4e88 }] } }));
+  writeFileSync(join(pacmanDir, 'runtime-report.json'), JSON.stringify({
+    requirements: { devices: [{ name: 'nvram:NVRAM' }, { name: 'namco:NAMCO' }] },
+  }));
   mkdirSync(join(outRoot, 'artwork', 'covers'), { recursive: true });
   writeFileSync(join(outRoot, 'artwork', 'covers', 'pacman.webp'), '');
   mkdirSync(join(outRoot, 'artwork', 'media', 'consoles'), { recursive: true });
@@ -128,6 +156,10 @@ try {
     ['pacman', 'Pac-Man', '1980', 'arcade', true, false, false],
     ['nes', 'Nintendo Entertainment System', '1985', 'console', false, false, true],
   ], 'a directory without meta.json is skipped, not fatal');
+  assert.deepEqual(machines.map(m => [m.game, m.scores, m.battery]), [
+    ['pacman', true, true],
+    ['nes', false, false],
+  ], 'memory facts come from config.json and the runtime report; missing files read as false');
   const written = emitHomePage(outRoot, { keyFor, mameRevision: 'abc' });
   assert.deepEqual(written, { machines: 2, covers: 1 });
   const page = readFileSync(join(outRoot, 'index.html'), 'utf8');
