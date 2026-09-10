@@ -91,6 +91,8 @@ export class Session {
   private readonly inbox = new Map<number, Map<number, InputEvent[]>>();
   /** Our own machine's fingerprint per frame, until a peer's check arrives. */
   private readonly hashes = new Map<number, string>();
+  /** The last frame this browser has already told everybody about. */
+  private published = -1;
   private desynced = false;
 
   constructor(options: SessionOptions) {
@@ -157,6 +159,14 @@ export class Session {
    */
   publish(): void {
     const frame = this.frame + this.delay;
+    // Say each frame once. The run loop asks whether it may run on every
+    // animation frame, so while a peer's input is outstanding this is called
+    // many times over for the same frame — and publishing one twice would
+    // throw away everything pressed in between, because the second delivery
+    // is dropped as a resend and takes its events with it. A coin is two
+    // edges a few frames apart, which is exactly what went missing.
+    if (frame <= this.published) return;
+    this.published = frame;
     const events = this.collected;
     this.collected = [];
     // A frame with nothing in it still has to be published: lockstep is

@@ -172,6 +172,42 @@ function keyEvent(type: 'keydown' | 'keyup', code: string): Event {
   );
 }
 
+// --- a press made while the room is waiting is not thrown away ------------
+//
+// The run loop asks every animation frame whether it may run, so `publish`
+// is called many times for one frame while a peer's input is outstanding.
+// Anything pressed in between has to survive that.
+{
+  const input = new KeyboardInput(bindings, [], ports);
+  const target = new EventTarget();
+  input.attach(target);
+  const session = new Session({ input, bindings, player: 1, players: [1, 2], delay: 1, checkEvery: 0 });
+  session.publish();
+  input.advance(session.take());
+  session.completed(() => 'h');
+
+  // Frame one is waiting for the other player. A coin goes in meanwhile.
+  session.publish();
+  assert.equal(session.ready(), false, 'the frame is waiting for the peer');
+  target.dispatchEvent(keyEvent('keydown', 'Space'));
+  session.publish();  // the run loop tries again, and again
+  session.publish();
+  session.receive({ kind: 'input', player: 2, frame: 1, events: [] });
+  input.advance(session.take());
+  session.completed(() => 'h');
+
+  // Run on. The press was published with the next frame, so it lands a
+  // frame later than it would have — never dropped.
+  for (let frame = 2; frame <= 4; frame++) {
+    session.publish();
+    session.receive({ kind: 'input', player: 2, frame, events: [] });
+    assert.equal(session.ready(), true, `frame ${frame} could not run`);
+    input.advance(session.take());
+    session.completed(() => 'h');
+  }
+  assert.equal(input.read('IN0'), 0xfd, 'the press made while the room waited still arrived');
+}
+
 // --- a machine that has drifted says so ------------------------------------
 {
   const input = new KeyboardInput(bindings, [], ports);

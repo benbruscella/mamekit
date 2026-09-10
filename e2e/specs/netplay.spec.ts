@@ -30,6 +30,20 @@ async function stepAndHash(page: Page, frames: number): Promise<string> {
   }, frames);
 }
 
+/** Is the control of this MAME input type held down on this page's machine? */
+const typeHeld = (page: Page, type: string) => page.evaluate((wanted: string) => {
+  const mamekit = (window as unknown as {
+    mamekit: {
+      config: { bindings: { port: string; mask: number; type?: string; activeLow?: boolean }[] };
+      input: { read(tag: string): number };
+    };
+  }).mamekit;
+  const binding = mamekit.config.bindings.find(candidate => candidate.type === wanted);
+  if (!binding) return null;
+  const bits = mamekit.input.read(binding.port) & binding.mask;
+  return binding.activeLow !== false ? bits === 0 : bits !== 0;
+}, type);
+
 const roomStatus = (page: Page) => page.evaluate(() =>
   (window as unknown as { mamekit: { netplay: { status(): string | undefined; live: boolean } } })
     .mamekit.netplay.status() ?? '');
@@ -110,10 +124,20 @@ test.describe(`${game} two player`, () => {
       return mamekit.config.bindings.find(binding => binding.type === 'IPT_COIN1')?.keys[0];
     });
     test.skip(!coin, `${game} has no coin slot to press`);
+    expect(await typeHeld(host, 'IPT_COIN2'), 'nobody has coined up yet').toBe(false);
+
+    // Coin up while the joiner's own gate is blocked, which is when a press
+    // is easiest to lose: the run loop asks to run on every animation frame,
+    // so one frame gets asked about many times over while it waits.
+    await stepAndHash(guest, 40);  // runs only as far as the host has published
     await guest.keyboard.down(coin!);
+    await stepAndHash(guest, 5);   // still waiting; the press has to survive it
     await runTo(300);
+    expect(await typeHeld(host, 'IPT_COIN2'),
+      "the joiner's coin crossed the link and reached the host's machine").toBe(true);
     await guest.keyboard.up(coin!);
     const played = await runTo(420);
+    expect(await typeHeld(host, 'IPT_COIN2'), 'and letting go crossed it too').toBe(false);
 
     expect(played.guest, 'and they still agree after the joiner played').toBe(played.host);
     expect(played.host, 'the game moved on').not.toBe(settled.host);
