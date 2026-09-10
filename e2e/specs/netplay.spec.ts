@@ -52,12 +52,16 @@ test.describe(`${game} two player`, () => {
     const inviteField = panel.getByLabel('invite link', { exact: true });
     await expect(inviteField).toHaveValue(/#join=/, { timeout: 60_000 });
     const invite = await inviteField.inputValue();
-    const joinCode = invite.split('#')[1]!;
 
-    // The second player opens the invite, brings their own ROM, and the page
-    // answers with a code to send back.
-    const guestFaults = await bootGame(guest, contract, { qa: true, hash: `#${joinCode}` });
+    // The second player already had the game open and pastes the invite into
+    // it. Only the fragment changes, so the page does not reload: the join has
+    // to be noticed anyway, or the link looks like it does nothing.
+    const guestFaults = await bootGame(guest, contract, { qa: true });
+    await guest.evaluate((url: string) => { window.location.href = url; }, invite);
     const guestPanel = guest.locator('[data-netplay-panel]');
+    await expect(guestPanel).toBeVisible({ timeout: 60_000 });
+    await expect.poll(() => guest.evaluate(() => location.hash))
+      .toBe('');  // the invite is spent, so a reload will not answer it again
     const replyField = guestPanel.getByLabel('reply code', { exact: true });
     await expect(replyField).toHaveValue(/.{20,}/, { timeout: 60_000 });
     const reply = await replyField.inputValue();

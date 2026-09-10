@@ -877,7 +877,7 @@ export async function runShell(
   const coldMachine = board.save();
   // An invite in the address bar: this page is joining somebody's game, so it
   // must not put this browser's own high scores into the machine first.
-  const joinCode = /[#&]join=([A-Za-z0-9_-]+)/.exec(location.hash)?.[1];
+  const joinCode = inviteCode();
 
   // --- memory between sessions (issue #132) ----------------------------------
   // NVRAM and the hiscore.dat table go back into the machine before its first
@@ -952,6 +952,16 @@ export async function runShell(
     joinCode,
   });
   ui.addTitleControls(netplay.control);
+  // An invite pasted into a tab that is already playing changes the fragment
+  // and nothing else — the page does not reload — so the join has to be
+  // picked up here or the link would appear to do nothing at all.
+  addEventListener('hashchange', () => {
+    const code = inviteCode();
+    if (!code) return;
+    forgetInvite();
+    netplay.join(code);
+  });
+  if (joinCode) forgetInvite();
 
   // ?qa=1 parks the wall-clock timestep and hands frame advancement to
   // window.mamekit.step(). The presentation path is unchanged — the same
@@ -1185,6 +1195,21 @@ export async function runShell(
 }
 
 function hex4(v: number): string { return v.toString(16).padStart(4, '0'); }
+
+/** The offer in this page's address, when it was opened from an invite. */
+function inviteCode(): string | undefined {
+  return /[#&]join=([A-Za-z0-9_-]+)/.exec(location.hash)?.[1];
+}
+
+/**
+ * Take the invite back out of the address bar once it has been answered: an
+ * offer is good once, and a reload should not try to accept a dead one.
+ * `replaceState` is deliberate — assigning to the hash would fire another
+ * `hashchange` and answer the same invite twice.
+ */
+function forgetInvite(): void {
+  history.replaceState(null, '', `${location.pathname}${location.search}`);
+}
 
 /**
  * A short description of where the machine has got to, for two browsers to

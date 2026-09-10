@@ -75,6 +75,8 @@ export interface Netplay {
   slack(): number;
   /** A phrase for the status line while a room is live. */
   status(): string | undefined;
+  /** Answer an invite. Safe to call again: a game already under way is kept. */
+  join(code: string): void;
   readonly live: boolean;
 }
 
@@ -286,6 +288,10 @@ export function createNetplay(options: NetplayOptions): Netplay {
   };
 
   const join = async (code: string): Promise<void> => {
+    if (link) {
+      toast('You are already in a two-player game — leave it before joining another');
+      return;
+    }
     setPanel(true);
     say('Answering the invite…');
     show();
@@ -325,6 +331,7 @@ export function createNetplay(options: NetplayOptions): Netplay {
       return session.ready();
     },
     take: () => session.take(),
+    join: code => { void join(code); },
     end: fingerprint => session.completed(fingerprint),
     slack: () => Math.max(0, session.buffered - 1),
     status(): string | undefined {
