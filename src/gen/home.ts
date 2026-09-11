@@ -520,10 +520,18 @@ ${memory}
   <ul class="tenets">
     <li><b>MAME-specific</b>Not a general C++ transpiler.</li>
     <li><b>Source-derived</b>Not a shelf of handwritten TypeScript chips.</li>
+    <li><b>Deterministic</b>A compiler, not a language model. No emulation behaviour comes from model weights.</li>
+    <li><b>Verified</b>Each machine graded frame by frame against MAME itself.</li>
     <li><b>Inspectable</b>Every machine ships its dossier and its graph.</li>
     <li><b>Selective</b>Verified machines, not a universal claim.</li>
     <li><b>ROM-free</b>You supply legally obtained dumps.</li>
   </ul>
+  <p class="lede">What this is not: it is not MAME, it is not bug-for-bug compatible with
+  MAME, and it is not a substitute for it. Generated machines are a derivative work of
+  the MAME source they were compiled from, and each one carries that driver's own
+  licence and copyright holders. Credit shown for a driver comes from MAME's own
+  headers and MAMEDEV's published release notes, never from commit history. For
+  anything beyond the machines here, use MAME.</p>
 </section>
 
 <footer>

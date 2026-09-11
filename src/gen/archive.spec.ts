@@ -29,12 +29,17 @@ const config = {
   },
   sound: { kind: 'ay8910', chips: 2 },
 };
-const authorStats = [{
-  name: 'Aaron Giles',
-  commits: 7,
-  firstCommit: '2001-01-01',
-  lastCommit: '2025-01-01',
-}];
+const credits = {
+  people: [{
+    name: 'Aaron Giles',
+    headerCredit: true,
+    machineCredit: false,
+    notes: 3,
+    firstRelease: '0.120',
+    lastRelease: '0.289',
+  }],
+  source: 'MAME driver header (copyright-holders) and MAMEDEV release notes',
+};
 const kungfum = archiveGame('arcade', 'kungfum', {
   game: 'kungfum',
   title: 'Kung-Fu Master',
@@ -44,7 +49,7 @@ const kungfum = archiveGame('arcade', 'kungfum', {
   driverFile: 'src/mame/irem/m62.cpp',
   copyrightHolders: 'Aaron Giles',
   license: 'BSD-3-Clause',
-  gitHistory: { topAuthors: ['Aaron Giles'], authorStats },
+  credits,
 }, config);
 const testGame = archiveGame('arcade', 'test', {
   game: 'test',
@@ -53,7 +58,7 @@ const testGame = archiveGame('arcade', 'test', {
   year: '1985',
   manufacturer: 'Test Co.',
   driverFile: 'src/mame/test.cpp',
-  gitHistory: { topAuthors: ['Aaron Giles'], authorStats },
+  credits,
 }, config);
 const aggregate = aggregateArchive([testGame, kungfum]);
 assert.deepEqual(
@@ -81,12 +86,13 @@ const dossier: DossierData = {
   roms: [],
   bindings: [],
   dipDefaults: [],
-  gitHistory: {
+  credits,
+  commitActivity: {
     commits: 7,
-    contributors: 1,
+    authors: 1,
     firstCommit: '2001-01-01',
     lastCommit: '2025-01-01',
-    topAuthors: ['Aaron Giles'],
+    method: 'git log --follow over the driver file',
   },
   historyText: '',
   historyCredit: '',
@@ -96,7 +102,7 @@ for (const game of [kungfum, testGame]) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'meta.json'), JSON.stringify({
     ...game,
-    gitHistory: { topAuthors: ['Aaron Giles'], authorStats },
+    credits,
   }));
   writeFileSync(join(dir, 'config.json'), JSON.stringify(config));
   if (game.game === 'kungfum') {
@@ -114,7 +120,11 @@ const authorHtml = readFileSync(
 );
 assert.match(authorHtml, /src\/mame\/irem\/m62\.cpp/);
 assert.match(authorHtml, /src\/mame\/test\.cpp/);
-assert.match(authorHtml, /7 commits · 2001–2025 · top contributor/);
+// The page states what the credit rests on, and never a commit tally.
+assert.match(authorHtml, /driver-header credit · 3 release notes · 0\.120–0\.289/);
+assert.match(authorHtml, /Credited by MAMEDEV/);
+assert.match(authorHtml, /never from commit history/);
+assert.doesNotMatch(authorHtml, /contributors?<|top contributor|commits/i);
 const dossierHtml = readFileSync(
   join(appDir, 'g', 'kungfum', 'dossier', 'index.html'),
   'utf8',

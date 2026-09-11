@@ -100,6 +100,11 @@ async function runTarget(target: string): Promise<AcceptanceResult> {
   // rapid process churn, and a machine that stops answering is the same kind
   // of accident. Retry both; deterministic assertion failures remain
   // single-shot and visible.
+  //
+  // A missed fps floor is deliberately not retried. It looks like a flake but
+  // is not one: the retry runs on the same hosted VM, and a runner slow enough
+  // to miss the floor misses it again (sf2ce measured 47.7 then 47.1 against
+  // its 50 floor). Retrying it only spends another 95 seconds to fail twice.
   if (result.status === 'failed' && (result.signal || result.timedOut)) {
     console.warn(`RETRY ${target} after ${result.signal ?? 'no result in time'}`);
     await new Promise(resolveWait => setTimeout(resolveWait, 10_000));
@@ -113,12 +118,38 @@ function option(name: string): string | undefined {
   return index >= 0 ? process.argv[index + 1] : undefined;
 }
 
+/**
+ * `--shard 2/4` runs one quarter of the contracts, so the gate can be split
+ * across runners instead of one runner spending half an hour on it.
+ *
+ * Sharding is across machines, never within one: every contract asserts an
+ * emulated-fps floor measured against wall clock, so two contracts sharing a
+ * runner's cores would drag each other under their floors and fail for load
+ * rather than for behaviour.
+ *
+ * Shards interleave the list rather than slicing it into blocks. The heavy
+ * boards cluster by name (sf2, sf2ce) and a block split would land them on one
+ * runner while another idles.
+ */
+function shardOf(targets: string[], spec: string | undefined): string[] {
+  if (!spec) return targets;
+  const [index, count] = spec.split('/').map(Number);
+  if (!Number.isInteger(index) || !Number.isInteger(count)
+    || count < 1 || index < 1 || index > count) {
+    throw new Error(`--shard expects i/n with 1 <= i <= n, got "${spec}"`);
+  }
+  return targets.filter((_, position) => position % count === index - 1);
+}
+
 const allTargets = (await loadGameContracts()).map(contractKey);
 const requested = (process.env.MAMEKIT_ACCEPTANCE_GAMES ?? '')
   .split(',').map(value => value.trim()).filter(Boolean);
-const targets = requested.length ? requested : allTargets;
-const unknown = targets.filter(target => !allTargets.includes(target));
+const selected = requested.length ? requested : allTargets;
+const unknown = selected.filter(target => !allTargets.includes(target));
 if (unknown.length) throw new Error(`unknown accepted contract(s): ${unknown.join(', ')}`);
+const shard = option('--shard');
+const targets = shardOf(selected, shard);
+if (shard) console.log(`shard ${shard}: ${targets.length} of ${selected.length} contracts`);
 
 const commit = git(['rev-parse', 'HEAD']);
 

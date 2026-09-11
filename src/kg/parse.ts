@@ -389,6 +389,13 @@ export interface RomLoad {
    */
   continueSegments: { offset: number; size: number; fileOffset: number }[];
   /**
+   * Bytes of the physical chip MAME reads past without storing (ROM_IGNORE).
+   * Nothing in the machine needs them, but they are part of the chip's shape:
+   * without them the file's declared length cannot be reconciled with MAME's
+   * own, which is what `-listxml` states and the fact audit compares.
+   */
+  ignoredBytes?: number;
+  /**
    * MAME's own dump status for this chip. `nodump` means no copy of the part
    * exists anywhere (rocnrope's h100.6g PAL: "Schematics obfuscated"), so no
    * ROM set can supply it and MAME leaves the region erased. `baddump` means
@@ -571,7 +578,9 @@ export function parseRomSets(
           });
           fileOffset += size;
       } else if (statement === 'ROM_IGNORE') {
-          fileOffset += evalExpr(args[0], consts) ?? 0;
+          const ignored = evalExpr(args[0], consts) ?? 0;
+          fileOffset += ignored;
+          if (lastLoad) lastLoad.ignoredBytes = (lastLoad.ignoredBytes ?? 0) + ignored;
       } else if (statement === 'ROM_FILL') {
           if (!region) break;
           region.fills.push({

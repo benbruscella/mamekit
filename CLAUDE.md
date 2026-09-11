@@ -28,6 +28,12 @@ historical evidence and may describe deleted architectures.
 - Dependency direction is compile -> IR -> execution, enforced by
   `src/ir/dependency-direction.spec.ts`.
 - JSON stores generated data; TypeScript/JavaScript stores behavior.
+- Attribution comes from MAME driver headers (`copyright-holders`) and MAMEDEV's
+  published release notes only. Commit history is activity, never authorship:
+  nothing may label a `git log` tally as contributors, authors or credit. See
+  README "ATTRIBUTION" and `src/gen/driver-history.ts`.
+- Machine facts are checked against MAME's own `-listxml` (`npm run audit:facts`),
+  using a MAME binary of the same release as the source checkout.
 - Complete generation starts by deleting `dist`.
 - Generated output has one canonical location and must not import `src`.
 - ROMs are never committed, served or deployed.

@@ -482,6 +482,12 @@ ROM_END
 `)[0]!.regions;
   eq('ROM_IGNORE leaves the first half in the first region',
     regions[0]!.loads[0]!.continueSegments, []);
+  // The ignored half is part of the chip's declared length, which is what
+  // -listxml states and src/gen/fact-audit.ts compares against.
+  eq('ROM_IGNORE records the bytes it skips past',
+    regions[0]!.loads[0]!.ignoredBytes, 0x800);
+  eq('ROM_CONTINUE ignores nothing',
+    regions[1]!.loads[0]!.ignoredBytes, undefined);
   eq('ROM_CONTINUE reads the next file half into the second region',
     regions[1]!.loads[0]!.continueSegments,
     [{ offset: 0, size: 0x800, fileOffset: 0x800 }]);
