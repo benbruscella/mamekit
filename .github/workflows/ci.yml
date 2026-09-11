@@ -113,7 +113,7 @@ jobs:
     # asserts an emulated-fps floor measured against wall clock, so contracts
     # sharing a runner's cores would drag each other under their floors and
     # fail for load rather than for behaviour.
-    name: ROM-backed accepted contracts ${{ matrix.shard }}/4
+    name: ROM-backed accepted contracts ${{ matrix.shard }}/8
     # CPS1 clears the exact 50 fps contract comfortably on the target arm64
     # architecture; the x64 hosted VM measured 45.1-49.4 fps. Keep the contract
     # strict by selecting capacity, not lowering it.
@@ -123,13 +123,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Keep SHARDS equal to the number of entries here.
-        shard: [1, 2, 3, 4]
+        # Keep SHARDS equal to the number of entries here. Eight is chosen
+        # against measured contract durations: the phase is ~9.7 min over four
+        # runners and ~5.6 over eight, and a shard's own fixed cost is only 22
+        # seconds (the generated distribution downloads in three), so extra
+        # runners are nearly free. Past eight the 92-second mslug contract
+        # starts to set the floor on its own.
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
       # No MAME_SRC: the contracts run the generated distribution and never
       # read MAME source, which is why this job does not check it out.
       NODE_OPTIONS: --max-old-space-size=4096
-      SHARDS: 4
+      SHARDS: 8
     steps:
       - name: Check out MAMEKIT
         uses: actions/checkout@v6
@@ -152,7 +157,7 @@ jobs:
       - name: Fetch acceptance ROMs
         run: npm run fetch:acceptance-roms
 
-      - name: Accepted contracts ${{ matrix.shard }}/4
+      - name: Accepted contracts ${{ matrix.shard }}/8
         run: npm run test:games:matrix -- --shard ${{ matrix.shard }}/${{ env.SHARDS }}
 
       - name: Upload complete acceptance report

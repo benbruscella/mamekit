@@ -38,9 +38,9 @@ same public, immutable mirror used by the application, then verifies every file
 against MAME's declared size and CRC.
 
 The distribution is generated once per run by `Clean generation and audit` and
-handed to the gate as an artifact; the gate is split across four macOS runners,
-each running an interleaved quarter of the contracts (`--shard i/4`) against
-that same distribution. The split is across
+handed to the gate as an artifact; the gate is split across eight macOS
+runners, each running an interleaved eighth of the contracts (`--shard i/8`)
+against that same distribution. The split is across
 machines and never within one: every contract asserts an emulated-fps floor
 measured against wall clock, so contracts sharing a runner's cores would drag
 each other under their floors and fail for load rather than for behaviour.
@@ -160,7 +160,7 @@ missing accepted primary/parent/device sets, and runs the non-fail-fast matrix.
 To reproduce exactly what one CI runner did, add the same shard selector:
 
 ```sh
-npm run test:games:matrix -- --shard 3/4
+npm run test:games:matrix -- --shard 3/8
 ```
 The Actions job uploads `.cache/acceptance-report.json` even on failure, so a
 focused local pass cannot masquerade as the required full-suite check.
@@ -439,8 +439,14 @@ it must not gain game logic.
    and the exact accepted ROM closure from the application's public mirror,
    verifies the ROMs against MAME metadata, runs that shard's contracts, and uploads its report even when one or more fail (one
    artifact per shard, `rom-acceptance-report-<shard>`);
-7. aggregates the four shards into the required `ROM-backed accepted
+7. aggregates the eight shards into the required `ROM-backed accepted
    contracts` check.
+
+A contract killed by a signal, one that stops answering, and one that misses
+its fps floor are each retried once: all three are accidents of the host rather
+than statements about the emulation, and the harness asserts behaviour before
+throughput, so a retry cannot hide a golden that changed. A failure about
+behaviour is never retried.
 
 GitHub branch protection additionally requires the actual Actions check named
 `ROM-backed accepted contracts`; a manually created commit status is not used.
