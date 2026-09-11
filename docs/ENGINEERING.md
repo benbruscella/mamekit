@@ -12,7 +12,17 @@ boundaries.
 - npm dependencies installed with `npm ci`;
 - this repository at any path;
 - a MAME checkout, normally at sibling path `../mame`;
-- local ROMs only for acceptance and manual browser validation.
+- local ROMs only for acceptance and manual browser validation;
+- optionally a MAME **binary** of the same release as that checkout, named by
+  `MAME_BIN`, for `npm run audit:facts` and reference captures.
+
+The binary must be the same release as the source checkout. A dump from another
+release describes a different MAME, so every difference it reports is noise;
+`src/gen/listxml.ts` compares the binary's `-version` against the checkout's
+`BARE_BUILD_VERSION` and refuses rather than guessing. Read the source version
+from `../mame/makefile` — `build/generated/version.cpp` is a build artifact and
+goes stale. A package-manager `mame` on `PATH` is usually a different release
+than your checkout, which is exactly the case the refusal exists for.
 
 ### LOCAL ASSET TREE
 
@@ -22,12 +32,28 @@ hidden, gitignored tree:
 ```text
 .data/roms/<category>/<target>.zip    acceptance ROMs (arcade, consoles/*)
 .data/artwork/                        bezels, flyers, cabinet and marquee scans
+.data/release-notes/raw/              MAMEDEV's published whatsnew/messnew notes
+.data/release-notes/index.json        digested driver credits generation reads
 .data/Makefile                        npm wrappers + the DreamObjects sync
 .data/.env                            DH_ACCESS_KEY_ID / DH_SECRET_KEY
 ```
 
+**Re-fetch the release notes after every MAME update:**
+
+```sh
+node tools/fetch-release-notes.ts        # new releases only; existing files are kept
+make -C .data sync-release-notes         # mirror them to the bucket
+```
+
+Driver credits come from those notes plus each driver's `copyright-holders`
+header (`src/gen/driver-attribution.ts`). A release whose notes were never
+fetched contributes no credits at all, so a machine updated in the newest MAME
+release will silently under-credit until this is run. Nothing here is committed:
+the notes are MAMEDEV's own prose, cached like roms and artwork.
+
 `src/paths.ts` is the only place that names `.data`; tooling resolves paths
-through `romsDir()` and `artworkDir()` rather than hardcoding either. ROMs are
+through `romsDir()`, `artworkDir()` and `releaseNotesDir()` rather than
+hardcoding any of them. ROMs are
 never served or deployed — `src/cli.ts` mounts artwork explicitly and nothing
 mounts roms. Run `make -C .data help` for the sync targets.
 
@@ -54,6 +80,8 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run test:unit` | strict type check plus every source/compiler/runtime spec |
 | `npm run test:current` | clean-generate and audit the currently supported games |
 | `npm run audit:generated` | audit the games currently present in `dist` |
+| `npm run audit:facts` | diff generated machine facts against MAME's own `-listxml` |
+| `node tools/fetch-release-notes.ts` | fetch MAMEDEV release notes for driver credits |
 | `npm run audit:game-package -- <target>` | validate local artwork, history and dossier completeness |
 | `npm run audio:compare -- <target> --mame /path/to/mame` | compare MAMEKIT and MAME power-on WAVs |
 | `npm run test:generation` | clean-generate every required target and audit all output |
@@ -449,6 +477,38 @@ checks:
 - no temporary `.build` tree;
 - no embedded serialized IR in generated JavaScript;
 - no imports of `src` or absolute local paths.
+
+### FACT AUDIT AGAINST MAME
+
+```sh
+MAME_BIN=/path/to/matching/mame npm run audit:facts
+```
+
+The generated audit checks that output is well formed; this one checks that it
+is *true*, by asking MAME. For every generated machine it compares our
+source-derived facts against that MAME's `-listxml` answer:
+
+- full name, year, manufacturer and driver file;
+- screen width, height, rotation, htotal, vtotal, vbstart, vbend and refresh;
+- CPU clocks, per tag;
+- ROM loads per region: name, CRC, offset and total length.
+
+No acceptance golden looks at any of these, so before this audit existed a
+misparse in one of them shipped silently and stayed wrong.
+
+Comparing like with like takes care, and the comparison is deliberate about it:
+MAME states one `size` per chip covering `ROM_LOAD` plus every `ROM_CONTINUE`
+and `ROM_IGNORE` after it, its device clocks are u32 and print truncated, its
+`chip type="cpu"` includes every device with an execute interface rather than the
+board's CPU list, and BIOS alternatives appear as selectable ROMs a board never
+loads all of. A difference that survives all of that is a real disagreement.
+
+Genuine differences in what each side models are printed as divergences (`~`)
+and do not fail the audit — see `scaledScreen` in `src/gen/fact-audit.ts` for the
+one case, MAME's integer horizontal scaling of the Galaxian family.
+
+Without a matching MAME binary the audit skips with a message and passes, which
+is what CI does; `--require` turns that skip into a failure.
 
 ### ALL-TARGET GENERATION
 

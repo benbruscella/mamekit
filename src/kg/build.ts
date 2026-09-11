@@ -275,6 +275,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
             segment.fileOffset,
           ]);
         }
+        if (load.ignoredBytes) props.ignoredBytes = load.ignoredBytes;
         if (load.status) props.status = load.status;
         g.node('Rom', romId, props);
         g.edge(regId, romId, 'LOADS');

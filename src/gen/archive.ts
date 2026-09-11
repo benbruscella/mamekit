@@ -7,7 +7,12 @@ import {
 } from './dossier.ts';
 
 export const FACETS = [
-  { key: 'author', label: 'Contributors', description: 'People who built and maintained the MAME drivers.' },
+  {
+    key: 'author',
+    label: 'Credited people',
+    description: 'People MAMEDEV credits for these drivers, from driver headers '
+      + 'and published release notes. Not a complete record of who worked on MAME.',
+  },
   { key: 'driver', label: 'Driver source', description: 'Games that share a MAME source file.' },
   { key: 'written-by', label: 'Written-by credit', description: 'Credits preserved in MAME driver headers.' },
   { key: 'cpu', label: 'CPU family', description: 'Machines grouped by processor architecture.' },
@@ -20,13 +25,16 @@ export const FACETS = [
 
 export type FacetKey = (typeof FACETS)[number]['key'];
 
-export interface AuthorContribution {
+export interface CreditedContribution {
   name: string;
-  commits?: number;
-  firstCommit?: string;
-  lastCommit?: string;
-  topContributor: boolean;
+  /** Named on the driver's copyright-holders line. */
   headerCredit: boolean;
+  /** Credited by MAMEDEV with a working machine, not only a change. */
+  machineCredit: boolean;
+  /** Release notes naming them against this driver. */
+  notes: number;
+  firstRelease?: string;
+  lastRelease?: string;
 }
 
 export interface ArchiveGame {
@@ -42,7 +50,7 @@ export interface ArchiveGame {
   cpus: string[];
   sound?: string;
   screen?: string;
-  authors: AuthorContribution[];
+  authors: CreditedContribution[];
 }
 
 export interface FacetValue {
@@ -65,14 +73,20 @@ interface MetaShape {
   driverFile?: string;
   copyrightHolders?: string;
   license?: string;
-  gitHistory?: {
-    topAuthors?: string[];
-    authorStats?: {
+  /**
+   * Who MAMEDEV credits, written by src/gen/driver-attribution.ts. Commit
+   * counts are deliberately not a source here: see src/gen/driver-history.ts.
+   */
+  credits?: {
+    people?: {
       name: string;
-      commits: number;
-      firstCommit: string;
-      lastCommit: string;
+      headerCredit?: boolean;
+      machineCredit?: boolean;
+      notes?: number;
+      firstRelease?: string;
+      lastRelease?: string;
     }[];
+    source?: string;
   };
 }
 
@@ -131,24 +145,18 @@ export function soundFacet(sound: SoundShape | undefined): string | undefined {
   return `${name}${sound.chips ? ` × ${sound.chips}` : ''}`;
 }
 
-function contributions(meta: MetaShape): AuthorContribution[] {
-  const top = new Set(meta.gitHistory?.topAuthors ?? []);
+function contributions(meta: MetaShape): CreditedContribution[] {
   const header = meta.copyrightHolders?.toLowerCase() ?? '';
-  const stats = meta.gitHistory?.authorStats ?? [];
-  const names = stats.length ? stats.map(author => author.name) : [...top];
-  return [...new Set(names.filter(Boolean))].map(name => {
-    const author = stats.find(candidate => candidate.name === name);
-    return {
-      name,
-      ...(author ? {
-        commits: author.commits,
-        firstCommit: author.firstCommit,
-        lastCommit: author.lastCommit,
-      } : {}),
-      topContributor: top.has(name),
-      headerCredit: header.includes(name.toLowerCase()),
-    };
-  });
+  return (meta.credits?.people ?? [])
+    .filter(person => Boolean(person.name))
+    .map(person => ({
+      name: person.name,
+      headerCredit: person.headerCredit ?? header.includes(person.name.toLowerCase()),
+      machineCredit: person.machineCredit ?? false,
+      notes: person.notes ?? 0,
+      ...(person.firstRelease ? { firstRelease: person.firstRelease } : {}),
+      ...(person.lastRelease ? { lastRelease: person.lastRelease } : {}),
+    }));
 }
 
 export function archiveGame(
@@ -296,12 +304,14 @@ function authorPageHtml(group: FacetValue): string {
     const cards = games.map(game => {
       const author = game.authors.find(candidate => candidate.name === group.value);
       const context = [
-        author?.commits ? `${author.commits} commit${author.commits === 1 ? '' : 's'}` : '',
-        author?.firstCommit && author.lastCommit
-          ? `${author.firstCommit.slice(0, 4)}–${author.lastCommit.slice(0, 4)}`
-          : '',
-        author?.topContributor ? 'top contributor' : '',
         author?.headerCredit ? 'driver-header credit' : '',
+        author?.machineCredit ? 'credited with the working machine' : '',
+        author?.notes
+          ? `${author.notes} release note${author.notes === 1 ? '' : 's'}`
+          : '',
+        author?.firstRelease && author.lastRelease && author.firstRelease !== author.lastRelease
+          ? `${author.firstRelease}–${author.lastRelease}`
+          : author?.firstRelease ?? '',
       ].filter(Boolean).join(' · ');
       return gameCard(game, `../../../g/${encodeURIComponent(game.game)}/`, context);
     }).join('');
@@ -309,9 +319,14 @@ function authorPageHtml(group: FacetValue): string {
   }).join('');
   return page(
     group.value,
-    '<strong>MAME HISTORY</strong><a href="../">All contributors</a><a href="../../">Browse the archive</a><a href="../../../">Game shelf</a>',
-    `<div class="eyebrow">MAME contributor</div><h1>${escapeHtml(group.value)}</h1>` +
-    `<p class="dek">${group.games.length} generated ${group.games.length === 1 ? 'machine' : 'machines'}, grouped by driver source.</p>${groups}`,
+    '<strong>MAME HISTORY</strong><a href="../">All credited people</a>'
+    + '<a href="../../">Browse the archive</a><a href="../../../">Game shelf</a>',
+    `<div class="eyebrow">Credited by MAMEDEV</div><h1>${escapeHtml(group.value)}</h1>` +
+    `<p class="dek">${group.games.length} generated ${group.games.length === 1 ? 'machine' : 'machines'}, `
+    + 'grouped by driver source. Credit comes from MAME driver headers and '
+    + 'MAMEDEV\u2019s published release notes, never from commit history, and is '
+    + 'not a complete record of who worked on a driver.</p>'
+    + `${groups}`,
   );
 }
 

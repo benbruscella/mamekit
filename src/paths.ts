@@ -28,3 +28,14 @@ export function romsDir(projectRoot: string): string {
 export function artworkDir(projectRoot: string): string {
   return join(projectRoot, DATA_DIR, 'artwork');
 }
+
+/**
+ * MAMEDEV's published release notes, which are where driver credits come from
+ * (src/gen/release-notes.ts). Upstream prose rather than our own material, so
+ * it is fetched into the asset tree and never committed — refresh it with
+ * `node tools/fetch-release-notes.ts` whenever the MAME checkout moves to a new
+ * release, or the newest release's credits are simply missing.
+ */
+export function releaseNotesDir(projectRoot: string): string {
+  return join(projectRoot, DATA_DIR, 'release-notes');
+}

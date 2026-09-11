@@ -53,7 +53,31 @@ interface GameEntry {
   driverFile?: string;
   license?: string;
   copyrightHolders?: string;
-  gitHistory?: { firstCommit: string; lastCommit: string; commits: number; contributors: number; topAuthors: string[] };
+  /**
+   * Who MAMEDEV credits for the driver: header copyright-holders plus their own
+   * published release notes. Never commit counts — see src/gen/driver-history.ts.
+   */
+  credits?: {
+    people: {
+      name: string;
+      headerCredit: boolean;
+      machineCredit: boolean;
+      notes: number;
+      firstRelease?: string;
+      lastRelease?: string;
+    }[];
+    source: string;
+    releases?: { first: string; last: string; count: number };
+  };
+  /** How much the driver file was committed to. Explicitly not attribution. */
+  commitActivity?: {
+    firstCommit: string;
+    lastCommit: string;
+    commits: number;
+    authors: number;
+    mameRevision?: string;
+    method: string;
+  };
   hasHistory?: boolean;
   historyCredit?: string;
 }
@@ -594,10 +618,20 @@ export async function runMenu(): Promise<void> {
       browseUrl('written-by', entry.copyrightHolders));
     if (entry.license) row(ppl, 'License', entry.license,
       browseUrl('license', entry.license));
-    if (entry.gitHistory) {
-      const gh = entry.gitHistory;
-      row(ppl, 'History', `${gh.commits} commits by ${gh.contributors} contributors, ${gh.firstCommit.slice(0, 4)}–${gh.lastCommit.slice(0, 4)}`);
-      linkedValues(ppl, 'Top contributors', gh.topAuthors, 'author');
+    // Credit and activity are different claims and are shown as such: names
+    // come from MAMEDEV's own record, the commit count says only how much the
+    // file was committed to.
+    if (entry.credits?.people.length) {
+      linkedValues(ppl, 'Credited by MAMEDEV',
+        entry.credits.people.slice(0, 6).map(person => person.name), 'author');
+      row(ppl, 'Credit source', entry.credits.source);
+    }
+    if (entry.commitActivity) {
+      const activity = entry.commitActivity;
+      row(ppl, 'Commit activity',
+        `${activity.commits} commits by ${activity.authors} commit authors, `
+        + `${activity.firstCommit.slice(0, 4)}–${activity.lastCommit.slice(0, 4)} `
+        + '— activity on the driver file, not a statement of authorship');
     }
 
     // The story — Gaming History write-up (arcade-history.com, attributed),

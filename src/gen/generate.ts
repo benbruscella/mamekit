@@ -12,7 +12,11 @@ import { gameClassConstants, resolveClassConstants } from './class-constants.ts'
 import {
   buildRuntimeReport, runtimeReportMarkdown, type RuntimeConfigShape,
 } from './runtime-report.ts';
-import { cachedDriverGitHistory } from './driver-history.ts';
+import {
+  cachedDriverCommitActivity,
+  type DriverCommitActivity,
+} from './driver-history.ts';
+import { loadDriverCredits, type DriverAttribution } from './driver-attribution.ts';
 import { copyBezelArtwork, deriveBezelArtwork } from './bezel-artwork.ts';
 import {
   cacheIdentityFromEnv,
@@ -70,6 +74,8 @@ import {
   gameOutputDir,
 } from './output-layout.ts';
 import {
+  commitActivityLine,
+  creditLine,
   machineDossierMarkdown as renderDossierMarkdown,
   type DossierData,
 } from './dossier.ts';
@@ -1581,6 +1587,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               ([offset, size, fileOffset]) => ({ offset, size, fileOffset }),
             ),
           } : {}),
+          ...(rom.props.ignoredBytes ? { ignoredBytes: Number(rom.props.ignoredBytes) } : {}),
           ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
         };
       }),
@@ -1608,6 +1615,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             ([offset, size, fileOffset]) => ({ offset, size, fileOffset }),
           ),
         } : {}),
+        ...(rom.props.ignoredBytes ? { ignoredBytes: Number(rom.props.ignoredBytes) } : {}),
         ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
       }));
       if (present.has(tag) || loads.length === 0) continue;
@@ -2309,15 +2317,25 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     menuUrl: './',
   };
 
-  // per-game metadata for the boot menu manifest + "learn" modal:
-  // driver credits from the source header, contribution history from the
-  // MAME git checkout (best effort — absent when git/history unavailable),
-  // cached in .cache/driver-history against the checkout's HEAD revision
-  let gitHistory: Record<string, unknown> | undefined;
+  // per-game metadata for the boot menu manifest + "learn" modal.
+  //
+  // Attribution and activity are two different things and are kept apart:
+  //
+  //   credits         who MAMEDEV credited, from published release notes and
+  //                   the driver header (src/gen/driver-attribution.ts)
+  //   commitActivity  how much the file was committed to, and nothing more
+  //
+  // Both are best effort: no release-notes data or no git checkout simply
+  // leaves the field out rather than guessing.
+  let commitActivity: DriverCommitActivity | undefined;
   try {
-    gitHistory = cachedDriverGitHistory(opts.mameSrc, String(graph.meta.driverFile)) as
-      Record<string, unknown> | undefined;
-  } catch { /* no git history available */ }
+    commitActivity = cachedDriverCommitActivity(opts.mameSrc, String(graph.meta.driverFile));
+  } catch { /* no git checkout available */ }
+  const credits = loadDriverCredits(projectRoot, {
+    driverFile: String(graph.meta.driverFile ?? ''),
+    machineNames: [opts.game, String(game.props.fullname ?? '')],
+    copyrightHolders: graph.meta.copyrightHolders ? String(graph.meta.copyrightHolders) : undefined,
+  });
 
   // Prefer a local curated story when preservation research has more detail
   // than the shared Gaming History entry. Both live with the gitignored
@@ -2374,7 +2392,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     driverFile: graph.meta.driverFile,
     ...(graph.meta.license ? { license: graph.meta.license } : {}),
     ...(graph.meta.copyrightHolders ? { copyrightHolders: graph.meta.copyrightHolders } : {}),
-    ...(gitHistory ? { gitHistory } : {}),
+    ...(credits ? { credits } : {}),
+    ...(commitActivity ? { commitActivity } : {}),
     ...(hasHistory ? { hasHistory: true } : {}),
     ...(historyCredit ? { historyCredit } : {}),
   }, null, 2));
@@ -2409,7 +2428,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     family, driverFile: String(graph.meta.driverFile),
     license: graph.meta.license as string | undefined,
     copyrightHolders: graph.meta.copyrightHolders as string | undefined,
-    cpus, sound, screen, roms, bindings, dipDefaults, gitHistory, historyText,
+    cpus, sound, screen, roms, bindings, dipDefaults, credits, commitActivity, historyText,
     historyCredit,
     ...(cart ? {
       cart: { list: String(cart.list), entries: cartEntries, slots: cart.slots as string[] },
@@ -2468,7 +2487,8 @@ function machineDossierMarkdown(d: {
   screen: { width: number; height: number; refresh: number; rotate?: number };
   roms: { region: string; size: number; loads: { file: string; offset: number; size: number; crc: string }[] }[];
   bindings: unknown[]; dipDefaults: unknown[];
-  gitHistory?: Record<string, unknown>; historyText: string; historyCredit: string;
+  credits?: DriverAttribution; commitActivity?: DriverCommitActivity;
+  historyText: string; historyCredit: string;
   cart?: { list: string; entries: number; slots: string[] };
   software?: { list: string; kind: string; entries: number; mountable: boolean }[];
 }): string {
@@ -2569,11 +2589,12 @@ function machineDossierMarkdown(d: {
   md.push(`- **Driver source:** \`${d.driverFile}\``);
   if (d.copyrightHolders) md.push(`- **Written by:** ${d.copyrightHolders}`);
   if (d.license) md.push(`- **License:** ${d.license}`);
-  if (d.gitHistory) {
-    const gh = d.gitHistory as { firstCommit: string; lastCommit: string; commits: number; contributors: number; topAuthors: string[] };
-    md.push(`- **Development:** ${gh.commits} commits by ${gh.contributors} contributors, ${gh.firstCommit.slice(0, 4)}–${gh.lastCommit.slice(0, 4)}`);
-    md.push(`- **Top contributors:** ${gh.topAuthors.join(', ')}`);
+  if (d.credits?.people.length) {
+    md.push(`- **Credited by MAMEDEV:** ${creditLine(d.credits)}`);
+    md.push(`- **Credit source:** ${d.credits.source}`);
   }
+  // Activity, explicitly not attribution: see src/gen/driver-history.ts.
+  if (d.commitActivity) md.push(`- **Commit activity:** ${commitActivityLine(d.commitActivity)}`);
   md.push('');
 
   if (d.historyText) {

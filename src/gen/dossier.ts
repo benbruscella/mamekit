@@ -1,4 +1,6 @@
 import { artworkSources } from '../runtime/artwork-source.ts';
+import type { DriverAttribution } from './driver-attribution.ts';
+import type { DriverCommitActivity } from './driver-history.ts';
 
 export interface DossierData {
   game: string;
@@ -20,7 +22,10 @@ export interface DossierData {
   }[];
   bindings: unknown[];
   dipDefaults: unknown[];
-  gitHistory?: Record<string, unknown>;
+  /** Who MAMEDEV credits: driver header + release notes. Never commit counts. */
+  credits?: DriverAttribution;
+  /** How much the driver file was committed to. Explicitly not attribution. */
+  commitActivity?: DriverCommitActivity;
   historyText: string;
   historyCredit: string;
   cart?: { list: string; entries: number; slots: string[] };
@@ -37,6 +42,36 @@ const escapeHtml = (value: unknown): string => String(value ?? '')
   .replace(/"/g, '&quot;');
 
 const hex = (value: number): string => `0x${value.toString(16)}`;
+
+/**
+ * Credited people, marking what each credit rests on: `(driver header)` is
+ * MAME's own copyright-holders line, `(machine)` is MAMEDEV crediting them with
+ * a working machine in the release notes.
+ */
+export function creditLine(credits: DriverAttribution): string {
+  return credits.people.map(person => {
+    const basis = [
+      person.headerCredit ? 'driver header' : '',
+      person.machineCredit ? 'machine' : '',
+      !person.headerCredit && !person.machineCredit && person.notes
+        ? `${person.notes} release note${person.notes === 1 ? '' : 's'}`
+        : '',
+    ].filter(Boolean).join(', ');
+    return basis ? `${person.name} (${basis})` : person.name;
+  }).join('; ');
+}
+
+/**
+ * Counts and a period, carrying how they were produced, at which MAME revision,
+ * and that they are not attribution. The revision is what makes the figure
+ * reproducible rather than a number someone has to trust.
+ */
+export function commitActivityLine(activity: DriverCommitActivity): string {
+  const years = `${activity.firstCommit.slice(0, 4)}–${activity.lastCommit.slice(0, 4)}`;
+  const at = activity.mameRevision ? ` at MAME ${activity.mameRevision.slice(0, 12)}` : '';
+  return `${activity.commits} commits by ${activity.authors} commit authors, ${years}`
+    + ` (${activity.method}${at}; not a statement of authorship)`;
+}
 
 const prettyKey = (key: string): string => key.replace(/^Key|^Arrow|^Digit/, '');
 
@@ -136,16 +171,15 @@ export function machineDossierMarkdown(d: DossierData): string {
   md.push(`- **Driver source:** \`${d.driverFile}\``);
   if (d.copyrightHolders) md.push(`- **Written by:** ${d.copyrightHolders}`);
   if (d.license) md.push(`- **License:** ${d.license}`);
-  if (d.gitHistory) {
-    const history = d.gitHistory as {
-      firstCommit: string;
-      lastCommit: string;
-      commits: number;
-      contributors: number;
-      topAuthors: string[];
-    };
-    md.push(`- **Development:** ${history.commits} commits by ${history.contributors} contributors, ${history.firstCommit.slice(0, 4)}–${history.lastCommit.slice(0, 4)}`);
-    md.push(`- **Top contributors:** ${history.topAuthors.join(', ')}`);
+  if (d.credits?.people.length) {
+    md.push(`- **Credited by MAMEDEV:** ${creditLine(d.credits)}`);
+    md.push(`- **Credit source:** ${d.credits.source}${d.credits.releases
+      ? `, release notes ${d.credits.releases.first}–${d.credits.releases.last}`
+      : ''}`);
+  }
+  if (d.commitActivity) {
+    // Activity, not authorship: src/gen/driver-history.ts says why.
+    md.push(`- **Commit activity:** ${commitActivityLine(d.commitActivity)}`);
   }
   md.push('');
 
@@ -198,13 +232,7 @@ export function machineDossierHtml(d: DossierData, options: DossierHtmlOptions):
     `<tr><td>${escapeHtml(binding.keys.map(prettyKey).join(' / '))}</td>` +
     `<td>${escapeHtml(prettyIpt(binding.label))}</td><td>${escapeHtml(binding.port)}</td>` +
     `<td>${hex(binding.mask)}</td></tr>`).join('');
-  const history = d.gitHistory as {
-    firstCommit?: string;
-    lastCommit?: string;
-    commits?: number;
-    contributors?: number;
-    topAuthors?: string[];
-  } | undefined;
+
   const downloadName = `${d.game}-dossier.md`;
   const downloadHref = `../../../../${options.dataPath}/${downloadName}`;
   const graphHref = `../../../../${options.dataPath}/viewer.html`;
@@ -268,8 +296,9 @@ summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-
   <section><h2>The people behind the driver</h2>
     <div class="fact"><span>Driver source</span><strong>${escapeHtml(d.driverFile)}</strong></div>
     ${d.copyrightHolders ? `<div class="fact"><span>Written by</span><strong>${escapeHtml(d.copyrightHolders)}</strong></div>` : ''}
-    ${history?.commits ? `<div class="fact"><span>Development</span><strong>${history.commits} commits by ${history.contributors ?? 0} contributors, ${escapeHtml(history.firstCommit?.slice(0, 4))}–${escapeHtml(history.lastCommit?.slice(0, 4))}</strong></div>` : ''}
-    ${history?.topAuthors?.length ? `<div class="fact"><span>Top contributors</span><strong>${escapeHtml(history.topAuthors.join(', '))}</strong></div>` : ''}
+    ${d.credits?.people.length ? `<div class="fact"><span>Credited by MAMEDEV</span><strong>${escapeHtml(creditLine(d.credits))}</strong></div>
+    <div class="fact"><span>Credit source</span><strong>${escapeHtml(d.credits.source)}</strong></div>` : ''}
+    ${d.commitActivity ? `<div class="fact"><span>Commit activity</span><strong>${escapeHtml(commitActivityLine(d.commitActivity))}</strong></div>` : ''}
   </section>
   ${d.historyText ? `<section><h2>The story</h2>${storyHtml(d.historyText)}<p class="dek">${escapeHtml(d.historyCredit)}</p></section>` : ''}
 </main>

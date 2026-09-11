@@ -18,6 +18,37 @@ MAMEKIT is deliberately:
   driver compatibility;
 - **ROM-free**, requiring users or tests to supply legally obtained dumps.
 
+## WHAT GENERATES THE CODE
+
+MAMEKIT is a deterministic compiler. It parses MAME's C++ and its macro and
+opcode DSLs into ASTs, lowers them to typed IR, and a generic host executes
+that IR. No language model is in the generation path, and no generated
+emulation behavior originates in model weights: every generated behavior traces
+to a MAME source location through the provenance graph, and unsupported source
+shapes fail visibly through diagnostics rather than being guessed at.
+
+Language models are used to write the compiler, the way any other development
+tool is used. That is a statement about how this repository's own TypeScript was
+authored, not about where the emulation comes from.
+
+## HOW MACHINES ARE VERIFIED
+
+Looking right counts for nothing here. A machine is graded against MAME itself:
+
+- **Behavior** — real-ROM acceptance contracts run each machine headless and
+  compare recorded goldens, with frame-by-frame pixel diffs and register
+  checkpoints against a real MAME build of the same release (`docs/TESTING.md`).
+- **Facts** — `npm run audit:facts` diffs every generated machine's year,
+  manufacturer, driver file, screen geometry, CPU clocks and ROM loads against
+  that same MAME's own `-listxml` output, and fails on disagreement.
+- **Limits** — where the two genuinely model different things, the difference is
+  reported rather than hidden. The Galaxian family is the standing example: MAME
+  renders those screens three times as wide so stars and bullets can sit on
+  sub-character positions, and `audit:facts` prints that as a known divergence.
+
+A target that diverges is not enabled. This is not bug-for-bug compatibility
+with MAME, and nothing here claims to be MAME.
+
 ## SYSTEM MODEL
 
 ```
@@ -163,12 +194,47 @@ project arrived here; it does not override current documentation or code.
    kept only in their own browser, by their own choice, and forgotten from
    the page.
 8. Unsupported source shapes fail visibly through diagnostics and reports.
+9. No language model is in the generation path; generated behavior traces to a
+   MAME source location.
+10. Attribution comes from driver headers and MAMEDEV release notes. Commit
+    history is reported as activity and never as authorship.
+
+## ATTRIBUTION
+
+Credit for a MAME driver comes from the two records that state it:
+
+1. the driver header's `copyright-holders` line, which is MAME's own statement
+   of who wrote the file and the only record reaching back before the
+   release-notes era;
+2. MAMEDEV's published release notes, which credit contributors per release
+   (`src/gen/release-notes.ts`, fetched by `tools/fetch-release-notes.ts`).
+
+Commit history is deliberately not one of them. `git log --follow` does not
+reliably track code moved between files, counts a typo fix like a rewrite,
+records work landed on someone's behalf against the committer, and cannot
+reconcile inconsistent spellings of a name. Pac-Man is the standing example: its
+top committers are the people who refactored the whole tree, while its header
+credits Nicola Salmoria. Commit counts are still shown, labelled as commit
+activity on the driver file, and never as authorship.
+
+None of this is a complete record of who worked on MAME, and it is not offered
+as one.
 
 ## LEGAL AND PROJECT SCOPE
 
 MAMEKIT does not contain or distribute ROMs. Artwork and historical material
 remain the property of their rights holders. MAMEKIT is independent from and
 not endorsed by MAMEDEV.
+
+Generated output is a mechanical derivative work of the MAME source it was
+compiled from. Each generated machine carries the licence and copyright holders
+of the driver it came from (`license` and `copyrightHolders` in its `meta.json`,
+shown on the machine's page and browsable in the archive), so the terms travel
+with the artifact rather than being asserted once in prose.
+
+MAMEDEV's release notes are fetched into the gitignored asset tree and are never
+committed or served: they are MAMEDEV's material, used here to attribute their
+own contributors, not ours to redistribute.
 
 Current implementation work is tracked in
 [GitHub issue 21](https://github.com/benbruscella/mamekit/issues/21).

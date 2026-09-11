@@ -28,6 +28,12 @@ export interface RomLoad {
   /** Extra slices from later in this same file (MAME ROM_CONTINUE semantics). */
   continueSegments?: { offset: number; size: number; fileOffset: number }[];
   /**
+   * Bytes of the chip MAME reads past without storing (ROM_IGNORE). Recorded
+   * so the chip's declared length can be reconciled with MAME's own; nothing
+   * in the machine reads them.
+   */
+  ignoredBytes?: number;
+  /**
    * MAME's dump status for the chip. `nodump` means no copy exists anywhere,
    * so no ROM set can supply it and MAME leaves those bytes erased; it is not
    * an incomplete set. `baddump` bytes are known-imperfect but usable.

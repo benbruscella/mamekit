@@ -685,6 +685,34 @@ closure for a subset while other targets' data survives, so a catalog and a
 closure that disagree mean boards registered against a closure never built for
 them.
 
+### FACTS CHECKED AGAINST MAME ITSELF
+
+Provenance says where a fact came from; it does not say the fact was read
+correctly. `audit:facts` closes that gap by asking MAME: `src/gen/listxml.ts`
+runs `-listxml` on a MAME binary of the same release as the source checkout
+(refusing outright if the versions differ), and `src/gen/fact-audit.ts` diffs its
+answers against every generated machine's names, dates, driver file, screen
+timing, CPU clocks and ROM loads. None of those facts appear in an acceptance
+golden, so this is the only thing standing between a metadata misparse and a
+machine that ships describing itself incorrectly.
+
+Real differences in what each side models are reported as divergences rather
+than failures, so that they stay visible instead of being tolerated silently.
+
+### ATTRIBUTION IS SOURCED, NOT INFERRED
+
+Credit for a driver is taken from MAME's own `copyright-holders` header and from
+MAMEDEV's published release notes (`src/gen/release-notes.ts`,
+`src/gen/driver-attribution.ts`), keyed primarily by machine name because MAME's
+file layout has been reorganised repeatedly and a machine's name has not.
+
+Commit history is not a source of attribution. `src/gen/driver-history.ts`
+reports commit counts as activity on a file, with the method and MAME revision
+attached, and nothing generated may present it as authorship. The reasons are
+recorded in that file and in README "ATTRIBUTION"; the short version is that a
+`git log` tally answers a different question from "who wrote this?", and answers
+it confidently enough to be believed.
+
 ## 13. CATEGORY MODEL
 
 MAME arcade game declarations emit under `games/arcade`. Console/system
