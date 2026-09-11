@@ -454,10 +454,18 @@ own fractional line position for the same reason.
 - `bus.ts`: builds memory and I/O buses from generated ranges;
 - `shell.ts`: ROM validation, machine startup and frame presentation. The
   page is the machine and then its control panel: the screen goes at the top
-  and one panel under it carries the nameplate, the running readout, the
-  controls and the key legend, sized to the width of the glass above it so the
-  two read as one cabinet. The name used to sit above the screen *and* be
-  rewritten into the status line below it once a second;
+  and one panel under it, sized to the width of the glass above it so the two
+  read as one cabinet. Two rows -- a nameplate carrying a vent at each end, an
+  instrument inboard of each and the machine's name in the middle, and a well
+  of buttons under it. The name used to sit above the screen *and* be
+  rewritten into the status line below it once a second, and prose about
+  which zips to drop went through a gauge meant for `61 fps · pc=098f`:
+  startup prose now goes on the screen being asked to accept the files.
+  What a button *opens* rather than *does* -- the key legend, the shelf of
+  saves -- opens as a popover above that button; only the two-player lobby is
+  a modal, because it is a flow you are in rather than a drawer you pull out.
+  Neither takes anything from the page, which the saves shelf used to do by
+  joining the column and shrinking the machine every time it opened;
 - `input.ts`: port state, MAME polarity, SOCD and DIP defaults, with the
   keyboard as one edge source. Every source posts what its control did and
   `advance()` settles the ports once per frame, so a machine only ever sees

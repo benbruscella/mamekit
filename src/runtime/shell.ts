@@ -1754,6 +1754,14 @@ function buildDom(cfg: ShellConfig) {
   help.style.cssText = `color:#cbd1ff;font:12px ui-monospace,SFMono-Regular,monospace;text-align:center;
     line-height:1.9;max-width:520px`;
   help.textContent = controlsHelp(cfg);
+  // The legend keeps a home in the page while the popover is shut. It is not
+  // only decoration: `ui.controls()` rewrites it when a pad arrives, so it is
+  // where what-the-controls-are-now is written down, and a screen reader —
+  // and the browser QA that checks the pad is announced — reads it there.
+  const legendHost = document.createElement('div');
+  legendHost.style.display = 'none';
+  legendHost.appendChild(help);
+  deck.appendChild(legendHost);
   // The legend does not get a row of its own: a control panel wants two, and
   // a third band of small print under the buttons was the third. It takes
   // the buttons' place instead, and hands it back.
@@ -1767,7 +1775,7 @@ function buildDom(cfg: ShellConfig) {
   keysCell.append(toolbarDivider(), keysButton);
   keysButton.onclick = () => {
     if (popoverFor(keysButton)) { closePopover(); return; }
-    showPopover(keysButton, help);
+    showPopover(keysButton, help, () => legendHost.appendChild(help));
   };
 
   const ctx = canvas.getContext('2d')!;
