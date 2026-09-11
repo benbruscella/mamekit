@@ -37,7 +37,7 @@ const TONES: Record<Tone, { body: string; border: string; color: string }> = {
  * never carries meaning on its own — every button keeps its word beside it
  * and its accessible name regardless.
  */
-export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom';
+export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom' | 'keys';
 
 const GLYPHS: Record<Glyph, string> = {
   // two arrows passing: one machine, two players
@@ -52,6 +52,8 @@ const GLYPHS: Record<Glyph, string> = {
   eject: '<path d="M5 14h14L12 5z"/><path d="M5 19h14"/>',
   // sweep it out
   broom: '<path d="M14 3 8.5 8.5"/><path d="M17 6 6.5 16.5"/><path d="M4 20l3-8 9 3-3 8z"/>',
+  // a keyboard, for the legend of what every key does
+  keys: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
 };
 
 /** One glyph, sized for a pill button and coloured by whatever holds it. */
@@ -113,6 +115,31 @@ export function paintTitleButton(button: HTMLButtonElement, active: boolean): vo
         ? `background:${tone.body};border:1px solid ${tone.border};color:${tone.color};
            box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 2px rgba(0,0,0,.45)`
         : `background:#0b0e22;border:1px solid #1c2249;color:#4d5480;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)`}`;
+}
+
+/**
+ * The vent and bolt at each end of the panel's nameplate.
+ *
+ * A cabinet's control panel is not a rectangle of buttons: it has a face,
+ * with grilles and fixings on it. These flank the machine's name and are
+ * mirrored for the right-hand end, so the nameplate reads as a plate that
+ * was fitted to something rather than a line of text.
+ */
+export function deckVent(side: 'left' | 'right'): HTMLElement {
+  const holder = document.createElement('span');
+  holder.setAttribute('aria-hidden', 'true');
+  holder.dataset.vent = side;
+  holder.style.cssText = `display:inline-flex;align-items:center;flex:0 0 auto;    ${side === 'right' ? 'transform:scaleX(-1);' : ''}`;
+  holder.innerHTML = `<svg width="58" height="20" viewBox="0 0 58 20" fill="none">
+    <g fill="#39437f" opacity=".75">
+      <rect x="12" y="3.4" width="44" height="2.3" rx="1.15"/>
+      <rect x="12" y="8.85" width="44" height="2.3" rx="1.15"/>
+      <rect x="12" y="14.3" width="44" height="2.3" rx="1.15"/>
+    </g>
+    <circle cx="4.6" cy="10" r="3.4" fill="#0c1026" stroke="#39437f"/>
+    <path d="M2.9 10h3.4" stroke="${DECK_GOLD}" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
+  </svg>`;
+  return holder;
 }
 
 /** A hairline between two groups of toolbar buttons. */

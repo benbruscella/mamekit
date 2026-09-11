@@ -17,8 +17,8 @@ import { fetchRomBytes } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
 import {
-  DECK_GOLD, deckButton, deckPanel, paintTitleButton, setDeckButtonState, setTitleButtonText,
-  titleButton, toolbarDivider,
+  DECK_GOLD, deckButton, deckPanel, deckVent, paintTitleButton, setDeckButtonState,
+  setTitleButtonText, titleButton, toolbarDivider,
 } from './controls.ts';
 import { openRomStore, type RomStore, type StoredZip } from './romstore.ts';
 import { openMemoryStore } from './memorystore.ts';
@@ -1201,17 +1201,19 @@ export async function runShell(
     }
     if (now - fpsWindowStart >= 1000) {
       const snap = board.snapshot();
-      const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];
-      if (fastForward) parts.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
-      if (snap.cpus.length > 1) parts.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
-      if (snap.credits !== undefined) parts.push(`credits=${snap.credits}`);
+      // Left instrument: how the machine is running. Right: what it is
+      // running. The machine's name is on the nameplate between them — it
+      // used to be rewritten into this line once a second as well, so the
+      // page spent two of its lines saying the same thing twice.
+      const rate = [`${frames} fps`];
+      if (fastForward) rate.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
       const room = netplay.status();
-      if (room) parts.unshift(room);
-      if (input.debug) parts.push(input.dump());
-      // The machine's name is already the heading above the screen. Repeating
-      // it here every second cost a line of the page to say it twice and
-      // pushed the readings that do change out to the right.
-      ui.status(parts.join(' · '));
+      if (room) rate.push(room);
+      const detail = [`pc=${hex4(snap.cpus[0].pc)}`];
+      if (snap.cpus.length > 1) detail.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
+      if (snap.credits !== undefined) detail.push(`credits=${snap.credits}`);
+      if (input.debug) detail.push(input.dump());
+      ui.readout(rate.join(' · '), detail.join(' · '));
       frames = 0;
       fpsWindowStart = now;
     }
@@ -1466,26 +1468,44 @@ function buildDom(cfg: ShellConfig) {
     background:linear-gradient(90deg,transparent,${DECK_GOLD}55 18%,${DECK_GOLD}aa 50%,${DECK_GOLD}55 82%,transparent)`;
   deck.appendChild(lip);
 
-  /** One strip across the panel, ruled off from the one above it. */
+  /**
+   * One strip across the panel, ruled off from the one above it.
+   *
+   * Three columns with the outer two the same width, so whatever sits in the
+   * middle is centred on the panel rather than on what is left over after
+   * the things beside it. Below `narrow` the columns give up and everything
+   * stacks, which is the only way six buttons and a readout fit on a phone.
+   */
   const strip = (padding: string, first = false): HTMLElement => {
     const row = document.createElement('div');
-    row.style.cssText = `display:flex;align-items:center;justify-content:center;gap:10px 14px;flex-wrap:wrap;
+    row.dataset.strip = '';
+    row.style.cssText = `display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px 14px;
       padding:${padding};box-sizing:border-box;
       ${first ? '' : 'border-top:1px solid rgba(255,255,255,.055)'}`;
     deck.appendChild(row);
     return row;
   };
+  /** Fill a column that has nothing in it, so the middle stays in the middle. */
+  const spacer = (): HTMLElement => {
+    const cell = document.createElement('span');
+    cell.setAttribute('aria-hidden', 'true');
+    return cell;
+  };
 
   // Nameplate and readout: what machine this is, and what it is doing.
-  const plate = strip('9px 16px', true);
-  plate.style.justifyContent = 'space-between';
+  const plate = strip('10px 16px', true);
   const h1 = document.createElement('h1');
   h1.textContent = cfg.title;
-  h1.style.cssText = `font:700 12px ui-sans-serif,system-ui,sans-serif;margin:0;letter-spacing:.4px;
-    display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:#e8ebff;
-    text-shadow:0 1px 0 rgba(0,0,0,.6)`;
+  h1.style.cssText = `font:700 13px ui-sans-serif,system-ui,sans-serif;margin:0;letter-spacing:.5px;
+    display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;text-align:center;
+    color:#eef1ff;text-shadow:0 1px 0 rgba(0,0,0,.7),0 0 18px rgba(159,176,255,.18)`;
   if (cfg.preview) h1.appendChild(betaBadge());
-  plate.appendChild(h1);
+  // The vents belong to the name, not to the ends of the panel: they sit
+  // either side of it in the middle column, so the whole nameplate stays
+  // centred however wide or narrow the machine's screen is.
+  const nameplate = document.createElement('div');
+  nameplate.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;min-width:0';
+  nameplate.append(deckVent('left'), h1, deckVent('right'));
 
   // The machine's controls, grouped by what they do, with the destructive
   // pair held back at the end in a tone that does not look like Save. They
@@ -1501,17 +1521,20 @@ function buildDom(cfg: ShellConfig) {
   const padBadge = document.createElement('span');
   padBadge.dataset.pads = '';
   padBadge.style.cssText = 'display:none;align-items:center;gap:6px;background:#1f6f3a;color:#dfffe6;border:1px solid #3ccf6a;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;letter-spacing:.02em';
-  toolbar.appendChild(padBadge);
   const well = strip('11px 16px');
   well.style.background = 'linear-gradient(180deg,rgba(0,0,0,.34),rgba(0,0,0,.14))';
   well.style.boxShadow = 'inset 0 2px 5px rgba(0,0,0,.5),inset 0 -1px 0 rgba(255,255,255,.04)';
-  well.appendChild(toolbar);
-  /** The toolbar takes no room on the panel until something is in it. */
-  const showToolbar = (): void => {
-    const filled = [...toolbar.children].some(child => (child as HTMLElement).style.display !== 'none');
-    toolbar.style.display = filled ? 'flex' : 'none';
+  well.style.display = 'none';
+  /**
+   * The button well is not there until there is something in it.
+   *
+   * Before a ROM is in, there are no controls and nothing to read: an empty
+   * well was a dead strip across the panel.
+   */
+  let groups = 0;
+  const showWell = (): void => {
+    well.style.display = groups > 0 ? 'grid' : 'none';
   };
-  showToolbar();
 
   // A dialog over the screen: the two-player lobby, and anything else that
   // deserves the player's whole attention. It is fixed to the viewport rather
@@ -1621,15 +1644,37 @@ function buildDom(cfg: ShellConfig) {
   const lamp = document.createElement('span');
   lamp.setAttribute('aria-hidden', 'true');
   lamp.style.cssText = 'width:7px;height:7px;border-radius:999px;flex:0 0 auto;background:#3a3f6a;transition:background .3s,box-shadow .3s';
-  const statusEl = document.createElement('div');
-  statusEl.dataset.readout = '';
-  statusEl.style.cssText = `color:${DECK_GOLD};font:600 11px ui-monospace,SFMono-Regular,monospace;letter-spacing:.6px;
-    text-align:right;line-height:1.5;text-shadow:0 0 12px ${DECK_GOLD}40`;
-  statusEl.textContent = 'Loading…';
-  const readout = document.createElement('div');
-  readout.style.cssText = 'display:flex;align-items:center;gap:8px;justify-content:flex-end;min-width:0;flex:1 1 200px';
-  readout.append(lamp, statusEl);
-  plate.appendChild(readout);
+  /**
+   * The panel's instruments, one at each end of the nameplate.
+   *
+   * A single gauge on the right left the plate lopsided, so the reading is
+   * split the way a cabinet's would be: how it is running on the left, what
+   * it is running on the right.
+   */
+  const gauge = (align: 'left' | 'right'): HTMLElement => {
+    const dial = document.createElement('div');
+    dial.dataset.readout = align;
+    dial.style.cssText = `color:${DECK_GOLD};font:600 11px ui-monospace,SFMono-Regular,monospace;letter-spacing:.6px;
+      text-align:${align};line-height:1.5;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      text-shadow:0 0 12px ${DECK_GOLD}40`;
+    return dial;
+  };
+  const rateEl = gauge('left');
+  const statusEl = gauge('right');
+  // The readout sits beside the buttons rather than on the nameplate: the
+  // name has the middle of the plate to itself, and the gauge is where the
+  // hand is. The pad badge balances it on the other side.
+  // Beside the name rather than beside the buttons: a six-button well and a
+  // gauge do not both fit across the width of a Galaga screen, and the one
+  // that lost was the gauge, printed straight over Clear memory.
+  const left = document.createElement('div');
+  left.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0';
+  left.append(lamp, rateEl, padBadge);
+  const right = document.createElement('div');
+  right.style.cssText = 'display:flex;align-items:center;gap:8px;justify-content:flex-end;min-width:0;justify-self:end';
+  right.append(statusEl);
+  plate.append(left, nameplate, right);
+  well.append(spacer(), toolbar, spacer());
 
   // The legend, engraved along the bottom edge of the panel.
   const help = document.createElement('div');
@@ -1639,7 +1684,37 @@ function buildDom(cfg: ShellConfig) {
   help.textContent = controlsHelp(cfg);
   const legend = strip('8px 16px 10px');
   legend.style.background = 'rgba(0,0,0,.22)';
-  legend.appendChild(help);
+  legend.style.display = 'none';
+  legend.append(spacer(), help, spacer());
+
+  // The legend is a third row, and a control panel wants two. It folds away
+  // behind its own button instead of being dropped: which key coins a
+  // cabinet up is exactly what a first-time visitor does not know.
+  const KEYS_KEPT = 'mamekit-keys-legend';
+  const keysCell = document.createElement('span');
+  keysCell.setAttribute('role', 'group');
+  keysCell.setAttribute('aria-label', 'Key legend');
+  keysCell.dataset.keysCell = '';
+  keysCell.style.cssText = 'display:none;align-items:center;gap:7px';
+  const keysButton = titleButton('Keys', 'Show the key legend', 'Show or hide what every key does', 'quiet', 'keys');
+  keysButton.setAttribute('aria-expanded', 'false');
+  keysCell.append(toolbarDivider(), keysButton);
+  const showLegend = (open: boolean): void => {
+    legend.style.display = open ? 'grid' : 'none';
+    keysButton.setAttribute('aria-expanded', String(open));
+    paintTitleButton(keysButton, open);
+    fit();
+  };
+  keysButton.onclick = () => {
+    const open = legend.style.display === 'none';
+    showLegend(open);
+    // Somebody who wants the keys up wants them up next time too.
+    try { localStorage.setItem(KEYS_KEPT, open ? '1' : '0'); } catch { /* private window */ }
+    keysButton.blur();
+  };
+  let keysWanted = false;
+  try { keysWanted = localStorage.getItem(KEYS_KEPT) === '1'; } catch { /* private window */ }
+  if (keysWanted) showLegend(true);
 
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
@@ -1657,9 +1732,13 @@ function buildDom(cfg: ShellConfig) {
     addTitleControls: (controls: HTMLElement) => {
       // A hairline between groups, so "2 player", the save buttons and the
       // browser-storage pair read as three things rather than six.
-      if (toolbar.querySelector('[role="group"]')) toolbar.appendChild(toolbarDivider());
+      if (groups++) toolbar.appendChild(toolbarDivider());
       toolbar.appendChild(controls);
-      showToolbar();
+      // Keeping it last is a move, not an insert: appending an element that
+      // is already in the toolbar takes it out of where it was.
+      keysCell.style.display = 'inline-flex';
+      toolbar.appendChild(keysCell);
+      showWell();
       fit();
     },
     /** put a dialog over the screen; `onDismiss` runs on Esc or a backdrop click */
@@ -1685,7 +1764,6 @@ function buildDom(cfg: ShellConfig) {
     pads: (names: string[]) => {
       padBadge.style.display = names.length ? 'inline-flex' : 'none';
       padBadge.textContent = names.length ? `🎮 ${names.join(' · ')}` : '';
-      showToolbar();
       fit();
     },
     /** flash a message over the screen for a few seconds */
@@ -1695,7 +1773,26 @@ function buildDom(cfg: ShellConfig) {
       clearTimeout(toastTimer);
       toastTimer = window.setTimeout(() => { toast.style.opacity = '0'; }, 4000);
     },
-    status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none' && !overlay.querySelector('[data-dropzone]')) overlay.textContent = text; },
+    /**
+     * Prose about getting the machine going, said once and on the screen
+     * the player is looking at.
+     *
+     * It used to be written into the panel's readout as well, which put a
+     * sentence about which zips to drop through a gauge meant for `61 fps ·
+     * pc=098f` and blew the nameplate open to three lines.
+     */
+    status: (text: string) => {
+      const zone = overlay.querySelector<HTMLElement>('[data-dropzone] [data-zone-note]');
+      if (zone) { zone.textContent = text; zone.style.display = text ? 'block' : 'none'; return; }
+      if (overlay.style.display !== 'none') overlay.textContent = text;
+    },
+    /** The panel's instruments: how the machine is running, and what it is running. */
+    readout: (rate: string, detail: string) => {
+      rateEl.textContent = rate;
+      statusEl.textContent = detail;
+      showWell();
+      fit();
+    },
     overlayHide: () => {
       overlay.style.display = 'none';
       // The panel's lamp comes on with the machine, the way the one on a
@@ -1740,6 +1837,13 @@ function buildDom(cfg: ShellConfig) {
       const small = document.createElement('div');
       small.style.cssText = 'color:#9fb0ff';
       small.textContent = 'or click anywhere on the screen to choose one or more zip files';
+      // Which sets this machine needs, and what happens to them. It belongs
+      // here, on the screen being asked to accept them, rather than in the
+      // control panel's gauge underneath.
+      const zoneNote = document.createElement('div');
+      zoneNote.dataset.zoneNote = '';
+      zoneNote.style.cssText = `display:none;color:#cbd1ff;font-size:12px;line-height:1.55;margin-top:4px;
+        padding:8px 10px;border-radius:8px;background:rgba(159,176,255,.07);border:1px solid #2a3162`;
       const note = document.createElement('div');
       note.style.cssText = 'color:#667;font-size:12px;margin-top:6px;max-width:320px';
       note.textContent = 'ROMs are copyrighted and not distributed with mamekit — bring your own dump.';
@@ -1804,7 +1908,7 @@ function buildDom(cfg: ShellConfig) {
       manifest.append(sum, list);
       manifest.addEventListener('click', ev => ev.stopPropagation()); // don't open the file picker
 
-      zone.append(style, invite, icon, big, small, note, searchWrap, manifest);
+      zone.append(style, invite, icon, big, small, zoneNote, note, searchWrap, manifest);
       overlay.appendChild(zone);
       const idle = () => {
         zone.style.transform = '';
