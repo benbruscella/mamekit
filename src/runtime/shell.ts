@@ -160,6 +160,9 @@ export interface SoundSpec {
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */
+/** The panel lamp: dark before the machine starts, lit while it runs, amber while it is held. */
+type LampState = 'off' | 'running' | 'paused';
+
 export interface DropZone {
   el: HTMLElement;
   /** a file is hovering over the window */
@@ -953,6 +956,27 @@ export async function runShell(
   // travel is handed out gradually, as MAME does, instead of in one lump.
   input.frameFraction = () => board.frameFraction?.() ?? 1;
 
+  // --- pausing ---------------------------------------------------------------
+  // The machine stops while the two-player lobby is over it. Setting a game
+  // up takes a minute of copying a link into a conversation and waiting for
+  // an answer, and the cabinet does not care: you came back to the lobby
+  // having lost two lives to it (issue #140).
+  //
+  // Not while a room is live, though. Two machines in a room run in lockstep,
+  // so a browser that stops running frames stops publishing them, and the
+  // other player's machine stands still waiting for input that is not coming.
+  // In a room the lobby is only there to show who you are playing and to
+  // leave, so there is nothing to protect the game from.
+  let paused = false;
+  const setPaused = (wanted: boolean): void => {
+    if (wanted === paused) return;
+    paused = wanted;
+    // Silence with it: a suspended context is the difference between a pause
+    // and a machine that is still humming at you with a frozen picture.
+    if (paused) audio.suspend(); else audio.resume();
+    ui.lamp(paused ? 'paused' : 'running');
+  };
+
   // --- two players, one machine each (issue #128) ----------------------------
   const netplay: Netplay = createNetplay({
     input,
@@ -965,8 +989,11 @@ export async function runShell(
     toast: ui.toast,
     // Over the screen, not under it: the lobby used to join the page column,
     // so opening it shrank the machine you were playing (issue #140).
-    showPanel: panel => ui.showModal(panel, () => netplay.dismiss()),
-    hidePanel: () => ui.hideModal(),
+    showPanel: panel => {
+      ui.showModal(panel, () => netplay.dismiss());
+      setPaused(!netplay.live);
+    },
+    hidePanel: () => { ui.hideModal(); setPaused(false); },
     inviteUrl: code => `${location.href.split('#')[0]}#join=${code}`,
     joinCode,
   });
@@ -1177,12 +1204,18 @@ export async function runShell(
     acc += now - last;
     last = now;
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
+    // A pause owes the machine nothing: time that passed while it was stopped
+    // is not a backlog of frames to catch up on when it starts again.
+    if (paused) acc = 0;
     let due = 0;
     while (acc >= frameMs) {
       acc -= frameMs;
       due++;
     }
-    if (fastForward && !qaDrive) {
+    if (paused) {
+      // Nothing runs, but the panel keeps reporting: the readout below says
+      // so rather than leaving a still picture to be read as a crash.
+    } else if (fastForward && !qaDrive) {
       // As many frames as fit the budget, presented once. The budget is
       // shorter than a display frame so the page stays responsive enough to
       // press F again, and the cap stops a fast machine running away.
@@ -1208,8 +1241,8 @@ export async function runShell(
       // running. The machine's name is on the nameplate between them — it
       // used to be rewritten into this line once a second as well, so the
       // page spent two of its lines saying the same thing twice.
-      const rate = [`${frames} fps`];
-      if (fastForward) rate.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
+      const rate = paused ? ['⏸ paused'] : [`${frames} fps`];
+      if (fastForward && !paused) rate.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
       const room = netplay.status();
       if (room) rate.push(room);
       const detail = [`pc=${hex4(snap.cpus[0].pc)}`];
@@ -1716,6 +1749,12 @@ function buildDom(cfg: ShellConfig) {
   const lamp = document.createElement('span');
   lamp.setAttribute('aria-hidden', 'true');
   lamp.style.cssText = 'width:7px;height:7px;border-radius:999px;flex:0 0 auto;background:#3a3f6a;transition:background .3s,box-shadow .3s';
+  const LAMPS: Record<LampState, string> = { off: '#3a3f6a', running: '#3ccf6a', paused: DECK_GOLD };
+  const setLamp = (state: LampState): void => {
+    const colour = LAMPS[state];
+    lamp.style.background = colour;
+    lamp.style.boxShadow = state === 'off' ? 'none' : `0 0 9px ${colour}, 0 0 2px rgba(255,255,255,.85) inset`;
+  };
   /**
    * The panel's instruments, one at each end of the nameplate.
    *
@@ -1866,9 +1905,10 @@ function buildDom(cfg: ShellConfig) {
       overlay.style.display = 'none';
       // The panel's lamp comes on with the machine, the way the one on a
       // cabinet does when the cabinet is switched on.
-      lamp.style.background = '#3ccf6a';
-      lamp.style.boxShadow = '0 0 9px #3ccf6a, 0 0 2px #d9ffe4 inset';
+      setLamp('running');
     },
+    /** The panel's lamp: green while the machine runs, amber while it is held. */
+    lamp: (state: LampState) => setLamp(state),
     /** adopt the board's real framebuffer size when it differs from config */
     setNative: (nw: number, nh: number) => {
       if (nw === w && nh === h) return;

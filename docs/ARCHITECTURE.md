@@ -517,7 +517,11 @@ own fractional line position for the same reason.
   replace only those two hops;
 - `netplay.ts`: the two-player lifecycle -- the lobby, and putting both
   machines back to the state they booted in so a room starts from one agreed
-  place. The lobby is a state machine over the handshake rather than a form:
+  place. The machine is held while the lobby is open, because setting a game
+  up takes a minute of copying a link into a conversation and the cabinet
+  does not care -- but never while a room is live: two machines in a room run
+  in lockstep, so a browser that stops running frames stops publishing them
+  and the other player stands still waiting for input that is not coming. The lobby is a state machine over the handshake rather than a form:
   with no server to pass an offer and an answer through, the two players are
   the transport, and that is three hops nothing can remove -- so each one is a
   single action (share, or copy; a paste anywhere on the page; connect) and

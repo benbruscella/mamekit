@@ -170,6 +170,37 @@ test.describe(`${game} two player`, () => {
     expect(guestFaults.errors, 'no page errors on the joiner').toEqual([]);
     await context.close();
   });
+  test('the lobby holds the machine while a game is being set up, and lets a live room run', async ({ browser }) => {
+    test.slow();
+    // Setting a two-player game up takes a minute of copying a link into a
+    // conversation. The cabinet used to carry on without you (issue #140).
+    const contract = contractFor(game);
+    const context = await browser.newContext();
+    const host = await context.newPage();
+    const faults = await bootGame(host, contract);
+    const frameOf = () => host.evaluate(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } })
+        .mamekit.board.snapshot().frame);
+
+    await expect.poll(async () => (await frameOf()) > 0, { timeout: 15_000 }).toBe(true);
+    await host.locator('[data-netplay]').getByRole('button', { name: /two player game/i }).click();
+    await expect(host.locator('[data-netplay-panel]')).toBeVisible();
+    await host.waitForTimeout(700);   // let the frame in flight finish
+    const held = await frameOf();
+    await host.waitForTimeout(1500);
+    expect(await frameOf(), 'the machine stands still while the lobby is open').toBe(held);
+    await expect.poll(() => roomStatus(host)).toBe('');   // no room yet, so nothing to report
+
+    // Esc closes the lobby rather than walking out of the game, and the
+    // machine picks up from where it stood.
+    await host.keyboard.press('Escape');
+    await expect(host.locator('[data-netplay-panel]')).toBeHidden();
+    await expect(host.locator('[data-screen]'), 'Esc closed the lobby, it did not leave the game').toBeVisible();
+    await expect.poll(frameOf, { timeout: 15_000 }).toBeGreaterThan(held);
+    expect(faults.errors).toEqual([]);
+    await context.close();
+  });
+
   test('two browsers play in real time at the board\'s own speed, with every cabinet button working', async ({ browser }) => {
     test.slow();
     // Two contexts: two people, two browsers, nothing shared between them.
@@ -270,6 +301,21 @@ test.describe(`${game} two player`, () => {
       await guest.keyboard.up(start1);
       await expect.poll(() => typeHeld(host, 'IPT_START2'), { timeout: 15_000 }).toBe(false);
     }
+
+    // Opening the lobby mid-game must NOT hold this machine: two machines in
+    // a room run in lockstep, so a browser that stops publishing frames
+    // leaves the other one standing still waiting for input.
+    const hostFrame = () => host.evaluate(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } })
+        .mamekit.board.snapshot().frame);
+    await host.locator('[data-netplay]').getByRole('button', { name: /two player game/i }).click();
+    await expect(host.locator('[data-netplay-panel]')).toBeVisible();
+    const atOpen = await hostFrame();
+    await host.waitForTimeout(1200);
+    expect(await hostFrame(), 'a live room keeps running with the lobby open')
+      .toBeGreaterThan(atOpen);
+    await host.keyboard.press('Escape');
+    await expect(host.locator('[data-netplay-panel]')).toBeHidden();
 
     // Play on, then check the two machines never told each other they had
     // drifted apart — they compare themselves every 60 frames.

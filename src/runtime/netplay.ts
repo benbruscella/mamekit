@@ -229,7 +229,8 @@ export function createNetplay(options: NetplayOptions): Netplay {
   // surprise: both need the same dump, and a room plays cold.
   const terms = document.createElement('p');
   terms.style.cssText = 'margin:0;padding-top:12px;border-top:1px solid #232a55;color:#6f79b4;font-size:11px;line-height:1.6';
-  terms.textContent = 'You both need the same ROM set. Neither of you sends it anywhere — only which control moved. '
+  terms.textContent = 'Your machine is held while this is open, so setting a game up costs you nothing. '
+    + 'You both need the same ROM set, and neither of you sends it anywhere — only which control moved. '
     + 'Starting a game restarts both machines, and high scores are not kept while it runs.';
   panel.append(header, note, row, terms);
 
