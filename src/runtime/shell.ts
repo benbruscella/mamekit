@@ -769,6 +769,7 @@ export async function runShell(
     if (ev.code !== 'Escape') return;
     ev.preventDefault();
     if (ui.modalOpen()) { ui.dismissModal(); return; }
+    if (ui.popoverOpen()) { ui.closePopover(); return; }
     location.href = cfg.menuUrl ?? './';
   }, { capture: true });
 
@@ -1129,9 +1130,11 @@ export async function runShell(
     load: state => { input.releaseAll(); board.load(state); audio.discard(); },
     screen: ui.canvas,
     toast: ui.toast,
-    refit: ui.refit,
-    showShelf: ui.addControls,
-    hideShelf: ui.removeControls,
+    // The shelf hangs off its own button rather than joining the page
+    // column, so opening it no longer shrinks the machine being played.
+    refit: ui.placePopover,
+    showShelf: (shelf, anchor, onClose) => ui.showPopover(anchor, shelf, onClose),
+    hideShelf: () => ui.closePopover(),
   });
   ui.addTitleControls(saves.deck);
   (window as unknown as { mamekit: Record<string, unknown> }).mamekit.saves = saves;
@@ -1500,12 +1503,11 @@ function buildDom(cfg: ShellConfig) {
     display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;text-align:center;
     color:#eef1ff;text-shadow:0 1px 0 rgba(0,0,0,.7),0 0 18px rgba(159,176,255,.18)`;
   if (cfg.preview) h1.appendChild(betaBadge());
-  // The vents belong to the name, not to the ends of the panel: they sit
-  // either side of it in the middle column, so the whole nameplate stays
-  // centred however wide or narrow the machine's screen is.
-  const nameplate = document.createElement('div');
-  nameplate.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;min-width:0';
-  nameplate.append(deckVent('left'), h1, deckVent('right'));
+  // Five columns: a vent at each end of the plate, an instrument inboard of
+  // each, and the machine's name in the middle. The two instrument columns
+  // are the same width, so the name is centred on the panel whatever either
+  // of them happens to be reading.
+  plate.style.gridTemplateColumns = 'auto minmax(0,1fr) auto minmax(0,1fr) auto';
 
   // The machine's controls, grouped by what they do, with the destructive
   // pair held back at the end in a tone that does not look like Save. They
@@ -1551,6 +1553,76 @@ function buildDom(cfg: ShellConfig) {
   let dismissModal: (() => void) | undefined;
   modal.addEventListener('click', event => { if (event.target === modal) dismissModal?.(); });
   document.body.appendChild(modal);
+
+  // A popover above the control panel, for the things a button opens rather
+  // than does: the key legend and the shelf of saves. The two-player lobby
+  // is a modal because it is a flow you are in; these are a drawer you pull
+  // out and push back, so they hang off their own button and take nothing
+  // from the page — the saves shelf used to be appended under the screen,
+  // which shrank the machine every time it opened.
+  const pop = document.createElement('div');
+  pop.dataset.popover = '';
+  pop.setAttribute('role', 'dialog');
+  pop.style.cssText = `position:fixed;z-index:25;display:none;box-sizing:border-box;
+    padding:14px 16px;border-radius:12px;max-width:min(720px,92vw);max-height:62vh;overflow:auto;
+    background:linear-gradient(180deg,#1b2145,#0e1229);border:1px solid #39437f;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 18px 44px rgba(0,0,0,.6);
+    font:13px ui-sans-serif,system-ui,sans-serif;color:#cbd1ff`;
+  // Typing into a popover is not playing the machine.
+  for (const type of ['keydown', 'keyup']) {
+    pop.addEventListener(type, event => event.stopPropagation());
+  }
+  // The tail that points back at the button it came from.
+  const tail = document.createElement('span');
+  tail.setAttribute('aria-hidden', 'true');
+  tail.style.cssText = `position:fixed;z-index:26;display:none;width:12px;height:12px;
+    background:#101534;border-right:1px solid #39437f;border-bottom:1px solid #39437f;transform:rotate(45deg)`;
+  document.body.append(pop, tail);
+
+  let popAnchor: HTMLElement | undefined;
+  let popClose: (() => void) | undefined;
+  const placePopover = (): void => {
+    if (!popAnchor) return;
+    const rect = popAnchor.getBoundingClientRect();
+    const width = pop.offsetWidth;
+    const centred = rect.left + rect.width / 2 - width / 2;
+    pop.style.left = `${Math.max(12, Math.min(innerWidth - width - 12, centred))}px`;
+    pop.style.bottom = `${innerHeight - rect.top + 12}px`;
+    tail.style.left = `${rect.left + rect.width / 2 - 6}px`;
+    tail.style.bottom = `${innerHeight - rect.top + 7}px`;
+  };
+  const closePopover = (): void => {
+    if (!popAnchor) return;
+    const was = popAnchor;
+    popAnchor = undefined;
+    pop.style.display = tail.style.display = 'none';
+    pop.replaceChildren();
+    paintTitleButton(was as HTMLButtonElement, false);
+    const closer = popClose;
+    popClose = undefined;
+    closer?.();
+  };
+  const showPopover = (button: HTMLElement, content: HTMLElement, onClose?: () => void): void => {
+    closePopover();
+    popAnchor = button;
+    popClose = onClose;
+    pop.replaceChildren(content);
+    pop.setAttribute('aria-label', button.getAttribute('aria-label') ?? 'Panel');
+    pop.style.display = 'block';
+    tail.style.display = 'block';
+    paintTitleButton(button as HTMLButtonElement, true);
+    placePopover();
+  };
+  /** Is this button the one the open popover belongs to? */
+  const popoverFor = (button: HTMLElement): boolean => popAnchor === button;
+  // A click anywhere else puts it away, but not the click that opened it.
+  addEventListener('pointerdown', event => {
+    if (!popAnchor) return;
+    const target = event.target as Node;
+    if (pop.contains(target) || popAnchor.contains(target)) return;
+    closePopover();
+  }, { capture: true });
+  addEventListener('resize', placePopover);
 
   // cabinet column: screen inside cropped bezel art — no banner or marquee,
   // and it goes in first so the machine is the top of the page
@@ -1668,53 +1740,35 @@ function buildDom(cfg: ShellConfig) {
   // gauge do not both fit across the width of a Galaga screen, and the one
   // that lost was the gauge, printed straight over Clear memory.
   const left = document.createElement('div');
-  left.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0';
+  left.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0;justify-self:start';
   left.append(lamp, rateEl, padBadge);
   const right = document.createElement('div');
   right.style.cssText = 'display:flex;align-items:center;gap:8px;justify-content:flex-end;min-width:0;justify-self:end';
   right.append(statusEl);
-  plate.append(left, nameplate, right);
+  plate.append(deckVent('left'), left, h1, right, deckVent('right'));
   well.append(spacer(), toolbar, spacer());
 
   // The legend, engraved along the bottom edge of the panel.
   const help = document.createElement('div');
   help.dataset.help = ''; // stable handle for browser QA
-  help.style.cssText = `color:#6f79b4;font:11px ui-monospace,SFMono-Regular,monospace;text-align:center;
-    line-height:1.7;text-shadow:0 1px 0 rgba(0,0,0,.5)`;
+  help.style.cssText = `color:#cbd1ff;font:12px ui-monospace,SFMono-Regular,monospace;text-align:center;
+    line-height:1.9;max-width:520px`;
   help.textContent = controlsHelp(cfg);
-  const legend = strip('8px 16px 10px');
-  legend.style.background = 'rgba(0,0,0,.22)';
-  legend.style.display = 'none';
-  legend.append(spacer(), help, spacer());
-
-  // The legend is a third row, and a control panel wants two. It folds away
-  // behind its own button instead of being dropped: which key coins a
-  // cabinet up is exactly what a first-time visitor does not know.
-  const KEYS_KEPT = 'mamekit-keys-legend';
+  // The legend does not get a row of its own: a control panel wants two, and
+  // a third band of small print under the buttons was the third. It takes
+  // the buttons' place instead, and hands it back.
   const keysCell = document.createElement('span');
   keysCell.setAttribute('role', 'group');
   keysCell.setAttribute('aria-label', 'Key legend');
   keysCell.dataset.keysCell = '';
   keysCell.style.cssText = 'display:none;align-items:center;gap:7px';
-  const keysButton = titleButton('Keys', 'Show the key legend', 'Show or hide what every key does', 'quiet', 'keys');
+  const keysButton = titleButton('Keys', 'Show the key legend', 'Show what every key does', 'quiet', 'keys');
   keysButton.setAttribute('aria-expanded', 'false');
   keysCell.append(toolbarDivider(), keysButton);
-  const showLegend = (open: boolean): void => {
-    legend.style.display = open ? 'grid' : 'none';
-    keysButton.setAttribute('aria-expanded', String(open));
-    paintTitleButton(keysButton, open);
-    fit();
-  };
   keysButton.onclick = () => {
-    const open = legend.style.display === 'none';
-    showLegend(open);
-    // Somebody who wants the keys up wants them up next time too.
-    try { localStorage.setItem(KEYS_KEPT, open ? '1' : '0'); } catch { /* private window */ }
-    keysButton.blur();
+    if (popoverFor(keysButton)) { closePopover(); return; }
+    showPopover(keysButton, help);
   };
-  let keysWanted = false;
-  try { keysWanted = localStorage.getItem(KEYS_KEPT) === '1'; } catch { /* private window */ }
-  if (keysWanted) showLegend(true);
 
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
@@ -1754,6 +1808,13 @@ function buildDom(cfg: ShellConfig) {
     },
     /** true while a dialog is up: Esc belongs to it, not to leaving the game */
     modalOpen: () => modal.style.display !== 'none',
+    /** open a popover above one of the panel's buttons */
+    showPopover: (button: HTMLElement, content: HTMLElement, onClose?: () => void) =>
+      showPopover(button, content, onClose),
+    closePopover: () => closePopover(),
+    popoverOpen: () => popAnchor !== undefined,
+    /** the popover's content changed size: put it back where it belongs */
+    placePopover: () => placePopover(),
     /** close whatever dialog is up, telling it so */
     dismissModal: () => dismissModal?.(),
     /** a control changed height (a deck opened or closed): give the screen what is left */
@@ -2292,8 +2353,9 @@ function saveStateDeck(options: {
   /** the deck changed height: the screen takes what is left */
   refit: () => void;
   /** put the shelf under the screen, and take it away again */
-  showShelf: (shelf: HTMLElement) => void;
-  hideShelf: (shelf: HTMLElement) => void;
+  /** hang the shelf off the button that opened it; `onClose` runs if it is dismissed from outside */
+  showShelf: (shelf: HTMLElement, anchor: HTMLElement, onClose: () => void) => void;
+  hideShelf: () => void;
 }): {
   deck: HTMLElement;
   save(): Promise<SaveRecord | undefined>;
@@ -2320,6 +2382,13 @@ function saveStateDeck(options: {
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-controls', 'mamekit-saves-shelf');
   const body = deckPanel('SAVE STATES');
+  // It lives inside a popover now, which brings its own panel: a second one
+  // nested in it would be a box in a box.
+  body.style.background = 'none';
+  body.style.border = 'none';
+  body.style.boxShadow = 'none';
+  body.style.padding = '0';
+  body.style.margin = '0';
   body.id = 'mamekit-saves-shelf';
   body.setAttribute('aria-label', 'Saves in this browser');
   for (const type of ['keydown', 'keyup']) body.addEventListener(type, event => event.stopPropagation());
@@ -2338,7 +2407,11 @@ function saveStateDeck(options: {
   };
   toggle.onclick = () => {
     open = !open;
-    if (open) options.showShelf(body); else options.hideShelf(body);
+    // The popover paints the button itself and can be dismissed by a click
+    // anywhere else, so the deck is told when that happens rather than
+    // keeping its own idea of whether the shelf is up.
+    if (open) options.showShelf(body, toggle, () => { open = false; paintToggle(); });
+    else options.hideShelf();
     paintToggle();
     toggle.blur();
   };

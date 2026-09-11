@@ -37,7 +37,7 @@ const TONES: Record<Tone, { body: string; border: string; color: string }> = {
  * never carries meaning on its own — every button keeps its word beside it
  * and its accessible name regardless.
  */
-export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom' | 'keys';
+export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom' | 'keys' | 'back';
 
 const GLYPHS: Record<Glyph, string> = {
   // two arrows passing: one machine, two players
@@ -54,6 +54,8 @@ const GLYPHS: Record<Glyph, string> = {
   broom: '<path d="M14 3 8.5 8.5"/><path d="M17 6 6.5 16.5"/><path d="M4 20l3-8 9 3-3 8z"/>',
   // a keyboard, for the legend of what every key does
   keys: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
+  // back the way you came
+  back: '<path d="M15 5l-7 7 7 7"/>',
 };
 
 /** One glyph, sized for a pill button and coloured by whatever holds it. */
