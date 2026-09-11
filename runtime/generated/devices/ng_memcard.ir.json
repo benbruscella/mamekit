@@ -1,0 +1,671 @@
+{
+  "type": "NG_MEMCARD",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "memcard"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NG_MEMCARD",
+    "className": "ng_memcard_device",
+    "shortName": "ng_memcard",
+    "description": "NeoGeo Memory Card",
+    "sourceFile": "src/mame/snk/ng_memcard.cpp",
+    "sourceLine": 31,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NG_MEMCARD, ng_memcard_device, \"ng_memcard\", \"NeoGeo Memory Card\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 51,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_memcard_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_lock1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_unlock2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_regsel"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_load",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "length"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 2048
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::make_pair"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "image_error::INVALIDLENGTH"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "Unsupported memory card size (only 2K cards are supported)"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "fseek"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SEEK_SET"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ret",
+            "valueType": "size_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "fread"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_memcard_data"
+                },
+                {
+                  "kind": "number",
+                  "value": 2048
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "ret"
+              },
+              "right": {
+                "kind": "number",
+                "value": 2048
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::make_pair"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "image_error::UNSPECIFIED"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "Error reading file"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_pair"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::error_condition"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::string"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_unload",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 77,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "fseek"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SEEK_SET"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "fwrite"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_memcard_data"
+                },
+                {
+                  "kind": "number",
+                  "value": 2048
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_create",
+      "parameters": "int format_type, util::option_resolution *format_options",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 83,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_memcard_data"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 2048
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ret",
+            "valueType": "size_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "fwrite"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_memcard_data"
+                },
+                {
+                  "kind": "number",
+                  "value": 2048
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "ret"
+              },
+              "right": {
+                "kind": "number",
+                "value": 2048
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::make_pair"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "image_error::UNSPECIFIED"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "Error writing file"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_pair"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::error_condition"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::string"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 95,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_regsel"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "number",
+                    "value": 65280
+                  },
+                  "right": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_memcard_data"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "offset"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2047
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint16_t data",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_lock1"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_unlock2"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_memcard_data"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2047
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "uint8_t",
+                  "operand": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "lock1_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_lock1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "unlock2_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 115,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_unlock2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "regsel_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/snk/ng_memcard.cpp",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_regsel"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/snk/ng_memcard.cpp",
+    "src/mame/snk/ng_memcard.h"
+  ]
+}

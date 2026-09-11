@@ -1,0 +1,28 @@
+{
+  "type": "SEGA_315_5098",
+  "uses": [
+    {
+      "game": "upndown",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SEGA_315_5098",
+    "className": "sega_315_5098_device",
+    "shortName": "sega_315_5098",
+    "description": "Sega 315-5098",
+    "sourceFile": "src/devices/machine/segacrpt_device.cpp",
+    "sourceLine": 279,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SEGA_315_5098, sega_315_5098_device, \"sega_315_5098\", \"Sega 315-5098\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/segacrpt_device.cpp",
+    "src/devices/machine/segacrpt_device.h"
+  ]
+}

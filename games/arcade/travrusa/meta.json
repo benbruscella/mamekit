@@ -1,0 +1,61 @@
+{
+  "game": "travrusa",
+  "title": "Traverse USA / Zippy Race (Irem, 1983)",
+  "fullname": "Traverse USA / Zippy Race",
+  "year": "1983",
+  "manufacturer": "Irem",
+  "family": "travrusa",
+  "driverFile": "src/mame/irem/travrusa.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Lee Taylor",
+  "credits": {
+    "people": [
+      {
+        "name": "Lee Taylor",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.272",
+        "lastRelease": "0.272"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.263",
+        "lastRelease": "0.263"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.231",
+        "lastRelease": "0.231"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 127,
+    "authors": 25,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

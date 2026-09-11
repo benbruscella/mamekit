@@ -1,0 +1,103 @@
+// GENERATED executable machine composition from src/mame/taito/arkanoid.cpp; do not edit.
+import { decodeBoardIr } from '../../../../runtime/ir/decode.js';
+import type { BoardConfig, BoardSinks, InputPorts, Regions } from '../../../../runtime/core/types.js';
+import type { GeneratedCompiledHandler } from '../../../../runtime/ir/board.js';
+import { createGeneratedBoard } from '../../../../runtime/core/generated-board.js';
+import boardData from './board.json' with { type: 'json' };
+
+// Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
+// field and its MAME source line, instead of crashing deep inside execution.
+const defined = decodeBoardIr(boardData, 'arkanoid');
+
+// Direct JavaScript for handlers whose IR shape shows nested hot loops. The
+// interpreter remains the semantic reference; these are checked against it by
+// src/gen/emit-handler-codegen.spec.ts.
+defined.compiledHandlers = {
+  ...(() => {
+    const methods = (() => {
+
+  function method_arkanoid_videoram_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.writableMember("m_videoram"), offset, data);
+    (__l["m_bg_tilemap.mark_tile_dirty"] ? __l["m_bg_tilemap.mark_tile_dirty"](runtime.divide(offset, 2)) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).mark_tile_dirty?.(runtime.divide(offset, 2)) ?? 0) : (__l["mark_tile_dirty"]?.(runtime.divide(offset, 2)) ?? 0));
+  }
+
+  function method_input_mux_r(runtime: any): any {
+    const members = runtime.members;
+
+    const h_m_muxports = members.m_muxports ?? runtime.member("m_muxports");
+    return ((runtime.dereference(runtime.readIndex(h_m_muxports, ((((Number(0) === Number((members.m_paddle_select ?? runtime.member("m_paddle_select")))) ? 1 : 0)) ? (0) : (1))))).read_safe?.(255) ?? 0);
+  }
+
+  function method_get_bg_tile_info(runtime: any, tilemap: any, tileinfo: any, tile_index: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let offs: any = ((((tile_index) * (2))) | 0);
+    let code: any = ((runtime.add(runtime.add(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), ((offs) + (1))), ((((runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), offs)) & (7))) << (8))), ((2048) * ((members.m_gfxbank ?? runtime.member("m_gfxbank")))))) | 0);
+    let color: any = ((runtime.add(((((runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), offs)) & (248))) >>> (3)), ((32) * ((members.m_palettebank ?? runtime.member("m_palettebank")))))) | 0);
+    (__l["tileinfo.set"] ? __l["tileinfo.set"](0, code, color, 0) : (tileinfo) != null ? ((runtime.dereference(tileinfo)).set?.(0, code, color, 0) ?? 0) : (__l["set"]?.(0, code, color, 0) ?? 0));
+  }
+
+  function method_screen_update_arkanoid(runtime: any, screen: any, bitmap: any, cliprect: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_bg_tilemap.draw"] ? __l["m_bg_tilemap.draw"](screen, bitmap, cliprect, 0, 0) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).draw?.(screen, bitmap, cliprect, 0, 0) ?? 0) : (__l["draw"]?.(screen, bitmap, cliprect, 0, 0) ?? 0));
+    (runtime.overrides["draw_sprites"] ? runtime.overrides["draw_sprites"](bitmap, cliprect) : method_draw_sprites(runtime, bitmap, cliprect));
+    return 0;
+  }
+
+  function method_draw_sprites(runtime: any, bitmap: any, cliprect: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    const h_m_spriteram = members.m_spriteram ?? runtime.member("m_spriteram");
+    let offs: any = ((0) | 0);
+    for (offs = ((0) | 0); ((Number(offs) < Number((members.m_spriteram).length)) ? 1 : 0); offs = ((((offs) + (4))) | 0)) {
+      let sx: any = ((0) | 0);
+      let sy: any = ((0) | 0);
+      let code: any = ((0) | 0);
+      sx = ((runtime.readIndex(h_m_spriteram, offs)) | 0);
+      sy = ((((248) - (runtime.readIndex(h_m_spriteram, ((offs) + (1)))))) | 0);
+      if ((__l["flip_screen_x"] ? __l["flip_screen_x"]() : runtime.macro("flip_screen_x"))) {
+        sx = ((((248) - (sx))) | 0);
+      }
+      if ((__l["flip_screen_y"] ? __l["flip_screen_y"]() : runtime.macro("flip_screen_y"))) {
+        sy = ((((248) - (sy))) | 0);
+      }
+      code = ((runtime.add(runtime.add(runtime.readIndex(h_m_spriteram, ((offs) + (3))), ((((runtime.readIndex(h_m_spriteram, ((offs) + (2)))) & (3))) << (8))), ((1024) * ((members.m_gfxbank ?? runtime.member("m_gfxbank")))))) | 0);
+      ((runtime.dereference((__l["m_gfxdecode.gfx"] ? __l["m_gfxdecode.gfx"](0) : (members.m_gfxdecode) != null ? ((runtime.dereference(members.m_gfxdecode)).gfx?.(0) ?? 0) : 0))).transpen?.(bitmap, cliprect, ((2) * (code)), runtime.add(((((runtime.readIndex(h_m_spriteram, ((offs) + (2)))) & (248))) >>> (3)), ((32) * ((members.m_palettebank ?? runtime.member("m_palettebank"))))), (__l["flip_screen_x"] ? __l["flip_screen_x"]() : runtime.macro("flip_screen_x")), (__l["flip_screen_y"] ? __l["flip_screen_y"]() : runtime.macro("flip_screen_y")), sx, ((sy) + ((((__l["flip_screen_y"] ? __l["flip_screen_y"]() : runtime.macro("flip_screen_y"))) ? (8) : (-8)))), 0) ?? 0);
+      ((runtime.dereference((__l["m_gfxdecode.gfx"] ? __l["m_gfxdecode.gfx"](0) : (members.m_gfxdecode) != null ? ((runtime.dereference(members.m_gfxdecode)).gfx?.(0) ?? 0) : 0))).transpen?.(bitmap, cliprect, runtime.add(((2) * (code)), 1), runtime.add(((((runtime.readIndex(h_m_spriteram, ((offs) + (2)))) & (248))) >>> (3)), ((32) * ((members.m_palettebank ?? runtime.member("m_palettebank"))))), (__l["flip_screen_x"] ? __l["flip_screen_x"]() : runtime.macro("flip_screen_x")), (__l["flip_screen_y"] ? __l["flip_screen_y"]() : runtime.macro("flip_screen_y")), sx, sy, 0) ?? 0);
+    }
+  }
+  return {
+    "arkanoid_videoram_w": method_arkanoid_videoram_w,
+    "input_mux_r": method_input_mux_r,
+    "get_bg_tile_info": method_get_bg_tile_info,
+    "screen_update_arkanoid": method_screen_update_arkanoid,
+    "draw_sprites": method_draw_sprites
+  };
+})();
+    return {
+      "arkanoid_state.arkanoid_videoram_w": methods["arkanoid_videoram_w"],
+      "arkanoid_state.input_mux_r": methods["input_mux_r"],
+      "arkanoid_state.get_bg_tile_info": methods["get_bg_tile_info"],
+      "arkanoid_state.screen_update_arkanoid": methods["screen_update_arkanoid"],
+      "arkanoid_state.draw_sprites": methods["draw_sprites"],
+    };
+  })(),
+} as Record<string, GeneratedCompiledHandler>;
+// The host call names those handlers reach, resolved once into a fast table.
+defined.compiledHandlerLinks = ["draw","flip_screen_x","flip_screen_y","m_bg_tilemap.draw","m_bg_tilemap.mark_tile_dirty","m_gfxdecode.gfx","mark_tile_dirty","set","tileinfo.set"];
+export default {
+  machine: defined,
+  createBoard: (
+    config: BoardConfig,
+    regions: Regions,
+    inputs: InputPorts,
+    sinks: BoardSinks,
+  ) => createGeneratedBoard(defined, config, regions, inputs, sinks),
+};

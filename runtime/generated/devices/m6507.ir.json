@@ -1,0 +1,28 @@
+{
+  "type": "M6507",
+  "uses": [
+    {
+      "game": "a2600",
+      "tags": [
+        "^maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M6507",
+    "className": "m6507_device",
+    "shortName": "m6507",
+    "description": "MOS Technology 6507",
+    "sourceFile": "src/devices/cpu/m6502/m6507.cpp",
+    "sourceLine": 16,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M6507, m6507_device, \"m6507\", \"MOS Technology 6507\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6502/m6507.cpp",
+    "src/devices/cpu/m6502/m6507.h"
+  ]
+}

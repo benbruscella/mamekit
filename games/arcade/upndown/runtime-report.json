@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "upndown",
+  "family": "system1",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 119,
+    "total": 168,
+    "percent": 70.8
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:SEGA_315_5098",
+        "status": "executable",
+        "source": "src/devices/machine/segacrpt_device.cpp:279"
+      },
+      {
+        "name": "soundcpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "soundirq:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "ppi8255:I8255A",
+        "status": "executable",
+        "source": "src/devices/machine/i8255.cpp:66"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "sn1:SN76489A",
+        "status": "executable",
+        "source": "src/devices/sound/sn76496.cpp:474"
+      },
+      {
+        "name": "sn2:SN76489A",
+        "status": "executable",
+        "source": "src/devices/sound/sn76496.cpp:474"
+      },
+      {
+        "name": "sn_ready:INPUT_MERGER_ANY_LOW",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:45"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.bank1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SWA",
+        "status": "generated"
+      },
+      {
+        "name": "port.SWB",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "ppi8255.read",
+        "status": "executable",
+        "source": "src/devices/machine/i8255.cpp:66"
+      },
+      {
+        "name": "ppi8255.write",
+        "status": "executable",
+        "source": "src/devices/machine/i8255.cpp:66"
+      },
+      {
+        "name": "sn1.write",
+        "status": "executable",
+        "source": "src/devices/sound/sn76496.cpp:474"
+      },
+      {
+        "name": "sn2.write",
+        "status": "executable",
+        "source": "src/devices/sound/sn76496.cpp:474"
+      },
+      {
+        "name": "system1_state.mixer_collision_r",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:263"
+      },
+      {
+        "name": "system1_state.mixer_collision_reset_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:277"
+      },
+      {
+        "name": "system1_state.mixer_collision_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:270"
+      },
+      {
+        "name": "system1_state.paletteram_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:371"
+      },
+      {
+        "name": "system1_state.sound_data_r",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:523"
+      },
+      {
+        "name": "system1_state.sprite_collision_r",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:291"
+      },
+      {
+        "name": "system1_state.sprite_collision_reset_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:305"
+      },
+      {
+        "name": "system1_state.sprite_collision_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:298"
+      },
+      {
+        "name": "system1_state.videoram_r",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:335"
+      },
+      {
+        "name": "system1_state.videoram_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1_v.cpp:343"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.refresh_cb -> system1_state.adjust_cycles",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2203"
+      },
+      {
+        "name": "soundirq.configure_scanline -> system1_state.soundirq_gen",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2208"
+      },
+      {
+        "name": "ppi8255.out_pa_callback -> system1_state.soundport_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2213"
+      },
+      {
+        "name": "ppi8255.out_pb_callback -> system1_state.videomode_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2214"
+      },
+      {
+        "name": "ppi8255.out_pc_callback -> system1_state.sound_control_w",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2215"
+      },
+      {
+        "name": "screen.set_screen_update -> system1_state.screen_update_system1",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2224"
+      },
+      {
+        "name": "screen.screen_vblank -> maincpu",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2226"
+      },
+      {
+        "name": "sn1.ready_cb -> sn_ready.in_w_0",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2246"
+      },
+      {
+        "name": "sn2.ready_cb -> sn_ready.in_w_1",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2247"
+      },
+      {
+        "name": "sn_ready.output_handler -> soundcpu",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2244"
+      },
+      {
+        "name": "palette.palette_init -> system1_state.system1_palette",
+        "status": "generated",
+        "source": "src/mame/sega/system1.cpp:2229"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/upndown/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 26,
+    "compiledMethods": 26,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 10,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 2,
+    "screenUpdate": "system1_state.screen_update_system1",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 11,
+    "generated": 28,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

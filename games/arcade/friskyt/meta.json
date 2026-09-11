@@ -1,0 +1,37 @@
+{
+  "game": "friskyt",
+  "title": "Frisky Tom (set 1) (Nichibutsu, 1981)",
+  "fullname": "Frisky Tom (set 1)",
+  "year": "1981",
+  "manufacturer": "Nichibutsu",
+  "family": "seicross",
+  "driverFile": "src/mame/nichibutsu/seicross.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-01-20",
+    "commits": 174,
+    "authors": 25,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

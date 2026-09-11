@@ -1,0 +1,426 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "c64p",
+  "family": "c64",
+  "boardMode": "generated",
+  "playable": false,
+  "playabilityBasis": "blocked",
+  "generationGaps": [
+    "quickload:QUICKLOAD"
+  ],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 139,
+    "total": 243,
+    "percent": 57.2
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "u7:M6510",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6510.cpp:18"
+      }
+    ],
+    "devices": [
+      {
+        "name": "irq:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "nmi:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "u19:MOS6569",
+        "status": "executable",
+        "source": "src/devices/video/mos6566.cpp:222"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "u18:MOS6581",
+        "status": "executable",
+        "source": "src/devices/sound/mos6581.cpp:28"
+      },
+      {
+        "name": "u17:PLS100",
+        "status": "executable",
+        "source": "src/devices/machine/pla.cpp:20"
+      },
+      {
+        "name": "u1:MOS6526",
+        "status": "executable",
+        "source": "src/devices/machine/mos6526.cpp:118"
+      },
+      {
+        "name": "u2:MOS6526",
+        "status": "executable",
+        "source": "src/devices/machine/mos6526.cpp:118"
+      },
+      {
+        "name": "tape:PET_DATASSETTE_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/pet/cass.cpp:18"
+      },
+      {
+        "name": "iec4:CBM_IEC_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/cbmiec/cbmiec.cpp:213"
+      },
+      {
+        "name": "iec8:CBM_IEC_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/cbmiec/cbmiec.cpp:213"
+      },
+      {
+        "name": "iec9:CBM_IEC_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/cbmiec/cbmiec.cpp:213"
+      },
+      {
+        "name": "iec10:CBM_IEC_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/cbmiec/cbmiec.cpp:213"
+      },
+      {
+        "name": "iec11:CBM_IEC_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/cbmiec/cbmiec.cpp:213"
+      },
+      {
+        "name": "iec_bus:CBM_IEC",
+        "status": "executable",
+        "source": "src/devices/bus/cbmiec/cbmiec.cpp:212"
+      },
+      {
+        "name": "joy1:VCS_CONTROL_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/vcs_ctrl/ctrl.cpp:18"
+      },
+      {
+        "name": "joy2:VCS_CONTROL_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/vcs_ctrl/ctrl.cpp:18"
+      },
+      {
+        "name": "exp:C64_EXPANSION_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/c64/exp.cpp:22"
+      },
+      {
+        "name": "user:PET_USER_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/pet/user.cpp:14"
+      },
+      {
+        "name": "quickload:QUICKLOAD",
+        "status": "blocked",
+        "source": "src/devices/imagedev/snapquik.cpp:119",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "ram:RAM",
+        "status": "executable",
+        "source": "src/devices/machine/ram.cpp:116"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "c64_state.read",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:652"
+      },
+      {
+        "name": "c64_state.write",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:667"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "u7.read_callback -> c64_state.cpu_r",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1673"
+      },
+      {
+        "name": "u7.write_callback -> c64_state.cpu_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1674"
+      },
+      {
+        "name": "irq.output_handler -> u7",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1680"
+      },
+      {
+        "name": "nmi.output_handler -> u7",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1683"
+      },
+      {
+        "name": "u19.irq_callback -> irq.in_w_1",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1688"
+      },
+      {
+        "name": "screen.set_screen_update -> u19.screen_update",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1697"
+      },
+      {
+        "name": "u18.potx -> c64_state.sid_potx_r",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1702"
+      },
+      {
+        "name": "u18.poty -> c64_state.sid_poty_r",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1703"
+      },
+      {
+        "name": "u1.irq_wr_callback -> irq.in_w_0",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1711"
+      },
+      {
+        "name": "u1.cnt_wr_callback -> user.write_4",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1712"
+      },
+      {
+        "name": "u1.sp_wr_callback -> user.write_5",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1713"
+      },
+      {
+        "name": "u1.pa_rd_callback -> c64_state.cia1_pa_r",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1714"
+      },
+      {
+        "name": "u1.pb_rd_callback -> c64_state.cia1_pb_r",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1715"
+      },
+      {
+        "name": "u1.pb_wr_callback -> c64_state.cia1_pb_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1716"
+      },
+      {
+        "name": "u2.irq_wr_callback -> nmi.in_w_0",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1720"
+      },
+      {
+        "name": "u2.cnt_wr_callback -> user.write_6",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1721"
+      },
+      {
+        "name": "u2.sp_wr_callback -> user.write_7",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1722"
+      },
+      {
+        "name": "u2.pa_rd_callback -> c64_state.cia2_pa_r",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1723"
+      },
+      {
+        "name": "u2.pa_wr_callback -> c64_state.cia2_pa_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1724"
+      },
+      {
+        "name": "u2.pb_rd_callback -> c64_state.cia2_pb_r",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1725"
+      },
+      {
+        "name": "u2.pb_wr_callback -> c64_state.cia2_pb_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1726"
+      },
+      {
+        "name": "u2.pc_wr_callback -> user.write_8",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1727"
+      },
+      {
+        "name": "tape.read_handler -> c64_state.cass_rd_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1730"
+      },
+      {
+        "name": "iec_bus.srq_callback -> c64_state.iec_srq_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1733"
+      },
+      {
+        "name": "iec_bus.data_callback -> user.write_9",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1734"
+      },
+      {
+        "name": "joy1.trigger_wr_callback -> u19.lp_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1737"
+      },
+      {
+        "name": "exp.irq_callback -> irq.in_w_2",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1741"
+      },
+      {
+        "name": "exp.nmi_callback -> nmi.in_w_2",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1742"
+      },
+      {
+        "name": "exp.reset_callback -> c64_state.exp_reset_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1743"
+      },
+      {
+        "name": "exp.cd_input_callback -> c64_state.read",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1744"
+      },
+      {
+        "name": "exp.cd_output_callback -> c64_state.write",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1745"
+      },
+      {
+        "name": "exp.dma_callback -> c64_state.exp_dma_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1746"
+      },
+      {
+        "name": "user.p3_handler -> c64_state.exp_reset_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1749"
+      },
+      {
+        "name": "user.p4_handler -> u1.cnt_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1750"
+      },
+      {
+        "name": "user.p5_handler -> u1.sp_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1751"
+      },
+      {
+        "name": "user.p6_handler -> u2.cnt_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1752"
+      },
+      {
+        "name": "user.p7_handler -> u2.sp_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1753"
+      },
+      {
+        "name": "user.p9_handler -> iec_bus.host_atn_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1754"
+      },
+      {
+        "name": "user.pb_handler -> u2.flag_w",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1755"
+      },
+      {
+        "name": "user.pc_handler -> c64_state.write_user_pb0",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1756"
+      },
+      {
+        "name": "user.pd_handler -> c64_state.write_user_pb1",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1757"
+      },
+      {
+        "name": "user.pe_handler -> c64_state.write_user_pb2",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1758"
+      },
+      {
+        "name": "user.pf_handler -> c64_state.write_user_pb3",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1759"
+      },
+      {
+        "name": "user.ph_handler -> c64_state.write_user_pb4",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1760"
+      },
+      {
+        "name": "user.pj_handler -> c64_state.write_user_pb5",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1761"
+      },
+      {
+        "name": "user.pk_handler -> c64_state.write_user_pb6",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1762"
+      },
+      {
+        "name": "user.pl_handler -> c64_state.write_user_pb7",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1763"
+      },
+      {
+        "name": "user.pm_handler -> c64_state.write_user_pa2",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1764"
+      },
+      {
+        "name": "quickload.set_load_callback -> c64_state.quickload_c64",
+        "status": "generated",
+        "source": "src/mame/commodore/c64.cpp:1766"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/computers/c64p/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 33,
+    "compiledMethods": 33,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 2,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 0,
+    "screenUpdate": "mos6569_device.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 20,
+    "generated": 52,
+    "declarative-host": 2,
+    "blocked": 1,
+    "missing": 0
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "type": "QUICKLOAD",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "quickload"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "quickload"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "QUICKLOAD",
+    "className": "quickload_image_device",
+    "shortName": "quickload",
+    "description": "Quickload",
+    "sourceFile": "src/devices/imagedev/snapquik.cpp",
+    "sourceLine": 119,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(QUICKLOAD, quickload_image_device, \"quickload\", \"Quickload\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/imagedev/snapquik.cpp",
+    "src/devices/imagedev/snapquik.h"
+  ]
+}

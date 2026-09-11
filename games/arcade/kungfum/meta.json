@@ -1,0 +1,59 @@
+{
+  "game": "kungfum",
+  "title": "Kung-Fu Master (World) (Irem, 1984)",
+  "fullname": "Kung-Fu Master (World)",
+  "year": "1984",
+  "manufacturer": "Irem",
+  "family": "m62",
+  "driverFile": "src/mame/irem/m62.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "smf, David Haywood",
+  "credits": {
+    "people": [
+      {
+        "name": "David Haywood",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "smf",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.245",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "Asociación Retroclub",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 124,
+    "authors": 25,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

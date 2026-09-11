@@ -1,0 +1,4848 @@
+{
+  "type": "ATARI_MOTION_OBJECTS",
+  "uses": [
+    {
+      "game": "gauntlet",
+      "tags": [
+        "mob"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "ATARI_MOTION_OBJECTS",
+    "className": "atari_motion_objects_device",
+    "shortName": "atarimo",
+    "description": "Atari Motion Objects",
+    "sourceFile": "src/mame/atari/atarimo.cpp",
+    "sourceLine": 121,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(ATARI_MOTION_OBJECTS, atari_motion_objects_device, \"atarimo\", \"Atari Motion Objects\")"
+  },
+  "methods": [
+    {
+      "name": "compute_log",
+      "parameters": "int value",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 82,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "log",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "value"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "log"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "value"
+                },
+                "operator": ">>=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "log"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "round_to_powerof2",
+      "parameters": "int value",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "log",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "assignment",
+                "target": {
+                  "kind": "identifier",
+                  "name": "value"
+                },
+                "operator": ">>=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "log"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "identifier",
+                  "name": "log"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 163,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "startband",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "cliprect"
+                        },
+                        "property": "top"
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_yscroll"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_slipoffset"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_bitmapymask"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_slipshift"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "stopband",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "cliprect"
+                        },
+                        "property": "bottom"
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_yscroll"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_slipoffset"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_bitmapymask"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_slipshift"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "startband"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "stopband"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "startband"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_bitmapheight"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_slipshift"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_slipshift"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "stopband"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "startband"
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "band",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "startband"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "band"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "stopband"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "band"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "bandclip",
+                "valueType": "rectangle",
+                "value": {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "link",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_slipshift"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "link"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_slipram"
+                          },
+                          "index": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "band"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_sliprammask"
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_linkmask"
+                            },
+                            "property": "shift"
+                          },
+                          "args": []
+                        }
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_linkmask"
+                          },
+                          "property": "mask"
+                        },
+                        "args": []
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "bandclip"
+                      },
+                      "property": "min_y"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "band"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_slipshift"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_yscroll"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_slipoffset"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_bitmapymask"
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">=",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "bandclip"
+                        },
+                        "property": "min_y"
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "bitmap"
+                          },
+                          "property": "height"
+                        },
+                        "args": []
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "bandclip"
+                          },
+                          "property": "min_y"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "m_bitmapheight"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "bandclip"
+                        },
+                        "property": "set_height"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_slipshift"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bandclip"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "build_active_list"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "link"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_next_xpos"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 123456
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_activelist"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_activelast"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "continue"
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "first",
+                "valueType": "uint16_t*"
+              },
+              {
+                "op": "declare",
+                "name": "last",
+                "valueType": "uint16_t*"
+              },
+              {
+                "op": "declare",
+                "name": "step",
+                "valueType": "int"
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_reverse"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "first"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_activelast"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "last"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_activelist"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "step"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "first"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_activelist"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "last"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_activelast"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "step"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "current",
+                    "valueType": "uint16_t*",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "first"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "current"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "step"
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "render_object"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "bitmap"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "bandclip"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "current"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "current"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "last"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "apply_stain",
+      "parameters": "bitmap_ind16 &bitmap, uint16_t *pf, uint16_t const *mo, int x, int y",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 239,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "START_MARKER",
+            "valueType": "uint16_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 4
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "PRIORITY_SHIFT"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "END_MARKER",
+            "valueType": "uint16_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 4
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "PRIORITY_SHIFT"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "offnext",
+            "valueType": "bool",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "x"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "bitmap"
+                  },
+                  "property": "width"
+                },
+                "args": []
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "pf"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "x"
+                  }
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "number",
+                  "value": 1024
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offnext"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "||",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "mo"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "x"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 65535
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "mo"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "x"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "START_MARKER"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "START_MARKER"
+                      }
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offnext"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "!=",
+                    "left": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "mo"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "x"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 65535
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "mo"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "x"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "END_MARKER"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "END_MARKER"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 259,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sprite16_device_ind16::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "gfx",
+            "valueType": "gfx_element*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "gfx"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_gfxindex"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "gfx"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "emu_fatalerror",
+                "valueType": "throw",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "throw"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "No gfxelement #%d!"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_gfxindex"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_linkmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_link_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_codemask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_code_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_colormask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_color_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_xposmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_xpos_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_yposmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_ypos_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_widthmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_width_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_heightmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_height_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_hflipmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_hflip_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vflipmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_vflip_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_prioritymask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_priority_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_neighbormask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_neighbor_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_absolutemask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_absolute_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tilewidth"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "gfx"
+                },
+                "property": "width"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tileheight"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "gfx"
+                },
+                "property": "height"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tilexshift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_log"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_tilewidth"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tileyshift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_log"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_tileheight"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapwidth"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_xposmask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapheight"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_yposmask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapxmask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitmapwidth"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapymask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitmapheight"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_entrycount"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_linkmask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_entrybits"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_log"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_entrycount"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteramsize"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bankcount"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_entrycount"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriterammask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_spriteramsize"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_slipshift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_slipheight"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "compute_log"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_slipheight"
+                  }
+                ]
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_slipramsize"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitmapheight"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_slipshift"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sliprammask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_slipramsize"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_maxperline"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_maxperline"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MAX_PER_BANK"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_slipram"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_slipram"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_slipramshare"
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "codesize",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_codemask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_codelookup"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "codesize"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "codesize"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_codelookup"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "colorsize",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_colormask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_colorlookup"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "colorsize"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "colorsize"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_colorlookup"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "gfxsize",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "identifier",
+                "name": "codesize"
+              },
+              "right": {
+                "kind": "number",
+                "value": 256
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxlookup"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "gfxsize"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "gfxsize"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_gfxlookup"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_gfxindex"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_force_update_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "atari_motion_objects_device::force_update"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_force_update_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bank"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_xscroll"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_yscroll"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 344,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sprite16_device_ind16::device_reset"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bank"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "build_active_list",
+      "parameters": "int link",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 374,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "bankbase",
+            "valueType": "uint16_t*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "spriteram"
+                  },
+                  "args": []
+                },
+                "index": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_bank"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_entrybits"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "current",
+            "valueType": "uint16_t*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_activelist"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "visited",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ARRAY"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_maxperline"
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "visited"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "link"
+                  }
+                }
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "modata",
+                "valueType": "uint16_t*",
+                "value": {
+                  "kind": "identifier",
+                  "name": "current"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_split"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "srcdata",
+                    "valueType": "uint16_t*",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "bankbase"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "link"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "declare",
+                    "name": "srcdata",
+                    "valueType": "uint16_t*",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "bankbase"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "link"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "cast",
+                        "valueType": "uint32_t",
+                        "operand": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_entrybits"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "cast",
+                        "valueType": "uint32_t",
+                        "operand": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_entrybits"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "cast",
+                        "valueType": "uint32_t",
+                        "operand": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "number",
+                            "value": 2
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_entrybits"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "current"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "srcdata"
+                      },
+                      "index": {
+                        "kind": "cast",
+                        "valueType": "uint32_t",
+                        "operand": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "number",
+                            "value": 3
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_entrybits"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "visited"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "link"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_linked"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "link"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_linkmask"
+                        },
+                        "property": "extract"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "modata"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "link"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "link"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_linkmask"
+                          },
+                          "property": "mask"
+                        },
+                        "args": []
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_activelast"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "current"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "render_object",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, const uint16_t *entry",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 421,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "rawcode",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_codemask"
+                },
+                "property": "extract"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "gfx",
+            "valueType": "gfx_element*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "gfx"
+              },
+              "args": [
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_gfxlookup"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "rawcode"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "code",
+            "valueType": "int",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_codelookup"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "rawcode"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "color",
+            "valueType": "int",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_colorlookup"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_colormask"
+                  },
+                  "property": "extract"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "xpos",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_xposmask"
+                  },
+                  "property": "extract"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_xoffset"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ypos",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_yposmask"
+                  },
+                  "property": "extract"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "hflip",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_hflipmask"
+                },
+                "property": "extract"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "vflip",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vflipmask"
+                },
+                "property": "extract"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "width",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_widthmask"
+                  },
+                  "property": "extract"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "height",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_heightmask"
+                  },
+                  "property": "extract"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "priority",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_prioritymask"
+                },
+                "property": "extract"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "color"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "identifier",
+                  "name": "color"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "gfx"
+                    },
+                    "property": "granularity"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "priority"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "PRIORITY_SHIFT"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "color"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_palettebase"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_absolutemask"
+                  },
+                  "property": "extract"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "xpos"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_xscroll"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ypos"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_yscroll"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "ypos"
+            },
+            "operator": "-=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "identifier",
+                "name": "height"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_tileyshift"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_next_xpos"
+              },
+              "right": {
+                "kind": "number",
+                "value": 123456
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "xpos"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_next_xpos"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_next_xpos"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 123456
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_neighbormask"
+                  },
+                  "property": "extract"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_nextneighbor"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "xpos"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_last_xpos"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_tilewidth"
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_next_xpos"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "xpos"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_tilewidth"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_xpos"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xpos"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "xpos"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_bitmapxmask"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "ypos"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_bitmapymask"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "xpos"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "bitmap"
+                  },
+                  "property": "width"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "xpos"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_bitmapwidth"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "ypos"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "bitmap"
+                  },
+                  "property": "height"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ypos"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_bitmapheight"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_specialmask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_specialmask"
+                    },
+                    "property": "extract"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "entry"
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_specialvalue"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "xadv",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_tilewidth"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "hflip"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "xpos"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "width"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_tilexshift"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "xadv"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "xadv"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "yadv",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_tileheight"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "vflip"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ypos"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "height"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_tileyshift"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "yadv"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "yadv"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_swapxy"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "y",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "declare",
+                        "name": "sy",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "ypos"
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "y"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "height"
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "y"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sy"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "yadv"
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sy"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "cliprect"
+                                },
+                                "property": "top"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_tileheight"
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "code"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "width"
+                            }
+                          },
+                          {
+                            "op": "continue"
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "sy"
+                              },
+                              "right": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                  },
+                                  "property": "bottom"
+                                },
+                                "args": []
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "break"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "for",
+                        "initialize": [
+                          {
+                            "op": "declare",
+                            "name": "x",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "sx",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "xpos"
+                            }
+                          }
+                        ],
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "width"
+                          }
+                        },
+                        "iterate": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "x"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "sx"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "xadv"
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "code"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "||",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "<=",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "sx"
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "cliprect"
+                                        },
+                                        "property": "left"
+                                      },
+                                      "args": []
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "m_tilewidth"
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": ">",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "sx"
+                                },
+                                "right": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "cliprect"
+                                    },
+                                    "property": "right"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "continue"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "gfx"
+                                },
+                                "property": "transpen_raw"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "bitmap"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "cliprect"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "code"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "color"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "hflip"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "vflip"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sx"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sy"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_transpen"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "mark_dirty"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "sx"
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "sx"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "m_tilewidth"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sy"
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "sy"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "m_tileheight"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "x",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "declare",
+                        "name": "sx",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "xpos"
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "width"
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sx"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "xadv"
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sx"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "cliprect"
+                                },
+                                "property": "left"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_tilewidth"
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "code"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "height"
+                            }
+                          },
+                          {
+                            "op": "continue"
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "sx"
+                              },
+                              "right": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                  },
+                                  "property": "right"
+                                },
+                                "args": []
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "break"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "for",
+                        "initialize": [
+                          {
+                            "op": "declare",
+                            "name": "y",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "sy",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "ypos"
+                            }
+                          }
+                        ],
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "height"
+                          }
+                        },
+                        "iterate": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "y"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "sy"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "yadv"
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "code"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "||",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "<=",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "sy"
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "cliprect"
+                                        },
+                                        "property": "top"
+                                      },
+                                      "args": []
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "m_tileheight"
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": ">",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "sy"
+                                },
+                                "right": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "cliprect"
+                                    },
+                                    "property": "bottom"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "continue"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "gfx"
+                                },
+                                "property": "transpen_raw"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "bitmap"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "cliprect"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "code"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "color"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "hflip"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "vflip"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sx"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sy"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_transpen"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "mark_dirty"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "sx"
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "sx"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "m_tilewidth"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sy"
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "sy"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "m_tileheight"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "force_update",
+      "parameters": "int param",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 358,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "param"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "param"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "param"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 64
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "param"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "screen"
+                        },
+                        "args": []
+                      },
+                      "property": "visible_area"
+                    },
+                    "args": []
+                  },
+                  "property": "bottom"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "param"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_force_update_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "param"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/atari/atarimo.cpp",
+    "src/mame/atari/atarimo.h"
+  ]
+}

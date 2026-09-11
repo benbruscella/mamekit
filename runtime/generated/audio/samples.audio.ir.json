@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "type": "SAMPLES",
+  "methods": [
+    "start",
+    "stop",
+    "set_volume",
+    "playing"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/samples.cpp",
+    "src/devices/sound/samples.h"
+  ]
+}

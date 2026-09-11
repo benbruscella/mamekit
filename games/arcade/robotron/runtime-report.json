@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "robotron",
+  "family": "williams",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 91,
+    "total": 113,
+    "percent": 80.5
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:MC6809E",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:137"
+      },
+      {
+        "name": "soundcpu:M6808",
+        "status": "executable",
+        "source": "src/devices/cpu/m6800/m6800.cpp:371"
+      }
+    ],
+    "devices": [
+      {
+        "name": "nvram:NVRAM",
+        "status": "declarative-host",
+        "source": "src/devices/machine/nvram.cpp:19"
+      },
+      {
+        "name": "scan_timer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "240_timer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "dac:MC1408",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:210"
+      },
+      {
+        "name": "mainirq:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "soundirq:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "pia_0:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia_1:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia_2:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "blitter:WILLIAMS_BLITTER_SC1",
+        "status": "executable",
+        "source": "src/mame/williams/williamsblitter.cpp:27"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "blitter.register_write",
+        "status": "executable",
+        "source": "src/mame/williams/williamsblitter.cpp:27"
+      },
+      {
+        "name": "pia_0.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia_0.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia_1.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia_1.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia_2.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia_2.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "williams_state.cmos_4bit_w",
+        "status": "generated",
+        "source": "src/mame/williams/williams_m.cpp:233"
+      },
+      {
+        "name": "williams_state.video_counter_r",
+        "status": "generated",
+        "source": "src/mame/williams/williams_v.cpp:485"
+      },
+      {
+        "name": "williams_state.vram_select_w",
+        "status": "generated",
+        "source": "src/mame/williams/williams_m.cpp:112"
+      },
+      {
+        "name": "williams_state.watchdog_reset_w",
+        "status": "generated",
+        "source": "src/mame/williams/williams_m.cpp:247"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "scan_timer.configure_scanline -> williams_state.va11_callback",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1546"
+      },
+      {
+        "name": "240_timer.configure_scanline -> williams_state.count240_callback",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1549"
+      },
+      {
+        "name": "screen.set_screen_update -> williams_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1557"
+      },
+      {
+        "name": "mainirq.output_handler -> maincpu",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1566"
+      },
+      {
+        "name": "soundirq.output_handler -> soundcpu",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1568"
+      },
+      {
+        "name": "pia_0.readpa_handler -> IN0",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1571"
+      },
+      {
+        "name": "pia_0.readpb_handler -> IN1",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1572"
+      },
+      {
+        "name": "pia_1.readpa_handler -> IN2",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1575"
+      },
+      {
+        "name": "pia_1.writepb_handler -> williams_state.snd_cmd_w",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1576"
+      },
+      {
+        "name": "pia_1.irqa_handler -> mainirq.in_w_0",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1577"
+      },
+      {
+        "name": "pia_1.irqb_handler -> mainirq.in_w_1",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1578"
+      },
+      {
+        "name": "pia_2.writepa_handler -> dac.data_w",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1581"
+      },
+      {
+        "name": "pia_2.irqa_handler -> soundirq.in_w_0",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1582"
+      },
+      {
+        "name": "pia_2.irqb_handler -> soundirq.in_w_1",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1583"
+      },
+      {
+        "name": "palette.palette_init -> williams_state.palette_init",
+        "status": "generated",
+        "source": "src/mame/williams/williams.cpp:1559"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/robotron/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 12,
+    "compiledMethods": 11,
+    "blockedMethods": 1,
+    "usedCompiledHandlers": 4,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 2,
+    "screenUpdate": "williams_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 16,
+    "generated": 20,
+    "declarative-host": 7,
+    "blocked": 0,
+    "missing": 0
+  }
+}

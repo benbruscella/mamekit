@@ -1,0 +1,29 @@
+{
+  "type": "UPD7751",
+  "uses": [
+    {
+      "game": "shinobi",
+      "tags": [
+        "upd7751"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "UPD7751",
+    "className": "upd7751_device",
+    "shortName": "upd7751",
+    "description": "NEC uPD7751",
+    "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+    "sourceLine": 203,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(UPD7751, upd7751_device, \"upd7751\", \"NEC uPD7751\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/mcs48/mcs48.cpp",
+    "src/devices/cpu/mcs48/mcs48.h",
+    "src/devices/cpu/mcs48/mcs48dsm.h"
+  ]
+}

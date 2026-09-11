@@ -1,0 +1,76 @@
+Arcade Video game published 36 years ago:
+
+Final Fight (c) 1990 Capcom USA, Incorporated.
+
+Export release. Game developed in Japan. For more information about the game itself, see the original Japanese release entry; "Final Fight [B-Board 88622B-3]".
+
+- TECHNICAL -
+
+Runs on the "CP System" hardware.
+B-Board ID: 89624B-3
+
+- TRIVIA -
+
+The original Japanese version had a scene that shows Jessica in underwear on the TV in the abstract mode. This scene was removed in all Export versions.
+
+The game can be unlocked after one of the cutscenes in "Final Fight - Streetwise" for the Sony PlayStation 2 and the Microsoft XBOX. Completing the game with one credit will unlock a special credits screen.
+
+- UPDATES -
+
+First revision:
+* No Build Date screen.
+
+Second revision:
+* Buid date screen added.
+* Build date: 900112
+
+Third revision:
+* Build date: 900424
+
+Fourth revision:
+* Build date: 900613
+
+- PORTS -
+
+Here is a list of ports released outside Japan. To see Japanese ports, please see the original Japanese version entry, "Final Fight [B-Board 88622B-3]". 
+
+* CONSOLES: 
+[US] Nintendo SNES (sept.1991) "Final Fight [Model SNS-FT-USA]" 
+[AU] Nintendo SNES (1992) "Final Fight [Model SNSP-FT-AUS]" 
+[EU] Nintendo SNES (mar.20, 1992) "Final Fight Guy [Model SHVC-FY]" 
+[EU] Nintendo SNES (dec.10, 1992) "Final Fight [Model SNSP-FT-EUR]" 
+[EU] Sega Mega CD (1993) "Final Fight CD [Model 4410]" 
+[US] Sega CD (1993) "Final Fight CD [Model 4410]" 
+[US] Nintendo SNES (june.1994) "Final Fight Guy [Model SNS-FY-USA]" 
+[US] Microsoft XBOX (sept.27, 2005) "Capcom Classics Collection" 
+[US] Sony PS2 (sept.27, 2005) "Capcom Classics Collection [Model SLUS-21316]" 
+[EU] Microsoft XBOX (nov.18, 2005) "Capcom Classics Collection" 
+[EU] Sony PS2 (nov.18, 2005) "Capcom Classics Collection [Model SLES-53661]" 
+[EU] [KO] [US] [AU] Microsoft XBOX 360 [XBLA] (apr.14, 2010) "Final Fight - Double Impact" 
+[EU] [US] Sony PlayStation 3 [PSN] (apr.15, 2010) "Final Fight - Double Impact" 
+[US] Microsoft XBOX 360 (mar.27, 2012) "Capcom Digital Collection" [XBLA version]
+[AU] Microsoft XBOX 360 (mar.29, 2012) "Capcom Digital Collection" [XBLA version] 
+[EU] Microsoft XBOX 360 (mar.30, 2012) "Capcom Digital Collection" [XBLA version] 
+
+* HANDHELDS: 
+[US] Nintendo GBA (sept.26, 2001) "Final Fight One [Model AGB-AFFE-USA]" 
+[EU] Nintendo GBA (sept.28, 2001) "Final Fight One [Model AGB-AFFP-EUR]" 
+[US] Sony PSP (mar.22, 2006) "Capcom Classics Collection Remixed [Model ULUS-10097]" 
+[EU] Sony PSP (jul.21, 2006) "Capcom Classics Collection Remixed [Model ULES-00347]" 
+
+* COMPUTERS: 
+[US] Commodore C64 [EU] (1991) 
+[EU] Amstrad CPC (1991) 
+[EU] Commodore Amiga (1991) 
+[EU] Atari ST (1991) 
+[EU] Sinclair ZX Spectrum (1991) 
+
+* OTHERS: 
+[US] Apple iPhone/iPad (nov.4, 2010) "Capcom Arcade [Model 397347348]" 
+[US] Apple iPhone/iPod (sept.15, 2011) "Final Fight [Model 459663198]"
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/69746/?o=2
+
+— Gaming History (arcade-history.com)

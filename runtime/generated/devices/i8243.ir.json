@@ -1,0 +1,949 @@
+{
+  "type": "I8243",
+  "uses": [
+    {
+      "game": "shinobi",
+      "tags": [
+        "upd7751_8243"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8243",
+    "className": "i8243_device",
+    "shortName": "i8243",
+    "description": "Intel 8243 I/O Expander",
+    "sourceFile": "src/devices/machine/i8243.cpp",
+    "sourceLine": 20,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8243, i8243_device, \"i8243\", \"Intel 8243 I/O Expander\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 39,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2out"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_opcode"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prog"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_cs"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_p2out"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_update",
+      "parameters": "int which",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 74,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_writehandler"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "which"
+                  }
+                },
+                "property": "isunset"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "logerror"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "%s: Unconfigured write to P%d (%01X)\n"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "describe_context"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "which"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_p"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "which"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_writehandler"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "which"
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_p"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "which"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "prog_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_prog"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_cs"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_opcode"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_p2"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_opcode"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "mcs48_cpu_device::EXPANDER_OP_READ"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "which",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_opcode"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_readhandler"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "which"
+                          }
+                        },
+                        "property": "isunset"
+                      },
+                      "args": []
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "logerror"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "%s: Unconfigured read from P%d\n"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "machine"
+                                  },
+                                  "args": []
+                                },
+                                "property": "describe_context"
+                              },
+                              "args": []
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "which"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 4
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_p"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "which"
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_readhandler"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "which"
+                            }
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_p2out"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_p"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "which"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_p2out"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 15
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_prog"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "m_cs"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "switch",
+                    "expression": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_opcode"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    },
+                    "cases": [
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "mcs48_cpu_device::EXPANDER_OP_READ"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_p2out"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 15
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "mcs48_cpu_device::EXPANDER_OP_WRITE"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_p"
+                              },
+                              "index": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_opcode"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_p2"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 15
+                              }
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "output_update"
+                              },
+                              "args": [
+                                {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_opcode"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "mcs48_cpu_device::EXPANDER_OP_OR"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_p"
+                              },
+                              "index": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_opcode"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              }
+                            },
+                            "operator": "|=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_p2"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 15
+                              }
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "output_update"
+                              },
+                              "args": [
+                                {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_opcode"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "mcs48_cpu_device::EXPANDER_OP_AND"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_p"
+                              },
+                              "index": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_opcode"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              }
+                            },
+                            "operator": "&=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_p2"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 15
+                              }
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "output_update"
+                              },
+                              "args": [
+                                {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_opcode"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prog"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cs_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 144,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cs"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_p2out"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 15
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/i8243.cpp",
+    "src/devices/machine/i8243.h"
+  ]
+}

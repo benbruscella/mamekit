@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "rygar",
+  "family": "tecmo",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 117,
+    "total": 186,
+    "percent": 62.9
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "soundcpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "spritegen:TECMO_SPRITE",
+        "status": "executable",
+        "source": "src/mame/shared/tecmo_spr.cpp:19"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ymsnd:YM3526",
+        "status": "executable",
+        "source": "src/devices/sound/ymopl.cpp:12"
+      },
+      {
+        "name": "msm:MSM5205",
+        "status": "executable",
+        "source": "src/devices/sound/msm5205.cpp:53"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.mainbank",
+        "status": "generated"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.BUTTONS1",
+        "status": "generated"
+      },
+      {
+        "name": "port.BUTTONS2",
+        "status": "generated"
+      },
+      {
+        "name": "port.JOY1",
+        "status": "generated"
+      },
+      {
+        "name": "port.JOY2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYS_0",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYS_1",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYS_2",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.acknowledge_w",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "tecmo_state.adpcm_end_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:541"
+      },
+      {
+        "name": "tecmo_state.adpcm_start_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:533"
+      },
+      {
+        "name": "tecmo_state.adpcm_vol_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:546"
+      },
+      {
+        "name": "tecmo_state.bankswitch_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:528"
+      },
+      {
+        "name": "tecmo_state.bgscroll_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:492"
+      },
+      {
+        "name": "tecmo_state.bgvideoram_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:477"
+      },
+      {
+        "name": "tecmo_state.dsw_h_r_0",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:589"
+      },
+      {
+        "name": "tecmo_state.dsw_h_r_1",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:589"
+      },
+      {
+        "name": "tecmo_state.dsw_l_r_0",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:581"
+      },
+      {
+        "name": "tecmo_state.dsw_l_r_1",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:581"
+      },
+      {
+        "name": "tecmo_state.fgscroll_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:483"
+      },
+      {
+        "name": "tecmo_state.fgvideoram_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:471"
+      },
+      {
+        "name": "tecmo_state.flipscreen_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:501"
+      },
+      {
+        "name": "tecmo_state.txvideoram_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:465"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopl.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_vblank_int -> screen.irq0_line_hold",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:1147"
+      },
+      {
+        "name": "screen.set_screen_update -> tecmo_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:1159"
+      },
+      {
+        "name": "spritegen.set_pri_callback -> tecmo_state.pri_cb",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:1166"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> soundcpu",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:1172"
+      },
+      {
+        "name": "ymsnd.irq_handler -> soundcpu",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:1176"
+      },
+      {
+        "name": "msm.vck_callback -> tecmo_state.adpcm_int",
+        "status": "generated",
+        "source": "src/mame/tecmo/tecmo.cpp:1180"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/rygar/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 24,
+    "compiledMethods": 24,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 14,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "tecmo_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 10,
+    "generated": 30,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

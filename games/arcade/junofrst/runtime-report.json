@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "junofrst",
+  "family": "junofrst",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 119,
+    "total": 155,
+    "percent": 76.8
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:KONAMI1",
+        "status": "executable",
+        "source": "src/mame/konami/konami1.cpp:12"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "mcu:I8039",
+        "status": "executable",
+        "source": "src/devices/cpu/mcs48/mcs48.cpp:187"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mainlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch2:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "aysnd:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "dac:DAC_8BIT_R2R",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:237"
+      },
+      {
+        "name": "filter.0.0:FILTER_RC",
+        "status": "declarative-host",
+        "source": "src/devices/sound/flt_rc.cpp:8"
+      },
+      {
+        "name": "filter.0.1:FILTER_RC",
+        "status": "declarative-host",
+        "source": "src/devices/sound/flt_rc.cpp:8"
+      },
+      {
+        "name": "filter.0.2:FILTER_RC",
+        "status": "declarative-host",
+        "source": "src/devices/sound/flt_rc.cpp:8"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "aysnd.address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "aysnd.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "aysnd.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "bank.mainbank",
+        "status": "generated"
+      },
+      {
+        "name": "junofrst_state.bankselect_w",
+        "status": "generated",
+        "source": "src/mame/konami/tutankhm.cpp:129"
+      },
+      {
+        "name": "junofrst_state.blitter_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:164"
+      },
+      {
+        "name": "junofrst_state.i8039_irq_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:250"
+      },
+      {
+        "name": "junofrst_state.sh_irqtrigger_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:239"
+      },
+      {
+        "name": "mainlatch.write_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch2.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch2.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "watchdog.reset_r",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "mcu.p1_out_cb -> dac.data_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:399"
+      },
+      {
+        "name": "mcu.p2_out_cb -> junofrst_state.i8039_irqen_and_status_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:400"
+      },
+      {
+        "name": "mainlatch.q_out_cb<0> -> junofrst_state.irq_enable_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:403"
+      },
+      {
+        "name": "mainlatch.q_out_cb<1> -> junofrst_state.coin_counter_2_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:404"
+      },
+      {
+        "name": "mainlatch.q_out_cb<2> -> junofrst_state.coin_counter_1_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:405"
+      },
+      {
+        "name": "mainlatch.q_out_cb<3> -> set_nop",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:406"
+      },
+      {
+        "name": "mainlatch.q_out_cb<4> -> junofrst_state.flip_screen_x_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:407"
+      },
+      {
+        "name": "mainlatch.q_out_cb<5> -> junofrst_state.flip_screen_y_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:408"
+      },
+      {
+        "name": "screen.set_screen_update -> junofrst_state.screen_update_scramble",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:417"
+      },
+      {
+        "name": "screen.screen_vblank -> junofrst_state._30hz_irq",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:418"
+      },
+      {
+        "name": "aysnd.port_a_read_callback -> junofrst_state.portA_r",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:427"
+      },
+      {
+        "name": "aysnd.port_b_write_callback -> junofrst_state.portB_w",
+        "status": "generated",
+        "source": "src/mame/konami/junofrst.cpp:428"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/junofrst/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 23,
+    "compiledMethods": 23,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 4,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 3,
+    "frameCallbacks": 1,
+    "screenUpdate": "junofrst_state.screen_update_scramble",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 16,
+    "generated": 24,
+    "declarative-host": 8,
+    "blocked": 0,
+    "missing": 0
+  }
+}

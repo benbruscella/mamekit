@@ -1,0 +1,2192 @@
+{
+  "schemaVersion": 1,
+  "type": "C64_EXPANSION_SLOT",
+  "className": "c64_expansion_slot_device",
+  "hierarchy": [
+    "device_rom_image_interface",
+    "device_cartrom_image_interface",
+    "c64_expansion_slot_device"
+  ],
+  "sourceFiles": [
+    "src/devices/bus/c64/exp.cpp",
+    "src/devices/bus/c64/exp.h",
+    "src/devices/imagedev/cartrom.h",
+    "src/devices/imagedev/cartrom.cpp"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3
+  },
+  "members": [
+    {
+      "name": "m_hiram",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_loram",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_card",
+      "valueType": "device_c64_expansion_card_interface*",
+      "initial": 0
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "cd_input_callback",
+      "member": "m_read_dma_cd",
+      "slots": 1,
+      "initial": 255
+    },
+    {
+      "signal": "cd_output_callback",
+      "member": "m_write_dma_cd",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "irq_callback",
+      "member": "m_write_irq",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "nmi_callback",
+      "member": "m_write_nmi",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "dma_callback",
+      "member": "m_write_dma",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "reset_callback",
+      "member": "m_write_reset",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "is_readable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 24,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_writeable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 27,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_creatable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 28,
+        "column": 1
+      }
+    },
+    {
+      "name": "image_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 44,
+        "column": 1
+      }
+    },
+    {
+      "name": "image_brief_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_software_list_loader",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rom_software_list_loader::instance"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.cpp",
+        "line": 27,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_readable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 25,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_writeable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 28,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_creatable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 29,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "romimage"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 30,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "rom"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 31,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 45,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.cpp",
+        "line": 81,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.cpp",
+        "line": 91,
+        "column": 1
+      }
+    },
+    {
+      "name": "cd_r",
+      "parameters": "offs_t offset, uint8_t data, int sphi2, int ba, int roml, int romh, int io1, int io2",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_cd_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "roml"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "romh"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io1"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io2"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.cpp",
+        "line": 235,
+        "column": 1
+      }
+    },
+    {
+      "name": "cd_w",
+      "parameters": "offs_t offset, uint8_t data, int sphi2, int ba, int roml, int romh, int io1, int io2",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_cd_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "roml"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "romh"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io1"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io2"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.cpp",
+        "line": 250,
+        "column": 1
+      }
+    },
+    {
+      "name": "game_r",
+      "parameters": "offs_t offset, int sphi2, int ba, int rw, int loram, int hiram",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "hiram"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_loram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "loram"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_game_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "rw"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.cpp",
+        "line": 263,
+        "column": 1
+      }
+    },
+    {
+      "name": "exrom_r",
+      "parameters": "offs_t offset, int sphi2, int ba, int rw, int loram, int hiram",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "hiram"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_loram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "loram"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_exrom_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "rw"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.cpp",
+        "line": 283,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_passthrough",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "irq_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::irq_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "nmi_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::nmi_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "reset_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::reset_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "cd_input_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::dma_cd_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "cd_output_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::dma_cd_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "dma_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::dma_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.cpp",
+        "line": 299,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&opts, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "irq_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_irq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "nmi_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_nmi"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 66,
+        "column": 1
+      }
+    },
+    {
+      "name": "reset_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_reset"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 67,
+        "column": 1
+      }
+    },
+    {
+      "name": "cd_input_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_read_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 68,
+        "column": 1
+      }
+    },
+    {
+      "name": "cd_output_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 69,
+        "column": 1
+      }
+    },
+    {
+      "name": "dma_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 70,
+        "column": 1
+      }
+    },
+    {
+      "name": "dma_cd_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_read_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 77,
+        "column": 1
+      }
+    },
+    {
+      "name": "dma_cd_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 80,
+        "column": 1
+      }
+    },
+    {
+      "name": "irq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_irq"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 81,
+        "column": 1
+      }
+    },
+    {
+      "name": "nmi_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_nmi"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 82,
+        "column": 1
+      }
+    },
+    {
+      "name": "dma_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_reset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 84,
+        "column": 1
+      }
+    },
+    {
+      "name": "phi2",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 85,
+        "column": 1
+      }
+    },
+    {
+      "name": "dotclock",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "phi2"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 86,
+        "column": 1
+      }
+    },
+    {
+      "name": "hiram",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 87,
+        "column": 1
+      }
+    },
+    {
+      "name": "loram",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_loram"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 88,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_reset_on_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 99,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::c64_expansion_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&opts, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::irq_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_irq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 64,
+        "column": 108
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::nmi_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_nmi"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 67,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::reset_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_reset"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 68,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::cd_input_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_read_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 69,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::cd_output_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 70,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 71,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_cd_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_read_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 77,
+        "column": 77
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_cd_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 81,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::irq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_irq"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 82,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::nmi_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_nmi"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 84,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::reset_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_reset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 85,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::phi2",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 86,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dotclock",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "phi2"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 87,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::hiram",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 88,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::loram",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_loram"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 89,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::is_reset_on_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 99,
+        "column": 75
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::image_interface",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "c64_cart,vic10_cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 102,
+        "column": 1
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::file_extensions",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "80,a0,e0,crt"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/c64/exp.h",
+        "line": 103,
+        "column": 1
+      }
+    }
+  ],
+  "hotMethods": [
+    "is_readable",
+    "is_writeable",
+    "is_creatable",
+    "image_type_name",
+    "image_brief_type_name",
+    "get_software_list_loader",
+    "device_rom_image_interface::is_readable",
+    "device_rom_image_interface::is_writeable",
+    "device_rom_image_interface::is_creatable",
+    "device_rom_image_interface::image_type_name",
+    "device_rom_image_interface::image_brief_type_name",
+    "device_cartrom_image_interface::image_type_name",
+    "device_cartrom_image_interface::image_brief_type_name",
+    "device_start",
+    "device_reset",
+    "cd_r",
+    "cd_w",
+    "game_r",
+    "exrom_r",
+    "set_passthrough",
+    "c64_expansion_slot_device",
+    "irq_callback",
+    "nmi_callback",
+    "reset_callback",
+    "cd_input_callback",
+    "cd_output_callback",
+    "dma_callback",
+    "dma_cd_r",
+    "dma_cd_w",
+    "irq_w",
+    "nmi_w",
+    "dma_w",
+    "reset_w",
+    "phi2",
+    "dotclock",
+    "hiram",
+    "loram",
+    "is_reset_on_load",
+    "c64_expansion_slot_device::c64_expansion_slot_device",
+    "c64_expansion_slot_device::irq_callback",
+    "c64_expansion_slot_device::nmi_callback",
+    "c64_expansion_slot_device::reset_callback",
+    "c64_expansion_slot_device::cd_input_callback",
+    "c64_expansion_slot_device::cd_output_callback",
+    "c64_expansion_slot_device::dma_callback",
+    "c64_expansion_slot_device::dma_cd_r",
+    "c64_expansion_slot_device::dma_cd_w",
+    "c64_expansion_slot_device::irq_w",
+    "c64_expansion_slot_device::nmi_w",
+    "c64_expansion_slot_device::dma_w",
+    "c64_expansion_slot_device::reset_w",
+    "c64_expansion_slot_device::phi2",
+    "c64_expansion_slot_device::dotclock",
+    "c64_expansion_slot_device::hiram",
+    "c64_expansion_slot_device::loram",
+    "c64_expansion_slot_device::is_reset_on_load",
+    "c64_expansion_slot_device::image_interface",
+    "c64_expansion_slot_device::file_extensions"
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 58,
+    "compiledMethods": 58,
+    "diagnostics": 0
+  }
+}

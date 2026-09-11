@@ -1,0 +1,346 @@
+{
+  "game": "nes",
+  "title": "Nintendo Entertainment System / Famicom (NTSC) (Nintendo, 1985)",
+  "fullname": "Nintendo Entertainment System / Famicom (NTSC)",
+  "year": "1985",
+  "company": "Nintendo",
+  "family": "nes",
+  "driverFile": "src/mame/nintendo/nes.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Brad Oliver,Fabio Priuli",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "rp2a03",
+      "clock": 1789772.6666666667,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 2047,
+          "kind": "ram",
+          "mirror": 6144,
+          "share": "mainram"
+        },
+        {
+          "start": 8192,
+          "end": 16383,
+          "kind": "handler",
+          "read": "ppu.read",
+          "write": "ppu.write"
+        },
+        {
+          "start": 16404,
+          "end": 16404,
+          "kind": "handler",
+          "write": "ppu.spriteram_dma"
+        },
+        {
+          "start": 16406,
+          "end": 16406,
+          "kind": "handler",
+          "read": "nes_state.nes_in0_r",
+          "write": "nes_state.nes_in0_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16407,
+          "end": 16407,
+          "kind": "handler",
+          "read": "nes_state.nes_in1_r"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "nes",
+    "clock": 1789772.6666666667,
+    "masterGain": 0.75,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 240,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.0988,
+    "htotal": 256,
+    "vtotal": 262,
+    "vbstart": 240,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": []
+    }
+  ],
+  "bindings": [
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "A",
+      "type": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "B",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 4,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "IPT_SELECT",
+      "type": "IPT_SELECT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 8,
+      "keys": [
+        "Enter"
+      ],
+      "label": "IPT_START",
+      "type": "IPT_START",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 16,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 32,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 64,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 128,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 1,
+      "keys": [],
+      "label": "A",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 2,
+      "keys": [],
+      "label": "B",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_SELECT",
+      "type": "IPT_SELECT",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_START",
+      "type": "IPT_START",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 32,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 64,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 128,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "credits": {
+    "people": [
+      {
+        "name": "Fabio Priuli",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.154",
+        "lastRelease": "0.154"
+      },
+      {
+        "name": "Brad Oliver",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "kmg",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 12,
+        "firstRelease": "0.239",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.214",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "rainwarrior",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.201",
+        "lastRelease": "0.201"
+      },
+      {
+        "name": "girosintornillos",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.251",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.250",
+        "lastRelease": "0.250"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.241",
+        "lastRelease": "0.241"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-10-14",
+    "commits": 138,
+    "authors": 30,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Console published 41 years ago:\n\nNintendo Entertainment System [NES] (c) 1985 Nintendo Co., Ltd.\n\n8-Bit video game console developed in Japan. For more information about the console itself, please see the original Japanese release entry; \"Family Computer [FAMICOM] [Model HVC-001]\".\n\n- TECHNICAL -\n\nParts:\nNintendo Entertainment System [NES] [Model NES-001]\nAC Power Adapter [Model NES-002]\nRF Adapter [Model NES-003]\nController [Model NES-004]\n\n- TRIVIA -\n\nOfficial Accessories:\nNES Zapper [Model NES-005]\nR.O.B the Robot [Model NES-012]\nNES Advantage [Model NES-026]\nPower Pad [Model NES-028]\nSatellite [Model NES-032]\nSatellite Wireless Receiver [Model NES-033]\nNES Four Score [Model NES-034]\nController (Redesigned) [Model NES-039]\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/82114/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)",
+  "cart": {
+    "list": "nes",
+    "entries": 4545,
+    "slots": [
+      "nrom",
+      "uxrom",
+      "cnrom",
+      "sxrom",
+      "txrom"
+    ]
+  }
+}

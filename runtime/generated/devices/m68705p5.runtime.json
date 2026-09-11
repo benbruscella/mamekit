@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "type": "M68705P5",
+  "runtime": "src/runtime/generated-m68705.ts",
+  "execution": "firmware"
+}

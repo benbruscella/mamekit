@@ -1,0 +1,42 @@
+{
+  "type": "M6808",
+  "uses": [
+    {
+      "game": "defender",
+      "tags": [
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "joust",
+      "tags": [
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "robotron",
+      "tags": [
+        "soundcpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M6808",
+    "className": "m6808_cpu_device",
+    "shortName": "m6808",
+    "description": "Motorola MC6808",
+    "sourceFile": "src/devices/cpu/m6800/m6800.cpp",
+    "sourceLine": 371,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M6808, m6808_cpu_device, \"m6808\", \"Motorola MC6808\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6800/6800dasm.h",
+    "src/devices/cpu/m6800/6800ops.hxx",
+    "src/devices/cpu/m6800/m6800.cpp",
+    "src/devices/cpu/m6800/m6800.h"
+  ]
+}

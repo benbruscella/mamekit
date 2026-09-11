@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "venture",
+  "family": "exidy",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 123,
+    "total": 172,
+    "percent": 71.5
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      },
+      {
+        "name": "soundbd:audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "pia:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "soundbd:EXIDY_VENTURE",
+        "status": "executable",
+        "source": "src/mame/shared/exidysound.cpp:513"
+      },
+      {
+        "name": "riot:MOS6532",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "pia:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pit:PIT8253",
+        "status": "executable",
+        "source": "src/devices/machine/pit8253.cpp:45"
+      },
+      {
+        "name": "audioirq:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "exidy_state.exidy_interrupt_r",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1161"
+      },
+      {
+        "name": "pia.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "port.DSW",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN2",
+        "status": "generated"
+      },
+      {
+        "name": "soundbd:pia.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "soundbd:pia.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "soundbd:riot.edge_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.irq_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pa_data_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pa_data_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pa_ddr_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pa_ddr_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pb_data_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pb_data_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pb_ddr_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.pb_ddr_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.ram_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.ram_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.timer_off_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.timer_off_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.timer_on_r",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "soundbd:riot.timer_on_w",
+        "status": "executable",
+        "source": "src/devices/machine/mos6530.cpp:29"
+      },
+      {
+        "name": "venture_sound_device.filter_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:552"
+      },
+      {
+        "name": "venture_sound_device.sfxctrl_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:487"
+      },
+      {
+        "name": "venture_sound_device.sh6840_r",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:396"
+      },
+      {
+        "name": "venture_sound_device.sh6840_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:425"
+      },
+      {
+        "name": "venture_sound_device.sh8253_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:372"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_vblank_int -> screen.exidy_vblank_interrupt",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1510"
+      },
+      {
+        "name": "screen.set_screen_update -> exidy_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1519"
+      },
+      {
+        "name": "pia.writepa_handler -> soundbd.pb_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1612"
+      },
+      {
+        "name": "pia.writepb_handler -> soundbd.pa_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1613"
+      },
+      {
+        "name": "pia.ca2_handler -> soundbd.cb_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1614"
+      },
+      {
+        "name": "pia.cb2_handler -> soundbd.ca_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1615"
+      },
+      {
+        "name": "soundbd.pa_callback -> pia.portb_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1618"
+      },
+      {
+        "name": "soundbd.pb_callback -> pia.porta_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1619"
+      },
+      {
+        "name": "soundbd.ca2_callback -> pia.cb1_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1620"
+      },
+      {
+        "name": "soundbd.cb2_callback -> pia.ca1_w",
+        "status": "generated",
+        "source": "src/mame/exidy/exidy.cpp:1621"
+      },
+      {
+        "name": "riot.irq_wr_callback -> audioirq.in_w_0",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:187"
+      },
+      {
+        "name": "pia.irqa_handler -> audioirq.in_w_1",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:190"
+      },
+      {
+        "name": "pit.out_handler<0> -> exidy_sh8253_sound_device.pit_out_0",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:196"
+      },
+      {
+        "name": "pit.out_handler<1> -> exidy_sh8253_sound_device.pit_out_1",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:197"
+      },
+      {
+        "name": "pit.out_handler<2> -> exidy_sh8253_sound_device.pit_out_2",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:198"
+      },
+      {
+        "name": "audioirq.output_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:200"
+      },
+      {
+        "name": "pia.writepa_handler -> venture_sound_device.pia_pa_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:587"
+      },
+      {
+        "name": "pia.writepb_handler -> venture_sound_device.pia_pb_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:588"
+      },
+      {
+        "name": "pia.ca2_handler -> venture_sound_device.pia_ca2_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:589"
+      },
+      {
+        "name": "pia.cb2_handler -> venture_sound_device.pia_cb2_w",
+        "status": "generated",
+        "source": "src/mame/shared/exidysound.cpp:590"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/venture/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 29,
+    "compiledMethods": 29,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 6,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "exidy_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 29,
+    "generated": 30,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

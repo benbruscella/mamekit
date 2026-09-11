@@ -1,0 +1,407 @@
+{
+  "type": "Z80",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "arkanoid",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "bankp",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "berzerk",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "audiocpu",
+        "maincpu",
+        "subcpu"
+      ]
+    },
+    {
+      "game": "carnival",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "cavenger",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "coleco",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "congo",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "maincpu",
+        "sub",
+        "sub2"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "ffight",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "maincpu",
+        "sub",
+        "sub2"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "gberet",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "ghouls",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "jumpbug",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "ladybug",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "mrdo",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "mslug",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "mspacman",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "panic",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "maincpu",
+        "tpsound"
+      ]
+    },
+    {
+      "game": "popeye",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "tpsound"
+      ]
+    },
+    {
+      "game": "rtype",
+      "tags": [
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "rygar",
+      "tags": [
+        "maincpu",
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "audiocpu",
+        "maincpu"
+      ]
+    },
+    {
+      "game": "sf2",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "shinobi",
+      "tags": [
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "simpsons",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "maincpu",
+        "tpsound"
+      ]
+    },
+    {
+      "game": "tmnt",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "audiocpu"
+      ]
+    },
+    {
+      "game": "travrusa",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "tpsound"
+      ]
+    },
+    {
+      "game": "upndown",
+      "tags": [
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "wboy",
+      "tags": [
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "maincpu",
+        "sub",
+        "sub2"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "Z80",
+    "className": "z80_device",
+    "shortName": "z80",
+    "description": "Zilog Z80",
+    "sourceFile": "src/devices/cpu/z80/z80.cpp",
+    "sourceLine": 940,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(Z80, z80_device, \"z80\", \"Zilog Z80\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/z80/z80.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/z80/z80.cpp",
+    "src/devices/cpu/z80/z80.h",
+    "src/devices/cpu/z80/z80.inc",
+    "src/devices/cpu/z80/z80.lst",
+    "src/devices/cpu/z80/z80dasm.h"
+  ]
+}

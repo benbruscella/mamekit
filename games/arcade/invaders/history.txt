@@ -1,0 +1,119 @@
+Arcade Video game published 48 years ago:
+
+Space Invaders (c) 1978 Midway Mfg. Co.
+
+Export version manufactured by Midway under license from Taito. For more information about the game itself, please see the original Taito upright model entry; "Space Invaders".
+
+- TECHNICAL -
+
+Game ID : 739
+[Upright model]
+
+Buttons : 3 (LEFT, RIGHT, FIRE)
+(The US upright model had no joystick)
+
+- TRIVIA -
+
+Space Invaders was released by Midway Manufacturing, under license by Taito, on November 22, 1978 in the USA.
+
+The Space Invaders phenomenon stunned many conservative adults of the time who were convinced that video-games soured the minds of their youngsters. Residents of Mesquite, Texas, pushed the issue all the way to the Supreme Court in their efforts to ban the illicit machines from their Bible-belt community. A number of reported incidents of juvenile crime began to surface shortly after the game's release, adding to its 'controversy'. A girl was caught stealing $5,000 from her parents and gangs of youths were reported to have robbed grocery stores just so they would have money to play the game.
+
+Of the reported 350,000 units produced world wide, about 65,000 units were produced in the U.S. alone.
+
+Technology journalist Jason Whittaker credited the game's success to ending the video game crash of 1977, which had earlier been caused by Pong clones flooding the market, and beginning the golden age of video arcade games. According to The Observer, the home console versions were popular and encouraged users to learn programming; many who later became industry leaders.
+
+Space Invaders inspired a catchy hit song by 'Uncle Vic' called 'Space Invaders' released over the spring to summer-time period of 1980. The Pretenders also released an instrumental song called 'Space Invaders' on their debut album in 1980.
+
+A Space Invaders unit appears in the 1980 movie 'Midnight Madness', in the 1982 movie 'Jekyll & Hyde... Together Again', in the 1982 movie 'Fast Times at Ridgemont High', in the 1983 movie 'Joysticks', in the 1984 movie 'The Iceman', in the 1991 movie 'Terminator 2 - Judgment Day', and in the 1998 sitcom 'That 70's Show'; Season 4, Episode 8 (Donna's Story).
+
+An upright unit of the Midway release of Space Invaders appears in the ZZ Top music video, 'Legs'.
+
+- PORTS -
+
+NOTE: For ports released in Japan, please see the Taito upright model entry.
+
+* CONSOLES:
+[US] Atari 2600 (1980) "Space Invaders [Model CX2632]" 
+[US] Atari 5200 (1982) "Space Invaders [Model CX5204]" 
+Atari XEGS
+[BR] DynaVision (198?) 
+[US] ColecoVision (aug.9, 2003) "Space Invaders Collection" 
+[EU] Sony PS2 (oct.14, 2005) "Taito Legends [Model SLES-53438]" 
+[EU] Microsoft XBOX (oct.14, 2005) "Taito Legends" 
+[US] Sony PS2 (oct.25, 2005) "Taito Legends [Model SLUS-21122]" 
+[US] Microsoft XBOX (oct.25, 2005) "Taito Legends" 
+[KO] Sony PS2 (jul.18, 2006) "Taito Legends [Model SLKA-15056]" 
+
+* HANDHELDS: 
+[AU] Nintendo Game Boy (1994) "Space Invaders [Model DMG-SP-AUS]" 
+[EU] Nintendo Game Boy (1994) "Space Invaders [Model DMG-SP-NOE]" 
+[UK] Nintendo Game Boy (1994) "Space Invaders [Model DMG-SP-UKV]" 
+[US] Nintendo Game Boy (oct.1994) "Space Invaders [Model DMG-SP-USA]" 
+[EU] Sony PSP (oct.6, 2006) "Taito Legends Power-Up [Model ULES-00473]" 
+[US] Sony PSP (may.17, 2007) "Taito Legends Power-Up [Model ULUS-10208]" 
+
+* COMPUTERS:
+[EU] Exidy Sorcerer (1978) "Invaders" 
+[EU] Microtan 65 (1980) "Space Invasion" 
+[US] TI99/4a (1981) "TI Invaders [Model PHM 3053]" by Texas Instruments  
+[US] Tandy Color Computer (1981) "Space Assault" 
+[US] Tandy Color Computer (1981) "Color Space Invaders" 
+[US] Commodore Vic 20 "Avenger" 
+[US] Commodore C64 (1982) "Avenger [Model C-64 621]" 
+[EU] Commodore C64 (1982) "Avenger" 
+[EU] BBC B (1982) "Super Invaders" by Acornsoft 
+[EU] Sinclair ZX-Spectrum (1982) "Spectral Invaders" by Bug-Byte 
+[EU] Sinclair ZX-Spectrum (1982) "Space Raiders" by Sinclair Research 
+[EU] Sinclair ZX-Spectrum (1982) "Invaders" by Artic Computing (UK) 
+[EU] Oric (1983) "Oric Invaders" by Arcadia Software 
+[US] Tandy Color Computer (1985) "Super Vaders" 
+[EU] [US] Commodore C64 (1987) "Arcade Classics" 
+[US] Tandy Color Computer 3 (1988) "Space Intruders" : wave 9 is similar to wave 5 of "Phoenix".
+[EU] Commodore Amiga (1988) "Amoeba Invaders" : included in the cover disk that came with the ST/Amiga Format Magazine (nov.1988, Issue number 5).
+[EU] Atari ST (1989)
+[EU] Sinclair ZX-Spectrum (1993) "Invaders" by Design Design Software (UK) : published exclusively on magazine covertape, appeared on side A of covertape "Your Sinclair issue 85: Christmas Collection 2".
+PC [MS-DOS] (1997) "Champ Invaders" - CHAMProgramming 
+[AU] VTech Laser-VZ "Vz Invaders" 
+[US] Apple II "Apple Invader" 
+[EU] PC [MS Windows] (oct.14, 2005) "Taito Legends" 
+[US] PC [MS Windows] (nov.10, 2005) "Taito Legends" 
+
+* OTHERS:
+[US] LED handheld game (1980) : Black version by Entex 
+[US] LED handheld game (1981) : Grey version by Entex 
+[US] LCD handheld game (1982) by Tiger Electronics
+[US] LCD handheld game with calculator (1982) by Tiger Electronics
+[US] LCD handheld game (1984) by Tiger Electronics : With larger display
+[EU] LCD handheld game (1999) by Systema 
+[US] "Arcade Legends: Space Invaders TV Game" (2004) by Radica Games : Also inlcudes Lunar Rescue, Colony 7, Qix and Phoenix.
+[US] Mobile Phones (2007) "3D Space Invaders" 
+[US] Mobile Phones (2007) "Space Invaders Trilogy"
+[US] Atari Flashback 4 (nov.13, 2012) by AtGames 
+[US] Atari Flashback 5 (oct.1, 2014) by AtGames
+[US] Atari Flashback 6 (sept.15, 2015) by AtGames
+[US] Atari Flashback 7 (oct.1, 2016) by AtGames
+[US] Atari Flashback 8 (sept.22, 2017) by AtGames
+[US] Atari Flashback 8 Gold Edition (sept.22, 2017) by AtGames
+
+- SERIES -
+
+1. Space Invaders (1978, ARC)
+2. Space Invaders Deluxe (1979, ARC)
+3. Space Invaders II (1980, ARC)
+4. Return of the Invaders (1985, ARC)
+5. Super Space Invaders '91 (1990, ARC)
+6. Space Invaders DX (1994, ARC)
+7. Space Invaders '95 - Attack of the Lunar Loonies (1995, ARC)
+8. Space Invaders (1999, PS)
+9. Space Invaders 25th Silver Anniversary (2003, ARC)
+10. Space Invaders Revolution (2005, DS)
+11. Space Invaders Evolution (2005, PSP)
+12. Space Invaders Extreme (2008, DS/PSP)
+13. Space Invaders Extreme 2 (2009, DS)
+14. Space Invaders Frenzy (2017, ARC)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/31739/?o=2
+
+— Gaming History (arcade-history.com)

@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "mslug",
+  "family": "neogeo",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "runtime-certified",
+  "generationGaps": [
+    "ctrl1:NEOGEO_CONTROL_PORT",
+    "ctrl2:NEOGEO_CONTROL_PORT",
+    "edge:NEOGEO_CTRL_EDGE_CONNECTOR",
+    "memcard:NG_MEMCARD",
+    "upd4990a:UPD4990A"
+  ],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 176,
+    "total": 237,
+    "percent": 74.3
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M68000",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68000.cpp:8"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "systemlatch:HC259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:96"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "spritegen:NEOGEO_SPRITE_OPTIMZIED",
+        "status": "executable",
+        "source": "src/mame/snk/neogeo_spr.cpp:654"
+      },
+      {
+        "name": "audionmi:INPUT_MERGER_ALL_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:44"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch2:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ymsnd:YM2610",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:224"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "memcard:NG_MEMCARD",
+        "status": "blocked",
+        "source": "src/mame/snk/ng_memcard.cpp:31",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "upd4990a:UPD4990A",
+        "status": "blocked",
+        "source": "src/devices/machine/upd1990a.cpp:31",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "saveram:NVRAM",
+        "status": "declarative-host",
+        "source": "src/devices/machine/nvram.cpp:19"
+      },
+      {
+        "name": "edge:NEOGEO_CTRL_EDGE_CONNECTOR",
+        "status": "blocked",
+        "source": "src/devices/bus/neogeo_ctrl/ctrl.cpp:35",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "ctrl1:NEOGEO_CONTROL_PORT",
+        "status": "blocked",
+        "source": "src/devices/bus/neogeo_ctrl/ctrl.cpp:34",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "ctrl2:NEOGEO_CONTROL_PORT",
+        "status": "blocked",
+        "source": "src/devices/bus/neogeo_ctrl/ctrl.cpp:34",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.audio_8000",
+        "status": "generated"
+      },
+      {
+        "name": "bank.audio_c000",
+        "status": "generated"
+      },
+      {
+        "name": "bank.audio_e000",
+        "status": "generated"
+      },
+      {
+        "name": "bank.audio_f000",
+        "status": "generated"
+      },
+      {
+        "name": "bank.audio_main",
+        "status": "generated"
+      },
+      {
+        "name": "neogeo_base_state.audio_command_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1002"
+      },
+      {
+        "name": "neogeo_base_state.audio_cpu_bank_select_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1112"
+      },
+      {
+        "name": "neogeo_base_state.audio_cpu_enable_nmi_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:885"
+      },
+      {
+        "name": "neogeo_base_state.io_control_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:929"
+      },
+      {
+        "name": "neogeo_base_state.paletteram_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo_v.cpp:89"
+      },
+      {
+        "name": "neogeo_base_state.paletteram_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo_v.cpp:95"
+      },
+      {
+        "name": "neogeo_base_state.unmapped_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1016"
+      },
+      {
+        "name": "neogeo_base_state.video_register_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo_v.cpp:228"
+      },
+      {
+        "name": "neogeo_base_state.video_register_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo_v.cpp:251"
+      },
+      {
+        "name": "ngarcade_base_state.banked_vectors_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1689"
+      },
+      {
+        "name": "ngarcade_base_state.in0_edge_joy_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:904"
+      },
+      {
+        "name": "ngarcade_base_state.in0_edge_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:899"
+      },
+      {
+        "name": "ngarcade_base_state.in1_edge_joy_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:914"
+      },
+      {
+        "name": "ngarcade_base_state.in1_edge_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:909"
+      },
+      {
+        "name": "ngarcade_base_state.memcard_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1071"
+      },
+      {
+        "name": "ngarcade_base_state.memcard_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1084"
+      },
+      {
+        "name": "ngarcade_base_state.save_ram_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1049"
+      },
+      {
+        "name": "ngarcade_base_state.unmapped_r",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1016"
+      },
+      {
+        "name": "port.AUDIO_COIN",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "port.TEST",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.clear_w",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch2.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "systemlatch.write_a3",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:96"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:224"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:224"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "systemlatch.q_out_cb<0> -> neogeo_base_state.set_screen_shadow",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1931"
+      },
+      {
+        "name": "systemlatch.q_out_cb<1> -> neogeo_base_state.set_use_cart_vectors",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1932"
+      },
+      {
+        "name": "systemlatch.q_out_cb<7> -> neogeo_base_state.set_palette_bank",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1936"
+      },
+      {
+        "name": "screen.set_screen_update -> neogeo_base_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1943"
+      },
+      {
+        "name": "audionmi.output_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1952"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> audionmi.in_w_0",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1956"
+      },
+      {
+        "name": "ymsnd.irq_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1961"
+      },
+      {
+        "name": "systemlatch.q_out_cb<2> -> memcard.lock1_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1980"
+      },
+      {
+        "name": "systemlatch.q_out_cb<3> -> memcard.unlock2_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1981"
+      },
+      {
+        "name": "systemlatch.q_out_cb<4> -> memcard.regsel_w",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1982"
+      },
+      {
+        "name": "systemlatch.q_out_cb<5> -> ngarcade_base_state.set_use_cart_audio",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1992"
+      },
+      {
+        "name": "systemlatch.q_out_cb<6> -> ngarcade_base_state.set_save_ram_unlock",
+        "status": "generated",
+        "source": "src/mame/snk/neogeo.cpp:1993"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/mslug/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 57,
+    "compiledMethods": 57,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 18,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 0,
+    "screenUpdate": "neogeo_base_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 14,
+    "generated": 40,
+    "declarative-host": 5,
+    "blocked": 5,
+    "missing": 0
+  }
+}

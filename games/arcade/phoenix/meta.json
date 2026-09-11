@@ -1,0 +1,125 @@
+{
+  "game": "phoenix",
+  "title": "Phoenix (Amstar, set 1) (Amstar, 1980)",
+  "fullname": "Phoenix (Amstar, set 1)",
+  "year": "1980",
+  "manufacturer": "Amstar",
+  "family": "phoenix",
+  "driverFile": "src/mame/phoenix/phoenix.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Richard Davies",
+  "credits": {
+    "people": [
+      {
+        "name": "Richard Davies",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 8,
+        "firstRelease": "0.233",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "Jordi Tuells",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.277",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "Recreativas.org",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.256",
+        "lastRelease": "0.263"
+      },
+      {
+        "name": "Retromaniacs",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.237",
+        "lastRelease": "0.256"
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.181",
+        "lastRelease": "0.181"
+      },
+      {
+        "name": "David Bosque",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.261",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "Dillweed",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "Jose Gil Boria",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.261",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "Museo del Recreativo",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.233",
+        "lastRelease": "0.233"
+      },
+      {
+        "name": "Osso",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.153",
+        "lastRelease": "0.153"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-22",
+    "commits": 192,
+    "authors": 33,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

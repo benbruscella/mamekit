@@ -1,0 +1,650 @@
+{
+  "game": "panic",
+  "title": "Space Panic (version E) (Universal, 1980)",
+  "fullname": "Space Panic (version E)",
+  "year": "1980",
+  "company": "Universal",
+  "family": "cosmic",
+  "driverFile": "src/mame/universal/cosmic.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Lee Taylor",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 1802666.6666666667,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 24575,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 24576,
+          "end": 24607,
+          "kind": "ram",
+          "share": "spriteram",
+          "writeOnly": true
+        },
+        {
+          "start": 26624,
+          "end": 26624,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 26625,
+          "end": 26625,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 26626,
+          "end": 26626,
+          "kind": "handler",
+          "read": "port.DSW"
+        },
+        {
+          "start": 26627,
+          "end": 26627,
+          "kind": "handler",
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 28672,
+          "end": 28683,
+          "kind": "handler",
+          "write": "cosmic_state.panic_sound_output_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28684,
+          "end": 28686,
+          "kind": "handler",
+          "write": "cosmic_state.cosmic_color_register_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28687,
+          "end": 28687,
+          "kind": "handler",
+          "write": "cosmic_state.flip_screen_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 30720,
+          "end": 30721,
+          "kind": "handler",
+          "write": "cosmic_state.panic_sound_output2_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "samples",
+    "clock": 1802666.6666666667,
+    "chips": 1,
+    "masterGain": 0.65,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 192,
+    "xOffset": 0,
+    "yOffset": 32,
+    "refresh": 58.639833448993755,
+    "htotal": 352,
+    "vtotal": 262,
+    "vbstart": 224,
+    "vbend": 32,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "spe1",
+          "offset": 0,
+          "size": 2048,
+          "crc": "70ac0888",
+          "alt": [
+            {
+              "file": "spcpanic.1",
+              "crc": "405ae6f9"
+            },
+            {
+              "file": "panica.1",
+              "crc": "289720ce"
+            },
+            {
+              "file": "sp_m.1",
+              "crc": "3208f7da"
+            },
+            {
+              "file": "sph1",
+              "crc": "f6e9c6ef"
+            },
+            {
+              "file": "spacepan.001",
+              "crc": "a6d9515a"
+            },
+            {
+              "file": "1.2d",
+              "crc": "e1efa292"
+            }
+          ]
+        },
+        {
+          "file": "spe2",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "2b910c48",
+          "alt": [
+            {
+              "file": "spcpanic.2",
+              "crc": "b6a286c5"
+            },
+            {
+              "file": "sp_m.2",
+              "crc": "9161e86d"
+            },
+            {
+              "file": "sph2",
+              "crc": "58dbc49b"
+            },
+            {
+              "file": "spacepan.002",
+              "crc": "cfc22663"
+            },
+            {
+              "file": "2.3d",
+              "crc": "a5885fb1"
+            }
+          ]
+        },
+        {
+          "file": "spe3",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "03810148",
+          "alt": [
+            {
+              "file": "spcpanic.3",
+              "crc": "85ae8b2e"
+            },
+            {
+              "file": "sph3",
+              "crc": "c4f275ad"
+            },
+            {
+              "file": "spacepan.003",
+              "crc": "e1f36893"
+            },
+            {
+              "file": "3.4d",
+              "crc": "ab402d38"
+            }
+          ]
+        },
+        {
+          "file": "spe4",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "119bbbfd",
+          "alt": [
+            {
+              "file": "spcpanic.4",
+              "crc": "b6d4f52f"
+            },
+            {
+              "file": "sp_m.4",
+              "crc": "d9b38bd4"
+            },
+            {
+              "file": "sph4",
+              "crc": "6e7785de"
+            },
+            {
+              "file": "spacepan.004",
+              "crc": "01be297c"
+            },
+            {
+              "file": "4.5d",
+              "crc": "27c69de1"
+            }
+          ]
+        },
+        {
+          "file": "spcpanic.5",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "5b80f277",
+          "alt": [
+            {
+              "file": "sp_m.5",
+              "crc": "01f25330"
+            },
+            {
+              "file": "sph5",
+              "crc": "1916c9b8"
+            },
+            {
+              "file": "spacepan.005",
+              "crc": "e0d54805"
+            },
+            {
+              "file": "5.5d",
+              "crc": "9b409a21"
+            }
+          ]
+        },
+        {
+          "file": "spcpanic.6",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "b73babf0",
+          "alt": [
+            {
+              "file": "sp_m.6",
+              "crc": "56716d33"
+            },
+            {
+              "file": "sph6",
+              "crc": "54b92314"
+            },
+            {
+              "file": "spacepan.006",
+              "crc": "aae1458e"
+            },
+            {
+              "file": "6.6d",
+              "crc": "add15e92"
+            }
+          ]
+        },
+        {
+          "file": "spe7",
+          "offset": 12288,
+          "size": 2048,
+          "crc": "2894106e",
+          "alt": [
+            {
+              "file": "spcpanic.7",
+              "crc": "fc27f4e5"
+            },
+            {
+              "file": "panica.7",
+              "crc": "3641cb7f"
+            },
+            {
+              "file": "sp_m.7",
+              "crc": "ec2107cc"
+            },
+            {
+              "file": "sph7",
+              "crc": "8600b881"
+            },
+            {
+              "file": "spacepan.007",
+              "crc": "14e46e70"
+            },
+            {
+              "file": "7.7d",
+              "crc": "786c8d41"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "spcpanic.11",
+          "offset": 0,
+          "size": 2048,
+          "crc": "acea9df4"
+        },
+        {
+          "file": "spcpanic.12",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "e83423d0"
+        },
+        {
+          "file": "spcpanic.10",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "c9631c2d"
+        },
+        {
+          "file": "spcpanic.9",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "eec78b4c"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "82s123.sp",
+          "offset": 0,
+          "size": 32,
+          "crc": "35d43d2f"
+        }
+      ]
+    },
+    {
+      "region": "user1",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "spcpanic.8",
+          "offset": 0,
+          "size": 2048,
+          "crc": "7da0b321"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 1,
+      "keys": [],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 2,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 128,
+      "keys": [],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 64,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 128,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW",
+      "mask": 7,
+      "value": 0,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW",
+      "mask": 8,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW",
+      "mask": 16,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW",
+      "mask": 32,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW",
+      "mask": 192,
+      "value": 64,
+      "name": "Coin B"
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Lee Taylor",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.237",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "David Bosque",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.261",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "Gerg Kennedy",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.227",
+        "lastRelease": "0.227"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.288",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "jkburks",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.234",
+        "lastRelease": "0.234"
+      },
+      {
+        "name": "Peter Ferrie",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.240",
+        "lastRelease": "0.240"
+      },
+      {
+        "name": "Retromaniacs",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.237",
+        "lastRelease": "0.237"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-04",
+    "commits": 196,
+    "authors": 33,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nSpace Panic (c) 1980 Universal Company, Limited.\n\nInfluential computer game designer and writer Chris Crawford calls Space Panic \"the granddaddy of all platform games\", as it predates Nintendo's Donkey Kong (from 1981) which is often cited as the original platform game.\n\nSpace Panic lacks Donkey Kong's jump mechanic - the main character instead digs holes in the platforms into which he must lure the aliens. He must then hit them to knock them out of the hole and off the screen. In later levels, two or more holes must be lined up vertically in order to dispose of the aliens. There is also a limited supply of oxygen, which functions as a timer.\n\n- TECHNICAL -\n\nMain CPU : Zilog Z80 (@ 1.802666 Mhz)\nSound Chips : DAC\n\nPlayers : 2\nControl : 4-way joystick\nButtons : 2\n\n- TRIVIA -\n\nSpace Panic was released in November 1980 in Japan and in February 1981 in the USA. It was the first platform game and like the title Heiyanko Alien, employs a digging mechanic. This digging into bricks ability would be borrowed my the computer and arcade game Lode Runner a couple of years later.\n\nAs was typical of Universal at the time, the cabinet came beautifully detailed in colorful artwork. This included art around the coin door and extended above the monitor.\n\nLicensed to ADP Automaten for the German market.\nLicensed to Inder for the Spanish market.\n\n- PORTS -\n\n* CONSOLES:\n[US] Colecovision (1983) \"Space Panic [Model 2447]\"\n[JP] Casio PV-1000\n\n* COMPUTERS:\n[US] Apple II (1981) \"Apple Panic\"\nMicrobee (198?) \"Apple Panic\"\nPC-DOS (1982) \"Apple Panic\"\nVic-20 (1982) \"Apple Panic [Model VI-AP-C]\"\n[US] TRS-80 (1982) \"Apple Panic\"\nAtari XE (1982) \"Apple Panic\"\n[US] Apple II (1983) \"Apple Panic\"\n[US] VTech Laser-VZ \"Vz Panik\"\n\n- SERIES -\n\nCosmic Series\n\n1. Cosmic Monsters [Upright model] (1979)\n2. Cosmic Monsters 2 (1979)\n3. Cosmic Guerilla (1979)\n4. Cosmic Alien (1980)\n5. Devil Zone (1980)\n6. Zero Hour (1980)\n7. Space Panic (1980)\n8. Cosmic Avenger (1981)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2551/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

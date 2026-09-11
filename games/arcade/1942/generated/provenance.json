@@ -1,0 +1,2026 @@
+{
+  "generatedFrom": "src/mame/capcom/1942.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 611,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 607
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 596,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 599,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 1025,
+      "column": 1
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 609,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/5/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/6/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/7/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/8/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/9/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/10/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/11/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/12/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/13/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/14/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/15/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/16/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/17/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/18/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/19/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/20/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/21/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/22/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/23/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/24/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/25/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/26/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/27/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/28/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/29/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/30/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/31/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/32/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/33/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/34/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/35/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/36/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/37/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/38/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/39/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/40/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/41/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/42/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/43/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/44/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/45/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/46/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/47/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/48/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/49/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/50/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/51/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/52/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/53/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/54/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/55/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/56/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/57/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/58/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/59/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/60/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/61/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/62/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/63/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/64/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/65/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/66/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/67/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/68/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/69/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/70/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/71/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/72/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/73/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/74/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/75/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/76/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/77/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/78/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/79/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/80/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/81/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/82/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/83/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/84/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/85/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/86/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/87/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/88/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/89/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/90/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/91/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/92/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/93/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/94/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/95/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/96/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/97/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/98/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/99/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/100/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/101/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/102/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/103/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/104/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/105/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/106/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/107/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/108/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/109/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/110/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/111/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/112/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/113/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/114/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/115/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/116/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/117/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/118/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/119/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/120/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/121/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/122/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/123/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/124/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/125/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/126/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/127/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/128/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/129/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/130/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/131/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/132/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/133/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/134/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/135/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/136/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/137/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/138/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/139/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/140/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/141/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/142/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/143/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/144/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/145/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/146/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/147/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/148/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/149/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/150/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/151/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/152/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/153/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/154/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/155/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/156/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/157/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/158/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/159/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/160/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/161/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/162/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/163/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/164/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/165/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/166/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/167/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/168/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/169/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/170/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/171/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/172/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/173/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/174/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/175/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/176/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/177/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/178/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/179/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/180/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/181/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/182/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/183/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/184/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/185/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/186/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/187/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/188/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/189/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/190/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/191/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/192/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/193/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/194/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/195/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/196/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/197/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/198/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/199/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/200/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/201/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/202/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/203/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/204/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/205/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/206/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/207/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/208/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/209/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/210/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/211/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/212/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/213/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/214/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/215/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/216/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/217/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/218/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/219/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/220/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/221/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/222/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/223/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/224/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/225/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/226/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/227/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/228/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/229/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/230/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/231/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/232/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/233/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/234/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/235/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/236/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/237/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/238/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/239/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/240/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/241/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/242/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/243/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/244/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/245/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/246/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/247/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/248/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/249/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/250/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/251/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/252/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/253/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/254/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/255/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/256/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/257/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/258/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/259/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/260/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/261/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 290,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 596,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 599,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 602,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 605,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 607,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 609,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 615,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 617,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 618,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 620,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 627,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 637,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 640,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 641,
+      "column": 2
+    },
+    {
+      "path": "/devices/14/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 642,
+      "column": 2
+    },
+    {
+      "path": "/devices/15/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 643,
+      "column": 2
+    },
+    {
+      "path": "/devices/16/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 644,
+      "column": 2
+    },
+    {
+      "path": "/devices/17/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/devices/18/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 647,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 269,
+      "column": 2
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 177,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 184,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 168,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 195,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 155,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 161,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 302,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 304,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 586,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 132,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 104,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 114,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 200,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 290,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 204,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 58,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 29,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 220,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 221,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 222,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 223,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 224,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 225,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 226,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 227,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 228,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 229,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 230,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 231,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 232,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 233,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 234,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 235,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/16/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 236,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 299,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 300,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 301,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 302,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 303,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 304,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/capcom/1942.cpp",
+      "line": 297,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 58,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 132,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 132,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/capcom/1942_v.cpp",
+      "line": 132,
+      "column": 1
+    }
+  ]
+}

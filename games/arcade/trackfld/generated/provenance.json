@@ -1,0 +1,622 @@
+{
+  "generatedFrom": "src/mame/konami/trackfld.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1239,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1240,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1241,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1242,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1243,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1244,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1245,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1246,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1255,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1257,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1260
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1239,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1240,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1241,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1242,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1243,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1244,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1245,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1246,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1257,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1232,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1235,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1253,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1257,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1257,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 531,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1232,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1235,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1238,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1248,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1250,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1253,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1259,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1260,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1264,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1266,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1268,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1270,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1272,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1275,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 708,
+      "column": 2
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 709,
+      "column": 2
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 710,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 401,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 407,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 263,
+      "column": 47
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 265,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/konami/hyprolyb.cpp",
+      "line": 43,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 750,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 757,
+      "column": 2
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/konami/trackfld_a.cpp",
+      "line": 47,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 732,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 761,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/konami/trackfld_a.cpp",
+      "line": 54,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/konami/trackfld_a.cpp",
+      "line": 59,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1209,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 473,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 460,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1304,
+      "column": 2
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/konami/trackfld_a.cpp",
+      "line": 100,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 548,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 553,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 570,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 531,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 481,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 1217,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 345,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 579,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 580,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 582,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 583,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 584,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 585,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 586,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 588,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 589,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 590,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 591,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 592,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 593,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 594,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 595,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/16/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 596,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/17/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 597,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 577,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 740,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 741,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 742,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 743,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 744,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 745,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 746,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/7/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 747,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/8/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 748,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/9/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 749,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/10/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 750,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 738,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 771,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 768,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 345,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 473,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/konami/trackfld.cpp",
+      "line": 473,
+      "column": 1
+    }
+  ]
+}

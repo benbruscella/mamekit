@@ -1,0 +1,899 @@
+{
+  "generatedFrom": "src/mame/snk/neogeo.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1931,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1932,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1936,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1943,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1952,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1956,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1961,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1980,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1981,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1982,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1992,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/11/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1993,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1931,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1932,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1936,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1952,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1956,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1961,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1980,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1981,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1982,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1992,
+      "column": 2
+    },
+    {
+      "path": "/connections/10/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1993,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1924,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1926,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1313,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1313,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1313,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1313,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1313,
+      "column": 1
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1941,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 157,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1924,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1926,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1930,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1941,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1946,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1948,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1951,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1954,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1958,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1960,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1995,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1997,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1999,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1967,
+      "column": 2
+    },
+    {
+      "path": "/devices/14/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1978,
+      "column": 2
+    },
+    {
+      "path": "/devices/15/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 2116,
+      "column": 2
+    },
+    {
+      "path": "/devices/16/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 2118,
+      "column": 2
+    },
+    {
+      "path": "/devices/17/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 2119,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1002,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/snk/ng_memcard.cpp",
+      "line": 103,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1016,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 929,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1715,
+      "column": 2
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 228,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 85,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 106,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 176,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 130,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/snk/ng_memcard.cpp",
+      "line": 95,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 251,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 217,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 118,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 124,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 769,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 775,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 783,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 760,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 805,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 797,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 89,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 95,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1689,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1729,
+      "column": 2
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1016,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1049,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/snk/ng_memcard.h",
+      "line": 37,
+      "column": 26
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1797,
+      "column": 2
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1797,
+      "column": 2
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1798,
+      "column": 2
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1798,
+      "column": 2
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 885,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1801,
+      "column": 2
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1659,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1673,
+      "column": 1
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 871,
+      "column": 1
+    },
+    {
+      "path": "/handlers/38/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 123,
+      "column": 1
+    },
+    {
+      "path": "/handlers/39/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 23,
+      "column": 1
+    },
+    {
+      "path": "/handlers/40/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 67,
+      "column": 1
+    },
+    {
+      "path": "/handlers/41/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/42/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1127,
+      "column": 1
+    },
+    {
+      "path": "/handlers/43/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 82,
+      "column": 1
+    },
+    {
+      "path": "/handlers/44/source",
+      "file": "src/mame/snk/neogeo_v.cpp",
+      "line": 157,
+      "column": 1
+    },
+    {
+      "path": "/handlers/45/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 283,
+      "column": 1
+    },
+    {
+      "path": "/handlers/46/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 277,
+      "column": 1
+    },
+    {
+      "path": "/handlers/47/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 180,
+      "column": 1
+    },
+    {
+      "path": "/handlers/48/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 248,
+      "column": 1
+    },
+    {
+      "path": "/handlers/49/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1956,
+      "column": 2
+    },
+    {
+      "path": "/handlers/50/source",
+      "file": "src/mame/snk/ng_memcard.cpp",
+      "line": 110,
+      "column": 1
+    },
+    {
+      "path": "/handlers/51/source",
+      "file": "src/mame/snk/ng_memcard.cpp",
+      "line": 115,
+      "column": 1
+    },
+    {
+      "path": "/handlers/52/source",
+      "file": "src/mame/snk/ng_memcard.cpp",
+      "line": 120,
+      "column": 1
+    },
+    {
+      "path": "/handlers/53/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 904,
+      "column": 1
+    },
+    {
+      "path": "/handlers/54/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 899,
+      "column": 1
+    },
+    {
+      "path": "/handlers/55/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 914,
+      "column": 1
+    },
+    {
+      "path": "/handlers/56/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 909,
+      "column": 1
+    },
+    {
+      "path": "/handlers/57/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1071,
+      "column": 1
+    },
+    {
+      "path": "/handlers/58/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1084,
+      "column": 1
+    },
+    {
+      "path": "/handlers/59/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1133,
+      "column": 1
+    },
+    {
+      "path": "/handlers/60/source",
+      "file": "src/mame/snk/neogeo_spr.cpp",
+      "line": 168,
+      "column": 1
+    },
+    {
+      "path": "/handlers/61/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1043,
+      "column": 1
+    },
+    {
+      "path": "/handlers/62/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 919,
+      "column": 1
+    },
+    {
+      "path": "/handlers/63/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1063,
+      "column": 1
+    },
+    {
+      "path": "/handlers/64/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1100,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1711,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1712,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1713,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1714,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1715,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1716,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1717,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1718,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1719,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1709,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1726,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1727,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1729,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1730,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1731,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1732,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1733,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/7/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1734,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/8/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1735,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/9/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1736,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1722,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1779,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1780,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1781,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1782,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1783,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/5/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1784,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1777,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1797,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1798,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/2/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1799,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1800,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/4/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1801,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/snk/neogeo.cpp",
+      "line": 1795,
+      "column": 1
+    }
+  ]
+}

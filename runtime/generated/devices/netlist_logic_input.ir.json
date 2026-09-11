@@ -1,0 +1,65 @@
+{
+  "type": "NETLIST_LOGIC_INPUT",
+  "uses": [
+    {
+      "game": "frogger",
+      "tags": [
+        "konami:ctl0",
+        "konami:ctl1",
+        "konami:ctl2",
+        "konami:ctl3",
+        "konami:ctl4",
+        "konami:ctl5"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "snd_nl:ibd",
+        "snd_nl:ich",
+        "snd_nl:ioh",
+        "snd_nl:isd",
+        "snd_nl:sinh"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "audio_snd[0]",
+        "audio_snd[1]",
+        "audio_snd[2]"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "konami:ctl0",
+        "konami:ctl1",
+        "konami:ctl10",
+        "konami:ctl11",
+        "konami:ctl2",
+        "konami:ctl3",
+        "konami:ctl4",
+        "konami:ctl5",
+        "konami:ctl6",
+        "konami:ctl7",
+        "konami:ctl8",
+        "konami:ctl9"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "NETLIST_LOGIC_INPUT",
+    "className": "netlist_mame_logic_input_device",
+    "shortName": "nl_logic_in",
+    "description": "Netlist Logic Input",
+    "sourceFile": "src/devices/machine/netlist.cpp",
+    "sourceLine": 55,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NETLIST_LOGIC_INPUT,   netlist_mame_logic_input_device,   \"nl_logic_in\",   \"Netlist Logic Input\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

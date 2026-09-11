@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "type": "BERZERK_SOUND",
+  "sh6840Channels": 3,
+  "speechClock": 2500000,
+  "speechDataBits": 6,
+  "sourceFiles": [
+    "src/mame/shared/exidysound.cpp",
+    "src/devices/sound/s14001a.cpp",
+    "src/devices/sound/flt_vol.cpp",
+    "src/mame/stern/berzerk.cpp"
+  ]
+}

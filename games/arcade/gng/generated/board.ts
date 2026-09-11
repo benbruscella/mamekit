@@ -1,0 +1,146 @@
+// GENERATED executable machine composition from src/mame/capcom/gng.cpp; do not edit.
+import { decodeBoardIr } from '../../../../runtime/ir/decode.js';
+import type { BoardConfig, BoardSinks, InputPorts, Regions } from '../../../../runtime/core/types.js';
+import type { GeneratedCompiledHandler } from '../../../../runtime/ir/board.js';
+import { createGeneratedBoard } from '../../../../runtime/core/generated-board.js';
+import boardData from './board.json' with { type: 'json' };
+
+// Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
+// field and its MAME source line, instead of crashing deep inside execution.
+const defined = decodeBoardIr(boardData, 'gng');
+
+// Direct JavaScript for handlers whose IR shape shows nested hot loops. The
+// interpreter remains the semantic reference; these are checked against it by
+// src/gen/emit-handler-codegen.spec.ts.
+defined.compiledHandlers = {
+  ...(() => {
+    const methods = (() => {
+
+  function method_fgvideoram_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.writableMember("m_fgvideoram"), offset, data);
+    (__l["m_fg_tilemap.mark_tile_dirty"] ? __l["m_fg_tilemap.mark_tile_dirty"](((offset) & (1023))) : (members.m_fg_tilemap) != null ? ((runtime.dereference(members.m_fg_tilemap)).mark_tile_dirty?.(((offset) & (1023))) ?? 0) : (__l["mark_tile_dirty"]?.(((offset) & (1023))) ?? 0));
+  }
+
+  function method_bgvideoram_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.writableMember("m_bgvideoram"), offset, data);
+    (__l["m_bg_tilemap.mark_tile_dirty"] ? __l["m_bg_tilemap.mark_tile_dirty"](((offset) & (1023))) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).mark_tile_dirty?.(((offset) & (1023))) ?? 0) : (__l["mark_tile_dirty"]?.(((offset) & (1023))) ?? 0));
+  }
+
+  function method_bgscrollx_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.writableMember("m_scrollx"), offset, data);
+    (__l["m_bg_tilemap.set_scrollx"] ? __l["m_bg_tilemap.set_scrollx"](0, runtime.add(runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 0), ((256) * (runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 1))))) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).set_scrollx?.(0, runtime.add(runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 0), ((256) * (runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 1))))) ?? 0) : (__l["set_scrollx"]?.(0, runtime.add(runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 0), ((256) * (runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 1))))) ?? 0));
+  }
+
+  function method_bgscrolly_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.writableMember("m_scrolly"), offset, data);
+    (__l["m_bg_tilemap.set_scrolly"] ? __l["m_bg_tilemap.set_scrolly"](0, runtime.add(runtime.readIndex((members.m_scrolly ?? runtime.member("m_scrolly")), 0), ((256) * (runtime.readIndex((members.m_scrolly ?? runtime.member("m_scrolly")), 1))))) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).set_scrolly?.(0, runtime.add(runtime.readIndex((members.m_scrolly ?? runtime.member("m_scrolly")), 0), ((256) * (runtime.readIndex((members.m_scrolly ?? runtime.member("m_scrolly")), 1))))) ?? 0) : (__l["set_scrolly"]?.(0, runtime.add(runtime.readIndex((members.m_scrolly ?? runtime.member("m_scrolly")), 0), ((256) * (runtime.readIndex((members.m_scrolly ?? runtime.member("m_scrolly")), 1))))) ?? 0));
+  }
+
+  function method_bankswitch_w(runtime: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    if (((Number(data) === Number(4)) ? 1 : 0)) {
+      (__l["m_mainbank.set_entry"] ? __l["m_mainbank.set_entry"](4) : (members.m_mainbank) != null ? ((runtime.dereference(members.m_mainbank)).set_entry?.(4) ?? 0) : (__l["set_entry"]?.(4) ?? 0));
+    } else {
+      (__l["m_mainbank.set_entry"] ? __l["m_mainbank.set_entry"](((data) & (3))) : (members.m_mainbank) != null ? ((runtime.dereference(members.m_mainbank)).set_entry?.(((data) & (3))) ?? 0) : (__l["set_entry"]?.(((data) & (3))) ?? 0));
+    }
+  }
+
+  function method_get_fg_tile_info(runtime: any, tilemap: any, tileinfo: any, tile_index: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let attr: any = ((runtime.readIndex((members.m_fgvideoram ?? runtime.member("m_fgvideoram")), ((tile_index) + (1024)))) & 0xff);
+    (__l["tileinfo.set"] ? __l["tileinfo.set"](0, runtime.add(runtime.readIndex((members.m_fgvideoram ?? runtime.member("m_fgvideoram")), tile_index), ((((attr) & (192))) << (2))), ((attr) & (15)), (__l["TILE_FLIPYX"] ? __l["TILE_FLIPYX"](((((attr) & (48))) >>> (4))) : runtime.macro("TILE_FLIPYX", ((((attr) & (48))) >>> (4))))) : (tileinfo) != null ? ((runtime.dereference(tileinfo)).set?.(0, runtime.add(runtime.readIndex((members.m_fgvideoram ?? runtime.member("m_fgvideoram")), tile_index), ((((attr) & (192))) << (2))), ((attr) & (15)), (__l["TILE_FLIPYX"] ? __l["TILE_FLIPYX"](((((attr) & (48))) >>> (4))) : runtime.macro("TILE_FLIPYX", ((((attr) & (48))) >>> (4))))) ?? 0) : (__l["set"]?.(0, runtime.add(runtime.readIndex((members.m_fgvideoram ?? runtime.member("m_fgvideoram")), tile_index), ((((attr) & (192))) << (2))), ((attr) & (15)), (__l["TILE_FLIPYX"] ? __l["TILE_FLIPYX"](((((attr) & (48))) >>> (4))) : runtime.macro("TILE_FLIPYX", ((((attr) & (48))) >>> (4))))) ?? 0));
+  }
+
+  function method_get_bg_tile_info(runtime: any, tilemap: any, tileinfo: any, tile_index: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let attr: any = ((runtime.readIndex((members.m_bgvideoram ?? runtime.member("m_bgvideoram")), ((tile_index) + (1024)))) & 0xff);
+    (__l["tileinfo.set"] ? __l["tileinfo.set"](1, runtime.add(runtime.readIndex((members.m_bgvideoram ?? runtime.member("m_bgvideoram")), tile_index), ((((attr) & (192))) << (2))), ((attr) & (7)), (__l["TILE_FLIPYX"] ? __l["TILE_FLIPYX"](((((attr) & (48))) >>> (4))) : runtime.macro("TILE_FLIPYX", ((((attr) & (48))) >>> (4))))) : (tileinfo) != null ? ((runtime.dereference(tileinfo)).set?.(1, runtime.add(runtime.readIndex((members.m_bgvideoram ?? runtime.member("m_bgvideoram")), tile_index), ((((attr) & (192))) << (2))), ((attr) & (7)), (__l["TILE_FLIPYX"] ? __l["TILE_FLIPYX"](((((attr) & (48))) >>> (4))) : runtime.macro("TILE_FLIPYX", ((((attr) & (48))) >>> (4))))) ?? 0) : (__l["set"]?.(1, runtime.add(runtime.readIndex((members.m_bgvideoram ?? runtime.member("m_bgvideoram")), tile_index), ((((attr) & (192))) << (2))), ((attr) & (7)), (__l["TILE_FLIPYX"] ? __l["TILE_FLIPYX"](((((attr) & (48))) >>> (4))) : runtime.macro("TILE_FLIPYX", ((((attr) & (48))) >>> (4))))) ?? 0));
+    tileinfo.group = ((((attr) & (8))) >>> (3));
+  }
+
+  function method_screen_update(runtime: any, screen: any, bitmap: any, cliprect: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_bg_tilemap.draw"] ? __l["m_bg_tilemap.draw"](screen, bitmap, cliprect, 32, 0) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).draw?.(screen, bitmap, cliprect, 32, 0) ?? 0) : (__l["draw"]?.(screen, bitmap, cliprect, 32, 0) ?? 0));
+    (runtime.overrides["draw_sprites"] ? runtime.overrides["draw_sprites"](bitmap, cliprect) : method_draw_sprites(runtime, bitmap, cliprect));
+    (__l["m_bg_tilemap.draw"] ? __l["m_bg_tilemap.draw"](screen, bitmap, cliprect, 16, 0) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).draw?.(screen, bitmap, cliprect, 16, 0) ?? 0) : (__l["draw"]?.(screen, bitmap, cliprect, 16, 0) ?? 0));
+    (__l["m_fg_tilemap.draw"] ? __l["m_fg_tilemap.draw"](screen, bitmap, cliprect, 0, 0) : (members.m_fg_tilemap) != null ? ((runtime.dereference(members.m_fg_tilemap)).draw?.(screen, bitmap, cliprect, 0, 0) ?? 0) : (__l["draw"]?.(screen, bitmap, cliprect, 0, 0) ?? 0));
+    return 0;
+  }
+
+  function method_draw_sprites(runtime: any, bitmap: any, cliprect: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let spriteram: any = (__l["m_spriteram.buffer"] ? __l["m_spriteram.buffer"]() : (members.m_spriteram) != null ? (typeof (runtime.dereference(members.m_spriteram)).buffer === 'function' ? (runtime.dereference(members.m_spriteram)).buffer() : typeof (runtime.dereference(members.m_spriteram)).buffer === 'number' || typeof (runtime.dereference(members.m_spriteram)).buffer === 'boolean' ? (runtime.dereference(members.m_spriteram)).buffer : runtime.container(members.m_spriteram, "buffer")) : 0);
+    let gfx: any = (__l["m_gfxdecode.gfx"] ? __l["m_gfxdecode.gfx"](2) : (members.m_gfxdecode) != null ? ((runtime.dereference(members.m_gfxdecode)).gfx?.(2) ?? 0) : 0);
+    for (let offs: any = (((((members.m_spriteram).length) - (4))) | 0); ((Number(offs) >= Number(0)) ? 1 : 0); offs = ((((offs) - (4))) | 0)) {
+      let attributes: any = ((runtime.readIndex(spriteram, ((offs) + (1)))) & 0xff);
+      let sx: any = ((((runtime.readIndex(spriteram, ((offs) + (3)))) - (((256) * (((attributes) & (1))))))) | 0);
+      let sy: any = ((runtime.readIndex(spriteram, ((offs) + (2)))) | 0);
+      let flipx: any = ((((attributes) & (4))) | 0);
+      let flipy: any = ((((attributes) & (8))) | 0);
+      if ((__l["flip_screen"] ? __l["flip_screen"]() : runtime.macro("flip_screen"))) {
+        sx = ((((240) - (sx))) | 0);
+        sy = ((((240) - (sy))) | 0);
+        flipx = ((((flipx) ? 0 : 1)) | 0);
+        flipy = ((((flipy) ? 0 : 1)) | 0);
+      }
+      (__l["gfx.transpen"] ? __l["gfx.transpen"](bitmap, cliprect, runtime.add(runtime.readIndex(spriteram, offs), ((((attributes) << (2))) & (768))), ((((attributes) >>> (4))) & (3)), flipx, flipy, sx, sy, 15) : (gfx) != null ? ((runtime.dereference(gfx)).transpen?.(bitmap, cliprect, runtime.add(runtime.readIndex(spriteram, offs), ((((attributes) << (2))) & (768))), ((((attributes) >>> (4))) & (3)), flipx, flipy, sx, sy, 15) ?? 0) : (__l["transpen"]?.(bitmap, cliprect, runtime.add(runtime.readIndex(spriteram, offs), ((((attributes) << (2))) & (768))), ((((attributes) >>> (4))) & (3)), flipx, flipy, sx, sy, 15) ?? 0));
+    }
+  }
+  return {
+    "fgvideoram_w": method_fgvideoram_w,
+    "bgvideoram_w": method_bgvideoram_w,
+    "bgscrollx_w": method_bgscrollx_w,
+    "bgscrolly_w": method_bgscrolly_w,
+    "bankswitch_w": method_bankswitch_w,
+    "get_fg_tile_info": method_get_fg_tile_info,
+    "get_bg_tile_info": method_get_bg_tile_info,
+    "screen_update": method_screen_update,
+    "draw_sprites": method_draw_sprites
+  };
+})();
+    return {
+      "gng_state.fgvideoram_w": methods["fgvideoram_w"],
+      "gng_state.bgvideoram_w": methods["bgvideoram_w"],
+      "gng_state.bgscrollx_w": methods["bgscrollx_w"],
+      "gng_state.bgscrolly_w": methods["bgscrolly_w"],
+      "gng_state.bankswitch_w": methods["bankswitch_w"],
+      "gng_state.get_fg_tile_info": methods["get_fg_tile_info"],
+      "gng_state.get_bg_tile_info": methods["get_bg_tile_info"],
+      "gng_state.screen_update": methods["screen_update"],
+      "gng_state.draw_sprites": methods["draw_sprites"],
+    };
+  })(),
+} as Record<string, GeneratedCompiledHandler>;
+// The host call names those handlers reach, resolved once into a fast table.
+defined.compiledHandlerLinks = ["TILE_FLIPYX","draw","flip_screen","gfx.transpen","m_bg_tilemap.draw","m_bg_tilemap.mark_tile_dirty","m_bg_tilemap.set_scrollx","m_bg_tilemap.set_scrolly","m_fg_tilemap.draw","m_fg_tilemap.mark_tile_dirty","m_gfxdecode.gfx","m_mainbank.set_entry","m_spriteram.buffer","mark_tile_dirty","set","set_entry","set_scrollx","set_scrolly","tileinfo.set","transpen"];
+export default {
+  machine: defined,
+  createBoard: (
+    config: BoardConfig,
+    regions: Regions,
+    inputs: InputPorts,
+    sinks: BoardSinks,
+  ) => createGeneratedBoard(defined, config, regions, inputs, sinks),
+};

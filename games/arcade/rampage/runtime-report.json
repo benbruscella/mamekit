@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "rampage",
+  "family": "mcr3",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 90,
+    "total": 138,
+    "percent": 65.2
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "sg:cpu:M68000",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68000.cpp:8"
+      }
+    ],
+    "devices": [
+      {
+        "name": "scantimer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "ctc:Z80CTC",
+        "status": "executable",
+        "source": "src/devices/machine/z80ctc.cpp:72"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "nvram:NVRAM",
+        "status": "declarative-host",
+        "source": "src/devices/machine/nvram.cpp:19"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "sg:MIDWAY_SOUNDS_GOOD",
+        "status": "executable",
+        "source": "src/mame/bally/midway_sound.cpp:33"
+      },
+      {
+        "name": "cpu:M68000",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68000.cpp:8"
+      },
+      {
+        "name": "pia:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "dac:AD7533",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:203"
+      },
+      {
+        "name": "dac_filter2:FILTER_BIQUAD",
+        "status": "executable",
+        "source": "src/devices/sound/flt_biquad.cpp:38",
+        "reason": "internal part of executable MIDWAY_SOUNDS_GOOD"
+      },
+      {
+        "name": "dac_filter1:FILTER_BIQUAD",
+        "status": "executable",
+        "source": "src/devices/sound/flt_biquad.cpp:38",
+        "reason": "internal part of executable MIDWAY_SOUNDS_GOOD"
+      },
+      {
+        "name": "dac_filter0:FILTER_BIQUAD",
+        "status": "executable",
+        "source": "src/devices/sound/flt_biquad.cpp:38",
+        "reason": "internal part of executable MIDWAY_SOUNDS_GOOD"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "ctc.read",
+        "status": "executable",
+        "source": "src/devices/machine/z80ctc.cpp:72"
+      },
+      {
+        "name": "ctc.write",
+        "status": "executable",
+        "source": "src/devices/machine/z80ctc.cpp:72"
+      },
+      {
+        "name": "mcr3_state.mcr3_videoram_w",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3_v.cpp:119"
+      },
+      {
+        "name": "mcr3_state.mcr_paletteram9_w",
+        "status": "generated",
+        "source": "src/mame/bally/mcr_v.cpp:162"
+      },
+      {
+        "name": "mcr3_state.mcrmono_control_port_w",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3.cpp:122"
+      },
+      {
+        "name": "mcr3_state.rampage_ip4_r",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3.cpp:281"
+      },
+      {
+        "name": "mcr3_state.rampage_op6_w",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3.cpp:287"
+      },
+      {
+        "name": "port.MONO.IP0",
+        "status": "generated"
+      },
+      {
+        "name": "port.MONO.IP1",
+        "status": "generated"
+      },
+      {
+        "name": "port.MONO.IP2",
+        "status": "generated"
+      },
+      {
+        "name": "port.MONO.IP3",
+        "status": "generated"
+      },
+      {
+        "name": "port.MONO.IP4",
+        "status": "generated"
+      },
+      {
+        "name": "sg:pia.read_alt",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sg:pia.write_alt",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "scantimer.configure_scanline -> mcr3_state.mcr_interrupt",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3.cpp:1091"
+      },
+      {
+        "name": "ctc.intr_callback -> maincpu",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3.cpp:1094"
+      },
+      {
+        "name": "ctc.zc_callback<0> -> ctc.trg1",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3.cpp:1095"
+      },
+      {
+        "name": "screen.set_screen_update -> mcr3_state.screen_update_mcr3",
+        "status": "generated",
+        "source": "src/mame/bally/mcr3.cpp:1111"
+      },
+      {
+        "name": "pia.writepa_handler -> midway_sounds_good_device.porta_w",
+        "status": "generated",
+        "source": "src/mame/bally/midway_sound.cpp:611"
+      },
+      {
+        "name": "pia.writepb_handler -> midway_sounds_good_device.portb_w",
+        "status": "generated",
+        "source": "src/mame/bally/midway_sound.cpp:612"
+      },
+      {
+        "name": "pia.irqa_handler -> midway_sounds_good_device.irq_w",
+        "status": "generated",
+        "source": "src/mame/bally/midway_sound.cpp:613"
+      },
+      {
+        "name": "pia.irqb_handler -> midway_sounds_good_device.irq_w",
+        "status": "generated",
+        "source": "src/mame/bally/midway_sound.cpp:614"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/rampage/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 17,
+    "compiledMethods": 17,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 5,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "mcr3_state.screen_update_mcr3",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 14,
+    "generated": 20,
+    "declarative-host": 7,
+    "blocked": 0,
+    "missing": 0
+  }
+}

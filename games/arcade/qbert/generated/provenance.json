@@ -1,0 +1,503 @@
+{
+  "generatedFrom": "src/mame/gottlieb/gottlieb.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2168,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2169,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 351,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 355,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 356,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 357,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 472,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 516,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2169,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 351,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 355,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 356,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 357,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 472,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 516,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2158,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 348,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2166,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2169,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2169,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 656,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2158,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2161,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2163,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2166,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2171,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2172,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2175,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2193,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 348,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 351,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 354,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 360,
+      "column": 2
+    },
+    {
+      "path": "/devices/14/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 471,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 747,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 711,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 538,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1083,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 579,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 586,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 512,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1156,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 689,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1118,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 140,
+      "column": 2
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 401,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 295,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 287,
+      "column": 1
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 423,
+      "column": 1
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 413,
+      "column": 1
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 457,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 596,
+      "column": 1
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 656,
+      "column": 1
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 622,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 356,
+      "column": 2
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 516,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1151,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1152,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1153,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1154,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1155,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1156,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1157,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1158,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1159,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1161,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1162,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1163,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1164,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1165,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1166,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1148,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1174,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 1170,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/11/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 312,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/12/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 313,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 305,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 437,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 438,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/shared/gottlieb_a.cpp",
+      "line": 434,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 2172,
+      "column": 2
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 457,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/gottlieb/gottlieb.cpp",
+      "line": 457,
+      "column": 1
+    }
+  ]
+}

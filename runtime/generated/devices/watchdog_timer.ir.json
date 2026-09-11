@@ -1,0 +1,259 @@
+{
+  "type": "WATCHDOG_TIMER",
+  "uses": [
+    {
+      "game": "arkanoid",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "asteroid",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "centiped",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "defender",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "gauntlet",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "gberet",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "joust",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "mslug",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "mspacman",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "qbert",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "robotron",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "rygar",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "shinobi",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "simpsons",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "tmnt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "watchdog"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "WATCHDOG_TIMER",
+    "className": "watchdog_timer_device",
+    "shortName": "watchdog",
+    "description": "Watchdog Timer",
+    "sourceFile": "src/devices/machine/watchdog.cpp",
+    "sourceLine": 20,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(WATCHDOG_TIMER, watchdog_timer_device, \"watchdog\", \"Watchdog Timer\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

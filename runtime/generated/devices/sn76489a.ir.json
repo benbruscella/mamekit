@@ -1,0 +1,69 @@
+{
+  "type": "SN76489A",
+  "uses": [
+    {
+      "game": "bankp",
+      "tags": [
+        "sn1",
+        "sn2",
+        "sn3"
+      ]
+    },
+    {
+      "game": "coleco",
+      "tags": [
+        "sn76489a"
+      ]
+    },
+    {
+      "game": "congo",
+      "tags": [
+        "sn1",
+        "sn2"
+      ]
+    },
+    {
+      "game": "gberet",
+      "tags": [
+        "snsnd"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "snsnd"
+      ]
+    },
+    {
+      "game": "upndown",
+      "tags": [
+        "sn1",
+        "sn2"
+      ]
+    },
+    {
+      "game": "wboy",
+      "tags": [
+        "sn1",
+        "sn2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SN76489A",
+    "className": "sn76489a_device",
+    "shortName": "sn76489a",
+    "description": "SN76489A",
+    "sourceFile": "src/devices/sound/sn76496.cpp",
+    "sourceLine": 474,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SN76489A, sn76489a_device,  \"sn76489a\",     \"SN76489A\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/sn76496.cpp",
+    "src/devices/sound/sn76496.h"
+  ]
+}

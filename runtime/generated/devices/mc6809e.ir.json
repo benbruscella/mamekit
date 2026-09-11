@@ -1,0 +1,58 @@
+{
+  "type": "MC6809E",
+  "uses": [
+    {
+      "game": "defender",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "joust",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "qix",
+      "tags": [
+        "maincpu",
+        "videocpu"
+      ]
+    },
+    {
+      "game": "robotron",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MC6809E",
+    "className": "mc6809e_device",
+    "shortName": "mc6809e",
+    "description": "Motorola MC6809E",
+    "sourceFile": "src/devices/cpu/m6809/m6809.cpp",
+    "sourceLine": 137,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MC6809E, mc6809e_device, \"mc6809e\", \"Motorola MC6809E\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/m6809/m6809.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m6809/6x09dasm.h",
+    "src/devices/cpu/m6809/m6809.cpp",
+    "src/devices/cpu/m6809/m6809.h",
+    "src/devices/cpu/m6809/m6809.lst",
+    "src/devices/cpu/m6809/m6809inl.h"
+  ]
+}

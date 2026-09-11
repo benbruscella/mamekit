@@ -1,0 +1,29 @@
+{
+  "type": "M68010",
+  "uses": [
+    {
+      "game": "gauntlet",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M68010",
+    "className": "m68010_device",
+    "shortName": "m68010",
+    "description": "Motorola MC68010",
+    "sourceFile": "src/devices/cpu/m68000/m68010.cpp",
+    "sourceLine": 8,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M68010,      m68010_device,      \"m68010\",       \"Motorola MC68010\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m68000/m68010.cpp",
+    "src/devices/cpu/m68000/m68010.h",
+    "src/devices/cpu/m68000/m68kdasm.h"
+  ]
+}

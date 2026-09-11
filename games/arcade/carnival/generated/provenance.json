@@ -1,0 +1,311 @@
+{
+  "generatedFrom": "src/mame/sega/vicdual.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 287,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 288,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 289,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 2979,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 287,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 288,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 289,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 921,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 285,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 926,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/sega/vicdual_v.cpp",
+      "line": 81,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 921,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 923,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 926,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 3053,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 285,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 291,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 294,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 849,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 857,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 714,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/sega/vicdual_v.cpp",
+      "line": 26,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 1866,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 145,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 210,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 267,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 255,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 274,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 246,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/sega/vicdual_v.cpp",
+      "line": 81,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/sega/vicdual_v.cpp",
+      "line": 150,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 781,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 719,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 806,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 800,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 812,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 734,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 243,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 241,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 1926,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 1927,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 1928,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 1929,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 1924,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 2124,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 2125,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 2126,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 2127,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/4/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 2130,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/sega/vicdual.cpp",
+      "line": 2120,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/sega/vicdual_v.cpp",
+      "line": 81,
+      "column": 1
+    }
+  ]
+}

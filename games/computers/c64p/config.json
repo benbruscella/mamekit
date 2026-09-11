@@ -1,0 +1,1051 @@
+{
+  "game": "c64p",
+  "title": "Commodore 64 (PAL) (Commodore Business Machines, 1982)",
+  "family": "c64",
+  "kind": "computer",
+  "dataPath": "games/computers/c64p",
+  "board": {
+    "family": "c64",
+    "cpus": [
+      {
+        "tag": "u7",
+        "type": "m6510",
+        "clock": 985248.4444444445,
+        "region": "u7",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 65535,
+            "kind": "handler",
+            "read": "c64_state.read",
+            "write": "c64_state.write",
+            "handlerWidth": 8
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 65535,
+        "kind": "handler",
+        "read": "c64_state.read",
+        "write": "c64_state.write",
+        "handlerWidth": 8
+      }
+    ],
+    "screen": {
+      "width": 403,
+      "height": 284,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 50.12456473567585,
+      "htotal": 504,
+      "vtotal": 312,
+      "vbstart": 284,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "sid",
+    "clock": 48000,
+    "deviceTag": "u18",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "basic",
+      "size": 8192,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "901226-01.u3",
+          "offset": 0,
+          "size": 8192,
+          "crc": "f833d117",
+          "alt": [
+            {
+              "file": "tesa-basic.ud4",
+              "crc": "f319d661"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "kernal",
+      "size": 8192,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "901227-03.u4",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dbe3e7c7",
+          "alt": [
+            {
+              "file": "906145-02.u4",
+              "crc": "3a9ef6f1"
+            },
+            {
+              "file": "kernel.u4",
+              "crc": "f10c2c25"
+            },
+            {
+              "file": "901246-01.u4",
+              "crc": "789c8cc5"
+            },
+            {
+              "file": "251104-04.ud3",
+              "crc": "2c5965d4"
+            },
+            {
+              "file": "kernelsx.ud3",
+              "crc": "7858d3d7"
+            },
+            {
+              "file": "tesa-kernal.ud3",
+              "crc": "af638f9c"
+            },
+            {
+              "file": "kernal.bin",
+              "crc": "13ca39ca"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "charom",
+      "size": 4096,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "901225-01.u5",
+          "offset": 0,
+          "size": 4096,
+          "crc": "ec4272ee",
+          "alt": [
+            {
+              "file": "906143-02.u5",
+              "crc": "1604f6c1"
+            },
+            {
+              "file": "charswe.u5",
+              "crc": "bee9b3fd"
+            },
+            {
+              "file": "tesa-char.ud1",
+              "crc": "10765a90"
+            },
+            {
+              "file": "chr_gen.bin",
+              "crc": "a675a239"
+            },
+            {
+              "file": "325056-03.u5",
+              "crc": "c890c175"
+            },
+            {
+              "file": "cbm 64 skand.gen.u5",
+              "crc": "377a382b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "u17",
+      "size": 245,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "906114-01.u17",
+          "offset": 0,
+          "size": 245,
+          "crc": "54c89351"
+        }
+      ]
+    }
+  ],
+  "software": {
+    "dumpsKey": "computers/c64",
+    "shelves": [
+      {
+        "list": "vic10",
+        "description": "Commodore VIC-10 / Max Machine / UltiMax cartridges",
+        "interface": "vic10_cart",
+        "kind": "cartridge",
+        "catalogUrl": "software/vic10.json",
+        "availableUrl": "software/vic10.available.json",
+        "extensions": [],
+        "entries": 28,
+        "mountable": false
+      },
+      {
+        "list": "c64_cart",
+        "description": "Commodore 64 cartridges",
+        "interface": "c64_cart",
+        "kind": "cartridge",
+        "catalogUrl": "software/c64_cart.json",
+        "availableUrl": "software/c64_cart.available.json",
+        "extensions": [],
+        "entries": 460,
+        "mountable": false
+      },
+      {
+        "list": "c64_cass",
+        "description": "Commodore 64 cassettes",
+        "interface": "cbm_cass",
+        "kind": "cassette",
+        "catalogUrl": "software/c64_cass.json",
+        "availableUrl": "software/c64_cass.available.json",
+        "extensions": [
+          "tap",
+          "wav"
+        ],
+        "entries": 1100,
+        "mountable": true
+      },
+      {
+        "list": "c64_flop_orig",
+        "description": "Commodore 64 original disks",
+        "interface": "floppy_5_25",
+        "kind": "floppy",
+        "catalogUrl": "software/c64_flop_orig.json",
+        "extensions": [
+          "g64",
+          "d64"
+        ],
+        "entries": 59,
+        "mountable": false
+      },
+      {
+        "list": "c64_flop_misc",
+        "description": "Commodore 64 miscellaneous disks",
+        "interface": "floppy_5_25",
+        "kind": "floppy",
+        "catalogUrl": "software/c64_flop_misc.json",
+        "availableUrl": "software/c64_flop_misc.available.json",
+        "extensions": [
+          "d64",
+          "d81",
+          "img"
+        ],
+        "entries": 59,
+        "mountable": false
+      },
+      {
+        "list": "c64_quik",
+        "description": "Commodore 64 quickload",
+        "interface": "cbm_quik",
+        "kind": "quickload",
+        "catalogUrl": "software/c64_quik.json",
+        "extensions": [
+          "t64"
+        ],
+        "entries": 1,
+        "mountable": false
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "port": "ROW0",
+      "mask": 128,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "CRSR \\xE2\\x86\\x91 \\xE2\\x86\\x93",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW0",
+      "mask": 64,
+      "keys": [
+        "F3"
+      ],
+      "label": "F3",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW0",
+      "mask": 32,
+      "keys": [
+        "F2"
+      ],
+      "label": "F2",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW0",
+      "mask": 16,
+      "keys": [
+        "F1"
+      ],
+      "label": "F1",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW0",
+      "mask": 8,
+      "keys": [
+        "F4"
+      ],
+      "label": "F4",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "CRSR \\xE2\\x86\\x90 \\xE2\\x86\\x92",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW0",
+      "mask": 2,
+      "keys": [
+        "Enter"
+      ],
+      "label": "Return",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW0",
+      "mask": 1,
+      "keys": [
+        "Backspace"
+      ],
+      "label": "INST DEL",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 128,
+      "keys": [
+        "ShiftLeft"
+      ],
+      "label": "Shift (Left)",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 64,
+      "keys": [
+        "KeyE"
+      ],
+      "label": "E",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 32,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "S",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "Z",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 8,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "4",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 4,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "A",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 2,
+      "keys": [
+        "KeyW"
+      ],
+      "label": "W",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW1",
+      "mask": 1,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "3",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 128,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "X",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 64,
+      "keys": [
+        "KeyT"
+      ],
+      "label": "T",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 32,
+      "keys": [
+        "KeyF"
+      ],
+      "label": "F",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 16,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "C",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 8,
+      "keys": [
+        "Digit6",
+        "Numpad6"
+      ],
+      "label": "6",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 4,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "D",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 2,
+      "keys": [
+        "KeyR"
+      ],
+      "label": "R",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW2",
+      "mask": 1,
+      "keys": [
+        "Digit5",
+        "Numpad5"
+      ],
+      "label": "5",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 128,
+      "keys": [
+        "KeyV"
+      ],
+      "label": "V",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 64,
+      "keys": [
+        "KeyU"
+      ],
+      "label": "U",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 32,
+      "keys": [
+        "KeyH"
+      ],
+      "label": "H",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 16,
+      "keys": [
+        "KeyB"
+      ],
+      "label": "B",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 8,
+      "keys": [
+        "Digit8",
+        "Numpad8"
+      ],
+      "label": "8",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 4,
+      "keys": [
+        "KeyG"
+      ],
+      "label": "G",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 2,
+      "keys": [
+        "KeyY"
+      ],
+      "label": "Y",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW3",
+      "mask": 1,
+      "keys": [
+        "Digit7",
+        "Numpad7"
+      ],
+      "label": "7",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 128,
+      "keys": [
+        "KeyN"
+      ],
+      "label": "N",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 64,
+      "keys": [
+        "KeyO"
+      ],
+      "label": "O",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 32,
+      "keys": [
+        "KeyK"
+      ],
+      "label": "K",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 16,
+      "keys": [
+        "KeyM"
+      ],
+      "label": "M",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 8,
+      "keys": [
+        "Digit0",
+        "Numpad0"
+      ],
+      "label": "0",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 4,
+      "keys": [
+        "KeyJ"
+      ],
+      "label": "J",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 2,
+      "keys": [
+        "KeyI"
+      ],
+      "label": "I",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW4",
+      "mask": 1,
+      "keys": [
+        "Digit9",
+        "Numpad9"
+      ],
+      "label": "9",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 128,
+      "keys": [
+        "Comma"
+      ],
+      "label": "Comma",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 64,
+      "keys": [
+        "BracketLeft"
+      ],
+      "label": "BracketLeft",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 32,
+      "keys": [
+        "Semicolon"
+      ],
+      "label": "Semicolon",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 16,
+      "keys": [
+        "Period"
+      ],
+      "label": "Period",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 8,
+      "keys": [
+        "Equal"
+      ],
+      "label": "Equal",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 4,
+      "keys": [
+        "KeyL"
+      ],
+      "label": "L",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 2,
+      "keys": [
+        "KeyP"
+      ],
+      "label": "P",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW5",
+      "mask": 1,
+      "keys": [
+        "Minus"
+      ],
+      "label": "Minus",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 128,
+      "keys": [
+        "Slash"
+      ],
+      "label": "Slash",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 64,
+      "keys": [
+        "End"
+      ],
+      "label": "\\xE2\\x86\\x91 \\xCF\\x80",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 32,
+      "keys": [
+        "Backslash"
+      ],
+      "label": "Backslash",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 16,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "Shift (Right)",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 8,
+      "keys": [
+        "Home"
+      ],
+      "label": "CLR HOME",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 4,
+      "keys": [
+        "Quote"
+      ],
+      "label": "Quote",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 2,
+      "keys": [
+        "BracketRight"
+      ],
+      "label": "BracketRight",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW6",
+      "mask": 1,
+      "keys": [
+        "PageDown"
+      ],
+      "label": "PageDown",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 128,
+      "keys": [
+        "F9"
+      ],
+      "label": "RUN STOP",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 64,
+      "keys": [
+        "KeyQ"
+      ],
+      "label": "Q",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 32,
+      "keys": [
+        "AltLeft"
+      ],
+      "label": "CBM",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 16,
+      "keys": [
+        "Space"
+      ],
+      "label": "Space",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 8,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "2",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 4,
+      "keys": [
+        "Pause"
+      ],
+      "label": "CTRL",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 2,
+      "keys": [
+        "Backquote"
+      ],
+      "label": "\\xE2\\x86\\x90",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 1,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "1",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "RESTORE",
+      "mask": 1,
+      "keys": [
+        "F10"
+      ],
+      "label": "RESTORE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "LOCK",
+      "mask": 128,
+      "keys": [
+        "CapsLock"
+      ],
+      "label": "SHIFT LOCK",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "toggle": true
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "JOYSWAP",
+      "mask": 1,
+      "value": 0,
+      "name": "Swap joystick ports"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "ROW0",
+      "init": 255
+    },
+    {
+      "tag": "ROW1",
+      "init": 255
+    },
+    {
+      "tag": "ROW2",
+      "init": 255
+    },
+    {
+      "tag": "ROW3",
+      "init": 255
+    },
+    {
+      "tag": "ROW4",
+      "init": 255
+    },
+    {
+      "tag": "ROW5",
+      "init": 255
+    },
+    {
+      "tag": "ROW6",
+      "init": 255
+    },
+    {
+      "tag": "ROW7",
+      "init": 255
+    },
+    {
+      "tag": "RESTORE",
+      "init": 1
+    },
+    {
+      "tag": "LOCK",
+      "init": 255
+    },
+    {
+      "tag": "JOYSWAP",
+      "init": 0
+    },
+    {
+      "tag": "joy2:JOY",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

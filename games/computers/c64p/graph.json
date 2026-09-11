@@ -1,0 +1,5415 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/commodore/c64.cpp",
+    "generatedAt": "2026-09-11T11:45:37.662Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Curt Coder"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/commodore/c64.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/commodore/c64.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:softlist_dev.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "softlist_dev.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/cbmiec/cbmiec.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/cbmiec/cbmiec.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/cbmiec/c1541.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/cbmiec/c1541.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/c64/exp.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/c64/exp.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/vic20/user.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/vic20/user.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/pet/cass.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/pet/cass.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/vcs_ctrl/ctrl.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/vcs_ctrl/ctrl.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6510.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6510.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:imagedev/snapquik.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "imagedev/snapquik.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cbm_snqk.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cbm_snqk.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/input_merger.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/input_merger.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/mos6526.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/mos6526.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/pla.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/pla.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/ram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/ram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/mos6581.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/mos6581.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/mos6566.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/mos6566.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:c64",
+      "label": "Game",
+      "props": {
+        "name": "c64",
+        "year": "1982",
+        "company": "Commodore Business Machines",
+        "fullname": "Commodore 64 (NTSC)",
+        "monitor": "ROT0",
+        "cls": "c64_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "computer",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2294,
+        "sourceColumn": 1,
+        "sourceEndLine": 2294,
+        "classConstants": "{\"m_loram\":1,\"m_hiram\":1,\"m_charen\":1,\"m_va14\":1,\"m_va15\":1,\"m_cass_rd\":1,\"m_iec_srq\":1}"
+      }
+    },
+    {
+      "id": "game:c64p",
+      "label": "Game",
+      "props": {
+        "name": "c64p",
+        "year": "1982",
+        "company": "Commodore Business Machines",
+        "fullname": "Commodore 64 (PAL)",
+        "monitor": "ROT0",
+        "cls": "c64_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "computer",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2296,
+        "sourceColumn": 1,
+        "sourceEndLine": 2296,
+        "classConstants": "{\"m_loram\":1,\"m_hiram\":1,\"m_charen\":1,\"m_va14\":1,\"m_va15\":1,\"m_cass_rd\":1,\"m_iec_srq\":1}"
+      }
+    },
+    {
+      "id": "romset:c64",
+      "label": "RomSet",
+      "props": {
+        "name": "c64",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1949,
+        "sourceColumn": 1,
+        "sourceEndLine": 1949
+      }
+    },
+    {
+      "id": "region:c64/basic",
+      "label": "RomRegion",
+      "props": {
+        "tag": "basic",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1950,
+        "sourceColumn": 2,
+        "sourceEndLine": 1950
+      }
+    },
+    {
+      "id": "rom:c64/basic/901226-01.u3",
+      "label": "Rom",
+      "props": {
+        "file": "901226-01.u3",
+        "offset": 0,
+        "size": 8192,
+        "crc": "f833d117",
+        "sha1": "79015323128650c742a3694c9429aa91f355905e",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1951,
+        "sourceColumn": 2,
+        "sourceEndLine": 1951
+      }
+    },
+    {
+      "id": "region:c64/kernal",
+      "label": "RomRegion",
+      "props": {
+        "tag": "kernal",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1953,
+        "sourceColumn": 2,
+        "sourceEndLine": 1953
+      }
+    },
+    {
+      "id": "rom:c64/kernal/901227-03.u4",
+      "label": "Rom",
+      "props": {
+        "file": "901227-03.u4",
+        "offset": 0,
+        "size": 8192,
+        "crc": "dbe3e7c7",
+        "sha1": "1d503e56df85a62fee696e7618dc5b4e781df1bb"
+      }
+    },
+    {
+      "id": "region:c64/charom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "charom",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2016,
+        "sourceColumn": 2,
+        "sourceEndLine": 2016
+      }
+    },
+    {
+      "id": "rom:c64/charom/901225-01.u5",
+      "label": "Rom",
+      "props": {
+        "file": "901225-01.u5",
+        "offset": 0,
+        "size": 4096,
+        "crc": "ec4272ee",
+        "sha1": "adc7c31e18c7c7413d54802ef2f4193da14711aa",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2017,
+        "sourceColumn": 2,
+        "sourceEndLine": 2017
+      }
+    },
+    {
+      "id": "region:c64/u17",
+      "label": "RomRegion",
+      "props": {
+        "tag": "u17",
+        "size": 245,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:c64/u17/906114-01.u17",
+      "label": "Rom",
+      "props": {
+        "file": "906114-01.u17",
+        "offset": 0,
+        "size": 245,
+        "crc": "54c89351",
+        "sha1": "efb315f560b6f72444b8f0b2ca4b0ccbcd144a1b",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2020,
+        "sourceColumn": 2,
+        "sourceEndLine": 2020
+      }
+    },
+    {
+      "id": "romset:c64p",
+      "label": "RomSet",
+      "props": {
+        "name": "c64p"
+      }
+    },
+    {
+      "id": "region:c64p/basic",
+      "label": "RomRegion",
+      "props": {
+        "tag": "basic",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1950,
+        "sourceColumn": 2,
+        "sourceEndLine": 1950
+      }
+    },
+    {
+      "id": "rom:c64p/basic/901226-01.u3",
+      "label": "Rom",
+      "props": {
+        "file": "901226-01.u3",
+        "offset": 0,
+        "size": 8192,
+        "crc": "f833d117",
+        "sha1": "79015323128650c742a3694c9429aa91f355905e",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1951,
+        "sourceColumn": 2,
+        "sourceEndLine": 1951
+      }
+    },
+    {
+      "id": "region:c64p/kernal",
+      "label": "RomRegion",
+      "props": {
+        "tag": "kernal",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1953,
+        "sourceColumn": 2,
+        "sourceEndLine": 1953
+      }
+    },
+    {
+      "id": "rom:c64p/kernal/901227-03.u4",
+      "label": "Rom",
+      "props": {
+        "file": "901227-03.u4",
+        "offset": 0,
+        "size": 8192,
+        "crc": "dbe3e7c7",
+        "sha1": "1d503e56df85a62fee696e7618dc5b4e781df1bb"
+      }
+    },
+    {
+      "id": "region:c64p/charom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "charom",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2016,
+        "sourceColumn": 2,
+        "sourceEndLine": 2016
+      }
+    },
+    {
+      "id": "rom:c64p/charom/901225-01.u5",
+      "label": "Rom",
+      "props": {
+        "file": "901225-01.u5",
+        "offset": 0,
+        "size": 4096,
+        "crc": "ec4272ee",
+        "sha1": "adc7c31e18c7c7413d54802ef2f4193da14711aa",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2017,
+        "sourceColumn": 2,
+        "sourceEndLine": 2017
+      }
+    },
+    {
+      "id": "region:c64p/u17",
+      "label": "RomRegion",
+      "props": {
+        "tag": "u17",
+        "size": 245,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:c64p/u17/906114-01.u17",
+      "label": "Rom",
+      "props": {
+        "file": "906114-01.u17",
+        "offset": 0,
+        "size": 245,
+        "crc": "54c89351",
+        "sha1": "efb315f560b6f72444b8f0b2ca4b0ccbcd144a1b",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2020,
+        "sourceColumn": 2,
+        "sourceEndLine": 2020
+      }
+    },
+    {
+      "id": "map:c64_state.c64_mem",
+      "label": "AddressMap",
+      "props": {
+        "cls": "c64_state",
+        "name": "c64_mem",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 722,
+        "sourceColumn": 1,
+        "sourceEndLine": 725
+      }
+    },
+    {
+      "id": "map:c64_state.c64_mem/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 65535,
+        "raw": "map(0x0000, 0xffff).rw(FUNC(c64_state::read), FUNC(c64_state::write))",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 724,
+        "sourceColumn": 2,
+        "sourceEndLine": 724
+      }
+    },
+    {
+      "id": "handler:c64_state.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 652,
+        "sourceColumn": 1,
+        "sourceEndLine": 660,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "int aec = 1, ba = 1;\n\n\t// VIC address bus is floating\n\toffs_t va = 0x3fff;\n\n\treturn read_memory(offset, va, aec, ba);"
+      }
+    },
+    {
+      "id": "handler:c64_state.read_memory",
+      "label": "Handler",
+      "props": {
+        "method": "read_memory",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 489,
+        "sourceColumn": 1,
+        "sourceEndLine": 573,
+        "sourceConstants": [
+          "PLA_OUT_CASRAM=0",
+          "PLA_OUT_BASIC=1",
+          "PLA_OUT_KERNAL=2",
+          "PLA_OUT_CHAROM=3",
+          "PLA_OUT_IO=5",
+          "PLA_OUT_ROML=6",
+          "PLA_OUT_ROMH=7"
+        ],
+        "sourceParameters": "offs_t offset, offs_t va, int aec, int ba",
+        "sourceBody": "int rw = 1;\n\tint io1 = 1, io2 = 1;\n\tint sphi2 = m_vic->phi0_r();\n\n\tint plaout = read_pla(offset, va, rw, !aec, ba);\n\n\tuint8_t data = 0xff;\n\n\tif (!aec)\n\t{\n\t\tdata = m_vic->bus_r();\n\t}\n\n\tif (!BIT(plaout, PLA_OUT_CASRAM))\n\t{\n\t\tif (aec)\n\t\t{\n\t\t\tdata = m_ram->pointer()[offset];\n\t\t}\n\t\telse\n\t\t{\n\t\t\tdata = m_ram->pointer()[(!m_va15 << 15) | (!m_va14 << 14) | va];\n\t\t}\n\t}\n\tif (!BIT(plaout, PLA_OUT_BASIC))\n\t{\n\t\tdata = m_basic[offset & 0x1fff];\n\t}\n\tif (!BIT(plaout, PLA_OUT_KERNAL))\n\t{\n\t\tdata = m_kernal[offset & 0x1fff];\n\t}\n\tif (!BIT(plaout, PLA_OUT_CHAROM))\n\t{\n\t\tdata = m_charom[offset & 0xfff];\n\t}\n\tif (!BIT(plaout, PLA_OUT_IO))\n\t{\n\t\tswitch ((offset >> 8) & 0x0f)\n\t\t{\n\t\tcase 0:\n\t\tcase 1:\n\t\tcase 2:\n\t\tcase 3: // VIC\n\t\t\tdata = m_vic->read(offset & 0x3f);\n\t\t\tbreak;\n\n\t\tcase 4:\n\t\tcase 5:\n\t\tcase 6:\n\t\tcase 7: // SID\n\t\t\tdata = m_sid->read(offset & 0x1f);\n\t\t\tbreak;\n\n\t\tcase 0x8:\n\t\tcase 0x9:\n\t\tcase 0xa:\n\t\tcase 0xb: // COLOR\n\t\t\tdata = m_color_ram[offset & 0x3ff] & 0x0f;\n\t\t\tbreak;\n\n\t\tcase 0xc: // CIA1\n\t\t\tdata = m_cia1->read(offset & 0x0f);\n\t\t\tbreak;\n\n\t\tcase 0xd: // CIA2\n\t\t\tdata = m_cia2->read(offset & 0x0f);\n\t\t\tbreak;\n\n\t\tcase 0xe: // I/O1\n\t\t\tio1 = 0;\n\t\t\tbreak;\n\n\t\tcase 0xf: // I/O2\n\t\t\tio2 = 0;\n\t\t\tbreak;\n\t\t}\n\t}\n\n\tint roml = BIT(plaout, PLA_OUT_ROML);\n\tint romh = BIT(plaout, PLA_OUT_ROMH);\n\treturn m_exp->cd_r(offset, data, sphi2, ba, roml, romh, io1, io2);"
+      }
+    },
+    {
+      "id": "handler:c64_state.read_pla",
+      "label": "Handler",
+      "props": {
+        "method": "read_pla",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 469,
+        "sourceColumn": 1,
+        "sourceEndLine": 482,
+        "sourceParameters": "offs_t offset, offs_t va, int rw, int aec, int ba",
+        "sourceBody": "//int ba = m_vic->ba_r();\n\t//int aec = !m_vic->aec_r();\n\tint sphi2 = m_vic->phi0_r();\n\tint game = m_exp->game_r(offset, sphi2, ba, rw, m_loram, m_hiram);\n\tint exrom = m_exp->exrom_r(offset, sphi2, ba, rw, m_loram, m_hiram);\n\tint cas = 0;\n\n\tuint32_t input = BIT(va, 12) << 15 | BIT(va, 13) << 14 | game << 13 | exrom << 12 | rw << 11 | aec << 10 | ba << 9 | BIT(offset, 12) << 8 |\n\t\tBIT(offset, 13) << 7 | BIT(offset, 14) << 6 | BIT(offset, 15) << 5 | m_va14 << 4 | m_charen << 3 | m_hiram << 2 | m_loram << 1 | cas;\n\n\treturn m_pla->read(input);"
+      }
+    },
+    {
+      "id": "handler:c64_state.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 667,
+        "sourceColumn": 1,
+        "sourceEndLine": 672,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "int aec = 1, ba = 1;\n\n\twrite_memory(offset, data, aec, ba);"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_memory",
+      "label": "Handler",
+      "props": {
+        "method": "write_memory",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 580,
+        "sourceColumn": 1,
+        "sourceEndLine": 645,
+        "sourceConstants": [
+          "PLA_OUT_CASRAM=0",
+          "PLA_OUT_GRW=4",
+          "PLA_OUT_IO=5",
+          "PLA_OUT_ROML=6",
+          "PLA_OUT_ROMH=7"
+        ],
+        "sourceParameters": "offs_t offset, uint8_t data, int aec, int ba",
+        "sourceBody": "int rw = 0;\n\toffs_t va = 0;\n\tint io1 = 1, io2 = 1;\n\tint sphi2 = m_vic->phi0_r();\n\n\tint plaout = read_pla(offset, va, rw, !aec, ba);\n\n\tif (offset < 0x0002)\n\t{\n\t\t// write to internal CPU register\n\t\tdata = m_vic->bus_r();\n\t}\n\n\tif (!BIT(plaout, PLA_OUT_CASRAM))\n\t{\n\t\tm_ram->pointer()[offset] = data;\n\t}\n\tif (!BIT(plaout, PLA_OUT_IO))\n\t{\n\t\tswitch ((offset >> 8) & 0x0f)\n\t\t{\n\t\tcase 0:\n\t\tcase 1:\n\t\tcase 2:\n\t\tcase 3: // VIC\n\t\t\tm_vic->write(offset & 0x3f, data);\n\t\t\tbreak;\n\n\t\tcase 4:\n\t\tcase 5:\n\t\tcase 6:\n\t\tcase 7: // SID\n\t\t\tm_sid->write(offset & 0x1f, data);\n\t\t\tbreak;\n\n\t\tcase 0x8:\n\t\tcase 0x9:\n\t\tcase 0xa:\n\t\tcase 0xb: // COLOR\n\t\t\tif (!BIT(plaout, PLA_OUT_GRW)) m_color_ram[offset & 0x3ff] = data & 0x0f;\n\t\t\tbreak;\n\n\t\tcase 0xc: // CIA1\n\t\t\tm_cia1->write(offset & 0x0f, data);\n\t\t\tbreak;\n\n\t\tcase 0xd: // CIA2\n\t\t\tm_cia2->write(offset & 0x0f, data);\n\t\t\tbreak;\n\n\t\tcase 0xe: // I/O1\n\t\t\tio1 = 0;\n\t\t\tbreak;\n\n\t\tcase 0xf: // I/O2\n\t\t\tio2 = 0;\n\t\t\tbreak;\n\t\t}\n\t}\n\n\tint roml = BIT(plaout, PLA_OUT_ROML);\n\tint romh = BIT(plaout, PLA_OUT_ROMH);\n\tm_exp->cd_w(offset, data, sphi2, ba, roml, romh, io1, io2);"
+      }
+    },
+    {
+      "id": "map:c64_state.vic_videoram_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "c64_state",
+        "name": "vic_videoram_map",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 732,
+        "sourceColumn": 1,
+        "sourceEndLine": 735
+      }
+    },
+    {
+      "id": "map:c64_state.vic_videoram_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).r(FUNC(c64_state::vic_videoram_r))",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 734,
+        "sourceColumn": 2,
+        "sourceEndLine": 734
+      }
+    },
+    {
+      "id": "handler:c64_state.vic_videoram_r",
+      "label": "Handler",
+      "props": {
+        "method": "vic_videoram_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 679,
+        "sourceColumn": 1,
+        "sourceEndLine": 688,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "int aec = m_vic->aec_r(), ba = m_vic->ba_r();\n\toffs_t va = offset;\n\n\t// BIT(offset, 15)/BIT(offset, 14) are not connected to VIC so they are floating\n\t//offset |= 0xc000;\n\n\treturn read_memory(offset, va, aec, ba);"
+      }
+    },
+    {
+      "id": "map:c64_state.vic_colorram_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "c64_state",
+        "name": "vic_colorram_map",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 1,
+        "sourceEndLine": 745
+      }
+    },
+    {
+      "id": "map:c64_state.vic_colorram_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 1023,
+        "raw": "map(0x000, 0x3ff).r(FUNC(c64_state::vic_colorram_r))",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 2,
+        "sourceEndLine": 744
+      }
+    },
+    {
+      "id": "handler:c64_state.vic_colorram_r",
+      "label": "Handler",
+      "props": {
+        "method": "vic_colorram_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 695,
+        "sourceColumn": 1,
+        "sourceEndLine": 710,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "uint8_t data;\n\n\tif (m_vic->aec_r())\n\t{\n\t\t// TODO low nibble of last opcode\n\t\tdata = 0x0f;\n\t}\n\telse\n\t{\n\t\tdata = m_color_ram[offset] & 0x0f;\n\t}\n\n\treturn data;"
+      }
+    },
+    {
+      "id": "handler:c64_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1468,
+        "sourceColumn": 1,
+        "sourceEndLine": 1482,
+        "sourceParameters": "",
+        "sourceBody": "m_maincpu->reset();\n\n\tm_vic->reset();\n\tm_sid->reset();\n\tm_cia1->reset();\n\tm_cia2->reset();\n\n\tm_iec->reset();\n\tm_exp->reset();\n\n\tm_user->write_3(0);\n\tm_user->write_3(1);"
+      }
+    },
+    {
+      "id": "handler:c64_state.cpu_r",
+      "label": "Handler",
+      "props": {
+        "method": "cpu_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1250,
+        "sourceColumn": 1,
+        "sourceEndLine": 1270,
+        "sourceParameters": "",
+        "sourceBody": "/*\n\n\t    bit     description\n\n\t    P0      1\n\t    P1      1\n\t    P2      1\n\t    P3\n\t    P4      CASS SENS\n\t    P5      0\n\n\t*/\n\n\tuint8_t data = 0x07;\n\n\tdata |= m_cassette->sense_r() << 4;\n\n\treturn data;"
+      }
+    },
+    {
+      "id": "handler:c64_state.cpu_w",
+      "label": "Handler",
+      "props": {
+        "method": "cpu_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1272,
+        "sourceColumn": 1,
+        "sourceEndLine": 1297,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/*\n\n\t    bit     description\n\n\t    P0      LORAM\n\t    P1      HIRAM\n\t    P2      CHAREN\n\t    P3      CASS WRT\n\t    P4\n\t    P5      CASS MOTOR\n\n\t*/\n\n\t// memory banking\n\tm_loram = BIT(data, 0);\n\tm_hiram = BIT(data, 1);\n\tm_charen = BIT(data, 2);\n\n\t// cassette write\n\tm_cassette->write(BIT(data, 3));\n\n\t// cassette motor\n\tm_cassette->motor_w(BIT(data, 5));"
+      }
+    },
+    {
+      "id": "handler:input_merger_device.in_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_1",
+        "ownerClass": "input_merger_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1838,
+        "sourceColumn": 2,
+        "sourceEndLine": 1838
+      }
+    },
+    {
+      "id": "handler:c64_state.sid_potx_r",
+      "label": "Handler",
+      "props": {
+        "method": "sid_potx_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 911,
+        "sourceColumn": 1,
+        "sourceEndLine": 938,
+        "sourceParameters": "",
+        "sourceBody": "uint8_t data = 0xff;\n\tvcs_control_port_device *cur1 = m_portswap->read() ? m_joy2 : m_joy1;\n\tvcs_control_port_device *cur2 = m_portswap->read() ? m_joy1 : m_joy2;\n\n\tswitch (m_cia1->pa_r() >> 6)\n\t{\n\tcase 1: data = cur1->read_pot_x(); break;\n\tcase 2: data = cur2->read_pot_x(); break;\n\tcase 3:\n\t\tif (cur1->has_pot_x() && cur2->has_pot_x())\n\t\t{\n\t\t\tdata = 1 / (1 / cur1->read_pot_x() + 1 / cur2->read_pot_x());\n\t\t}\n\t\telse if (cur1->has_pot_x())\n\t\t{\n\t\t\tdata = cur1->read_pot_x();\n\t\t}\n\t\telse if (cur2->has_pot_x())\n\t\t{\n\t\t\tdata = cur2->read_pot_x();\n\t\t}\n\t\tbreak;\n\t}\n\n\treturn data;",
+        "inputMembers": [
+          "m_portswap=JOYSWAP"
+        ]
+      }
+    },
+    {
+      "id": "handler:c64_state.sid_poty_r",
+      "label": "Handler",
+      "props": {
+        "method": "sid_poty_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 940,
+        "sourceColumn": 1,
+        "sourceEndLine": 967,
+        "sourceParameters": "",
+        "sourceBody": "uint8_t data = 0xff;\n\tvcs_control_port_device *cur1 = m_portswap->read() ? m_joy2 : m_joy1;\n\tvcs_control_port_device *cur2 = m_portswap->read() ? m_joy1 : m_joy2;\n\n\tswitch (m_cia1->pa_r() >> 6)\n\t{\n\tcase 1: data = cur1->read_pot_y(); break;\n\tcase 2: data = cur2->read_pot_y(); break;\n\tcase 3:\n\t\tif (cur1->has_pot_y() && cur2->has_pot_y())\n\t\t{\n\t\t\tdata = 1 / (1 / cur1->read_pot_y() + 1 / cur2->read_pot_y());\n\t\t}\n\t\telse if (cur1->has_pot_y())\n\t\t{\n\t\t\tdata = cur1->read_pot_y();\n\t\t}\n\t\telse if (cur2->has_pot_y())\n\t\t{\n\t\t\tdata = cur2->read_pot_y();\n\t\t}\n\t\tbreak;\n\t}\n\n\treturn data;",
+        "inputMembers": [
+          "m_portswap=JOYSWAP"
+        ]
+      }
+    },
+    {
+      "id": "handler:input_merger_device.in_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_0",
+        "ownerClass": "input_merger_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1871,
+        "sourceColumn": 2,
+        "sourceEndLine": 1871
+      }
+    },
+    {
+      "id": "handler:pet_user_port_device.write_4",
+      "label": "Handler",
+      "props": {
+        "method": "write_4",
+        "ownerClass": "pet_user_port_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1862,
+        "sourceColumn": 2,
+        "sourceEndLine": 1862
+      }
+    },
+    {
+      "id": "handler:pet_user_port_device.write_5",
+      "label": "Handler",
+      "props": {
+        "method": "write_5",
+        "ownerClass": "pet_user_port_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1863,
+        "sourceColumn": 2,
+        "sourceEndLine": 1863
+      }
+    },
+    {
+      "id": "handler:c64_state.cia1_pa_r",
+      "label": "Handler",
+      "props": {
+        "method": "cia1_pa_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 974,
+        "sourceColumn": 1,
+        "sourceEndLine": 1021,
+        "sourceParameters": "",
+        "sourceBody": "/*\n\n\t    bit     description\n\n\t    PA0     COL0, JOY B0\n\t    PA1     COL1, JOY B1\n\t    PA2     COL2, JOY B2\n\t    PA3     COL3, JOY B3\n\t    PA4     COL4, BTNB\n\t    PA5     COL5\n\t    PA6     COL6\n\t    PA7     COL7\n\n\t*/\n\n\tuint8_t data = 0xff;\n\tvcs_control_port_device *cur2 = m_portswap->read() ? m_joy1 : m_joy2;\n\n\t// joystick\n\tuint8_t joy_b = cur2->read_joy();\n\n\tdata &= (0xf0 | (joy_b & 0x0f));\n\tdata &= ~(!BIT(joy_b, 5) << 4);\n\n\t// keyboard\n\tuint8_t cia1_pb = m_cia1->pb_r();\n\tuint32_t row[8] = { m_row[0]->read(), m_row[1]->read() & m_lock->read(), m_row[2]->read(), m_row[3]->read(),\n\t\t\t\t\t\tm_row[4]->read(), m_row[5]->read(), m_row[6]->read(), m_row[7]->read() };\n\n\tfor (int i = 0; i < 8; i++)\n\t{\n\t\tif (!BIT(cia1_pb, i))\n\t\t{\n\t\t\tif (!BIT(row[7], i)) data &= ~0x80;\n\t\t\tif (!BIT(row[6], i)) data &= ~0x40;\n\t\t\tif (!BIT(row[5], i)) data &= ~0x20;\n\t\t\tif (!BIT(row[4], i)) data &= ~0x10;\n\t\t\tif (!BIT(row[3], i)) data &= ~0x08;\n\t\t\tif (!BIT(row[2], i)) data &= ~0x04;\n\t\t\tif (!BIT(row[1], i)) data &= ~0x02;\n\t\t\tif (!BIT(row[0], i)) data &= ~0x01;\n\t\t}\n\t}\n\n\treturn data;",
+        "inputMembers": [
+          "m_row=ROW0,ROW1,ROW2,ROW3,ROW4,ROW5,ROW6,ROW7",
+          "m_lock=LOCK",
+          "m_portswap=JOYSWAP"
+        ]
+      }
+    },
+    {
+      "id": "handler:c64_state.cia1_pb_r",
+      "label": "Handler",
+      "props": {
+        "method": "cia1_pb_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1043,
+        "sourceColumn": 1,
+        "sourceEndLine": 1082,
+        "sourceParameters": "",
+        "sourceBody": "/*\n\n\t    bit     description\n\n\t    PB0     ROW0, JOY A0\n\t    PB1     ROW1, JOY A1\n\t    PB2     ROW2, JOY A2\n\t    PB3     ROW3, JOY A3\n\t    PB4     ROW4, BTNA, _LP\n\t    PB5     ROW5\n\t    PB6     ROW6\n\t    PB7     ROW7\n\n\t*/\n\n\tuint8_t data = 0xff;\n\tvcs_control_port_device *cur1 = m_portswap->read() ? m_joy2 : m_joy1;\n\n\t// joystick\n\tuint8_t joy_a = cur1->read_joy();\n\n\tdata &= (0xf0 | (joy_a & 0x0f));\n\tdata &= ~(!BIT(joy_a, 5) << 4);\n\n\t// keyboard\n\tuint8_t cia1_pa = m_cia1->pa_r();\n\n\tif (!BIT(cia1_pa, 7)) data &= m_row[7]->read();\n\tif (!BIT(cia1_pa, 6)) data &= m_row[6]->read();\n\tif (!BIT(cia1_pa, 5)) data &= m_row[5]->read();\n\tif (!BIT(cia1_pa, 4)) data &= m_row[4]->read();\n\tif (!BIT(cia1_pa, 3)) data &= m_row[3]->read();\n\tif (!BIT(cia1_pa, 2)) data &= m_row[2]->read();\n\tif (!BIT(cia1_pa, 1)) data &= m_row[1]->read() & m_lock->read();\n\tif (!BIT(cia1_pa, 0)) data &= m_row[0]->read();\n\n\treturn data;",
+        "inputMembers": [
+          "m_row=ROW0,ROW1,ROW2,ROW3,ROW4,ROW5,ROW6,ROW7",
+          "m_lock=LOCK",
+          "m_portswap=JOYSWAP"
+        ]
+      }
+    },
+    {
+      "id": "handler:c64_state.cia1_pb_w",
+      "label": "Handler",
+      "props": {
+        "method": "cia1_pb_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1084,
+        "sourceColumn": 1,
+        "sourceEndLine": 1105,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/*\n\n\t    bit     description\n\n\t    PB0     ROW0, JOY A0\n\t    PB1     ROW1, JOY A1\n\t    PB2     ROW2, JOY A2\n\t    PB3     ROW3, JOY A3\n\t    PB4     ROW4, BTNA, _LP\n\t    PB5     ROW5\n\t    PB6     ROW6\n\t    PB7     ROW7\n\n\t*/\n\tvcs_control_port_device *cur1 = m_portswap->read() ? m_joy2 : m_joy1;\n\n\tcur1->joy_w(data & 0x1f);\n\n\tm_vic->lp_w(BIT(data, 4));",
+        "inputMembers": [
+          "m_portswap=JOYSWAP"
+        ]
+      }
+    },
+    {
+      "id": "handler:pet_user_port_device.write_6",
+      "label": "Handler",
+      "props": {
+        "method": "write_6",
+        "ownerClass": "pet_user_port_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1872,
+        "sourceColumn": 2,
+        "sourceEndLine": 1872
+      }
+    },
+    {
+      "id": "handler:pet_user_port_device.write_7",
+      "label": "Handler",
+      "props": {
+        "method": "write_7",
+        "ownerClass": "pet_user_port_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1873,
+        "sourceColumn": 2,
+        "sourceEndLine": 1873
+      }
+    },
+    {
+      "id": "handler:c64_state.cia2_pa_r",
+      "label": "Handler",
+      "props": {
+        "method": "cia2_pa_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1170,
+        "sourceColumn": 1,
+        "sourceEndLine": 1197,
+        "sourceConstants": [
+          "CLK=2",
+          "DATA=3"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "/*\n\n\t    bit     description\n\n\t    PA0\n\t    PA1\n\t    PA2     USER PORT\n\t    PA3\n\t    PA4\n\t    PA5\n\t    PA6     CLK\n\t    PA7     DATA\n\n\t*/\n\n\tuint8_t data = 0;\n\n\t// user port\n\tdata |= m_user_pa2 << 2;\n\n\t// IEC bus\n\tdata |= m_iec->clk_r() << 6;\n\tdata |= m_iec->data_r() << 7;\n\n\treturn data;"
+      }
+    },
+    {
+      "id": "handler:c64_state.cia2_pa_w",
+      "label": "Handler",
+      "props": {
+        "method": "cia2_pa_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1199,
+        "sourceColumn": 1,
+        "sourceEndLine": 1227,
+        "sourceConstants": [
+          "ATN=1",
+          "CLK=2",
+          "DATA=3",
+          "OUT=2"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/*\n\n\t    bit     description\n\n\t    PA0     _VA14\n\t    PA1     _VA15\n\t    PA2     USER PORT\n\t    PA3     ATN OUT\n\t    PA4     CLK OUT\n\t    PA5     DATA OUT\n\t    PA6\n\t    PA7\n\n\t*/\n\n\t// VIC banking\n\tm_va14 = BIT(data, 0);\n\tm_va15 = BIT(data, 1);\n\n\t// user port\n\tm_user->write_m(BIT(data, 2));\n\n\t// IEC bus\n\tm_iec->host_atn_w(!BIT(data, 3));\n\tm_iec->host_clk_w(!BIT(data, 4));\n\tm_iec->host_data_w(!BIT(data, 5));"
+      }
+    },
+    {
+      "id": "handler:c64_state.cia2_pb_r",
+      "label": "Handler",
+      "props": {
+        "method": "cia2_pb_r",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1229,
+        "sourceColumn": 1,
+        "sourceEndLine": 1232,
+        "sourceParameters": "",
+        "sourceBody": "return m_user_pb;"
+      }
+    },
+    {
+      "id": "handler:c64_state.cia2_pb_w",
+      "label": "Handler",
+      "props": {
+        "method": "cia2_pb_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1234,
+        "sourceColumn": 1,
+        "sourceEndLine": 1244,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_user->write_c((data>>0)&1);\n\tm_user->write_d((data>>1)&1);\n\tm_user->write_e((data>>2)&1);\n\tm_user->write_f((data>>3)&1);\n\tm_user->write_h((data>>4)&1);\n\tm_user->write_j((data>>5)&1);\n\tm_user->write_k((data>>6)&1);\n\tm_user->write_l((data>>7)&1);"
+      }
+    },
+    {
+      "id": "handler:pet_user_port_device.write_8",
+      "label": "Handler",
+      "props": {
+        "method": "write_8",
+        "ownerClass": "pet_user_port_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1878,
+        "sourceColumn": 2,
+        "sourceEndLine": 1878
+      }
+    },
+    {
+      "id": "handler:c64_state.cass_rd_w",
+      "label": "Handler",
+      "props": {
+        "method": "cass_rd_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 155,
+        "sourceColumn": 1,
+        "sourceEndLine": 155,
+        "sourceParameters": "int state",
+        "sourceBody": "m_cass_rd = state; update_cia1_flag();"
+      }
+    },
+    {
+      "id": "handler:c64_state.update_cia1_flag",
+      "label": "Handler",
+      "props": {
+        "method": "update_cia1_flag",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 153,
+        "sourceColumn": 1,
+        "sourceEndLine": 154,
+        "sourceParameters": "",
+        "sourceBody": "m_cia1->flag_w(m_cass_rd & m_iec_srq);"
+      }
+    },
+    {
+      "id": "handler:c64_state.iec_srq_w",
+      "label": "Handler",
+      "props": {
+        "method": "iec_srq_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 156,
+        "sourceColumn": 1,
+        "sourceEndLine": 156,
+        "sourceParameters": "int state",
+        "sourceBody": "m_iec_srq = state; update_cia1_flag();"
+      }
+    },
+    {
+      "id": "handler:pet_user_port_device.write_9",
+      "label": "Handler",
+      "props": {
+        "method": "write_9",
+        "ownerClass": "pet_user_port_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1882,
+        "sourceColumn": 2,
+        "sourceEndLine": 1882
+      }
+    },
+    {
+      "id": "handler:input_merger_device.in_w_2",
+      "label": "Handler",
+      "props": {
+        "method": "in_w_2",
+        "ownerClass": "input_merger_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1890,
+        "sourceColumn": 2,
+        "sourceEndLine": 1890
+      }
+    },
+    {
+      "id": "handler:c64_state.exp_reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "exp_reset_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1402,
+        "sourceColumn": 1,
+        "sourceEndLine": 1408,
+        "sourceParameters": "int state",
+        "sourceBody": "if (!state)\n\t{\n\t\tmachine_reset();\n\t}"
+      }
+    },
+    {
+      "id": "handler:c64_state.exp_dma_w",
+      "label": "Handler",
+      "props": {
+        "method": "exp_dma_w",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1392,
+        "sourceColumn": 1,
+        "sourceEndLine": 1400,
+        "sourceParameters": "int state",
+        "sourceBody": "if (m_exp_dma != state)\n\t{\n\t\tm_exp_dma = state;\n\n\t\tm_maincpu->set_input_line(INPUT_LINE_HALT, m_exp_dma);\n\t}"
+      }
+    },
+    {
+      "id": "handler:mos6526_device.cnt_w",
+      "label": "Handler",
+      "props": {
+        "method": "cnt_w",
+        "ownerClass": "mos6526_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1900,
+        "sourceColumn": 2,
+        "sourceEndLine": 1900
+      }
+    },
+    {
+      "id": "handler:mos6526_device.sp_w",
+      "label": "Handler",
+      "props": {
+        "method": "sp_w",
+        "ownerClass": "mos6526_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1901,
+        "sourceColumn": 2,
+        "sourceEndLine": 1901
+      }
+    },
+    {
+      "id": "handler:cbm_iec_device.host_atn_w",
+      "label": "Handler",
+      "props": {
+        "method": "host_atn_w",
+        "ownerClass": "cbm_iec_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1902,
+        "sourceColumn": 2,
+        "sourceEndLine": 1902
+      }
+    },
+    {
+      "id": "handler:mos6526_device.flag_w",
+      "label": "Handler",
+      "props": {
+        "method": "flag_w",
+        "ownerClass": "mos6526_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1903,
+        "sourceColumn": 2,
+        "sourceEndLine": 1903
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb0",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb0",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 1,
+        "sourceEndLine": 145,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 1; else m_user_pb &= ~1;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb1",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb1",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 146,
+        "sourceColumn": 1,
+        "sourceEndLine": 146,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 2; else m_user_pb &= ~2;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb2",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb2",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 147,
+        "sourceColumn": 1,
+        "sourceEndLine": 147,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 4; else m_user_pb &= ~4;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb3",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb3",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 148,
+        "sourceColumn": 1,
+        "sourceEndLine": 148,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 8; else m_user_pb &= ~8;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb4",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb4",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 149,
+        "sourceColumn": 1,
+        "sourceEndLine": 149,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 16; else m_user_pb &= ~16;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb5",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb5",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 150,
+        "sourceColumn": 1,
+        "sourceEndLine": 150,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 32; else m_user_pb &= ~32;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb6",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb6",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 151,
+        "sourceColumn": 1,
+        "sourceEndLine": 151,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 64; else m_user_pb &= ~64;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pb7",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pb7",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 152,
+        "sourceColumn": 1,
+        "sourceEndLine": 152,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state) m_user_pb |= 128; else m_user_pb &= ~128;"
+      }
+    },
+    {
+      "id": "handler:c64_state.write_user_pa2",
+      "label": "Handler",
+      "props": {
+        "method": "write_user_pa2",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 142,
+        "sourceColumn": 30,
+        "sourceEndLine": 144,
+        "sourceParameters": "int state",
+        "sourceBody": "m_user_pa2 = state;"
+      }
+    },
+    {
+      "id": "handler:c64_state.quickload_c64",
+      "label": "Handler",
+      "props": {
+        "method": "quickload_c64",
+        "ownerClass": "c64_state",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1914,
+        "sourceColumn": 2,
+        "sourceEndLine": 1914
+      }
+    },
+    {
+      "id": "machine:c64_state.pal",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "c64_state",
+        "name": "pal",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_loram\",\"bits\":32,\"signed\":true,\"initial\":1}",
+          "{\"name\":\"m_hiram\",\"bits\":32,\"signed\":true,\"initial\":1}",
+          "{\"name\":\"m_charen\",\"bits\":32,\"signed\":true,\"initial\":1}",
+          "{\"name\":\"m_va14\",\"bits\":32,\"signed\":true,\"initial\":1}",
+          "{\"name\":\"m_va15\",\"bits\":32,\"signed\":true,\"initial\":1}",
+          "{\"name\":\"m_exp_dma\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_cass_rd\",\"bits\":32,\"signed\":true,\"initial\":1}",
+          "{\"name\":\"m_iec_srq\",\"bits\":32,\"signed\":true,\"initial\":1}",
+          "{\"name\":\"m_user_pa2\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_user_pb\",\"bits\":32,\"signed\":true}"
+        ],
+        "perfectQuantum": true,
+        "resetHandlers": [
+          "c64_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1668,
+        "sourceColumn": 1,
+        "sourceEndLine": 1779
+      }
+    },
+    {
+      "id": "softlist:c64_state.pal/vic10",
+      "label": "SoftwareList",
+      "props": {
+        "name": "vic10",
+        "tag": "cart_list_vic10",
+        "status": "original",
+        "filter": "PAL"
+      }
+    },
+    {
+      "id": "softlist:c64_state.pal/c64_cart",
+      "label": "SoftwareList",
+      "props": {
+        "name": "c64_cart",
+        "tag": "cart_list_c64",
+        "status": "original",
+        "filter": "PAL"
+      }
+    },
+    {
+      "id": "softlist:c64_state.pal/c64_cass",
+      "label": "SoftwareList",
+      "props": {
+        "name": "c64_cass",
+        "tag": "cass_list",
+        "status": "original",
+        "filter": "PAL"
+      }
+    },
+    {
+      "id": "softlist:c64_state.pal/c64_flop_orig",
+      "label": "SoftwareList",
+      "props": {
+        "name": "c64_flop_orig",
+        "tag": "flop525_orig",
+        "status": "original",
+        "filter": "PAL"
+      }
+    },
+    {
+      "id": "softlist:c64_state.pal/c64_flop_misc",
+      "label": "SoftwareList",
+      "props": {
+        "name": "c64_flop_misc",
+        "tag": "flop525_misc",
+        "status": "original",
+        "filter": "PAL"
+      }
+    },
+    {
+      "id": "softlist:c64_state.pal/c64_quik",
+      "label": "SoftwareList",
+      "props": {
+        "name": "c64_quik",
+        "tag": "quik_list",
+        "status": "original",
+        "filter": "PAL"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u7",
+      "label": "Device",
+      "props": {
+        "type": "M6510",
+        "tag": "u7",
+        "clock": 985248.4444444445,
+        "config": [
+          "M6510(config, m_maincpu, XTAL(17'734'472)/18)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &c64_state::c64_mem)",
+          "m_maincpu->read_callback().set(FUNC(c64_state::cpu_r))",
+          "m_maincpu->write_callback().set(FUNC(c64_state::cpu_w))",
+          "m_maincpu->set_pulls(0x17, 0xc8)",
+          "m_maincpu->set_dasm_override(FUNC(c64_state::dasm_override))",
+          "config.set_perfect_quantum(m_maincpu)"
+        ],
+        "member": "m_maincpu",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1671,
+        "sourceColumn": 2,
+        "sourceEndLine": 1671,
+        "configCalls": [
+          "set_pulls(23,200)"
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u7/callback:u7:0",
+      "label": "Callback",
+      "props": {
+        "signal": "read_callback",
+        "operation": "set",
+        "raw": "m_maincpu->read_callback().set(FUNC(c64_state::cpu_r))",
+        "ownerTag": "u7",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1673,
+        "sourceColumn": 2,
+        "sourceEndLine": 1673,
+        "targetClass": "c64_state",
+        "targetMethod": "cpu_r"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u7/callback:u7:1",
+      "label": "Callback",
+      "props": {
+        "signal": "write_callback",
+        "operation": "set",
+        "raw": "m_maincpu->write_callback().set(FUNC(c64_state::cpu_w))",
+        "ownerTag": "u7",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1674,
+        "sourceColumn": 2,
+        "sourceEndLine": 1674,
+        "targetClass": "c64_state",
+        "targetMethod": "cpu_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/irq",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ANY_HIGH",
+        "tag": "irq",
+        "clock": null,
+        "config": [
+          "input_merger_device &irq(INPUT_MERGER_ANY_HIGH(config, \"irq\"))",
+          "irq.output_handler().set_inputline(m_maincpu, m6510_device::IRQ_LINE)"
+        ],
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1679,
+        "sourceColumn": 2,
+        "sourceEndLine": 1679
+      }
+    },
+    {
+      "id": "device:c64_state.pal/irq/callback:irq:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set_inputline",
+        "raw": "irq.output_handler().set_inputline(m_maincpu, m6510_device::IRQ_LINE)",
+        "ownerTag": "irq",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1680,
+        "sourceColumn": 2,
+        "sourceEndLine": 1680,
+        "inputLine": "m6510_device::IRQ_LINE",
+        "targetTag": "u7"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/nmi",
+      "label": "Device",
+      "props": {
+        "type": "INPUT_MERGER_ANY_HIGH",
+        "tag": "nmi",
+        "clock": null,
+        "config": [
+          "INPUT_MERGER_ANY_HIGH(config, m_nmi)",
+          "m_nmi->output_handler().set_inputline(m_maincpu, m6510_device::NMI_LINE)"
+        ],
+        "member": "m_nmi",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1682,
+        "sourceColumn": 2,
+        "sourceEndLine": 1682
+      }
+    },
+    {
+      "id": "device:c64_state.pal/nmi/callback:nmi:0",
+      "label": "Callback",
+      "props": {
+        "signal": "output_handler",
+        "operation": "set_inputline",
+        "raw": "m_nmi->output_handler().set_inputline(m_maincpu, m6510_device::NMI_LINE)",
+        "ownerTag": "nmi",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1683,
+        "sourceColumn": 2,
+        "sourceEndLine": 1683,
+        "inputLine": "m6510_device::NMI_LINE",
+        "targetTag": "u7"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u19",
+      "label": "Device",
+      "props": {
+        "type": "MOS6569",
+        "tag": "u19",
+        "clock": 985248.4444444445,
+        "config": [
+          "mos6569_device &mos6569(MOS6569(config, MOS6569_TAG, XTAL(17'734'472)/18))",
+          "mos6569.set_cpu(m_maincpu)",
+          "mos6569.irq_callback().set(\"irq\", FUNC(input_merger_device::in_w<1>))",
+          "mos6569.set_screen(SCREEN_TAG)",
+          "mos6569.set_addrmap(0, &c64_state::vic_videoram_map)",
+          "mos6569.set_addrmap(1, &c64_state::vic_colorram_map)"
+        ],
+        "member": "m_vic",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1686,
+        "sourceColumn": 2,
+        "sourceEndLine": 1686
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u19/callback:u19:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_callback",
+        "operation": "set",
+        "raw": "mos6569.irq_callback().set(\"irq\", FUNC(input_merger_device::in_w<1>))",
+        "ownerTag": "u19",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1688,
+        "sourceColumn": 2,
+        "sourceEndLine": 1688,
+        "targetTag": "irq",
+        "targetClass": "input_merger_device",
+        "targetMethod": "in_w_1"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, SCREEN_TAG, SCREEN_TYPE_RASTER))",
+          "screen.set_refresh_hz(VIC6569_VRETRACERATE)",
+          "screen.set_size(VIC6569_COLUMNS, VIC6569_LINES)",
+          "screen.set_visarea(0, VIC6569_VISIBLECOLUMNS - 1, 0, VIC6569_VISIBLELINES - 1)",
+          "screen.set_screen_update(MOS6569_TAG, FUNC(mos6569_device::screen_update))"
+        ],
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1693,
+        "sourceColumn": 2,
+        "sourceEndLine": 1693,
+        "configCalls": [
+          "set_refresh_hz(50.12456473567585)",
+          "set_size(504,312)",
+          "set_visarea(0,402,0,283)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 50.12456473567585,
+        "screenSize": [
+          504,
+          312
+        ],
+        "screenVisarea": [
+          0,
+          402,
+          0,
+          283
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(MOS6569_TAG, FUNC(mos6569_device::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1697,
+        "sourceColumn": 2,
+        "sourceEndLine": 1697,
+        "targetClass": "mos6569_device",
+        "targetMethod": "screen_update",
+        "targetTag": "u19"
+      }
+    },
+    {
+      "id": "handler:mos6569_device.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "mos6569_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1697,
+        "sourceColumn": 2,
+        "sourceEndLine": 1697
+      }
+    },
+    {
+      "id": "device:c64_state.pal/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1700,
+        "sourceColumn": 2,
+        "sourceEndLine": 1700
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u18",
+      "label": "Device",
+      "props": {
+        "type": "MOS6581",
+        "tag": "u18",
+        "clock": 985248.4444444445,
+        "config": [
+          "MOS6581(config, m_sid, XTAL(17'734'472)/18)",
+          "m_sid->potx().set(FUNC(c64_state::sid_potx_r))",
+          "m_sid->poty().set(FUNC(c64_state::sid_poty_r))",
+          "m_sid->add_route(ALL_OUTPUTS, \"mono\", 1.00)"
+        ],
+        "member": "m_sid",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1701,
+        "sourceColumn": 2,
+        "sourceEndLine": 1701
+      }
+    },
+    {
+      "id": "audioroute:device:c64_state.pal/u18/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "m_sid->add_route(ALL_OUTPUTS, \"mono\", 1.00)",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1704,
+        "sourceColumn": 2,
+        "sourceEndLine": 1704
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u18/callback:u18:0",
+      "label": "Callback",
+      "props": {
+        "signal": "potx",
+        "operation": "set",
+        "raw": "m_sid->potx().set(FUNC(c64_state::sid_potx_r))",
+        "ownerTag": "u18",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1702,
+        "sourceColumn": 2,
+        "sourceEndLine": 1702,
+        "targetClass": "c64_state",
+        "targetMethod": "sid_potx_r"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u18/callback:u18:1",
+      "label": "Callback",
+      "props": {
+        "signal": "poty",
+        "operation": "set",
+        "raw": "m_sid->poty().set(FUNC(c64_state::sid_poty_r))",
+        "ownerTag": "u18",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1703,
+        "sourceColumn": 2,
+        "sourceEndLine": 1703,
+        "targetClass": "c64_state",
+        "targetMethod": "sid_poty_r"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u17",
+      "label": "Device",
+      "props": {
+        "type": "PLS100",
+        "tag": "u17",
+        "clock": null,
+        "config": [
+          "PLS100(config, m_pla)"
+        ],
+        "member": "m_pla",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1707,
+        "sourceColumn": 2,
+        "sourceEndLine": 1707
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u1",
+      "label": "Device",
+      "props": {
+        "type": "MOS6526",
+        "tag": "u1",
+        "clock": 985248.4444444445,
+        "config": [
+          "MOS6526(config, m_cia1, XTAL(17'734'472)/18)",
+          "m_cia1->set_tod_clock(50)",
+          "m_cia1->irq_wr_callback().set(\"irq\", FUNC(input_merger_device::in_w<0>))",
+          "m_cia1->cnt_wr_callback().set(m_user, FUNC(pet_user_port_device::write_4))",
+          "m_cia1->sp_wr_callback().set(m_user, FUNC(pet_user_port_device::write_5))",
+          "m_cia1->pa_rd_callback().set(FUNC(c64_state::cia1_pa_r))",
+          "m_cia1->pb_rd_callback().set(FUNC(c64_state::cia1_pb_r))",
+          "m_cia1->pb_wr_callback().set(FUNC(c64_state::cia1_pb_w))"
+        ],
+        "member": "m_cia1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1709,
+        "sourceColumn": 2,
+        "sourceEndLine": 1709,
+        "configCalls": [
+          "set_tod_clock(50)"
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u1/callback:u1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_wr_callback",
+        "operation": "set",
+        "raw": "m_cia1->irq_wr_callback().set(\"irq\", FUNC(input_merger_device::in_w<0>))",
+        "ownerTag": "u1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1711,
+        "sourceColumn": 2,
+        "sourceEndLine": 1711,
+        "targetTag": "irq",
+        "targetClass": "input_merger_device",
+        "targetMethod": "in_w_0"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u1/callback:u1:1",
+      "label": "Callback",
+      "props": {
+        "signal": "cnt_wr_callback",
+        "operation": "set",
+        "raw": "m_cia1->cnt_wr_callback().set(m_user, FUNC(pet_user_port_device::write_4))",
+        "ownerTag": "u1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1712,
+        "sourceColumn": 2,
+        "sourceEndLine": 1712,
+        "targetClass": "pet_user_port_device",
+        "targetMethod": "write_4",
+        "targetTag": "user"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u1/callback:u1:2",
+      "label": "Callback",
+      "props": {
+        "signal": "sp_wr_callback",
+        "operation": "set",
+        "raw": "m_cia1->sp_wr_callback().set(m_user, FUNC(pet_user_port_device::write_5))",
+        "ownerTag": "u1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1713,
+        "sourceColumn": 2,
+        "sourceEndLine": 1713,
+        "targetClass": "pet_user_port_device",
+        "targetMethod": "write_5",
+        "targetTag": "user"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u1/callback:u1:3",
+      "label": "Callback",
+      "props": {
+        "signal": "pa_rd_callback",
+        "operation": "set",
+        "raw": "m_cia1->pa_rd_callback().set(FUNC(c64_state::cia1_pa_r))",
+        "ownerTag": "u1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1714,
+        "sourceColumn": 2,
+        "sourceEndLine": 1714,
+        "targetClass": "c64_state",
+        "targetMethod": "cia1_pa_r"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u1/callback:u1:4",
+      "label": "Callback",
+      "props": {
+        "signal": "pb_rd_callback",
+        "operation": "set",
+        "raw": "m_cia1->pb_rd_callback().set(FUNC(c64_state::cia1_pb_r))",
+        "ownerTag": "u1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1715,
+        "sourceColumn": 2,
+        "sourceEndLine": 1715,
+        "targetClass": "c64_state",
+        "targetMethod": "cia1_pb_r"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u1/callback:u1:5",
+      "label": "Callback",
+      "props": {
+        "signal": "pb_wr_callback",
+        "operation": "set",
+        "raw": "m_cia1->pb_wr_callback().set(FUNC(c64_state::cia1_pb_w))",
+        "ownerTag": "u1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1716,
+        "sourceColumn": 2,
+        "sourceEndLine": 1716,
+        "targetClass": "c64_state",
+        "targetMethod": "cia1_pb_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2",
+      "label": "Device",
+      "props": {
+        "type": "MOS6526",
+        "tag": "u2",
+        "clock": 985248.4444444445,
+        "config": [
+          "MOS6526(config, m_cia2, XTAL(17'734'472)/18)",
+          "m_cia2->set_tod_clock(50)",
+          "m_cia2->irq_wr_callback().set(m_nmi, FUNC(input_merger_device::in_w<0>))",
+          "m_cia2->cnt_wr_callback().set(m_user, FUNC(pet_user_port_device::write_6))",
+          "m_cia2->sp_wr_callback().set(m_user, FUNC(pet_user_port_device::write_7))",
+          "m_cia2->pa_rd_callback().set(FUNC(c64_state::cia2_pa_r))",
+          "m_cia2->pa_wr_callback().set(FUNC(c64_state::cia2_pa_w))",
+          "m_cia2->pb_rd_callback().set(FUNC(c64_state::cia2_pb_r))",
+          "m_cia2->pb_wr_callback().set(FUNC(c64_state::cia2_pb_w))",
+          "m_cia2->pc_wr_callback().set(m_user, FUNC(pet_user_port_device::write_8))"
+        ],
+        "member": "m_cia2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1718,
+        "sourceColumn": 2,
+        "sourceEndLine": 1718,
+        "configCalls": [
+          "set_tod_clock(50)"
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_wr_callback",
+        "operation": "set",
+        "raw": "m_cia2->irq_wr_callback().set(m_nmi, FUNC(input_merger_device::in_w<0>))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1720,
+        "sourceColumn": 2,
+        "sourceEndLine": 1720,
+        "targetClass": "input_merger_device",
+        "targetMethod": "in_w_0",
+        "targetTag": "nmi"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:1",
+      "label": "Callback",
+      "props": {
+        "signal": "cnt_wr_callback",
+        "operation": "set",
+        "raw": "m_cia2->cnt_wr_callback().set(m_user, FUNC(pet_user_port_device::write_6))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1721,
+        "sourceColumn": 2,
+        "sourceEndLine": 1721,
+        "targetClass": "pet_user_port_device",
+        "targetMethod": "write_6",
+        "targetTag": "user"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:2",
+      "label": "Callback",
+      "props": {
+        "signal": "sp_wr_callback",
+        "operation": "set",
+        "raw": "m_cia2->sp_wr_callback().set(m_user, FUNC(pet_user_port_device::write_7))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1722,
+        "sourceColumn": 2,
+        "sourceEndLine": 1722,
+        "targetClass": "pet_user_port_device",
+        "targetMethod": "write_7",
+        "targetTag": "user"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:3",
+      "label": "Callback",
+      "props": {
+        "signal": "pa_rd_callback",
+        "operation": "set",
+        "raw": "m_cia2->pa_rd_callback().set(FUNC(c64_state::cia2_pa_r))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1723,
+        "sourceColumn": 2,
+        "sourceEndLine": 1723,
+        "targetClass": "c64_state",
+        "targetMethod": "cia2_pa_r"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:4",
+      "label": "Callback",
+      "props": {
+        "signal": "pa_wr_callback",
+        "operation": "set",
+        "raw": "m_cia2->pa_wr_callback().set(FUNC(c64_state::cia2_pa_w))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1724,
+        "sourceColumn": 2,
+        "sourceEndLine": 1724,
+        "targetClass": "c64_state",
+        "targetMethod": "cia2_pa_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:5",
+      "label": "Callback",
+      "props": {
+        "signal": "pb_rd_callback",
+        "operation": "set",
+        "raw": "m_cia2->pb_rd_callback().set(FUNC(c64_state::cia2_pb_r))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1725,
+        "sourceColumn": 2,
+        "sourceEndLine": 1725,
+        "targetClass": "c64_state",
+        "targetMethod": "cia2_pb_r"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:6",
+      "label": "Callback",
+      "props": {
+        "signal": "pb_wr_callback",
+        "operation": "set",
+        "raw": "m_cia2->pb_wr_callback().set(FUNC(c64_state::cia2_pb_w))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1726,
+        "sourceColumn": 2,
+        "sourceEndLine": 1726,
+        "targetClass": "c64_state",
+        "targetMethod": "cia2_pb_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/u2/callback:u2:7",
+      "label": "Callback",
+      "props": {
+        "signal": "pc_wr_callback",
+        "operation": "set",
+        "raw": "m_cia2->pc_wr_callback().set(m_user, FUNC(pet_user_port_device::write_8))",
+        "ownerTag": "u2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1727,
+        "sourceColumn": 2,
+        "sourceEndLine": 1727,
+        "targetClass": "pet_user_port_device",
+        "targetMethod": "write_8",
+        "targetTag": "user"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/tape",
+      "label": "Device",
+      "props": {
+        "type": "PET_DATASSETTE_PORT",
+        "tag": "tape",
+        "clock": null,
+        "config": [
+          "PET_DATASSETTE_PORT(config, m_cassette, cbm_datassette_devices, \"c1530\")",
+          "m_cassette->read_handler().set(FUNC(c64_state::cass_rd_w))"
+        ],
+        "member": "m_cassette",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1729,
+        "sourceColumn": 2,
+        "sourceEndLine": 1729,
+        "slotOptions": "cbm_datassette_devices",
+        "slotDefault": "c1530"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/tape/callback:tape:0",
+      "label": "Callback",
+      "props": {
+        "signal": "read_handler",
+        "operation": "set",
+        "raw": "m_cassette->read_handler().set(FUNC(c64_state::cass_rd_w))",
+        "ownerTag": "tape",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1730,
+        "sourceColumn": 2,
+        "sourceEndLine": 1730,
+        "targetClass": "c64_state",
+        "targetMethod": "cass_rd_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec4",
+      "label": "Device",
+      "props": {
+        "type": "CBM_IEC_SLOT",
+        "tag": "iec4",
+        "clock": 4,
+        "config": [
+          "CBM_IEC_SLOT(config, \"iec4\", 4, cbm_iec_devices, nullptr)"
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec8",
+      "label": "Device",
+      "props": {
+        "type": "CBM_IEC_SLOT",
+        "tag": "iec8",
+        "clock": null,
+        "config": [
+          "CBM_IEC_SLOT(config, \"iec8\", 8, cbm_iec_devices, \"c1541\")"
+        ],
+        "slotOptions": "cbm_iec_devices",
+        "slotDefault": "c1541"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec9",
+      "label": "Device",
+      "props": {
+        "type": "CBM_IEC_SLOT",
+        "tag": "iec9",
+        "clock": 9,
+        "config": [
+          "CBM_IEC_SLOT(config, \"iec9\", 9, cbm_iec_devices, nullptr)"
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec10",
+      "label": "Device",
+      "props": {
+        "type": "CBM_IEC_SLOT",
+        "tag": "iec10",
+        "clock": 10,
+        "config": [
+          "CBM_IEC_SLOT(config, \"iec10\", 10, cbm_iec_devices, nullptr)"
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec11",
+      "label": "Device",
+      "props": {
+        "type": "CBM_IEC_SLOT",
+        "tag": "iec11",
+        "clock": 11,
+        "config": [
+          "CBM_IEC_SLOT(config, \"iec11\", 11, cbm_iec_devices, nullptr)"
+        ]
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec_bus",
+      "label": "Device",
+      "props": {
+        "type": "CBM_IEC",
+        "tag": "iec_bus",
+        "clock": 0,
+        "config": [
+          "CBM_IEC(config, m_iec, 0)",
+          "m_iec->srq_callback().set(FUNC(c64_state::iec_srq_w))",
+          "m_iec->data_callback().set(m_user, FUNC(pet_user_port_device::write_9))"
+        ],
+        "member": "m_iec"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec_bus/callback:iec_bus:0",
+      "label": "Callback",
+      "props": {
+        "signal": "srq_callback",
+        "operation": "set",
+        "raw": "m_iec->srq_callback().set(FUNC(c64_state::iec_srq_w))",
+        "ownerTag": "iec_bus",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1733,
+        "sourceColumn": 2,
+        "sourceEndLine": 1733,
+        "targetClass": "c64_state",
+        "targetMethod": "iec_srq_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/iec_bus/callback:iec_bus:1",
+      "label": "Callback",
+      "props": {
+        "signal": "data_callback",
+        "operation": "set",
+        "raw": "m_iec->data_callback().set(m_user, FUNC(pet_user_port_device::write_9))",
+        "ownerTag": "iec_bus",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1734,
+        "sourceColumn": 2,
+        "sourceEndLine": 1734,
+        "targetClass": "pet_user_port_device",
+        "targetMethod": "write_9",
+        "targetTag": "user"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/joy1",
+      "label": "Device",
+      "props": {
+        "type": "VCS_CONTROL_PORT",
+        "tag": "joy1",
+        "clock": null,
+        "config": [
+          "VCS_CONTROL_PORT(config, m_joy1, vcs_control_port_devices, nullptr)",
+          "m_joy1->trigger_wr_callback().set(MOS6569_TAG, FUNC(mos6569_device::lp_w))"
+        ],
+        "member": "m_joy1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1736,
+        "sourceColumn": 2,
+        "sourceEndLine": 1736,
+        "clockExpr": "vcs_control_port_devices"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/joy1/callback:joy1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "trigger_wr_callback",
+        "operation": "set",
+        "raw": "m_joy1->trigger_wr_callback().set(MOS6569_TAG, FUNC(mos6569_device::lp_w))",
+        "ownerTag": "joy1",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1737,
+        "sourceColumn": 2,
+        "sourceEndLine": 1737,
+        "targetClass": "mos6569_device",
+        "targetMethod": "lp_w",
+        "targetTag": "u19"
+      }
+    },
+    {
+      "id": "handler:mos6569_device.lp_w",
+      "label": "Handler",
+      "props": {
+        "method": "lp_w",
+        "ownerClass": "mos6569_device",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1885,
+        "sourceColumn": 2,
+        "sourceEndLine": 1885
+      }
+    },
+    {
+      "id": "device:c64_state.pal/joy2",
+      "label": "Device",
+      "props": {
+        "type": "VCS_CONTROL_PORT",
+        "tag": "joy2",
+        "clock": null,
+        "config": [
+          "VCS_CONTROL_PORT(config, m_joy2, vcs_control_port_devices, \"joy\")"
+        ],
+        "member": "m_joy2",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1738,
+        "sourceColumn": 2,
+        "sourceEndLine": 1738,
+        "slotOptions": "vcs_control_port_devices",
+        "slotDefault": "joy"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/exp",
+      "label": "Device",
+      "props": {
+        "type": "C64_EXPANSION_SLOT",
+        "tag": "exp",
+        "clock": 985248.4444444445,
+        "config": [
+          "C64_EXPANSION_SLOT(config, m_exp, XTAL(17'734'472)/18, c64_expansion_cards, nullptr)",
+          "m_exp->irq_callback().set(\"irq\", FUNC(input_merger_device::in_w<2>))",
+          "m_exp->nmi_callback().set(m_nmi, FUNC(input_merger_device::in_w<2>))",
+          "m_exp->reset_callback().set(FUNC(c64_state::exp_reset_w))",
+          "m_exp->cd_input_callback().set(FUNC(c64_state::read))",
+          "m_exp->cd_output_callback().set(FUNC(c64_state::write))",
+          "m_exp->dma_callback().set(FUNC(c64_state::exp_dma_w))"
+        ],
+        "member": "m_exp",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1740,
+        "sourceColumn": 2,
+        "sourceEndLine": 1740
+      }
+    },
+    {
+      "id": "device:c64_state.pal/exp/callback:exp:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_callback",
+        "operation": "set",
+        "raw": "m_exp->irq_callback().set(\"irq\", FUNC(input_merger_device::in_w<2>))",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1741,
+        "sourceColumn": 2,
+        "sourceEndLine": 1741,
+        "targetTag": "irq",
+        "targetClass": "input_merger_device",
+        "targetMethod": "in_w_2"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/exp/callback:exp:1",
+      "label": "Callback",
+      "props": {
+        "signal": "nmi_callback",
+        "operation": "set",
+        "raw": "m_exp->nmi_callback().set(m_nmi, FUNC(input_merger_device::in_w<2>))",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1742,
+        "sourceColumn": 2,
+        "sourceEndLine": 1742,
+        "targetClass": "input_merger_device",
+        "targetMethod": "in_w_2",
+        "targetTag": "nmi"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/exp/callback:exp:2",
+      "label": "Callback",
+      "props": {
+        "signal": "reset_callback",
+        "operation": "set",
+        "raw": "m_exp->reset_callback().set(FUNC(c64_state::exp_reset_w))",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1743,
+        "sourceColumn": 2,
+        "sourceEndLine": 1743,
+        "targetClass": "c64_state",
+        "targetMethod": "exp_reset_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/exp/callback:exp:3",
+      "label": "Callback",
+      "props": {
+        "signal": "cd_input_callback",
+        "operation": "set",
+        "raw": "m_exp->cd_input_callback().set(FUNC(c64_state::read))",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1744,
+        "sourceColumn": 2,
+        "sourceEndLine": 1744,
+        "targetClass": "c64_state",
+        "targetMethod": "read"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/exp/callback:exp:4",
+      "label": "Callback",
+      "props": {
+        "signal": "cd_output_callback",
+        "operation": "set",
+        "raw": "m_exp->cd_output_callback().set(FUNC(c64_state::write))",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1745,
+        "sourceColumn": 2,
+        "sourceEndLine": 1745,
+        "targetClass": "c64_state",
+        "targetMethod": "write"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/exp/callback:exp:5",
+      "label": "Callback",
+      "props": {
+        "signal": "dma_callback",
+        "operation": "set",
+        "raw": "m_exp->dma_callback().set(FUNC(c64_state::exp_dma_w))",
+        "ownerTag": "exp",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1746,
+        "sourceColumn": 2,
+        "sourceEndLine": 1746,
+        "targetClass": "c64_state",
+        "targetMethod": "exp_dma_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user",
+      "label": "Device",
+      "props": {
+        "type": "PET_USER_PORT",
+        "tag": "user",
+        "clock": null,
+        "config": [
+          "PET_USER_PORT(config, m_user, c64_user_port_cards, nullptr)",
+          "m_user->p3_handler().set(FUNC(c64_state::exp_reset_w))",
+          "m_user->p4_handler().set(m_cia1, FUNC(mos6526_device::cnt_w))",
+          "m_user->p5_handler().set(m_cia1, FUNC(mos6526_device::sp_w))",
+          "m_user->p6_handler().set(m_cia2, FUNC(mos6526_device::cnt_w))",
+          "m_user->p7_handler().set(m_cia2, FUNC(mos6526_device::sp_w))",
+          "m_user->p9_handler().set(m_iec, FUNC(cbm_iec_device::host_atn_w))",
+          "m_user->pb_handler().set(m_cia2, FUNC(mos6526_device::flag_w))",
+          "m_user->pc_handler().set(FUNC(c64_state::write_user_pb0))",
+          "m_user->pd_handler().set(FUNC(c64_state::write_user_pb1))",
+          "m_user->pe_handler().set(FUNC(c64_state::write_user_pb2))",
+          "m_user->pf_handler().set(FUNC(c64_state::write_user_pb3))",
+          "m_user->ph_handler().set(FUNC(c64_state::write_user_pb4))",
+          "m_user->pj_handler().set(FUNC(c64_state::write_user_pb5))",
+          "m_user->pk_handler().set(FUNC(c64_state::write_user_pb6))",
+          "m_user->pl_handler().set(FUNC(c64_state::write_user_pb7))",
+          "m_user->pm_handler().set(FUNC(c64_state::write_user_pa2))"
+        ],
+        "member": "m_user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1748,
+        "sourceColumn": 2,
+        "sourceEndLine": 1748,
+        "clockExpr": "c64_user_port_cards"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:0",
+      "label": "Callback",
+      "props": {
+        "signal": "p3_handler",
+        "operation": "set",
+        "raw": "m_user->p3_handler().set(FUNC(c64_state::exp_reset_w))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1749,
+        "sourceColumn": 2,
+        "sourceEndLine": 1749,
+        "targetClass": "c64_state",
+        "targetMethod": "exp_reset_w"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:1",
+      "label": "Callback",
+      "props": {
+        "signal": "p4_handler",
+        "operation": "set",
+        "raw": "m_user->p4_handler().set(m_cia1, FUNC(mos6526_device::cnt_w))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1750,
+        "sourceColumn": 2,
+        "sourceEndLine": 1750,
+        "targetClass": "mos6526_device",
+        "targetMethod": "cnt_w",
+        "targetTag": "u1"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:2",
+      "label": "Callback",
+      "props": {
+        "signal": "p5_handler",
+        "operation": "set",
+        "raw": "m_user->p5_handler().set(m_cia1, FUNC(mos6526_device::sp_w))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1751,
+        "sourceColumn": 2,
+        "sourceEndLine": 1751,
+        "targetClass": "mos6526_device",
+        "targetMethod": "sp_w",
+        "targetTag": "u1"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:3",
+      "label": "Callback",
+      "props": {
+        "signal": "p6_handler",
+        "operation": "set",
+        "raw": "m_user->p6_handler().set(m_cia2, FUNC(mos6526_device::cnt_w))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1752,
+        "sourceColumn": 2,
+        "sourceEndLine": 1752,
+        "targetClass": "mos6526_device",
+        "targetMethod": "cnt_w",
+        "targetTag": "u2"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:4",
+      "label": "Callback",
+      "props": {
+        "signal": "p7_handler",
+        "operation": "set",
+        "raw": "m_user->p7_handler().set(m_cia2, FUNC(mos6526_device::sp_w))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1753,
+        "sourceColumn": 2,
+        "sourceEndLine": 1753,
+        "targetClass": "mos6526_device",
+        "targetMethod": "sp_w",
+        "targetTag": "u2"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:5",
+      "label": "Callback",
+      "props": {
+        "signal": "p9_handler",
+        "operation": "set",
+        "raw": "m_user->p9_handler().set(m_iec, FUNC(cbm_iec_device::host_atn_w))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1754,
+        "sourceColumn": 2,
+        "sourceEndLine": 1754,
+        "targetClass": "cbm_iec_device",
+        "targetMethod": "host_atn_w",
+        "targetTag": "iec_bus"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:6",
+      "label": "Callback",
+      "props": {
+        "signal": "pb_handler",
+        "operation": "set",
+        "raw": "m_user->pb_handler().set(m_cia2, FUNC(mos6526_device::flag_w))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1755,
+        "sourceColumn": 2,
+        "sourceEndLine": 1755,
+        "targetClass": "mos6526_device",
+        "targetMethod": "flag_w",
+        "targetTag": "u2"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:7",
+      "label": "Callback",
+      "props": {
+        "signal": "pc_handler",
+        "operation": "set",
+        "raw": "m_user->pc_handler().set(FUNC(c64_state::write_user_pb0))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1756,
+        "sourceColumn": 2,
+        "sourceEndLine": 1756,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb0"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:8",
+      "label": "Callback",
+      "props": {
+        "signal": "pd_handler",
+        "operation": "set",
+        "raw": "m_user->pd_handler().set(FUNC(c64_state::write_user_pb1))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1757,
+        "sourceColumn": 2,
+        "sourceEndLine": 1757,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb1"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:9",
+      "label": "Callback",
+      "props": {
+        "signal": "pe_handler",
+        "operation": "set",
+        "raw": "m_user->pe_handler().set(FUNC(c64_state::write_user_pb2))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1758,
+        "sourceColumn": 2,
+        "sourceEndLine": 1758,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb2"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:10",
+      "label": "Callback",
+      "props": {
+        "signal": "pf_handler",
+        "operation": "set",
+        "raw": "m_user->pf_handler().set(FUNC(c64_state::write_user_pb3))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1759,
+        "sourceColumn": 2,
+        "sourceEndLine": 1759,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb3"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:11",
+      "label": "Callback",
+      "props": {
+        "signal": "ph_handler",
+        "operation": "set",
+        "raw": "m_user->ph_handler().set(FUNC(c64_state::write_user_pb4))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1760,
+        "sourceColumn": 2,
+        "sourceEndLine": 1760,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb4"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:12",
+      "label": "Callback",
+      "props": {
+        "signal": "pj_handler",
+        "operation": "set",
+        "raw": "m_user->pj_handler().set(FUNC(c64_state::write_user_pb5))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1761,
+        "sourceColumn": 2,
+        "sourceEndLine": 1761,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb5"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:13",
+      "label": "Callback",
+      "props": {
+        "signal": "pk_handler",
+        "operation": "set",
+        "raw": "m_user->pk_handler().set(FUNC(c64_state::write_user_pb6))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1762,
+        "sourceColumn": 2,
+        "sourceEndLine": 1762,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb6"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:14",
+      "label": "Callback",
+      "props": {
+        "signal": "pl_handler",
+        "operation": "set",
+        "raw": "m_user->pl_handler().set(FUNC(c64_state::write_user_pb7))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1763,
+        "sourceColumn": 2,
+        "sourceEndLine": 1763,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pb7"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/user/callback:user:15",
+      "label": "Callback",
+      "props": {
+        "signal": "pm_handler",
+        "operation": "set",
+        "raw": "m_user->pm_handler().set(FUNC(c64_state::write_user_pa2))",
+        "ownerTag": "user",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1764,
+        "sourceColumn": 2,
+        "sourceEndLine": 1764,
+        "targetClass": "c64_state",
+        "targetMethod": "write_user_pa2"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/quickload",
+      "label": "Device",
+      "props": {
+        "type": "QUICKLOAD",
+        "tag": "quickload",
+        "clock": null,
+        "config": [
+          "QUICKLOAD(config, \"quickload\", \"p00,prg,t64\", CBM_QUICKLOAD_DELAY).set_load_callback(FUNC(c64_state::quickload_c64))"
+        ],
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1766,
+        "sourceColumn": 2,
+        "sourceEndLine": 1766,
+        "clockExpr": "\"p00,prg,t64\""
+      }
+    },
+    {
+      "id": "device:c64_state.pal/quickload/callback:quickload:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_load_callback",
+        "delegate": 1,
+        "operation": "set_load_callback",
+        "raw": "QUICKLOAD(config, \"quickload\", \"p00,prg,t64\", CBM_QUICKLOAD_DELAY).set_load_callback(FUNC(c64_state::quickload_c64))",
+        "ownerTag": "quickload",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1766,
+        "sourceColumn": 2,
+        "sourceEndLine": 1766,
+        "targetClass": "c64_state",
+        "targetMethod": "quickload_c64"
+      }
+    },
+    {
+      "id": "device:c64_state.pal/ram",
+      "label": "Device",
+      "props": {
+        "type": "RAM",
+        "tag": "ram",
+        "clock": null,
+        "config": [
+          "RAM(config, RAM_TAG).set_default_size(\"64K\")"
+        ],
+        "member": "m_ram",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1778,
+        "sourceColumn": 2,
+        "sourceEndLine": 1778
+      }
+    },
+    {
+      "id": "inputs:c64",
+      "label": "InputPorts",
+      "props": {
+        "name": "c64",
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 8,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0",
+      "label": "Port",
+      "props": {
+        "tag": "ROW0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"CRSR \\xE2\\x86\\x91 \\xE2\\x86\\x93\")",
+          "PORT_CODE(KEYCODE_DOWN)",
+          "PORT_CHAR(UCHAR_MAMEKEY(DOWN))",
+          "PORT_CHAR(UCHAR_MAMEKEY(UP))"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_F3)",
+          "PORT_CHAR(UCHAR_MAMEKEY(F5))"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_F2)",
+          "PORT_CHAR(UCHAR_MAMEKEY(F3))"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_F1)",
+          "PORT_CHAR(UCHAR_MAMEKEY(F1))"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_F4)",
+          "PORT_CHAR(UCHAR_MAMEKEY(F7))"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"CRSR \\xE2\\x86\\x90 \\xE2\\x86\\x92\")",
+          "PORT_CODE(KEYCODE_RIGHT)",
+          "PORT_CHAR(UCHAR_MAMEKEY(RIGHT))",
+          "PORT_CHAR(UCHAR_MAMEKEY(LEFT))"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"Return\")",
+          "PORT_CODE(KEYCODE_ENTER)",
+          "PORT_CHAR(13)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"INST DEL\")",
+          "PORT_CODE(KEYCODE_BACKSPACE)",
+          "PORT_CHAR(8)",
+          "PORT_CHAR(UCHAR_MAMEKEY(INSERT))"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1",
+      "label": "Port",
+      "props": {
+        "tag": "ROW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"Shift (Left)\")",
+          "PORT_CODE(KEYCODE_LSHIFT)",
+          "PORT_CHAR(UCHAR_SHIFT_1)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_E)",
+          "PORT_CHAR('E')"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_S)",
+          "PORT_CHAR('S')"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_Z)",
+          "PORT_CHAR('Z')"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_4)",
+          "PORT_CHAR('4')",
+          "PORT_CHAR('$')"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_A)",
+          "PORT_CHAR('A')"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_W)",
+          "PORT_CHAR('W')"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_3)",
+          "PORT_CHAR('3')",
+          "PORT_CHAR('#')"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2",
+      "label": "Port",
+      "props": {
+        "tag": "ROW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_X)",
+          "PORT_CHAR('X')"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_T)",
+          "PORT_CHAR('T')"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_F)",
+          "PORT_CHAR('F')"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_C)",
+          "PORT_CHAR('C')"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_6)",
+          "PORT_CHAR('6')",
+          "PORT_CHAR('&')"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_D)",
+          "PORT_CHAR('D')"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_R)",
+          "PORT_CHAR('R')"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_5)",
+          "PORT_CHAR('5')",
+          "PORT_CHAR('%')"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3",
+      "label": "Port",
+      "props": {
+        "tag": "ROW3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_V)",
+          "PORT_CHAR('V')"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_U)",
+          "PORT_CHAR('U')"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_H)",
+          "PORT_CHAR('H')"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_B)",
+          "PORT_CHAR('B')"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_8)",
+          "PORT_CHAR('8')",
+          "PORT_CHAR"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_G)",
+          "PORT_CHAR('G')"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_Y)",
+          "PORT_CHAR('Y')"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW3/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_7)",
+          "PORT_CHAR('7')",
+          "PORT_CHAR('\\'')"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4",
+      "label": "Port",
+      "props": {
+        "tag": "ROW4",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_N)",
+          "PORT_CHAR('N')"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_O)",
+          "PORT_CHAR('O')"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_K)",
+          "PORT_CHAR('K')"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_M)",
+          "PORT_CHAR('M')"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_0)",
+          "PORT_CHAR('0')"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_J)",
+          "PORT_CHAR('J')"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_I)",
+          "PORT_CHAR('I')"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW4/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_9)",
+          "PORT_CHAR('9')",
+          "PORT_CHAR(')"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5",
+      "label": "Port",
+      "props": {
+        "tag": "ROW5",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_COMMA)",
+          "PORT_CHAR(',')",
+          "PORT_CHAR('<')"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_OPENBRACE)",
+          "PORT_CHAR('@')"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_COLON)",
+          "PORT_CHAR(':')",
+          "PORT_CHAR('[')"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_STOP)",
+          "PORT_CHAR('.')",
+          "PORT_CHAR('>')"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_EQUALS)",
+          "PORT_CHAR('-')"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_L)",
+          "PORT_CHAR('L')"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_P)",
+          "PORT_CHAR('P')"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW5/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_MINUS)",
+          "PORT_CHAR('+')"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6",
+      "label": "Port",
+      "props": {
+        "tag": "ROW6",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_SLASH)",
+          "PORT_CHAR('/')",
+          "PORT_CHAR('?')"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"\\xE2\\x86\\x91 \\xCF\\x80\")",
+          "PORT_CODE(KEYCODE_END)",
+          "PORT_CHAR(0x2191)",
+          "PORT_CHAR(0x03C0)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_BACKSLASH)",
+          "PORT_CHAR('=')"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"Shift (Right)\")",
+          "PORT_CODE(KEYCODE_RSHIFT)",
+          "PORT_CHAR(UCHAR_SHIFT_1)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"CLR HOME\")",
+          "PORT_CODE(KEYCODE_HOME)",
+          "PORT_CHAR(UCHAR_MAMEKEY(HOME))"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_QUOTE)",
+          "PORT_CHAR(';')",
+          "PORT_CHAR(']')"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_CLOSEBRACE)",
+          "PORT_CHAR('*')"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW6/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_PGDN)",
+          "PORT_CHAR(0xA3)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7",
+      "label": "Port",
+      "props": {
+        "tag": "ROW7",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"RUN STOP\")",
+          "PORT_CODE(KEYCODE_ESC)"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_Q)",
+          "PORT_CHAR('Q')"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"CBM\")",
+          "PORT_CODE(KEYCODE_LALT)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_SPACE)",
+          "PORT_CHAR(' ')"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_2)",
+          "PORT_CHAR('2')",
+          "PORT_CHAR"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_LCONTROL)",
+          "PORT_NAME(\"CTRL\")",
+          "PORT_CHAR(UCHAR_MAMEKEY(LCONTROL))"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"\\xE2\\x86\\x90\")",
+          "PORT_CODE(KEYCODE_TILDE)",
+          "PORT_CHAR(0x2190)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:c64/ROW7/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_1)",
+          "PORT_CHAR('1')",
+          "PORT_CHAR('!')"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/RESTORE",
+      "label": "Port",
+      "props": {
+        "tag": "RESTORE",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/RESTORE/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"RESTORE\")",
+          "PORT_CODE(KEYCODE_TAB)",
+          "PORT_WRITE_LINE_MEMBER(FUNC(c64_state::write_restore))"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:c64/LOCK",
+      "label": "Port",
+      "props": {
+        "tag": "LOCK",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/LOCK/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_KEYBOARD",
+        "modifiers": [
+          "PORT_NAME(\"SHIFT LOCK\")",
+          "PORT_CODE(KEYCODE_CAPSLOCK)",
+          "PORT_TOGGLE",
+          "PORT_CHAR(UCHAR_MAMEKEY(CAPSLOCK))"
+        ],
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:c64/LOCK/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 127,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 127
+      }
+    },
+    {
+      "id": "inputs:c64/JOYSWAP",
+      "label": "Port",
+      "props": {
+        "tag": "JOYSWAP",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:c64/JOYSWAP/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Swap joystick ports",
+        "defaultValue": 0,
+        "settings": [
+          "1=Joystick in swapped port",
+          "0=Joystick in assigned port"
+        ]
+      }
+    },
+    {
+      "id": "file:src/devices/bus/vcs_ctrl/joystick.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/devices/bus/vcs_ctrl/joystick.cpp"
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick",
+      "label": "InputPorts",
+      "props": {
+        "name": "vcs_joystick"
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick/JOY",
+      "label": "Port",
+      "props": {
+        "tag": "JOY",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick/JOY/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick/JOY/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick/JOY/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick/JOY/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick/JOY/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_WRITE_LINE_MEMBER(FUNC(vcs_joystick_device::trigger_w))"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:vcs_joystick/JOY/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 208,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 208
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:c64p",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2296,
+        "sourceColumn": 1,
+        "sourceEndLine": 2296
+      }
+    },
+    {
+      "from": "game:c64p",
+      "to": "game:c64",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:c64p",
+      "to": "machine:c64_state.pal",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:c64p",
+      "to": "inputs:c64",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:c64p",
+      "to": "romset:c64p",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:softlist_dev.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:bus/cbmiec/cbmiec.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:bus/cbmiec/c1541.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:bus/c64/exp.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:bus/vic20/user.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:bus/pet/cass.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:bus/vcs_ctrl/ctrl.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:cpu/m6502/m6510.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:imagedev/snapquik.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:cbm_snqk.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:machine/input_merger.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:machine/mos6526.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:machine/pla.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:machine/ram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:sound/mos6581.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/commodore/c64.cpp",
+      "to": "file:video/mos6566.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:c64",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 2294,
+        "sourceColumn": 1,
+        "sourceEndLine": 2294
+      }
+    },
+    {
+      "from": "game:c64",
+      "to": "romset:c64",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1668,
+        "sourceColumn": 1,
+        "sourceEndLine": 1779
+      }
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "handler:c64_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "softlist:c64_state.pal/vic10",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "softlist:c64_state.pal/c64_cart",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "softlist:c64_state.pal/c64_cass",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "softlist:c64_state.pal/c64_flop_orig",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "softlist:c64_state.pal/c64_flop_misc",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "softlist:c64_state.pal/c64_quik",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/u7",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/irq",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/nmi",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/u19",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/u18",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/u17",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/u1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/u2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/tape",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/iec4",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/iec8",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/iec9",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/iec10",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/iec11",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/iec_bus",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/joy1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/joy2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/exp",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/user",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/quickload",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:c64_state.pal",
+      "to": "device:c64_state.pal/ram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 8,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW4",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW5",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW6",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/ROW7",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/RESTORE",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/LOCK",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:c64",
+      "to": "inputs:c64/JOYSWAP",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:c64p",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:c64p",
+      "to": "region:c64p/basic",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:c64p",
+      "to": "region:c64p/kernal",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:c64p",
+      "to": "region:c64p/charom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:c64p",
+      "to": "region:c64p/u17",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:c64",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 1949,
+        "sourceColumn": 1,
+        "sourceEndLine": 1949
+      }
+    },
+    {
+      "from": "romset:c64",
+      "to": "region:c64/basic",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:c64",
+      "to": "region:c64/kernal",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:c64",
+      "to": "region:c64/charom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:c64",
+      "to": "region:c64/u17",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:c64_state.pal/u7",
+      "to": "device:c64_state.pal/u7/callback:u7:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u7",
+      "to": "device:c64_state.pal/u7/callback:u7:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u7",
+      "to": "map:c64_state.c64_mem",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:c64_state.pal/irq",
+      "to": "device:c64_state.pal/irq/callback:irq:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/nmi",
+      "to": "device:c64_state.pal/nmi/callback:nmi:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u19",
+      "to": "device:c64_state.pal/u19/callback:u19:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u19",
+      "to": "map:c64_state.vic_videoram_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "0"
+      }
+    },
+    {
+      "from": "device:c64_state.pal/u19",
+      "to": "map:c64_state.vic_colorram_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "1"
+      }
+    },
+    {
+      "from": "device:c64_state.pal/screen",
+      "to": "device:c64_state.pal/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u18",
+      "to": "audioroute:device:c64_state.pal/u18/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:c64_state.pal/u18",
+      "to": "device:c64_state.pal/u18/callback:u18:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u18",
+      "to": "device:c64_state.pal/u18/callback:u18:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u1",
+      "to": "device:c64_state.pal/u1/callback:u1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u1",
+      "to": "device:c64_state.pal/u1/callback:u1:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u1",
+      "to": "device:c64_state.pal/u1/callback:u1:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u1",
+      "to": "device:c64_state.pal/u1/callback:u1:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u1",
+      "to": "device:c64_state.pal/u1/callback:u1:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u1",
+      "to": "device:c64_state.pal/u1/callback:u1:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:6",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/u2",
+      "to": "device:c64_state.pal/u2/callback:u2:7",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/tape",
+      "to": "device:c64_state.pal/tape/callback:tape:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/iec_bus",
+      "to": "device:c64_state.pal/iec_bus/callback:iec_bus:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/iec_bus",
+      "to": "device:c64_state.pal/iec_bus/callback:iec_bus:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/joy1",
+      "to": "device:c64_state.pal/joy1/callback:joy1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/joy2",
+      "to": "inputs:vcs_joystick",
+      "rel": "USES_INPUTS",
+      "props": {
+        "option": "joy"
+      }
+    },
+    {
+      "from": "device:c64_state.pal/exp",
+      "to": "device:c64_state.pal/exp/callback:exp:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/exp",
+      "to": "device:c64_state.pal/exp/callback:exp:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/exp",
+      "to": "device:c64_state.pal/exp/callback:exp:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/exp",
+      "to": "device:c64_state.pal/exp/callback:exp:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/exp",
+      "to": "device:c64_state.pal/exp/callback:exp:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/exp",
+      "to": "device:c64_state.pal/exp/callback:exp:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:6",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:7",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:8",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:9",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:10",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:11",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:12",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:13",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:14",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/user",
+      "to": "device:c64_state.pal/user/callback:user:15",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:c64_state.pal/quickload",
+      "to": "device:c64_state.pal/quickload/callback:quickload:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW0",
+      "to": "inputs:c64/ROW0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW1",
+      "to": "inputs:c64/ROW1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW2",
+      "to": "inputs:c64/ROW2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW3",
+      "to": "inputs:c64/ROW3/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW4",
+      "to": "inputs:c64/ROW4/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW5",
+      "to": "inputs:c64/ROW5/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW6",
+      "to": "inputs:c64/ROW6/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/ROW7",
+      "to": "inputs:c64/ROW7/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/RESTORE",
+      "to": "inputs:c64/RESTORE/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/LOCK",
+      "to": "inputs:c64/LOCK/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/LOCK",
+      "to": "inputs:c64/LOCK/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:c64/JOYSWAP",
+      "to": "inputs:c64/JOYSWAP/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:c64p/basic",
+      "to": "rom:c64p/basic/901226-01.u3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:c64p/kernal",
+      "to": "rom:c64p/kernal/901227-03.u4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:c64p/charom",
+      "to": "rom:c64p/charom/901225-01.u5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:c64p/u17",
+      "to": "rom:c64p/u17/906114-01.u17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:c64/basic",
+      "to": "rom:c64/basic/901226-01.u3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:c64/kernal",
+      "to": "rom:c64/kernal/901227-03.u4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:c64/charom",
+      "to": "rom:c64/charom/901225-01.u5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:c64/u17",
+      "to": "rom:c64/u17/906114-01.u17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:c64_state.pal/u7/callback:u7:0",
+      "to": "handler:c64_state.cpu_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u7/callback:u7:1",
+      "to": "handler:c64_state.cpu_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:c64_state.c64_mem",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 722,
+        "sourceColumn": 1,
+        "sourceEndLine": 725
+      }
+    },
+    {
+      "from": "map:c64_state.c64_mem",
+      "to": "map:c64_state.c64_mem/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:c64_state.pal/irq/callback:irq:0",
+      "to": "device:c64_state.pal/u7",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/nmi/callback:nmi:0",
+      "to": "device:c64_state.pal/u7",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/u19/callback:u19:0",
+      "to": "handler:input_merger_device.in_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u19/callback:u19:0",
+      "to": "device:c64_state.pal/irq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:c64_state.vic_videoram_map",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 732,
+        "sourceColumn": 1,
+        "sourceEndLine": 735
+      }
+    },
+    {
+      "from": "map:c64_state.vic_videoram_map",
+      "to": "map:c64_state.vic_videoram_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:c64_state.vic_colorram_map",
+      "to": "file:src/mame/commodore/c64.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/commodore/c64.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 1,
+        "sourceEndLine": 745
+      }
+    },
+    {
+      "from": "map:c64_state.vic_colorram_map",
+      "to": "map:c64_state.vic_colorram_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:c64_state.pal/screen/callback:screen:0",
+      "to": "handler:mos6569_device.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/screen/callback:screen:0",
+      "to": "device:c64_state.pal/u19",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/u18/callback:u18:0",
+      "to": "handler:c64_state.sid_potx_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u18/callback:u18:1",
+      "to": "handler:c64_state.sid_poty_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u1/callback:u1:0",
+      "to": "handler:input_merger_device.in_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u1/callback:u1:0",
+      "to": "device:c64_state.pal/irq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/u1/callback:u1:1",
+      "to": "handler:pet_user_port_device.write_4",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u1/callback:u1:2",
+      "to": "handler:pet_user_port_device.write_5",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u1/callback:u1:3",
+      "to": "handler:c64_state.cia1_pa_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u1/callback:u1:4",
+      "to": "handler:c64_state.cia1_pb_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u1/callback:u1:5",
+      "to": "handler:c64_state.cia1_pb_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:0",
+      "to": "handler:input_merger_device.in_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:0",
+      "to": "device:c64_state.pal/nmi",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:1",
+      "to": "handler:pet_user_port_device.write_6",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:2",
+      "to": "handler:pet_user_port_device.write_7",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:3",
+      "to": "handler:c64_state.cia2_pa_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:4",
+      "to": "handler:c64_state.cia2_pa_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:5",
+      "to": "handler:c64_state.cia2_pb_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:6",
+      "to": "handler:c64_state.cia2_pb_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/u2/callback:u2:7",
+      "to": "handler:pet_user_port_device.write_8",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/tape/callback:tape:0",
+      "to": "handler:c64_state.cass_rd_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/iec_bus/callback:iec_bus:0",
+      "to": "handler:c64_state.iec_srq_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/iec_bus/callback:iec_bus:1",
+      "to": "handler:pet_user_port_device.write_9",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/joy1/callback:joy1:0",
+      "to": "handler:mos6569_device.lp_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/joy1/callback:joy1:0",
+      "to": "device:c64_state.pal/u19",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "inputs:vcs_joystick",
+      "to": "file:src/devices/bus/vcs_ctrl/joystick.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:vcs_joystick",
+      "to": "inputs:vcs_joystick/JOY",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:0",
+      "to": "handler:input_merger_device.in_w_2",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:0",
+      "to": "device:c64_state.pal/irq",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:1",
+      "to": "handler:input_merger_device.in_w_2",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:1",
+      "to": "device:c64_state.pal/nmi",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:2",
+      "to": "handler:c64_state.exp_reset_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:3",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:4",
+      "to": "handler:c64_state.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/exp/callback:exp:5",
+      "to": "handler:c64_state.exp_dma_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:0",
+      "to": "handler:c64_state.exp_reset_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:1",
+      "to": "handler:mos6526_device.cnt_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:1",
+      "to": "device:c64_state.pal/u1",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:2",
+      "to": "handler:mos6526_device.sp_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:2",
+      "to": "device:c64_state.pal/u1",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:3",
+      "to": "handler:mos6526_device.cnt_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:3",
+      "to": "device:c64_state.pal/u2",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:4",
+      "to": "handler:mos6526_device.sp_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:4",
+      "to": "device:c64_state.pal/u2",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:5",
+      "to": "handler:cbm_iec_device.host_atn_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:5",
+      "to": "device:c64_state.pal/iec_bus",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:6",
+      "to": "handler:mos6526_device.flag_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:6",
+      "to": "device:c64_state.pal/u2",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:7",
+      "to": "handler:c64_state.write_user_pb0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:8",
+      "to": "handler:c64_state.write_user_pb1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:9",
+      "to": "handler:c64_state.write_user_pb2",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:10",
+      "to": "handler:c64_state.write_user_pb3",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:11",
+      "to": "handler:c64_state.write_user_pb4",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:12",
+      "to": "handler:c64_state.write_user_pb5",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:13",
+      "to": "handler:c64_state.write_user_pb6",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:14",
+      "to": "handler:c64_state.write_user_pb7",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/user/callback:user:15",
+      "to": "handler:c64_state.write_user_pa2",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:c64_state.pal/quickload/callback:quickload:0",
+      "to": "handler:c64_state.quickload_c64",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.cpu_w",
+      "to": "handler:c64_state.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:c64_state.c64_mem/range0",
+      "to": "handler:c64_state.read",
+      "rel": "READS"
+    },
+    {
+      "from": "map:c64_state.c64_mem/range0",
+      "to": "handler:c64_state.write",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:c64_state.vic_videoram_map/range0",
+      "to": "handler:c64_state.vic_videoram_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:c64_state.vic_colorram_map/range0",
+      "to": "handler:c64_state.vic_colorram_r",
+      "rel": "READS"
+    },
+    {
+      "from": "handler:c64_state.sid_potx_r",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.sid_poty_r",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.cia1_pa_r",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.cia1_pb_r",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.cia1_pb_w",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.cass_rd_w",
+      "to": "handler:c64_state.update_cia1_flag",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.iec_srq_w",
+      "to": "handler:c64_state.update_cia1_flag",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:vcs_joystick/JOY",
+      "to": "inputs:vcs_joystick/JOY/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:vcs_joystick/JOY",
+      "to": "inputs:vcs_joystick/JOY/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:vcs_joystick/JOY",
+      "to": "inputs:vcs_joystick/JOY/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:vcs_joystick/JOY",
+      "to": "inputs:vcs_joystick/JOY/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:vcs_joystick/JOY",
+      "to": "inputs:vcs_joystick/JOY/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:vcs_joystick/JOY",
+      "to": "inputs:vcs_joystick/JOY/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "handler:c64_state.exp_reset_w",
+      "to": "handler:c64_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.read",
+      "to": "handler:c64_state.read_memory",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.write",
+      "to": "handler:c64_state.write_memory",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.vic_videoram_r",
+      "to": "handler:c64_state.read_memory",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.read_memory",
+      "to": "handler:c64_state.read_pla",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.read_memory",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.write_memory",
+      "to": "handler:c64_state.read_pla",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.write_memory",
+      "to": "handler:c64_state.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:c64_state.read_pla",
+      "to": "handler:c64_state.read",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

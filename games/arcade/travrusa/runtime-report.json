@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "travrusa",
+  "family": "travrusa",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 87,
+    "total": 132,
+    "percent": 65.9
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "irem_audio:iremsound:M6803",
+        "status": "executable",
+        "source": "src/devices/cpu/m6800/m6801.cpp:409"
+      }
+    ],
+    "devices": [
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "irem_audio:IREM_M52_SOUNDC_AUDIO",
+        "status": "executable",
+        "source": "src/mame/irem/irem.cpp:18"
+      },
+      {
+        "name": "iremsound:M6803",
+        "status": "executable",
+        "source": "src/devices/cpu/m6800/m6801.cpp:409"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ay_45m:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay_45l:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "msm1:MSM5205",
+        "status": "executable",
+        "source": "src/devices/sound/msm5205.cpp:53"
+      },
+      {
+        "name": "filtermix:DISCRETE",
+        "status": "declarative-host",
+        "source": "src/devices/sound/discrete.cpp:50"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "irem_audio.cmd_w",
+        "status": "executable",
+        "source": "src/mame/irem/irem.cpp:18"
+      },
+      {
+        "name": "irem_audio_device.m52_adpcm_w",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:225"
+      },
+      {
+        "name": "irem_audio_device.sound_irq_ack_w",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:218"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "travrusa_state.flipscreen_w",
+        "status": "generated",
+        "source": "src/mame/irem/travrusa.cpp:417"
+      },
+      {
+        "name": "travrusa_state.scroll_x_high_w",
+        "status": "generated",
+        "source": "src/mame/irem/travrusa.cpp:410"
+      },
+      {
+        "name": "travrusa_state.scroll_x_low_w",
+        "status": "generated",
+        "source": "src/mame/irem/travrusa.cpp:404"
+      },
+      {
+        "name": "travrusa_state.videoram_w",
+        "status": "generated",
+        "source": "src/mame/irem/travrusa.cpp:389"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> travrusa_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/irem/travrusa.cpp:710"
+      },
+      {
+        "name": "screen.screen_vblank -> maincpu",
+        "status": "generated",
+        "source": "src/mame/irem/travrusa.cpp:715"
+      },
+      {
+        "name": "iremsound.in_p1_cb -> m52_soundc_audio_device.m6803_port1_r",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:471"
+      },
+      {
+        "name": "iremsound.out_p1_cb -> m52_soundc_audio_device.m6803_port1_w",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:472"
+      },
+      {
+        "name": "iremsound.in_p2_cb -> m52_soundc_audio_device.m6803_port2_r",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:473"
+      },
+      {
+        "name": "iremsound.out_p2_cb -> m52_soundc_audio_device.m6803_port2_w",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:474"
+      },
+      {
+        "name": "ay_45m.port_a_read_callback -> irem_audio_device.soundlatch_r",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:482"
+      },
+      {
+        "name": "ay_45m.port_b_write_callback -> irem_audio_device.ay8910_45M_portb_w",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:483"
+      },
+      {
+        "name": "ay_45l.port_a_write_callback -> irem_audio_device.ay8910_45L_porta_w",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:489"
+      },
+      {
+        "name": "msm1.vck_callback -> iremsound",
+        "status": "generated",
+        "source": "src/mame/irem/irem.cpp:493"
+      },
+      {
+        "name": "palette.palette_init -> travrusa_state.travrusa_palette",
+        "status": "generated",
+        "source": "src/mame/irem/travrusa.cpp:718"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/travrusa/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 20,
+    "compiledMethods": 20,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 6,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "travrusa_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 8,
+    "generated": 23,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

@@ -1,0 +1,652 @@
+{
+  "generatedFrom": "src/mame/sega/system1.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2203,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2208,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2213,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2214,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2215,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2224,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2226,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2246,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2247,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2244,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2229
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2203,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2208,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2213,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2214,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2215,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2226,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2246,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2247,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2244,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2200,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2205,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 320,
+      "column": 1
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2221,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2208,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2208,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2208,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2226,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2208,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 566,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2200,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2205,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2208,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2212,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2221,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2228,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2229,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2232,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2234,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2238,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2241,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2243,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 371,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 335,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 319,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 343,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 263,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 270,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 277,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 291,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 298,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 305,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 803,
+      "column": 2
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 803,
+      "column": 2
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 848,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 523,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/sega/system1.h",
+      "line": 117,
+      "column": 49
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 229,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 195,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 178,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 363,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 554,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 546,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 393,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 247,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 508,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 359,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 566,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 504,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 384,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2246,
+      "column": 2
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 2247,
+      "column": 2
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 95,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 748,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 749,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 750,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 751,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 752,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 753,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 754,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 755,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 756,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 757,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 746,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 762,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 763,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 764,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 765,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 766,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 760,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 797,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 798,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 799,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 800,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 801,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/5/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 802,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/6/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 803,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 794,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 845,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 846,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/2/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 847,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 848,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/4/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 849,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/sega/system1.cpp",
+      "line": 843,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 95,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 195,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 195,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/sega/system1_v.cpp",
+      "line": 229,
+      "column": 1
+    }
+  ]
+}

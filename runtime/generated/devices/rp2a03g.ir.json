@@ -1,0 +1,38 @@
+{
+  "type": "RP2A03G",
+  "uses": [
+    {
+      "game": "nes",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "RP2A03G",
+    "className": "rp2a03g_device",
+    "shortName": "rp2a03g",
+    "description": "Ricoh RP2A03G",
+    "sourceFile": "src/devices/cpu/m6502/rp2a03.cpp",
+    "sourceLine": 17,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(RP2A03G,     rp2a03g_device,     \"rp2a03g\",     \"Ricoh RP2A03G\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/m6502/dm6502.lst",
+    "src/devices/cpu/m6502/drp2a03.lst",
+    "src/devices/cpu/m6502/om6502.lst",
+    "src/devices/cpu/m6502/orp2a03.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m6502/dm6502.lst",
+    "src/devices/cpu/m6502/drp2a03.lst",
+    "src/devices/cpu/m6502/om6502.lst",
+    "src/devices/cpu/m6502/orp2a03.lst",
+    "src/devices/cpu/m6502/rp2a03.cpp",
+    "src/devices/cpu/m6502/rp2a03.h",
+    "src/devices/cpu/m6502/rp2a03d.h"
+  ]
+}

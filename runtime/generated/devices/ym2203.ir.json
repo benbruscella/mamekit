@@ -1,0 +1,92 @@
+{
+  "type": "YM2203",
+  "uses": [
+    {
+      "game": "bublbobl",
+      "tags": [
+        "ym2203"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "ym1",
+        "ym2"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "ym1",
+        "ym2"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "ym1",
+        "ym2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "YM2203",
+    "className": "ym2203_device",
+    "shortName": "ym2203",
+    "description": "YM2203 OPN",
+    "sourceFile": "src/devices/sound/ymopn.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(YM2203, ym2203_device, \"ym2203\", \"YM2203 OPN\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.cpp",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "set_fidelity"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "SSG_FIDELITY"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "parent::device_start"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ymopn.cpp",
+    "src/devices/sound/ymopn.h"
+  ]
+}

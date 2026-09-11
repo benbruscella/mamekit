@@ -1,0 +1,888 @@
+{
+  "schemaVersion": 1,
+  "type": "CBM_IEC_SLOT",
+  "className": "cbm_iec_slot_device",
+  "hierarchy": [
+    "cbm_iec_slot_device"
+  ],
+  "sourceFiles": [
+    "src/devices/bus/cbmiec/cbmiec.cpp",
+    "src/devices/bus/cbmiec/cbmiec.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "LOG": 0,
+    "SRQ": 0,
+    "ATN": 1,
+    "CLK": 2,
+    "DATA": 3,
+    "RESET": 4,
+    "SIGNAL_COUNT": 5
+  },
+  "members": [
+    {
+      "name": "m_address",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "bus",
+            "valueType": "cbm_iec_device*",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "device",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "owner"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "device"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "device"
+                    },
+                    "property": "owner"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "bus"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "device"
+                    },
+                    "property": "subdevice"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "CBM_IEC_TAG"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bus"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "bus"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dev",
+            "valueType": "auto*",
+            "value": {
+              "kind": "cast",
+              "valueType": "",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_card_device"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "dev"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "bus"
+                    },
+                    "property": "add_device"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_card_device"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 260,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, int address, auto &&opts, char const *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "address"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 122,
+        "column": 1
+      }
+    },
+    {
+      "name": "add",
+      "parameters": "machine_config &config, auto &&_bus_tag, const char *_default_drive",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec4"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec8"
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "_default_drive"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec9"
+                },
+                {
+                  "kind": "number",
+                  "value": 9
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec10"
+                },
+                {
+                  "kind": "number",
+                  "value": 10
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec11"
+                },
+                {
+                  "kind": "number",
+                  "value": 11
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "_bus_tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 132,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_address",
+      "parameters": "int address",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "address"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 143,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_address",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_address"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 145,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::cbm_iec_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, int address, auto &&opts, char const *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "address"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 123,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::add",
+      "parameters": "machine_config &config, auto &&_bus_tag, const char *_default_drive",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec4"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec8"
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "_default_drive"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec9"
+                },
+                {
+                  "kind": "number",
+                  "value": 9
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec10"
+                },
+                {
+                  "kind": "number",
+                  "value": 10
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec11"
+                },
+                {
+                  "kind": "number",
+                  "value": 11
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "_bus_tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 132,
+        "column": 102
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::set_address",
+      "parameters": "int address",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "address"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 144,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::get_address",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_address"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 146,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 9,
+    "compiledMethods": 9,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_start",
+    "cbm_iec_slot_device",
+    "add",
+    "set_address",
+    "get_address",
+    "cbm_iec_slot_device::cbm_iec_slot_device",
+    "cbm_iec_slot_device::add",
+    "cbm_iec_slot_device::set_address",
+    "cbm_iec_slot_device::get_address"
+  ]
+}

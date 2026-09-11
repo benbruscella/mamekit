@@ -1,0 +1,292 @@
+{
+  "generatedFrom": "src/mame/universal/ladybug.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 687,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 696,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 691
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 696,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 681,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 685,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 216,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 681,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 685,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 690,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 691,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 693,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 695,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 699,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 701,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 702,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/universal/ladybug_video.h",
+      "line": 21,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 239,
+      "column": 2
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 241,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/universal/ladybug_video.h",
+      "line": 22,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/universal/ladybug_video.cpp",
+      "line": 40,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 216,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/universal/ladybug_video.cpp",
+      "line": 54,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/universal/ladybug_video.cpp",
+      "line": 67,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 696,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 270,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 275,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 157,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/universal/ladybug_video.cpp",
+      "line": 46,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 257,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 263,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 231,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 232,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 233,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 234,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 235,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 236,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 237,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 238,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 239,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 240,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 241,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 242,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 243,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 229,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/universal/ladybug.cpp",
+      "line": 157,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/universal/ladybug_video.cpp",
+      "line": 24,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/universal/ladybug_video.cpp",
+      "line": 24,
+      "column": 1
+    }
+  ]
+}

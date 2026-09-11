@@ -1,0 +1,29 @@
+{
+  "type": "M58715",
+  "uses": [
+    {
+      "game": "mario",
+      "tags": [
+        "audiocpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M58715",
+    "className": "m58715_device",
+    "shortName": "m58715",
+    "description": "Mitsubishi M58715",
+    "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+    "sourceLine": 204,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M58715,  m58715_device,  \"m58715\",  \"Mitsubishi M58715\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/mcs48/mcs48.cpp",
+    "src/devices/cpu/mcs48/mcs48.h",
+    "src/devices/cpu/mcs48/mcs48dsm.h"
+  ]
+}

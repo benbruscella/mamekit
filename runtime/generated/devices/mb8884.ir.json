@@ -1,0 +1,35 @@
+{
+  "type": "MB8884",
+  "uses": [
+    {
+      "game": "dkong",
+      "tags": [
+        "soundcpu"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "soundcpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MB8884",
+    "className": "mb8884_device",
+    "shortName": "mb8884",
+    "description": "Fujitsu MB8884",
+    "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+    "sourceLine": 202,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MB8884,  mb8884_device,  \"mb8884\",  \"Fujitsu MB8884\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/mcs48/mcs48.cpp",
+    "src/devices/cpu/mcs48/mcs48.h",
+    "src/devices/cpu/mcs48/mcs48dsm.h"
+  ]
+}

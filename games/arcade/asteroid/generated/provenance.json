@@ -1,0 +1,515 @@
+{
+  "generatedFrom": "src/mame/atari/asteroid.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 839,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 850,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 851,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 852,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 853,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 861,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 325,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 326,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 327,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 328,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 329,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/11/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 330,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 839,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 850,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 851,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 852,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 853,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 325,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 326,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 327,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 328,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 329,
+      "column": 2
+    },
+    {
+      "path": "/connections/10/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 330,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 837,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 114,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/1/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 114,
+      "column": 1
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 857,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 839,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 839,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 839,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 839,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 861,
+      "column": 2
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 837,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 841,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 843,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 845,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 856,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 857,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 863,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 320,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 322,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 324,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 45,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 77,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 91,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 473,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 474,
+      "column": 2
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 475,
+      "column": 2
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 284,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 306,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 312,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 404,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 128,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 16,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/atari/asteroid_m.cpp",
+      "line": 37,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 370,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 375,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 380,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 861,
+      "column": 2
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 325,
+      "column": 2
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 326,
+      "column": 2
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 327,
+      "column": 2
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 341,
+      "column": 2
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 329,
+      "column": 2
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/atari/asteroid_a.cpp",
+      "line": 330,
+      "column": 2
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 492,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 422,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 423,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 425,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 426,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 427,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 428,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 429,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 430,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 433,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 434,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 435,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 436,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 437,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 419,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/atari/asteroid.cpp",
+      "line": 868,
+      "column": 1
+    }
+  ]
+}

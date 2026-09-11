@@ -1,0 +1,28 @@
+{
+  "type": "AY8912",
+  "uses": [
+    {
+      "game": "carnival",
+      "tags": [
+        "psg"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "AY8912",
+    "className": "ay8912_device",
+    "shortName": "ay8912",
+    "description": "AY-3-8912A PSG",
+    "sourceFile": "src/devices/sound/ay8910.cpp",
+    "sourceLine": 1620,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(AY8912, ay8912_device, \"ay8912\", \"AY-3-8912A PSG\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ay8910.cpp",
+    "src/devices/sound/ay8910.h"
+  ]
+}

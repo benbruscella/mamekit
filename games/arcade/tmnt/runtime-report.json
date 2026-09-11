@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "tmnt",
+  "family": "tmnt",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 104,
+    "total": 180,
+    "percent": 57.8
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M68000",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68000.cpp:8"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "k052109:K052109",
+        "status": "executable",
+        "source": "src/mame/konami/k052109.cpp:149"
+      },
+      {
+        "name": "k051960:K051960",
+        "status": "executable",
+        "source": "src/mame/konami/k051960.cpp:77"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ymsnd:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "k007232:K007232",
+        "status": "executable",
+        "source": "src/devices/sound/k007232.cpp:14"
+      },
+      {
+        "name": "upd:UPD7759",
+        "status": "executable",
+        "source": "src/devices/sound/upd7759.cpp:184"
+      },
+      {
+        "name": "samples:SAMPLES",
+        "status": "executable",
+        "source": "src/devices/sound/samples.cpp:38"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "k007232.read",
+        "status": "executable",
+        "source": "src/devices/sound/k007232.cpp:14"
+      },
+      {
+        "name": "k007232.write",
+        "status": "executable",
+        "source": "src/devices/sound/k007232.cpp:14"
+      },
+      {
+        "name": "k051960.k051937_r",
+        "status": "executable",
+        "source": "src/mame/konami/k051960.cpp:77"
+      },
+      {
+        "name": "k051960.k051937_w",
+        "status": "executable",
+        "source": "src/mame/konami/k051960.cpp:77"
+      },
+      {
+        "name": "k051960.k051960_r",
+        "status": "executable",
+        "source": "src/mame/konami/k051960.cpp:77"
+      },
+      {
+        "name": "k051960.k051960_w",
+        "status": "executable",
+        "source": "src/mame/konami/k051960.cpp:77"
+      },
+      {
+        "name": "palette.read8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.COINS",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW3",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.P3",
+        "status": "generated"
+      },
+      {
+        "name": "port.P4",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "tmnt_state._0a0000_w",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:391"
+      },
+      {
+        "name": "tmnt_state.k052109_word_noA12_r",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:207"
+      },
+      {
+        "name": "tmnt_state.k052109_word_noA12_w",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:218"
+      },
+      {
+        "name": "tmnt_state.priority_w",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:414"
+      },
+      {
+        "name": "tmnt_state.sres_r",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:237"
+      },
+      {
+        "name": "tmnt_state.sres_w",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:242"
+      },
+      {
+        "name": "tmnt_state.tmnt_upd_busy_r",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:263"
+      },
+      {
+        "name": "tmnt_state.tmnt_upd_start_w",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:258"
+      },
+      {
+        "name": "upd.port_w",
+        "status": "executable",
+        "source": "src/devices/sound/upd7759.cpp:184"
+      },
+      {
+        "name": "watchdog.reset16_w",
+        "status": "generated"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> tmnt_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:942"
+      },
+      {
+        "name": "screen.screen_vblank -> tmnt_state.vblank_w",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:944"
+      },
+      {
+        "name": "k052109.set_tile_callback -> tmnt_state.tmnt_tile_callback",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:956"
+      },
+      {
+        "name": "k051960.set_sprite_callback -> tmnt_state.tmnt_sprite_callback",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:961"
+      },
+      {
+        "name": "k007232.port_write -> tmnt_state.volume_callback",
+        "status": "generated",
+        "source": "src/mame/konami/tmnt.cpp:974"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/tmnt/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 27,
+    "compiledMethods": 27,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 8,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "tmnt_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 20,
+    "generated": 23,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

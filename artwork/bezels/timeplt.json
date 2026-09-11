@@ -1,0 +1,17 @@
+{
+  "name": "Upright_Artwork_Centuri",
+  "screen": {
+    "x": 1007,
+    "y": 774,
+    "w": 1980,
+    "h": 2640
+  },
+  "art": {
+    "x": 0,
+    "y": 0,
+    "w": 4000,
+    "h": 3857
+  },
+  "rotate": 0,
+  "tints": []
+}

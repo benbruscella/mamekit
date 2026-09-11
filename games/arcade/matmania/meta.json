@@ -1,0 +1,53 @@
+{
+  "game": "matmania",
+  "title": "Mat Mania (Technos Japan (Taito America license), 1985)",
+  "fullname": "Mat Mania",
+  "year": "1985",
+  "manufacturer": "Technos Japan (Taito America license)",
+  "family": "matmania",
+  "driverFile": "src/mame/technos/matmania.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Brad Oliver",
+  "credits": {
+    "people": [
+      {
+        "name": "Brad Oliver",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "M.A.S.H.",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.137",
+        "lastRelease": "0.137"
+      },
+      {
+        "name": "negunma",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.286",
+        "lastRelease": "0.286"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-04-01",
+    "commits": 137,
+    "authors": 24,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

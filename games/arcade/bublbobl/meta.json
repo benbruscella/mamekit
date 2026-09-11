@@ -1,0 +1,83 @@
+{
+  "game": "bublbobl",
+  "title": "Bubble Bobble (Japan, Ver 0.1) (Taito, 1986)",
+  "fullname": "Bubble Bobble (Japan, Ver 0.1)",
+  "year": "1986",
+  "manufacturer": "Taito",
+  "family": "bublbobl",
+  "driverFile": "src/mame/taito/bublbobl.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Chris Moore, Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Chris Moore",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 3,
+        "firstRelease": "0.232",
+        "lastRelease": "0.283"
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.225",
+        "lastRelease": "0.225"
+      },
+      {
+        "name": "ArcadeHacker",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.225",
+        "lastRelease": "0.225"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.130",
+        "lastRelease": "0.130"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-14",
+    "commits": 211,
+    "authors": 33,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}
