@@ -35,8 +35,16 @@ real-ROM game contract. It is the local shared-core gate and requires the ROMs
 under `.data/roms`. CI also runs the complete ROM-backed gate without storing
 archives in git or Actions: it downloads only the accepted set closure from the
 same public, immutable mirror used by the application, then verifies every file
-against MAME's declared size and CRC. `ROM-backed accepted contracts` is a real
-Actions check required on `main`.
+against MAME's declared size and CRC.
+
+The gate is split across four macOS runners, each generating and then running
+an interleaved quarter of the contracts (`--shard i/4`). The split is across
+machines and never within one: every contract asserts an emulated-fps floor
+measured against wall clock, so contracts sharing a runner's cores would drag
+each other under their floors and fail for load rather than for behaviour.
+`ROM-backed accepted contracts` remains a real Actions check required on
+`main` — it is now the job that aggregates the shards, and it passes only when
+every shard passed.
 
 ### TYPE AND COLOCATED SPECS
 
@@ -147,6 +155,11 @@ npm run test:games:ci
 
 That command clean-generates first, runs both generated audits, fetches any
 missing accepted primary/parent/device sets, and runs the non-fail-fast matrix.
+To reproduce exactly what one CI runner did, add the same shard selector:
+
+```sh
+npm run test:games:matrix -- --shard 3/4
+```
 The Actions job uploads `.cache/acceptance-report.json` even on failure, so a
 focused local pass cannot masquerade as the required full-suite check.
 
@@ -420,9 +433,12 @@ it must not gain game logic.
 4. runs every colocated spec;
 5. deletes `dist`, regenerates every discovered accepted/candidate machine,
    and audits both generated structure and semantic BoardIR;
-6. in the ROM-backed job, downloads the exact accepted ROM closure from the
-   application's public mirror, verifies it against MAME metadata, runs every
-   contract, and uploads the complete report even when one or more fail.
+6. in each ROM-backed shard, downloads the exact accepted ROM closure from the
+   application's public mirror, verifies it against MAME metadata, runs that
+   shard's contracts, and uploads its report even when one or more fail (one
+   artifact per shard, `rom-acceptance-report-<shard>`);
+7. aggregates the four shards into the required `ROM-backed accepted
+   contracts` check.
 
 GitHub branch protection additionally requires the actual Actions check named
 `ROM-backed accepted contracts`; a manually created commit status is not used.

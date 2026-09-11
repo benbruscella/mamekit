@@ -20,7 +20,7 @@ jobs:
     # The gates share only their setup and run as independent matrix jobs so a
     # PR waits for the slowest gate rather than their sum.
     name: ${{ matrix.name }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -28,24 +28,10 @@ jobs:
         include:
           - name: Unit and lowering specs
             command: npm run test:unit
-            acceptance: false
-            runner: ubuntu-latest
           - name: Clean generation and audit
             command: npm run test:current
-            acceptance: false
-            runner: ubuntu-latest
-          - name: ROM-backed accepted contracts
-            command: npm run test:games:ci
-            acceptance: true
-            # CPS1 clears the exact 50 fps contract comfortably on the target
-            # arm64 architecture; the x64 hosted VM measured 45.1-49.4 fps.
-            # Keep the contract strict by selecting capacity, not lowering it.
-            runner: macos-15
     env:
       MAME_SRC: ${{ github.workspace }}/.mame
-      # Node's arm64 default stopped at 2 GB while tsc compiled the unified
-      # generated app. The hosted macOS VM has 7 GB; keep enough headroom for
-      # the OS while allowing the same build that succeeds on x64.
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - name: Check out MAMEKIT
@@ -81,10 +67,86 @@ jobs:
           SPEC_JOBS: 4
         run: ${{ matrix.command }}
 
+  acceptance:
+    # Real-ROM contracts are split across runners rather than run as one
+    # half-hour job. The split has to be across machines: every contract
+    # asserts an emulated-fps floor measured against wall clock, so contracts
+    # sharing a runner's cores would drag each other under their floors and
+    # fail for load rather than for behaviour.
+    name: ROM-backed accepted contracts ${{ matrix.shard }}/4
+    # CPS1 clears the exact 50 fps contract comfortably on the target arm64
+    # architecture; the x64 hosted VM measured 45.1-49.4 fps. Keep the contract
+    # strict by selecting capacity, not lowering it.
+    runs-on: macos-15
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep SHARDS equal to the number of entries here.
+        shard: [1, 2, 3, 4]
+    env:
+      MAME_SRC: ${{ github.workspace }}/.mame
+      # Node's arm64 default stopped at 2 GB while tsc compiled the unified
+      # generated app. The hosted macOS VM has 7 GB; keep enough headroom for
+      # the OS while allowing the same build that succeeds on x64.
+      NODE_OPTIONS: --max-old-space-size=4096
+      SHARDS: 4
+    steps:
+      - name: Check out MAMEKIT
+        uses: actions/checkout@v6
+
+      - name: Check out pinned MAME source
+        uses: actions/checkout@v6
+        with:
+          repository: mamedev/mame
+          ref: f34f02505e32c1993c6a782b6814232cbfc74e36
+          path: .mame
+          sparse-checkout: |
+            src
+            hash/nes.xml
+            hash/gameboy.xml
+            3rdparty/ymfm/src
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate and audit
+        run: npm run test:current
+
+      - name: Fetch acceptance ROMs
+        run: npm run fetch:acceptance-roms
+
+      - name: Accepted contracts ${{ matrix.shard }}/4
+        run: npm run test:games:matrix -- --shard ${{ matrix.shard }}/${{ env.SHARDS }}
+
       - name: Upload complete acceptance report
-        if: always() && matrix.acceptance
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rom-acceptance-report
+          # Artifact names must be unique across a run, so each shard keeps its
+          # own report rather than the last writer winning.
+          name: rom-acceptance-report-${{ matrix.shard }}
           path: .cache/acceptance-report.json
           if-no-files-found: warn
+
+  acceptance-gate:
+    # Branch protection requires a check with this exact name. Sharding the
+    # work renamed the jobs that do it, so this job aggregates them and keeps
+    # the required check stable: it passes only when every shard passed, and a
+    # shard that fails, is cancelled or never runs fails it too.
+    name: ROM-backed accepted contracts
+    runs-on: ubuntu-latest
+    needs: acceptance
+    if: always()
+    steps:
+      - name: Every shard passed
+        run: |
+          echo "shards reported: ${{ needs.acceptance.result }}"
+          test "${{ needs.acceptance.result }}" = "success"
