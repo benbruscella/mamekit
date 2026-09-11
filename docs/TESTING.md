@@ -38,9 +38,11 @@ same public, immutable mirror used by the application, then verifies every file
 against MAME's declared size and CRC.
 
 The distribution is generated once per run by `Clean generation and audit` and
-handed to the gate as an artifact; the gate is split across eight macOS
+handed to the gate as an artifact; the gate is split across eight arm64 Linux
 runners, each running an interleaved eighth of the contracts (`--shard i/8`)
-against that same distribution. The split is across
+against that same distribution. arm64 is a requirement of the fps floors, not a
+preference: the x64 hosted VM measured 45.1-49.4 fps against CPS1's exact 50
+fps contract. The split is across
 machines and never within one: every contract asserts an emulated-fps floor
 measured against wall clock, so contracts sharing a runner's cores would drag
 each other under their floors and fail for load rather than for behaviour.
@@ -442,11 +444,12 @@ it must not gain game logic.
 7. aggregates the eight shards into the required `ROM-backed accepted
    contracts` check.
 
-A contract killed by a signal, one that stops answering, and one that misses
-its fps floor are each retried once: all three are accidents of the host rather
-than statements about the emulation, and the harness asserts behaviour before
-throughput, so a retry cannot hide a golden that changed. A failure about
-behaviour is never retried.
+A contract killed by a signal and one that stops answering are each retried
+once; a contract that misses its fps floor is not. The retry runs on the same
+hosted VM, and hosted throughput varies by runner rather than by attempt
+(measured across one run: 0.61x to 1.70x of the same contract's previous
+duration), so a runner slow enough to miss a floor misses it again. Failures
+about behaviour are never retried.
 
 GitHub branch protection additionally requires the actual Actions check named
 `ROM-backed accepted contracts`; a manually created commit status is not used.

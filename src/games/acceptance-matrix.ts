@@ -94,28 +94,19 @@ function runOne(target: string, attempt: number): Promise<AcceptanceResult> {
   });
 }
 
-/**
- * The fps floor is a measurement of a shared machine, not an assertion about
- * the emulation. The harness checks behaviour first and throughput second, so
- * reaching this failure means the goldens already matched and only the hosted
- * runner was slow: sf2ce clears its 50 fps floor at about 52, and a runner
- * having a bad ten percent puts it under. Retrying cannot hide a behavioural
- * regression, and a real throughput regression fails the retry too.
- */
-function throughputFailure(result: AcceptanceResult): boolean {
-  return /fps is below the .* acceptance floor/.test(result.detail ?? '');
-}
-
 async function runTarget(target: string): Promise<AcceptanceResult> {
   let result = await runOne(target, 1);
   // macOS can occasionally terminate a large generated Node module during
   // rapid process churn, and a machine that stops answering is the same kind
-  // of accident. Retry those and a missed fps floor; deterministic assertion
-  // failures about behaviour remain single-shot and visible.
-  if (result.status === 'failed'
-    && (result.signal || result.timedOut || throughputFailure(result))) {
-    const reason = result.signal ?? (result.timedOut ? 'no result in time' : 'a missed fps floor');
-    console.warn(`RETRY ${target} after ${reason}`);
+  // of accident. Retry both; deterministic assertion failures remain
+  // single-shot and visible.
+  //
+  // A missed fps floor is deliberately not retried. It looks like a flake but
+  // is not one: the retry runs on the same hosted VM, and a runner slow enough
+  // to miss the floor misses it again (sf2ce measured 47.7 then 47.1 against
+  // its 50 floor). Retrying it only spends another 95 seconds to fail twice.
+  if (result.status === 'failed' && (result.signal || result.timedOut)) {
+    console.warn(`RETRY ${target} after ${result.signal ?? 'no result in time'}`);
     await new Promise(resolveWait => setTimeout(resolveWait, 10_000));
     result = await runOne(target, 2);
   }

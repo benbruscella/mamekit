@@ -114,10 +114,14 @@ jobs:
     # sharing a runner's cores would drag each other under their floors and
     # fail for load rather than for behaviour.
     name: ROM-backed accepted contracts ${{ matrix.shard }}/8
-    # CPS1 clears the exact 50 fps contract comfortably on the target arm64
-    # architecture; the x64 hosted VM measured 45.1-49.4 fps. Keep the contract
-    # strict by selecting capacity, not lowering it.
-    runs-on: macos-15
+    # arm64 is the requirement, not macOS: CPS1 clears its exact 50 fps
+    # contract on an arm64 core while the x64 hosted VM measured 45.1-49.4 fps.
+    # Keep the contract strict by selecting capacity, not lowering it. macOS
+    # used to be the only hosted arm64; Linux arm64 is now offered too, has
+    # four cores to the macOS VM's three, and counts against the standard
+    # concurrent-job pool rather than the five-job macOS one, so all eight
+    # shards run at once instead of in two waves.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
     needs: generate
     strategy:
