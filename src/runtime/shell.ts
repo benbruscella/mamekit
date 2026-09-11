@@ -17,7 +17,8 @@ import { fetchRomBytes } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
 import {
-  DECK_GOLD, deckButton, deckPanel, paintTitleButton, setDeckButtonState, titleButton, toolbarDivider,
+  DECK_GOLD, deckButton, deckPanel, paintTitleButton, setDeckButtonState, setTitleButtonText,
+  titleButton, toolbarDivider,
 } from './controls.ts';
 import { openRomStore, type RomStore, type StoredZip } from './romstore.ts';
 import { openMemoryStore } from './memorystore.ts';
@@ -1207,7 +1208,10 @@ export async function runShell(
       const room = netplay.status();
       if (room) parts.unshift(room);
       if (input.debug) parts.push(input.dump());
-      ui.status(`${cfg.title} — ${parts.join(' · ')}`);
+      // The machine's name is already the heading above the screen. Repeating
+      // it here every second cost a line of the page to say it twice and
+      // pushed the readings that do change out to the right.
+      ui.status(parts.join(' · '));
       frames = 0;
       fpsWindowStart = now;
     }
@@ -1440,31 +1444,69 @@ function buildDom(cfg: ShellConfig) {
   document.body.style.margin = '0';
   document.body.appendChild(root);
 
+  // The screen goes first and everything else is a control panel under it
+  // (issue #140). The name of the machine used to sit above the screen AND be
+  // rewritten into the status line below it once a second, which spent two
+  // lines of the page saying the same thing twice.
+  const deck = document.createElement('div');
+  deck.dataset.deck = '';
+  // The panel of an arcade cabinet: a dark metal face under the glass, lit
+  // along its top edge, with an engraved legend across the bottom.
+  deck.style.cssText = `display:flex;flex-direction:column;align-items:stretch;gap:0;
+    width:min(960px,96vw);max-width:96vw;border-radius:0 0 14px 14px;box-sizing:border-box;overflow:hidden;
+    background:
+      repeating-linear-gradient(100deg,rgba(255,255,255,.016) 0 1px,transparent 1px 4px),
+      linear-gradient(180deg,#1b2145 0%,#141935 45%,#0d1128 100%);
+    border:1px solid #2b3466;border-top:none;
+    box-shadow:inset 0 -1px 0 rgba(0,0,0,.5),0 14px 34px rgba(0,0,0,.55)`;
+  // The strip of light along the top edge, as if it were catching the screen.
+  const lip = document.createElement('div');
+  lip.setAttribute('aria-hidden', 'true');
+  lip.style.cssText = `height:2px;flex:0 0 auto;
+    background:linear-gradient(90deg,transparent,${DECK_GOLD}55 18%,${DECK_GOLD}aa 50%,${DECK_GOLD}55 82%,transparent)`;
+  deck.appendChild(lip);
+
+  /** One strip across the panel, ruled off from the one above it. */
+  const strip = (padding: string, first = false): HTMLElement => {
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:center;justify-content:center;gap:10px 14px;flex-wrap:wrap;
+      padding:${padding};box-sizing:border-box;
+      ${first ? '' : 'border-top:1px solid rgba(255,255,255,.055)'}`;
+    deck.appendChild(row);
+    return row;
+  };
+
+  // Nameplate and readout: what machine this is, and what it is doing.
+  const plate = strip('9px 16px', true);
+  plate.style.justifyContent = 'space-between';
   const h1 = document.createElement('h1');
   h1.textContent = cfg.title;
-  h1.style.cssText = 'font-size:15px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;text-align:center';
+  h1.style.cssText = `font:700 12px ui-sans-serif,system-ui,sans-serif;margin:0;letter-spacing:.4px;
+    display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:#e8ebff;
+    text-shadow:0 1px 0 rgba(0,0,0,.6)`;
   if (cfg.preview) h1.appendChild(betaBadge());
-  root.appendChild(h1);
+  plate.appendChild(h1);
 
-  // The machine's controls, on their own line rather than jammed into the
-  // title (issue #140). They used to be appended straight into the <h1>, six
-  // pills of equal weight that wrapped into the name of the game; here they
-  // read as one object, grouped by what they do, with the destructive pair
-  // held back at the end in a quieter tone.
+  // The machine's controls, grouped by what they do, with the destructive
+  // pair held back at the end in a tone that does not look like Save. They
+  // used to be appended straight into the <h1>: six pills of equal weight
+  // wrapping into the name of the game.
   const toolbar = document.createElement('div');
   toolbar.dataset.toolbar = '';
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', `${cfg.title} controls`);
-  toolbar.style.cssText = `display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;
-    padding:5px 8px;border-radius:999px;background:#12162e;border:1px solid #222950;max-width:min(880px,94vw)`;
+  toolbar.style.cssText = 'display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;flex:1 1 auto';
   // Controller badge: a pad in hand should be unmistakable, not a word in
   // the legend. Filled by ui.pads() as pads come and go.
   const padBadge = document.createElement('span');
   padBadge.dataset.pads = '';
   padBadge.style.cssText = 'display:none;align-items:center;gap:6px;background:#1f6f3a;color:#dfffe6;border:1px solid #3ccf6a;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;letter-spacing:.02em';
   toolbar.appendChild(padBadge);
-  root.appendChild(toolbar);
-  /** The toolbar only earns its chrome once something is in it. */
+  const well = strip('11px 16px');
+  well.style.background = 'linear-gradient(180deg,rgba(0,0,0,.34),rgba(0,0,0,.14))';
+  well.style.boxShadow = 'inset 0 2px 5px rgba(0,0,0,.5),inset 0 -1px 0 rgba(255,255,255,.04)';
+  well.appendChild(toolbar);
+  /** The toolbar takes no room on the panel until something is in it. */
   const showToolbar = (): void => {
     const filled = [...toolbar.children].some(child => (child as HTMLElement).style.display !== 'none');
     toolbar.style.display = filled ? 'flex' : 'none';
@@ -1487,11 +1529,12 @@ function buildDom(cfg: ShellConfig) {
   modal.addEventListener('click', event => { if (event.target === modal) dismissModal?.(); });
   document.body.appendChild(modal);
 
-  // cabinet column: screen inside cropped bezel art — no banner/marquee or
-  // control panel, the screen is the star
+  // cabinet column: screen inside cropped bezel art — no banner or marquee,
+  // and it goes in first so the machine is the top of the page
   const cab = document.createElement('div');
   cab.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:0';
   root.appendChild(cab);
+  root.appendChild(deck);
 
   // native frame is rendered landscape; the cabinet monitor is rotated (ROT90).
   // `let` because the BOARD owns the true native size (setNative below):
@@ -1547,6 +1590,11 @@ function buildDom(cfg: ShellConfig) {
       canvas.style.width = `${dispW * displayScale}px`;
       canvas.style.height = `${dispH * displayScale}px`;
     }
+    // The control panel is as wide as the glass above it, so the two read as
+    // one cabinet rather than a screen with a widget underneath. Narrow
+    // screens get a floor, or the buttons would be stacked six deep.
+    const glass = parseFloat(bezel ? holder.style.width : canvas.style.width) || 0;
+    deck.style.width = `${Math.min(innerWidth - 32, Math.max(360, glass))}px`;
   };
   fit();
   addEventListener('resize', fit);
@@ -1566,16 +1614,32 @@ function buildDom(cfg: ShellConfig) {
   holder.appendChild(toast);
   let toastTimer = 0;
 
+  // What the machine is doing right now, and what the keys do. Both belong
+  // to the panel: they are readouts of the thing above them.
+  // The readout, in the panel's nameplate: a lamp that is lit while the
+  // machine is running, and the numbers it is running at.
+  const lamp = document.createElement('span');
+  lamp.setAttribute('aria-hidden', 'true');
+  lamp.style.cssText = 'width:7px;height:7px;border-radius:999px;flex:0 0 auto;background:#3a3f6a;transition:background .3s,box-shadow .3s';
   const statusEl = document.createElement('div');
-  statusEl.style.cssText = 'color:#999;min-height:1.4em;max-width:640px;text-align:center';
+  statusEl.dataset.readout = '';
+  statusEl.style.cssText = `color:${DECK_GOLD};font:600 11px ui-monospace,SFMono-Regular,monospace;letter-spacing:.6px;
+    text-align:right;line-height:1.5;text-shadow:0 0 12px ${DECK_GOLD}40`;
   statusEl.textContent = 'Loading…';
-  root.appendChild(statusEl);
+  const readout = document.createElement('div');
+  readout.style.cssText = 'display:flex;align-items:center;gap:8px;justify-content:flex-end;min-width:0;flex:1 1 200px';
+  readout.append(lamp, statusEl);
+  plate.appendChild(readout);
 
+  // The legend, engraved along the bottom edge of the panel.
   const help = document.createElement('div');
   help.dataset.help = ''; // stable handle for browser QA
-  help.style.cssText = 'color:#666';
+  help.style.cssText = `color:#6f79b4;font:11px ui-monospace,SFMono-Regular,monospace;text-align:center;
+    line-height:1.7;text-shadow:0 1px 0 rgba(0,0,0,.5)`;
   help.textContent = controlsHelp(cfg);
-  root.appendChild(help);
+  const legend = strip('8px 16px 10px');
+  legend.style.background = 'rgba(0,0,0,.22)';
+  legend.appendChild(help);
 
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
@@ -1632,7 +1696,13 @@ function buildDom(cfg: ShellConfig) {
       toastTimer = window.setTimeout(() => { toast.style.opacity = '0'; }, 4000);
     },
     status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none' && !overlay.querySelector('[data-dropzone]')) overlay.textContent = text; },
-    overlayHide: () => { overlay.style.display = 'none'; },
+    overlayHide: () => {
+      overlay.style.display = 'none';
+      // The panel's lamp comes on with the machine, the way the one on a
+      // cabinet does when the cabinet is switched on.
+      lamp.style.background = '#3ccf6a';
+      lamp.style.boxShadow = '0 0 9px #3ccf6a, 0 0 2px #d9ffe4 inset';
+    },
     /** adopt the board's real framebuffer size when it differs from config */
     setNative: (nw: number, nh: number) => {
       if (nw === w && nh === h) return;
@@ -2069,7 +2139,7 @@ function machineMemoryDeck(options: {
   for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
   if (options.keptRom) {
     const forget = titleButton('Forget ROM', 'Forget ROM',
-      'Remove the ROM set from this browser; the drop screen returns next time', 'danger');
+      'Remove the ROM set from this browser; the drop screen returns next time', 'danger', 'eject');
     forget.onclick = () => {
       forget.disabled = true;
       paintTitleButton(forget, false);
@@ -2085,7 +2155,7 @@ function machineMemoryDeck(options: {
       options.persistent
         ? 'Forget the high scores and battery-backed settings kept in this browser and boot cold'
         : 'Memory lasts only this visit: browser storage is unavailable',
-      'danger');
+      'danger', 'broom');
     clear.onclick = () => {
       if (!confirm('Clear the high scores and settings this browser keeps for the machine, and boot it cold?')) return;
       clear.disabled = true;
@@ -2140,9 +2210,9 @@ function saveStateDeck(options: {
   const mini = titleButton;
   const paintMini = paintTitleButton;
   const shortcut = (key: string) => cfg.kind === 'computer' ? '' : ` (${key})`;
-  const saveButton = mini('Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`);
-  const loadButton = mini('Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`);
-  const toggle = mini('▸ Saves', 'Show saves', 'Show or hide the shelf of saves');
+  const saveButton = mini('Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`, 'normal', 'save');
+  const loadButton = mini('Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`, 'normal', 'load');
+  const toggle = mini('Saves', 'Show saves', 'Show or hide the shelf of saves', 'normal', 'shelf');
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-controls', 'mamekit-saves-shelf');
   const body = deckPanel('SAVE STATES');
@@ -2159,7 +2229,7 @@ function saveStateDeck(options: {
   let open = false;
   const paintToggle = () => {
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.textContent = `${open ? '▾' : '▸'} ${records.length ? `${records.length} save${records.length === 1 ? '' : 's'}` : 'Saves'}`;
+    setTitleButtonText(toggle, records.length ? `${records.length} save${records.length === 1 ? '' : 's'}` : 'Saves');
     paintMini(toggle, open);
   };
   toggle.onclick = () => {

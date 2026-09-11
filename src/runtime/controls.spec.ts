@@ -1,25 +1,59 @@
 import assert from 'node:assert/strict';
 
-// A DOM small enough to paint a button in.
-function fakeElement(tag: string) {
+// A DOM small enough to paint a button in, with the two behaviours these
+// helpers actually lean on: `textContent` reads through to the children, and
+// a button can be asked for the element holding its word.
+interface FakeElement {
+  tag: string;
+  children: FakeElement[];
+  style: { cssText: string };
+  attrs: Record<string, string>;
+  dataset: Record<string, string>;
+  textContent: string;
+  innerHTML: string;
+  title: string;
+  type: string;
+  disabled: boolean;
+  setAttribute(name: string, value: string): void;
+  append(...items: FakeElement[]): void;
+  appendChild(item: FakeElement): void;
+  querySelector(selector: string): FakeElement | null;
+}
+
+function fakeElement(tag: string): FakeElement {
+  let own = '';
   const element = {
     tag,
-    children: [] as unknown[],
+    children: [] as FakeElement[],
     style: { cssText: '' },
     attrs: {} as Record<string, string>,
     dataset: {} as Record<string, string>,
-    textContent: '',
+    innerHTML: '',
     title: '',
     type: '',
     disabled: false,
+    get textContent(): string {
+      return own + element.children.map(child => child.textContent).join('');
+    },
+    set textContent(value: string) { own = value; element.children.length = 0; },
     setAttribute(name: string, value: string) { element.attrs[name] = value; },
-    appendChild(child: unknown) { element.children.push(child); },
-  };
+    append(...items: FakeElement[]) { element.children.push(...items); },
+    appendChild(item: FakeElement) { element.children.push(item); },
+    querySelector(selector: string): FakeElement | null {
+      const key = selector.replace(/^\[data-|\]$/g, '');
+      for (const child of element.children) {
+        if (child.dataset[key] !== undefined) return child;
+        const found = child.querySelector(selector);
+        if (found) return found;
+      }
+      return null;
+    },
+  } as FakeElement;
   return element;
 }
 (globalThis as { document?: unknown }).document = { createElement: fakeElement };
 
-const { DECK_GOLD, deckButton, deckPanel, paintTitleButton, setDeckButtonState, titleButton, toolbarDivider } =
+const { DECK_GOLD, deckButton, deckPanel, glyph, paintTitleButton, setDeckButtonState, setTitleButtonText, titleButton, toolbarDivider } =
   await import('./controls.ts');
 
 type Painted = HTMLButtonElement & { style: { cssText: string }; dataset: Record<string, string> };
@@ -58,8 +92,13 @@ type Painted = HTMLButtonElement & { style: { cssText: string }; dataset: Record
   assert.notEqual(normal, quiet);
   assert.notEqual(quiet, danger);
   assert.notEqual(normal, danger);
-  assert.match(quiet, /background:transparent/, 'a quiet control does not carry a filled body');
-  assert.match(danger, /background:transparent/);
+  assert.match(normal, /color:#d5dbff/, 'the everyday control is the brightest of the three');
+  assert.match(quiet, /color:#9aa3d6/, 'a quiet one steps back');
+  assert.match(danger, /color:#d79aac/, 'and one that throws something away is not the same colour as Save');
+  for (const look of [normal, quiet, danger]) {
+    assert.match(look, /box-shadow:inset 0 1px 0 rgba\(255,255,255,\.07\)/,
+      'every button is lit along its top edge, so the panel reads as one surface');
+  }
 }
 
 // --- active means "the thing this controls is on" --------------------------
@@ -69,6 +108,24 @@ type Painted = HTMLButtonElement & { style: { cssText: string }; dataset: Record
   assert.ok(toggle.style.cssText.includes(DECK_GOLD), 'an active control wears the room accent');
   paintTitleButton(toggle, false);
   assert.ok(!toggle.style.cssText.includes(DECK_GOLD));
+}
+
+// --- a glyph rides along without eating the word ---------------------------
+{
+  const button = titleButton('Saves', 'Show saves', 'Show or hide the shelf', 'normal', 'shelf') as Painted;
+  const parts = button as unknown as { children: { textContent: string; attrs: Record<string, string>; innerHTML: string }[] };
+  assert.equal(parts.children.length, 2, 'a marked button is a glyph and a word');
+  assert.equal(parts.children[0]!.attrs['aria-hidden'], 'true', 'the glyph is decoration');
+  assert.match(parts.children[0]!.innerHTML, /<svg[\s\S]*stroke="currentColor"/,
+    'drawn, and coloured by whatever holds it — an emoji is a different picture on every platform');
+  assert.equal(button.textContent, 'Saves', 'and the word still reads as the word');
+
+  // The saves button rewrites its own label as saves come and go; it must
+  // not take the glyph with it.
+  setTitleButtonText(button, '3 saves');
+  assert.equal(button.textContent, '3 saves');
+  assert.equal(parts.children.length, 2, 'the glyph survived the relabel');
+  assert.match((glyph('eject') as unknown as { innerHTML: string }).innerHTML, /viewBox="0 0 24 24"/);
 }
 
 // --- deck buttons and panels ------------------------------------------------

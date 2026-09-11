@@ -188,7 +188,8 @@ export function createNetplay(options: NetplayOptions): Netplay {
   for (const type of ['keydown', 'keyup']) {
     control.addEventListener(type, event => event.stopPropagation());
   }
-  const toggle = titleButton('⇄ 2 player', 'Two player game', 'Play with somebody else, in their own browser');
+  const toggle = titleButton('2 player', 'Two player game',
+    'Play with somebody else, in their own browser', 'normal', 'twoPlayer');
   control.append(toggle);
 
   // --- the lobby -----------------------------------------------------------

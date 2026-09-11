@@ -452,7 +452,12 @@ own fractional line position for the same reason.
 ### BROWSER SERVICES
 
 - `bus.ts`: builds memory and I/O buses from generated ranges;
-- `shell.ts`: ROM validation, machine startup and frame presentation;
+- `shell.ts`: ROM validation, machine startup and frame presentation. The
+  page is the machine and then its control panel: the screen goes at the top
+  and one panel under it carries the nameplate, the running readout, the
+  controls and the key legend, sized to the width of the glass above it so the
+  two read as one cabinet. The name used to sit above the screen *and* be
+  rewritten into the status line below it once a second;
 - `input.ts`: port state, MAME polarity, SOCD and DIP defaults, with the
   keyboard as one edge source. Every source posts what its control did and
   `advance()` settles the ports once per frame, so a machine only ever sees
@@ -528,10 +533,13 @@ own fractional line position for the same reason.
   `mamekit-memory`) and the visitor's own arcade sets (`mamekit-roms`) are
   kept, keyed by machine alone so both outlive a rebuild;
 - `controls.ts`: the one look the shell's own controls wear -- the pill
-  buttons in the toolbar under the title, the panels a deck opens, and the
-  tones that keep a control which throws something away from looking like the
-  one beside it. Shared rather than copied: the two-player pills were green
-  among gold ones because the lobby had its own copy of the painter;
+  buttons on the control panel, their drawn glyphs, the panels a deck opens,
+  and the tones that keep a control which throws something away from looking
+  like the one beside it. Shared rather than copied: the two-player pills were
+  green among gold ones because the lobby had its own copy of the painter. The
+  glyphs are drawn on one 24-unit grid in the button's own colour rather than
+  typed as emoji, which are a different picture on every platform and several
+  of which are unreadable at this size;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;
 - `software.ts`: computer software workflow, one shelf per software list;

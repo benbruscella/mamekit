@@ -22,19 +22,66 @@ export const DECK_GOLD = '#f2c200';
  */
 export type Tone = 'normal' | 'quiet' | 'danger';
 
-const TONES: Record<Tone, { background: string; border: string; color: string }> = {
-  normal: { background: '#111633', border: '#303a78', color: '#cbd1ff' },
-  quiet: { background: 'transparent', border: '#272e5c', color: '#8b93c9' },
-  danger: { background: 'transparent', border: '#4a2a3a', color: '#c98b9b' },
+const TONES: Record<Tone, { body: string; border: string; color: string }> = {
+  normal: { body: 'linear-gradient(180deg,#1b2350,#121734)', border: '#39437f', color: '#d5dbff' },
+  quiet: { body: 'linear-gradient(180deg,#161b3a,#0f1329)', border: '#2a3162', color: '#9aa3d6' },
+  danger: { body: 'linear-gradient(180deg,#2a1830,#170e1f)', border: '#52304a', color: '#d79aac' },
 };
 
-/** A small pill button for the toolbar under the title. */
-export function titleButton(text: string, label: string, title: string, tone: Tone = 'normal'): HTMLButtonElement {
+/**
+ * The control panel's glyphs.
+ *
+ * Drawn rather than typed: an emoji is a different picture on every platform
+ * and at this size several of them are unreadable, so these are one stroke
+ * weight on one 24-unit grid, inheriting the button's own colour. A glyph
+ * never carries meaning on its own — every button keeps its word beside it
+ * and its accessible name regardless.
+ */
+export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom';
+
+const GLYPHS: Record<Glyph, string> = {
+  // two arrows passing: one machine, two players
+  twoPlayer: '<path d="M4 8h15l-3-3M20 16H5l3 3"/>',
+  // a floppy: the shape a save has had for forty years
+  save: '<path d="M4 4h12l4 4v12H4z"/><path d="M8 4v5h7"/><path d="M7 20v-6h10v6"/>',
+  // an arrow coming back round: the machine put back how it was
+  load: '<path d="M4 5v6h6"/><path d="M4.6 13a8 8 0 1 0 1.3-6"/>',
+  // a stack of them
+  shelf: '<rect x="3" y="4" width="18" height="5" rx="1"/><rect x="3" y="12" width="18" height="5" rx="1"/><path d="M6 20h12"/>',
+  // eject: give the thing back
+  eject: '<path d="M5 14h14L12 5z"/><path d="M5 19h14"/>',
+  // sweep it out
+  broom: '<path d="M14 3 8.5 8.5"/><path d="M17 6 6.5 16.5"/><path d="M4 20l3-8 9 3-3 8z"/>',
+};
+
+/** One glyph, sized for a pill button and coloured by whatever holds it. */
+export function glyph(name: Glyph): HTMLElement {
+  const holder = document.createElement('span');
+  holder.setAttribute('aria-hidden', 'true');
+  holder.style.cssText = 'display:inline-flex;align-items:center;flex:0 0 auto';
+  holder.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${GLYPHS[name]}</svg>`;
+  return holder;
+}
+
+/**
+ * A small pill button for the control panel.
+ *
+ * The word lives in its own element so a caller can change it later without
+ * taking the glyph with it — see `setTitleButtonText`.
+ */
+export function titleButton(
+  text: string, label: string, title: string, tone: Tone = 'normal', mark?: Glyph,
+): HTMLButtonElement {
   const button = document.createElement('button');
   button.type = 'button';
-  button.textContent = text;
   button.setAttribute('aria-label', label);
   button.title = title;
+  const word = document.createElement('span');
+  word.dataset.word = '';
+  word.textContent = text;
+  if (mark) button.append(glyph(mark));
+  button.append(word);
   // Kept on the element so a repaint after `disabled` changes does not have
   // to be told the tone again by every caller.
   button.dataset.tone = tone;
@@ -42,17 +89,30 @@ export function titleButton(text: string, label: string, title: string, tone: To
   return button;
 }
 
+/** Change a title button's word, leaving its glyph where it is. */
+export function setTitleButtonText(button: HTMLButtonElement, text: string): void {
+  const word = button.querySelector<HTMLElement>('[data-word]');
+  if (word) word.textContent = text;
+  else button.textContent = text;
+}
+
 export function paintTitleButton(button: HTMLButtonElement, active: boolean): void {
   const enabled = !button.disabled;
   const tone = TONES[(button.dataset.tone as Tone) || 'normal'] ?? TONES.normal;
-  button.style.cssText = `padding:4px 11px;border-radius:999px;white-space:nowrap;
-    font:700 11px ui-sans-serif,system-ui,sans-serif;line-height:1.45;
-    cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease,border-color .12s ease;
+  // A button on a panel, not a link in a page: a lit top edge, a body that
+  // falls away below it, and a seated shadow underneath.
+  button.style.cssText = `display:inline-flex;align-items:center;gap:5px;
+    padding:5px 12px;border-radius:999px;white-space:nowrap;
+    font:700 11px ui-sans-serif,system-ui,sans-serif;line-height:1.45;letter-spacing:.2px;
+    cursor:${enabled ? 'pointer' : 'default'};
+    transition:background .12s ease,color .12s ease,border-color .12s ease,transform .06s ease;
     ${active
-      ? `background:${DECK_GOLD};color:#1b1b1b;border:1px solid ${DECK_GOLD}`
+      ? `background:linear-gradient(180deg,#ffd83f,${DECK_GOLD});color:#231b00;border:1px solid #b9930a;
+         box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 14px ${DECK_GOLD}66`
       : enabled
-        ? `background:${tone.background};border:1px solid ${tone.border};color:${tone.color}`
-        : 'background:#0c0f26;border:1px solid #1e2450;color:#555c86'}`;
+        ? `background:${tone.body};border:1px solid ${tone.border};color:${tone.color};
+           box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 2px rgba(0,0,0,.45)`
+        : `background:#0b0e22;border:1px solid #1c2249;color:#4d5480;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)`}`;
 }
 
 /** A hairline between two groups of toolbar buttons. */
@@ -73,7 +133,7 @@ export function deckPanel(title: string): HTMLElement {
   const label = document.createElement('span');
   label.textContent = title;
   label.style.cssText = 'color:#7f8ac9;font:700 10px ui-monospace,monospace;letter-spacing:2px;margin-right:4px';
-  panel.appendChild(label);
+  panel.append(label);
   return panel;
 }
 
