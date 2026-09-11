@@ -44,6 +44,17 @@ const typeHeld = (page: Page, type: string) => page.evaluate((wanted: string) =>
   return binding.activeLow !== false ? bits === 0 : bits !== 0;
 }, type);
 
+/**
+ * Does this board have a control of this type at all?
+ *
+ * Not every cabinet has one of everything. Space Invaders has a single coin
+ * slot shared by both players, so there is no `IPT_COIN2` to press and the
+ * checks that use one have to stand aside rather than read `null` and fail.
+ */
+const hasType = (page: Page, type: string) => page.evaluate((wanted: string) =>
+  (window as unknown as { mamekit: { config: { bindings: { type?: string }[] } } })
+    .mamekit.config.bindings.some(binding => binding.type === wanted), type);
+
 const roomStatus = (page: Page) => page.evaluate(() =>
   (window as unknown as { mamekit: { netplay: { status(): string | undefined; live: boolean } } })
     .mamekit.netplay.status() ?? '');
@@ -59,10 +70,12 @@ test.describe(`${game} two player`, () => {
     const hostFaults = await bootGame(host, contract, { qa: true });
     const hostDeck = host.locator('[data-netplay]');
     await expect(hostDeck).toBeVisible();
+    // Opening the lobby is the whole ask: the invite starts building at once,
+    // and the dialog says which hop of the handshake it is on (issue #140).
     await hostDeck.getByRole('button', { name: /two player game/i }).click();
 
     const panel = host.locator('[data-netplay-panel]');
-    await panel.getByRole('button', { name: /invite a player/i }).click();
+    await expect(panel).toBeVisible();
     const inviteField = panel.getByLabel('invite link', { exact: true });
     await expect(inviteField).toHaveValue(/#join=/, { timeout: 60_000 });
     const invite = await inviteField.inputValue();
@@ -80,9 +93,14 @@ test.describe(`${game} two player`, () => {
     await expect(replyField).toHaveValue(/.{20,}/, { timeout: 60_000 });
     const reply = await replyField.inputValue();
 
-    // The host pastes it in and the room starts.
-    await panel.getByPlaceholder('paste their code').fill(reply);
-    await panel.getByRole('button', { name: /^connect$/i }).click();
+    // The reply arrives the way it really does: pasted onto the page, from
+    // whatever the two of them were talking in. No clicking into the right
+    // box first, and it works with the sentence somebody wrapped round it.
+    await host.evaluate((code: string) => {
+      const event = new Event('paste', { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'clipboardData', { value: { getData: () => `here you go — ${code}` } });
+      document.dispatchEvent(event);
+    }, reply);
 
     await expect.poll(() => roomStatus(host), { timeout: 60_000 }).toMatch(/you are player 1/);
     await expect.poll(() => roomStatus(guest), { timeout: 60_000 }).toMatch(/you are player 2/);
@@ -124,7 +142,10 @@ test.describe(`${game} two player`, () => {
       return mamekit.config.bindings.find(binding => binding.type === 'IPT_COIN1')?.keys[0];
     });
     test.skip(!coin, `${game} has no coin slot to press`);
-    expect(await typeHeld(host, 'IPT_COIN2'), 'nobody has coined up yet').toBe(false);
+    // A one-slot cabinet gives the joiner nowhere to put their coin, so the
+    // press to watch for is whichever slot this board actually has.
+    const joinerCoin = (await hasType(host, 'IPT_COIN2')) ? 'IPT_COIN2' : 'IPT_COIN1';
+    expect(await typeHeld(host, joinerCoin), 'nobody has coined up yet').toBe(false);
 
     // Coin up while the joiner's own gate is blocked, which is when a press
     // is easiest to lose: the run loop asks to run on every animation frame,
@@ -133,11 +154,11 @@ test.describe(`${game} two player`, () => {
     await guest.keyboard.down(coin!);
     await stepAndHash(guest, 5);   // still waiting; the press has to survive it
     await runTo(300);
-    expect(await typeHeld(host, 'IPT_COIN2'),
+    expect(await typeHeld(host, joinerCoin),
       "the joiner's coin crossed the link and reached the host's machine").toBe(true);
     await guest.keyboard.up(coin!);
     const played = await runTo(420);
-    expect(await typeHeld(host, 'IPT_COIN2'), 'and letting go crossed it too').toBe(false);
+    expect(await typeHeld(host, joinerCoin), 'and letting go crossed it too').toBe(false);
 
     expect(played.guest, 'and they still agree after the joiner played').toBe(played.host);
     expect(played.host, 'the game moved on').not.toBe(settled.host);
@@ -149,6 +170,37 @@ test.describe(`${game} two player`, () => {
     expect(guestFaults.errors, 'no page errors on the joiner').toEqual([]);
     await context.close();
   });
+  test('the lobby holds the machine while a game is being set up, and lets a live room run', async ({ browser }) => {
+    test.slow();
+    // Setting a two-player game up takes a minute of copying a link into a
+    // conversation. The cabinet used to carry on without you (issue #140).
+    const contract = contractFor(game);
+    const context = await browser.newContext();
+    const host = await context.newPage();
+    const faults = await bootGame(host, contract);
+    const frameOf = () => host.evaluate(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } })
+        .mamekit.board.snapshot().frame);
+
+    await expect.poll(async () => (await frameOf()) > 0, { timeout: 15_000 }).toBe(true);
+    await host.locator('[data-netplay]').getByRole('button', { name: /two player game/i }).click();
+    await expect(host.locator('[data-netplay-panel]')).toBeVisible();
+    await host.waitForTimeout(700);   // let the frame in flight finish
+    const held = await frameOf();
+    await host.waitForTimeout(1500);
+    expect(await frameOf(), 'the machine stands still while the lobby is open').toBe(held);
+    await expect.poll(() => roomStatus(host)).toBe('');   // no room yet, so nothing to report
+
+    // Esc closes the lobby rather than walking out of the game, and the
+    // machine picks up from where it stood.
+    await host.keyboard.press('Escape');
+    await expect(host.locator('[data-netplay-panel]')).toBeHidden();
+    await expect(host.locator('[data-screen]'), 'Esc closed the lobby, it did not leave the game').toBeVisible();
+    await expect.poll(frameOf, { timeout: 15_000 }).toBeGreaterThan(held);
+    expect(faults.errors).toEqual([]);
+    await context.close();
+  });
+
   test('two browsers play in real time at the board\'s own speed, with every cabinet button working', async ({ browser }) => {
     test.slow();
     // Two contexts: two people, two browsers, nothing shared between them.
@@ -162,7 +214,6 @@ test.describe(`${game} two player`, () => {
     const hostFaults = await bootGame(host, contract);
     await host.locator('[data-netplay]').getByRole('button', { name: /two player game/i }).click();
     const panel = host.locator('[data-netplay-panel]');
-    await panel.getByRole('button', { name: /invite a player/i }).click();
     const inviteField = panel.getByLabel('invite link', { exact: true });
     await expect(inviteField).toHaveValue(/#join=/, { timeout: 60_000 });
     const invite = await inviteField.inputValue();
@@ -172,6 +223,8 @@ test.describe(`${game} two player`, () => {
     const guestPanel = guest.locator('[data-netplay-panel]');
     const replyField = guestPanel.getByLabel('reply code', { exact: true });
     await expect(replyField).toHaveValue(/.{20,}/, { timeout: 60_000 });
+    // The typed-in path, for a browser that will not hand over the clipboard:
+    // the box and its Connect button are always there behind the one-click one.
     await panel.getByPlaceholder('paste their code').fill(await replyField.inputValue());
     await panel.getByRole('button', { name: /^connect$/i }).click();
 
@@ -212,11 +265,13 @@ test.describe(`${game} two player`, () => {
     await host.keyboard.up(coin!);
     await expect.poll(() => typeHeld(guest, 'IPT_COIN1'), { timeout: 15_000 }).toBe(false);
 
-    // And player two's own coin slot, from the other browser's keyboard.
+    // And the joiner's own coin, from the other browser's keyboard: their own
+    // slot where the cabinet has two, the shared one where it has one.
+    const joinerCoin = (await hasType(host, 'IPT_COIN2')) ? 'IPT_COIN2' : 'IPT_COIN1';
     await guest.keyboard.down(coin!);
-    await expect.poll(() => typeHeld(host, 'IPT_COIN2'), { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => typeHeld(host, joinerCoin), { timeout: 15_000 }).toBe(true);
     await guest.keyboard.up(coin!);
-    await expect.poll(() => typeHeld(host, 'IPT_COIN2'), { timeout: 15_000 }).toBe(false);
+    await expect.poll(() => typeHeld(host, joinerCoin), { timeout: 15_000 }).toBe(false);
 
     // Start is a cabinet button too. The host's own two-player start works,
     // and so does the joiner's own start key, which is their own slot.
@@ -246,6 +301,21 @@ test.describe(`${game} two player`, () => {
       await guest.keyboard.up(start1);
       await expect.poll(() => typeHeld(host, 'IPT_START2'), { timeout: 15_000 }).toBe(false);
     }
+
+    // Opening the lobby mid-game must NOT hold this machine: two machines in
+    // a room run in lockstep, so a browser that stops publishing frames
+    // leaves the other one standing still waiting for input.
+    const hostFrame = () => host.evaluate(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } })
+        .mamekit.board.snapshot().frame);
+    await host.locator('[data-netplay]').getByRole('button', { name: /two player game/i }).click();
+    await expect(host.locator('[data-netplay-panel]')).toBeVisible();
+    const atOpen = await hostFrame();
+    await host.waitForTimeout(1200);
+    expect(await hostFrame(), 'a live room keeps running with the lobby open')
+      .toBeGreaterThan(atOpen);
+    await host.keyboard.press('Escape');
+    await expect(host.locator('[data-netplay-panel]')).toBeHidden();
 
     // Play on, then check the two machines never told each other they had
     // drifted apart — they compare themselves every 60 frames.

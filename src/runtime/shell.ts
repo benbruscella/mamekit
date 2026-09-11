@@ -16,6 +16,10 @@ import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacC
 import { fetchRomBytes } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
+import {
+  DECK_GOLD, deckButton, deckPanel, deckVent, paintTitleButton, setDeckButtonState,
+  setTitleButtonText, titleButton, toolbarDivider,
+} from './controls.ts';
 import { openRomStore, type RomStore, type StoredZip } from './romstore.ts';
 import { openMemoryStore } from './memorystore.ts';
 import { createMachineMemory, type MachineMemory } from './machine-memory.ts';
@@ -156,6 +160,9 @@ export interface SoundSpec {
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */
+/** The panel lamp: dark before the machine starts, lit while it runs, amber while it is held. */
+type LampState = 'off' | 'running' | 'paused';
+
 export interface DropZone {
   el: HTMLElement;
   /** a file is hovering over the window */
@@ -758,10 +765,14 @@ export async function runShell(
   }
 
   // Esc: back to the boot menu (registered first + capture so a single press
-  // always works, at any stage of loading)
+  // always works, at any stage of loading). A dialog gets first refusal: a
+  // player closing the two-player lobby is not asking to leave the game, and
+  // before this the same key did both at once.
   addEventListener('keydown', ev => {
     if (ev.code !== 'Escape') return;
     ev.preventDefault();
+    if (ui.modalOpen()) { ui.dismissModal(); return; }
+    if (ui.popoverOpen()) { ui.closePopover(); return; }
     location.href = cfg.menuUrl ?? './';
   }, { capture: true });
 
@@ -805,7 +816,9 @@ export async function runShell(
       regions = assembleRegions(cfg.roms, kept, ui.status, critical);
       keptRom = true;
     } else {
-      const zone = ui.dropZone(cfg.game);
+      // A page opened from an invite still needs its own dump, and the drop
+      // screen used to say nothing about why they were here (issue #140).
+      const zone = ui.dropZone(cfg.game, inviteCode() !== undefined);
       const companionText = dependencies.length
         ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
         : '';
@@ -943,6 +956,27 @@ export async function runShell(
   // travel is handed out gradually, as MAME does, instead of in one lump.
   input.frameFraction = () => board.frameFraction?.() ?? 1;
 
+  // --- pausing ---------------------------------------------------------------
+  // The machine stops while the two-player lobby is over it. Setting a game
+  // up takes a minute of copying a link into a conversation and waiting for
+  // an answer, and the cabinet does not care: you came back to the lobby
+  // having lost two lives to it (issue #140).
+  //
+  // Not while a room is live, though. Two machines in a room run in lockstep,
+  // so a browser that stops running frames stops publishing them, and the
+  // other player's machine stands still waiting for input that is not coming.
+  // In a room the lobby is only there to show who you are playing and to
+  // leave, so there is nothing to protect the game from.
+  let paused = false;
+  const setPaused = (wanted: boolean): void => {
+    if (wanted === paused) return;
+    paused = wanted;
+    // Silence with it: a suspended context is the difference between a pause
+    // and a machine that is still humming at you with a frozen picture.
+    if (paused) audio.suspend(); else audio.resume();
+    ui.lamp(paused ? 'paused' : 'running');
+  };
+
   // --- two players, one machine each (issue #128) ----------------------------
   const netplay: Netplay = createNetplay({
     input,
@@ -951,9 +985,15 @@ export async function runShell(
     refresh: cfg.board.screen.refresh,
     coldBoot: () => board.load(coldMachine),
     freezeMemory: () => memory.disable(),
+    machine: cfg.title,
     toast: ui.toast,
-    showPanel: panel => ui.addControls(panel),
-    hidePanel: panel => ui.removeControls(panel),
+    // Over the screen, not under it: the lobby used to join the page column,
+    // so opening it shrank the machine you were playing (issue #140).
+    showPanel: panel => {
+      ui.showModal(panel, () => netplay.dismiss());
+      setPaused(!netplay.live);
+    },
+    hidePanel: () => { ui.hideModal(); setPaused(false); },
     inviteUrl: code => `${location.href.split('#')[0]}#join=${code}`,
     joinCode,
   });
@@ -1117,9 +1157,11 @@ export async function runShell(
     load: state => { input.releaseAll(); board.load(state); audio.discard(); },
     screen: ui.canvas,
     toast: ui.toast,
-    refit: ui.refit,
-    showShelf: ui.addControls,
-    hideShelf: ui.removeControls,
+    // The shelf hangs off its own button rather than joining the page
+    // column, so opening it no longer shrinks the machine being played.
+    refit: ui.placePopover,
+    showShelf: (shelf, anchor, onClose) => ui.showPopover(anchor, shelf, onClose),
+    hideShelf: () => ui.closePopover(),
   });
   ui.addTitleControls(saves.deck);
   (window as unknown as { mamekit: Record<string, unknown> }).mamekit.saves = saves;
@@ -1162,12 +1204,18 @@ export async function runShell(
     acc += now - last;
     last = now;
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
+    // A pause owes the machine nothing: time that passed while it was stopped
+    // is not a backlog of frames to catch up on when it starts again.
+    if (paused) acc = 0;
     let due = 0;
     while (acc >= frameMs) {
       acc -= frameMs;
       due++;
     }
-    if (fastForward && !qaDrive) {
+    if (paused) {
+      // Nothing runs, but the panel keeps reporting: the readout below says
+      // so rather than leaving a still picture to be read as a crash.
+    } else if (fastForward && !qaDrive) {
       // As many frames as fit the budget, presented once. The budget is
       // shorter than a display frame so the page stays responsive enough to
       // press F again, and the cap stops a fast machine running away.
@@ -1189,14 +1237,19 @@ export async function runShell(
     }
     if (now - fpsWindowStart >= 1000) {
       const snap = board.snapshot();
-      const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];
-      if (fastForward) parts.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
-      if (snap.cpus.length > 1) parts.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
-      if (snap.credits !== undefined) parts.push(`credits=${snap.credits}`);
+      // Left instrument: how the machine is running. Right: what it is
+      // running. The machine's name is on the nameplate between them — it
+      // used to be rewritten into this line once a second as well, so the
+      // page spent two of its lines saying the same thing twice.
+      const rate = paused ? ['⏸ paused'] : [`${frames} fps`];
+      if (fastForward && !paused) rate.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
       const room = netplay.status();
-      if (room) parts.unshift(room);
-      if (input.debug) parts.push(input.dump());
-      ui.status(`${cfg.title} — ${parts.join(' · ')}`);
+      if (room) rate.push(room);
+      const detail = [`pc=${hex4(snap.cpus[0].pc)}`];
+      if (snap.cpus.length > 1) detail.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
+      if (snap.credits !== undefined) detail.push(`credits=${snap.credits}`);
+      if (input.debug) detail.push(input.dump());
+      ui.readout(rate.join(' · '), detail.join(' · '));
       frames = 0;
       fpsWindowStart = now;
     }
@@ -1429,23 +1482,187 @@ function buildDom(cfg: ShellConfig) {
   document.body.style.margin = '0';
   document.body.appendChild(root);
 
+  // The screen goes first and everything else is a control panel under it
+  // (issue #140). The name of the machine used to sit above the screen AND be
+  // rewritten into the status line below it once a second, which spent two
+  // lines of the page saying the same thing twice.
+  const deck = document.createElement('div');
+  deck.dataset.deck = '';
+  // The panel of an arcade cabinet: a dark metal face under the glass, lit
+  // along its top edge, with an engraved legend across the bottom.
+  deck.style.cssText = `display:flex;flex-direction:column;align-items:stretch;gap:0;
+    width:min(960px,96vw);max-width:96vw;border-radius:0 0 14px 14px;box-sizing:border-box;overflow:hidden;
+    background:
+      repeating-linear-gradient(100deg,rgba(255,255,255,.016) 0 1px,transparent 1px 4px),
+      linear-gradient(180deg,#1b2145 0%,#141935 45%,#0d1128 100%);
+    border:1px solid #2b3466;border-top:none;
+    box-shadow:inset 0 -1px 0 rgba(0,0,0,.5),0 14px 34px rgba(0,0,0,.55)`;
+  // The strip of light along the top edge, as if it were catching the screen.
+  const lip = document.createElement('div');
+  lip.setAttribute('aria-hidden', 'true');
+  lip.style.cssText = `height:2px;flex:0 0 auto;
+    background:linear-gradient(90deg,transparent,${DECK_GOLD}55 18%,${DECK_GOLD}aa 50%,${DECK_GOLD}55 82%,transparent)`;
+  deck.appendChild(lip);
+
+  /**
+   * One strip across the panel, ruled off from the one above it.
+   *
+   * Three columns with the outer two the same width, so whatever sits in the
+   * middle is centred on the panel rather than on what is left over after
+   * the things beside it. Below `narrow` the columns give up and everything
+   * stacks, which is the only way six buttons and a readout fit on a phone.
+   */
+  const strip = (padding: string, first = false): HTMLElement => {
+    const row = document.createElement('div');
+    row.dataset.strip = '';
+    row.style.cssText = `display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px 14px;
+      padding:${padding};box-sizing:border-box;
+      ${first ? '' : 'border-top:1px solid rgba(255,255,255,.055)'}`;
+    deck.appendChild(row);
+    return row;
+  };
+  /** Fill a column that has nothing in it, so the middle stays in the middle. */
+  const spacer = (): HTMLElement => {
+    const cell = document.createElement('span');
+    cell.setAttribute('aria-hidden', 'true');
+    return cell;
+  };
+
+  // Nameplate and readout: what machine this is, and what it is doing.
+  const plate = strip('10px 16px', true);
   const h1 = document.createElement('h1');
   h1.textContent = cfg.title;
-  h1.style.cssText = 'font-size:15px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center';
+  h1.style.cssText = `font:700 13px ui-sans-serif,system-ui,sans-serif;margin:0;letter-spacing:.5px;
+    display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;text-align:center;
+    color:#eef1ff;text-shadow:0 1px 0 rgba(0,0,0,.7),0 0 18px rgba(159,176,255,.18)`;
   if (cfg.preview) h1.appendChild(betaBadge());
+  // Five columns: a vent at each end of the plate, an instrument inboard of
+  // each, and the machine's name in the middle. The two instrument columns
+  // are the same width, so the name is centred on the panel whatever either
+  // of them happens to be reading.
+  plate.style.gridTemplateColumns = 'auto minmax(0,1fr) auto minmax(0,1fr) auto';
+
+  // The machine's controls, grouped by what they do, with the destructive
+  // pair held back at the end in a tone that does not look like Save. They
+  // used to be appended straight into the <h1>: six pills of equal weight
+  // wrapping into the name of the game.
+  const toolbar = document.createElement('div');
+  toolbar.dataset.toolbar = '';
+  toolbar.setAttribute('role', 'toolbar');
+  toolbar.setAttribute('aria-label', `${cfg.title} controls`);
+  toolbar.style.cssText = 'display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;flex:1 1 auto';
   // Controller badge: a pad in hand should be unmistakable, not a word in
   // the legend. Filled by ui.pads() as pads come and go.
   const padBadge = document.createElement('span');
   padBadge.dataset.pads = '';
   padBadge.style.cssText = 'display:none;align-items:center;gap:6px;background:#1f6f3a;color:#dfffe6;border:1px solid #3ccf6a;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;letter-spacing:.02em';
-  h1.appendChild(padBadge);
-  root.appendChild(h1);
+  const well = strip('11px 16px');
+  well.style.background = 'linear-gradient(180deg,rgba(0,0,0,.34),rgba(0,0,0,.14))';
+  well.style.boxShadow = 'inset 0 2px 5px rgba(0,0,0,.5),inset 0 -1px 0 rgba(255,255,255,.04)';
+  well.style.display = 'none';
+  /**
+   * The button well is not there until there is something in it.
+   *
+   * Before a ROM is in, there are no controls and nothing to read: an empty
+   * well was a dead strip across the panel.
+   */
+  let groups = 0;
+  const showWell = (): void => {
+    well.style.display = groups > 0 ? 'grid' : 'none';
+  };
 
-  // cabinet column: screen inside cropped bezel art — no banner/marquee or
-  // control panel, the screen is the star
+  // A dialog over the screen: the two-player lobby, and anything else that
+  // deserves the player's whole attention. It is fixed to the viewport rather
+  // than added to the column, so opening it never resizes the machine.
+  const modal = document.createElement('div');
+  modal.dataset.modal = '';
+  modal.style.cssText = `position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+    padding:20px;box-sizing:border-box;background:rgba(4,6,16,.74);backdrop-filter:blur(3px)`;
+  // A dialog is where somebody types a code; the machine must not also see
+  // those keys as gameplay.
+  for (const type of ['keydown', 'keyup']) {
+    modal.addEventListener(type, event => event.stopPropagation());
+  }
+  let dismissModal: (() => void) | undefined;
+  modal.addEventListener('click', event => { if (event.target === modal) dismissModal?.(); });
+  document.body.appendChild(modal);
+
+  // A popover above the control panel, for the things a button opens rather
+  // than does: the key legend and the shelf of saves. The two-player lobby
+  // is a modal because it is a flow you are in; these are a drawer you pull
+  // out and push back, so they hang off their own button and take nothing
+  // from the page — the saves shelf used to be appended under the screen,
+  // which shrank the machine every time it opened.
+  const pop = document.createElement('div');
+  pop.dataset.popover = '';
+  pop.setAttribute('role', 'dialog');
+  pop.style.cssText = `position:fixed;z-index:25;display:none;box-sizing:border-box;
+    padding:14px 16px;border-radius:12px;max-width:min(720px,92vw);max-height:62vh;overflow:auto;
+    background:linear-gradient(180deg,#1b2145,#0e1229);border:1px solid #39437f;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 18px 44px rgba(0,0,0,.6);
+    font:13px ui-sans-serif,system-ui,sans-serif;color:#cbd1ff`;
+  // Typing into a popover is not playing the machine.
+  for (const type of ['keydown', 'keyup']) {
+    pop.addEventListener(type, event => event.stopPropagation());
+  }
+  // The tail that points back at the button it came from.
+  const tail = document.createElement('span');
+  tail.setAttribute('aria-hidden', 'true');
+  tail.style.cssText = `position:fixed;z-index:26;display:none;width:12px;height:12px;
+    background:#101534;border-right:1px solid #39437f;border-bottom:1px solid #39437f;transform:rotate(45deg)`;
+  document.body.append(pop, tail);
+
+  let popAnchor: HTMLElement | undefined;
+  let popClose: (() => void) | undefined;
+  const placePopover = (): void => {
+    if (!popAnchor) return;
+    const rect = popAnchor.getBoundingClientRect();
+    const width = pop.offsetWidth;
+    const centred = rect.left + rect.width / 2 - width / 2;
+    pop.style.left = `${Math.max(12, Math.min(innerWidth - width - 12, centred))}px`;
+    pop.style.bottom = `${innerHeight - rect.top + 12}px`;
+    tail.style.left = `${rect.left + rect.width / 2 - 6}px`;
+    tail.style.bottom = `${innerHeight - rect.top + 7}px`;
+  };
+  const closePopover = (): void => {
+    if (!popAnchor) return;
+    const was = popAnchor;
+    popAnchor = undefined;
+    pop.style.display = tail.style.display = 'none';
+    pop.replaceChildren();
+    paintTitleButton(was as HTMLButtonElement, false);
+    const closer = popClose;
+    popClose = undefined;
+    closer?.();
+  };
+  const showPopover = (button: HTMLElement, content: HTMLElement, onClose?: () => void): void => {
+    closePopover();
+    popAnchor = button;
+    popClose = onClose;
+    pop.replaceChildren(content);
+    pop.setAttribute('aria-label', button.getAttribute('aria-label') ?? 'Panel');
+    pop.style.display = 'block';
+    tail.style.display = 'block';
+    paintTitleButton(button as HTMLButtonElement, true);
+    placePopover();
+  };
+  /** Is this button the one the open popover belongs to? */
+  const popoverFor = (button: HTMLElement): boolean => popAnchor === button;
+  // A click anywhere else puts it away, but not the click that opened it.
+  addEventListener('pointerdown', event => {
+    if (!popAnchor) return;
+    const target = event.target as Node;
+    if (pop.contains(target) || popAnchor.contains(target)) return;
+    closePopover();
+  }, { capture: true });
+  addEventListener('resize', placePopover);
+
+  // cabinet column: screen inside cropped bezel art — no banner or marquee,
+  // and it goes in first so the machine is the top of the page
   const cab = document.createElement('div');
   cab.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:0';
   root.appendChild(cab);
+  root.appendChild(deck);
 
   // native frame is rendered landscape; the cabinet monitor is rotated (ROT90).
   // `let` because the BOARD owns the true native size (setNative below):
@@ -1501,6 +1718,11 @@ function buildDom(cfg: ShellConfig) {
       canvas.style.width = `${dispW * displayScale}px`;
       canvas.style.height = `${dispH * displayScale}px`;
     }
+    // The control panel is as wide as the glass above it, so the two read as
+    // one cabinet rather than a screen with a widget underneath. Narrow
+    // screens get a floor, or the buttons would be stacked six deep.
+    const glass = parseFloat(bezel ? holder.style.width : canvas.style.width) || 0;
+    deck.style.width = `${Math.min(innerWidth - 32, Math.max(360, glass))}px`;
   };
   fit();
   addEventListener('resize', fit);
@@ -1520,16 +1742,80 @@ function buildDom(cfg: ShellConfig) {
   holder.appendChild(toast);
   let toastTimer = 0;
 
-  const statusEl = document.createElement('div');
-  statusEl.style.cssText = 'color:#999;min-height:1.4em;max-width:640px;text-align:center';
-  statusEl.textContent = 'Loading…';
-  root.appendChild(statusEl);
+  // What the machine is doing right now, and what the keys do. Both belong
+  // to the panel: they are readouts of the thing above them.
+  // The readout, in the panel's nameplate: a lamp that is lit while the
+  // machine is running, and the numbers it is running at.
+  const lamp = document.createElement('span');
+  lamp.setAttribute('aria-hidden', 'true');
+  lamp.style.cssText = 'width:7px;height:7px;border-radius:999px;flex:0 0 auto;background:#3a3f6a;transition:background .3s,box-shadow .3s';
+  const LAMPS: Record<LampState, string> = { off: '#3a3f6a', running: '#3ccf6a', paused: DECK_GOLD };
+  const setLamp = (state: LampState): void => {
+    const colour = LAMPS[state];
+    lamp.style.background = colour;
+    lamp.style.boxShadow = state === 'off' ? 'none' : `0 0 9px ${colour}, 0 0 2px rgba(255,255,255,.85) inset`;
+  };
+  /**
+   * The panel's instruments, one at each end of the nameplate.
+   *
+   * A single gauge on the right left the plate lopsided, so the reading is
+   * split the way a cabinet's would be: how it is running on the left, what
+   * it is running on the right.
+   */
+  const gauge = (align: 'left' | 'right'): HTMLElement => {
+    const dial = document.createElement('div');
+    dial.dataset.readout = align;
+    dial.style.cssText = `color:${DECK_GOLD};font:600 11px ui-monospace,SFMono-Regular,monospace;letter-spacing:.6px;
+      text-align:${align};line-height:1.5;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      text-shadow:0 0 12px ${DECK_GOLD}40`;
+    return dial;
+  };
+  const rateEl = gauge('left');
+  const statusEl = gauge('right');
+  // The readout sits beside the buttons rather than on the nameplate: the
+  // name has the middle of the plate to itself, and the gauge is where the
+  // hand is. The pad badge balances it on the other side.
+  // Beside the name rather than beside the buttons: a six-button well and a
+  // gauge do not both fit across the width of a Galaga screen, and the one
+  // that lost was the gauge, printed straight over Clear memory.
+  const left = document.createElement('div');
+  left.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0;justify-self:start';
+  left.append(lamp, rateEl, padBadge);
+  const right = document.createElement('div');
+  right.style.cssText = 'display:flex;align-items:center;gap:8px;justify-content:flex-end;min-width:0;justify-self:end';
+  right.append(statusEl);
+  plate.append(deckVent('left'), left, h1, right, deckVent('right'));
+  well.append(spacer(), toolbar, spacer());
 
+  // The legend, engraved along the bottom edge of the panel.
   const help = document.createElement('div');
   help.dataset.help = ''; // stable handle for browser QA
-  help.style.cssText = 'color:#666';
+  help.style.cssText = `color:#cbd1ff;font:12px ui-monospace,SFMono-Regular,monospace;text-align:center;
+    line-height:1.9;max-width:520px`;
   help.textContent = controlsHelp(cfg);
-  root.appendChild(help);
+  // The legend keeps a home in the page while the popover is shut. It is not
+  // only decoration: `ui.controls()` rewrites it when a pad arrives, so it is
+  // where what-the-controls-are-now is written down, and a screen reader —
+  // and the browser QA that checks the pad is announced — reads it there.
+  const legendHost = document.createElement('div');
+  legendHost.style.display = 'none';
+  legendHost.appendChild(help);
+  deck.appendChild(legendHost);
+  // The legend does not get a row of its own: a control panel wants two, and
+  // a third band of small print under the buttons was the third. It takes
+  // the buttons' place instead, and hands it back.
+  const keysCell = document.createElement('span');
+  keysCell.setAttribute('role', 'group');
+  keysCell.setAttribute('aria-label', 'Key legend');
+  keysCell.dataset.keysCell = '';
+  keysCell.style.cssText = 'display:none;align-items:center;gap:7px';
+  const keysButton = titleButton('Keys', 'Show the key legend', 'Show what every key does', 'quiet', 'keys');
+  keysButton.setAttribute('aria-expanded', 'false');
+  keysCell.append(toolbarDivider(), keysButton);
+  keysButton.onclick = () => {
+    if (popoverFor(keysButton)) { closePopover(); return; }
+    showPopover(keysButton, help, () => legendHost.appendChild(help));
+  };
 
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
@@ -1543,8 +1829,41 @@ function buildDom(cfg: ShellConfig) {
     canvas,
     addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
     removeControls: (controls: HTMLElement) => { controls.remove(); fit(); },
-    /** a small control group beside the title: costs the screen no height */
-    addTitleControls: (controls: HTMLElement) => { h1.appendChild(controls); fit(); },
+    /** a control group in the toolbar under the title: one line for all of them */
+    addTitleControls: (controls: HTMLElement) => {
+      // A hairline between groups, so "2 player", the save buttons and the
+      // browser-storage pair read as three things rather than six.
+      if (groups++) toolbar.appendChild(toolbarDivider());
+      toolbar.appendChild(controls);
+      // Keeping it last is a move, not an insert: appending an element that
+      // is already in the toolbar takes it out of where it was.
+      keysCell.style.display = 'inline-flex';
+      toolbar.appendChild(keysCell);
+      showWell();
+      fit();
+    },
+    /** put a dialog over the screen; `onDismiss` runs on Esc or a backdrop click */
+    showModal: (panel: HTMLElement, onDismiss: () => void) => {
+      dismissModal = onDismiss;
+      modal.replaceChildren(panel);
+      modal.style.display = 'flex';
+    },
+    hideModal: () => {
+      dismissModal = undefined;
+      modal.style.display = 'none';
+      modal.replaceChildren();
+    },
+    /** true while a dialog is up: Esc belongs to it, not to leaving the game */
+    modalOpen: () => modal.style.display !== 'none',
+    /** open a popover above one of the panel's buttons */
+    showPopover: (button: HTMLElement, content: HTMLElement, onClose?: () => void) =>
+      showPopover(button, content, onClose),
+    closePopover: () => closePopover(),
+    popoverOpen: () => popAnchor !== undefined,
+    /** the popover's content changed size: put it back where it belongs */
+    placePopover: () => placePopover(),
+    /** close whatever dialog is up, telling it so */
+    dismissModal: () => dismissModal?.(),
     /** a control changed height (a deck opened or closed): give the screen what is left */
     refit: () => fit(),
     /** replace the controls hint, e.g. when a gamepad arrives or leaves */
@@ -1562,8 +1881,34 @@ function buildDom(cfg: ShellConfig) {
       clearTimeout(toastTimer);
       toastTimer = window.setTimeout(() => { toast.style.opacity = '0'; }, 4000);
     },
-    status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none' && !overlay.querySelector('[data-dropzone]')) overlay.textContent = text; },
-    overlayHide: () => { overlay.style.display = 'none'; },
+    /**
+     * Prose about getting the machine going, said once and on the screen
+     * the player is looking at.
+     *
+     * It used to be written into the panel's readout as well, which put a
+     * sentence about which zips to drop through a gauge meant for `61 fps ·
+     * pc=098f` and blew the nameplate open to three lines.
+     */
+    status: (text: string) => {
+      const zone = overlay.querySelector<HTMLElement>('[data-dropzone] [data-zone-note]');
+      if (zone) { zone.textContent = text; zone.style.display = text ? 'block' : 'none'; return; }
+      if (overlay.style.display !== 'none') overlay.textContent = text;
+    },
+    /** The panel's instruments: how the machine is running, and what it is running. */
+    readout: (rate: string, detail: string) => {
+      rateEl.textContent = rate;
+      statusEl.textContent = detail;
+      showWell();
+      fit();
+    },
+    overlayHide: () => {
+      overlay.style.display = 'none';
+      // The panel's lamp comes on with the machine, the way the one on a
+      // cabinet does when the cabinet is switched on.
+      setLamp('running');
+    },
+    /** The panel's lamp: green while the machine runs, amber while it is held. */
+    lamp: (state: LampState) => setLamp(state),
     /** adopt the board's real framebuffer size when it differs from config */
     setNative: (nw: number, nh: number) => {
       if (nw === w && nh === h) return;
@@ -1575,7 +1920,7 @@ function buildDom(cfg: ShellConfig) {
       fit();
     },
     // ROM missing: turn the dark CRT into an inviting drop target
-    dropZone: (game: string): DropZone => {
+    dropZone: (game: string, invited = false): DropZone => {
       overlay.textContent = '';
       const zone = document.createElement('div');
       zone.dataset.dropzone = '1';
@@ -1584,6 +1929,14 @@ function buildDom(cfg: ShellConfig) {
         display:flex;flex-direction:column;align-items:center;gap:8px;
         box-shadow:0 0 0 rgba(242,194,0,0);
         transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease,background .15s ease`;
+      // Why they are here, when they arrived on somebody else's invite. The
+      // invite waits in the address bar until the machine has a ROM to run.
+      const invite = document.createElement('div');
+      invite.dataset.invited = '1';
+      invite.style.cssText = `display:${invited ? 'block' : 'none'};align-self:stretch;margin-bottom:4px;
+        padding:8px 10px;border-radius:8px;background:rgba(60,207,106,.1);border:1px solid rgba(60,207,106,.35);
+        color:#8fe3aa;font-size:12px;font-weight:700;text-align:center;line-height:1.5`;
+      invite.textContent = '⇄ Somebody invited you to a two-player game. Bring your own copy of the set and you will join them.';
       const icon = document.createElement('div');
       icon.style.cssText = 'font-size:46px;line-height:1;filter:drop-shadow(0 4px 12px rgba(242,194,0,.35));animation:m2j-bob 2.2s ease-in-out infinite';
       icon.textContent = '🕹️';
@@ -1593,6 +1946,13 @@ function buildDom(cfg: ShellConfig) {
       const small = document.createElement('div');
       small.style.cssText = 'color:#9fb0ff';
       small.textContent = 'or click anywhere on the screen to choose one or more zip files';
+      // Which sets this machine needs, and what happens to them. It belongs
+      // here, on the screen being asked to accept them, rather than in the
+      // control panel's gauge underneath.
+      const zoneNote = document.createElement('div');
+      zoneNote.dataset.zoneNote = '';
+      zoneNote.style.cssText = `display:none;color:#cbd1ff;font-size:12px;line-height:1.55;margin-top:4px;
+        padding:8px 10px;border-radius:8px;background:rgba(159,176,255,.07);border:1px solid #2a3162`;
       const note = document.createElement('div');
       note.style.cssText = 'color:#667;font-size:12px;margin-top:6px;max-width:320px';
       note.textContent = 'ROMs are copyrighted and not distributed with mamekit — bring your own dump.';
@@ -1657,7 +2017,7 @@ function buildDom(cfg: ShellConfig) {
       manifest.append(sum, list);
       manifest.addEventListener('click', ev => ev.stopPropagation()); // don't open the file picker
 
-      zone.append(style, icon, big, small, note, searchWrap, manifest);
+      zone.append(style, invite, icon, big, small, zoneNote, note, searchWrap, manifest);
       overlay.appendChild(zone);
       const idle = () => {
         zone.style.transform = '';
@@ -1991,7 +2351,8 @@ function machineMemoryDeck(options: {
   deck.style.cssText = 'display:inline-flex;align-items:center;gap:6px';
   for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
   if (options.keptRom) {
-    const forget = titleButton('⏏ Forget ROM', 'Forget ROM', 'Remove the ROM set from this browser; the drop screen returns next time');
+    const forget = titleButton('Forget ROM', 'Forget ROM',
+      'Remove the ROM set from this browser; the drop screen returns next time', 'danger', 'eject');
     forget.onclick = () => {
       forget.disabled = true;
       paintTitleButton(forget, false);
@@ -2003,10 +2364,11 @@ function machineMemoryDeck(options: {
     deck.appendChild(forget);
   }
   if (options.keepsMemory) {
-    const clear = titleButton('🧹 Clear memory', 'Clear memory',
+    const clear = titleButton('Clear memory', 'Clear memory',
       options.persistent
         ? 'Forget the high scores and battery-backed settings kept in this browser and boot cold'
-        : 'Memory lasts only this visit: browser storage is unavailable');
+        : 'Memory lasts only this visit: browser storage is unavailable',
+      'danger', 'broom');
     clear.onclick = () => {
       if (!confirm('Clear the high scores and settings this browser keeps for the machine, and boot it cold?')) return;
       clear.disabled = true;
@@ -2022,45 +2384,11 @@ function machineMemoryDeck(options: {
   return deck;
 }
 
-/** A small pill button for the title line: the saves deck and the memory deck share it. */
-function titleButton(text: string, label: string, title: string): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = text;
-  button.setAttribute('aria-label', label);
-  button.title = title;
-  paintTitleButton(button, false);
-  return button;
-}
-
-function paintTitleButton(button: HTMLButtonElement, active: boolean): void {
-  const enabled = !button.disabled;
-  button.style.cssText = `padding:2px 9px;border-radius:999px;font:700 11px ui-sans-serif,system-ui,sans-serif;
-    cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
-    ${active
-      ? `background:${DECK_GOLD};color:#1b1b1b;border:1px solid ${DECK_GOLD}`
-      : `background:${enabled ? '#111633' : '#0c0f26'};border:1px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}`;
-}
-
 // --- control decks -------------------------------------------------------------
-// The shell's own controls share one look: a dark panel with the room's gold
-// accent, buttons that read as pressed when the thing they control is on, and
+// The shell's own controls share one look, kept in `controls.ts` so the
+// two-player lobby wears it too: a dark panel with the room's gold accent,
+// buttons that read as pressed when the thing they control is on, and
 // readouts taken from the device rather than from what was last clicked.
-
-const DECK_GOLD = '#f2c200';
-
-function deckPanel(title: string): HTMLElement {
-  const panel = document.createElement('div');
-  panel.style.cssText = `display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;
-    padding:10px 14px;margin:6px 0;border-radius:10px;max-width:880px;
-    background:linear-gradient(135deg,rgba(24,30,67,.96),rgba(9,12,29,.96));border:1px solid #252d62;
-    box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.3);font:13px ui-sans-serif,system-ui,sans-serif`;
-  const label = document.createElement('span');
-  label.textContent = title;
-  label.style.cssText = 'color:#7f8ac9;font:700 10px ui-monospace,monospace;letter-spacing:2px;margin-right:4px';
-  panel.appendChild(label);
-  return panel;
-}
 
 /** The save-state deck: two buttons, a shelf of what this browser holds, and the store behind them. */
 function saveStateDeck(options: {
@@ -2073,8 +2401,9 @@ function saveStateDeck(options: {
   /** the deck changed height: the screen takes what is left */
   refit: () => void;
   /** put the shelf under the screen, and take it away again */
-  showShelf: (shelf: HTMLElement) => void;
-  hideShelf: (shelf: HTMLElement) => void;
+  /** hang the shelf off the button that opened it; `onClose` runs if it is dismissed from outside */
+  showShelf: (shelf: HTMLElement, anchor: HTMLElement, onClose: () => void) => void;
+  hideShelf: () => void;
 }): {
   deck: HTMLElement;
   save(): Promise<SaveRecord | undefined>;
@@ -2095,12 +2424,19 @@ function saveStateDeck(options: {
   const mini = titleButton;
   const paintMini = paintTitleButton;
   const shortcut = (key: string) => cfg.kind === 'computer' ? '' : ` (${key})`;
-  const saveButton = mini('💾 Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`);
-  const loadButton = mini('⟲ Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`);
-  const toggle = mini('▸ Saves', 'Show saves', 'Show or hide the shelf of saves');
+  const saveButton = mini('Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`, 'normal', 'save');
+  const loadButton = mini('Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`, 'normal', 'load');
+  const toggle = mini('Saves', 'Show saves', 'Show or hide the shelf of saves', 'normal', 'shelf');
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-controls', 'mamekit-saves-shelf');
   const body = deckPanel('SAVE STATES');
+  // It lives inside a popover now, which brings its own panel: a second one
+  // nested in it would be a box in a box.
+  body.style.background = 'none';
+  body.style.border = 'none';
+  body.style.boxShadow = 'none';
+  body.style.padding = '0';
+  body.style.margin = '0';
   body.id = 'mamekit-saves-shelf';
   body.setAttribute('aria-label', 'Saves in this browser');
   for (const type of ['keydown', 'keyup']) body.addEventListener(type, event => event.stopPropagation());
@@ -2114,12 +2450,16 @@ function saveStateDeck(options: {
   let open = false;
   const paintToggle = () => {
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.textContent = `${open ? '▾' : '▸'} ${records.length ? `${records.length} save${records.length === 1 ? '' : 's'}` : 'Saves'}`;
+    setTitleButtonText(toggle, records.length ? `${records.length} save${records.length === 1 ? '' : 's'}` : 'Saves');
     paintMini(toggle, open);
   };
   toggle.onclick = () => {
     open = !open;
-    if (open) options.showShelf(body); else options.hideShelf(body);
+    // The popover paints the button itself and can be dismissed by a click
+    // anywhere else, so the deck is told when that happens rather than
+    // keeping its own idea of whether the shelf is up.
+    if (open) options.showShelf(body, toggle, () => { open = false; paintToggle(); });
+    else options.hideShelf();
     paintToggle();
     toggle.blur();
   };
@@ -2253,26 +2593,6 @@ function saveStateDeck(options: {
     list: async () => (await store).list(cfg.game),
     remove: async id => { await (await store).remove(id); await render(); },
   };
-}
-
-function deckButton(text: string, options: { solid?: boolean } = {}): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = text;
-  button.dataset.solid = options.solid ? '1' : '';
-  setDeckButtonState(button, false);
-  return button;
-}
-
-/** Paint a deck button as idle, active (the thing it controls is on) or disabled. */
-function setDeckButtonState(button: HTMLButtonElement, active: boolean): void {
-  const enabled = !button.disabled;
-  button.style.cssText = `padding:6px 14px;border-radius:8px;font:700 12px ui-sans-serif,system-ui,sans-serif;
-    letter-spacing:.3px;cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
-    ${active
-      ? `background:${DECK_GOLD};color:#1b1b1b;border:2px solid ${DECK_GOLD};box-shadow:0 0 14px ${DECK_GOLD}55`
-      : `background:${enabled ? '#111633' : '#0c0f26'};border:2px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}
-    ${enabled ? '' : ';opacity:.6'}`;
 }
 
 /** mm:ss for a tape counter */

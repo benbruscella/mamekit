@@ -277,4 +277,32 @@ function keyEvent(type: 'keydown' | 'keyup', code: string): Event {
     'a duplicate delivery is dropped, not replayed');
 }
 
+// --- a cabinet with only one coin slot -------------------------------------
+// Space Invaders takes both players' money through one slot. A joiner whose
+// own slot does not exist was pressing their coin key into nothing at all,
+// which on that cabinet means never getting into the game.
+{
+  const oneSlot: FieldBinding[] = [
+    { port: 'IN0', mask: 0x01, keys: ['ArrowLeft'], label: 'P1 Left', type: 'IPT_JOYSTICK_LEFT', player: 1 },
+    { port: 'IN0', mask: 0x10, keys: [], label: 'P2 Left', type: 'IPT_JOYSTICK_LEFT', player: 2 },
+    { port: 'IN1', mask: 0x01, keys: ['Digit5'], label: 'Coin', type: 'IPT_COIN1' },
+    { port: 'IN1', mask: 0x02, keys: ['Digit1'], label: 'Start 1', type: 'IPT_START1' },
+    { port: 'IN1', mask: 0x04, keys: ['Digit2'], label: 'Start 2', type: 'IPT_START2' },
+  ];
+  const oneSlotPorts = [{ tag: 'IN0', init: 0xff }, { tag: 'IN1', init: 0xff }];
+  const reaches = (player: number, label: string): string => {
+    const binding = oneSlot.find(candidate => candidate.label === label)!;
+    const input = new KeyboardInput(oneSlot, [], oneSlotPorts);
+    const session = new Session({ input, bindings: oneSlot, player, players: [1, 2], delay: 0, checkEvery: 0 });
+    input.press(binding, true, 'k');
+    session.publish();
+    const hit = session.take().find(event => event.kind === 'edge') as { binding: number } | undefined;
+    return hit ? oneSlot[hit.binding]!.label : 'nothing';
+  };
+  assert.equal(reaches(2, 'Coin'), 'Coin', "the joiner's coin works the only slot the cabinet has");
+  assert.equal(reaches(1, 'Coin'), 'Coin', 'and so does the host\'s');
+  assert.equal(reaches(2, 'Start 1'), 'Start 2',
+    'while start, which this cabinet does have two of, still reaches their own');
+}
+
 console.log('session.spec: the frame gate, player mapping, lockstep between two browsers and desync reporting passed');

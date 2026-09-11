@@ -452,7 +452,20 @@ own fractional line position for the same reason.
 ### BROWSER SERVICES
 
 - `bus.ts`: builds memory and I/O buses from generated ranges;
-- `shell.ts`: ROM validation, machine startup and frame presentation;
+- `shell.ts`: ROM validation, machine startup and frame presentation. The
+  page is the machine and then its control panel: the screen goes at the top
+  and one panel under it, sized to the width of the glass above it so the two
+  read as one cabinet. Two rows -- a nameplate carrying a vent at each end, an
+  instrument inboard of each and the machine's name in the middle, and a well
+  of buttons under it. The name used to sit above the screen *and* be
+  rewritten into the status line below it once a second, and prose about
+  which zips to drop went through a gauge meant for `61 fps · pc=098f`:
+  startup prose now goes on the screen being asked to accept the files.
+  What a button *opens* rather than *does* -- the key legend, the shelf of
+  saves -- opens as a popover above that button; only the two-player lobby is
+  a modal, because it is a flow you are in rather than a drawer you pull out.
+  Neither takes anything from the page, which the saves shelf used to do by
+  joining the column and shrinking the machine every time it opened;
 - `input.ts`: port state, MAME polarity, SOCD and DIP defaults, with the
   keyboard as one edge source. Every source posts what its control did and
   `advance()` settles the ports once per frame, so a machine only ever sees
@@ -504,7 +517,18 @@ own fractional line position for the same reason.
   replace only those two hops;
 - `netplay.ts`: the two-player lifecycle -- the lobby, and putting both
   machines back to the state they booted in so a room starts from one agreed
-  place. Neither browser sends the other a ROM or a machine state: only which
+  place. The machine is held while the lobby is open, because setting a game
+  up takes a minute of copying a link into a conversation and the cabinet
+  does not care -- but never while a room is live: two machines in a room run
+  in lockstep, so a browser that stops running frames stops publishing them
+  and the other player stands still waiting for input that is not coming. The lobby is a state machine over the handshake rather than a form:
+  with no server to pass an offer and an answer through, the two players are
+  the transport, and that is three hops nothing can remove -- so each one is a
+  single action (share, or copy; a paste anywhere on the page; connect) and
+  the dialog always names the hop it is on. It opens over the screen instead
+  of joining the page column, so a lobby no longer resizes the machine behind
+  it, and leaving a game is its own labelled button rather than a second
+  meaning for the control that opened the lobby. Neither browser sends the other a ROM or a machine state: only which
   control moved, on which frame. A room never runs faster than the board's
   own refresh: the frames an input delay keeps in hand are not a backlog, so
   time for a frame the room would not let run is handed back to the timestep
@@ -520,6 +544,14 @@ own fractional line position for the same reason.
 - `memorystore.ts` and `romstore.ts`: where that memory (IndexedDB
   `mamekit-memory`) and the visitor's own arcade sets (`mamekit-roms`) are
   kept, keyed by machine alone so both outlive a rebuild;
+- `controls.ts`: the one look the shell's own controls wear -- the pill
+  buttons on the control panel, their drawn glyphs, the panels a deck opens,
+  and the tones that keep a control which throws something away from looking
+  like the one beside it. Shared rather than copied: the two-player pills were
+  green among gold ones because the lobby had its own copy of the painter. The
+  glyphs are drawn on one 24-unit grid in the button's own colour rather than
+  typed as emoji, which are a different picture on every platform and several
+  of which are unreadable at this size;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;
 - `software.ts`: computer software workflow, one shelf per software list;

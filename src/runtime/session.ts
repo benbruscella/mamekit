@@ -137,7 +137,13 @@ export class Session {
         // joiner's own start and coin operate their own slot whichever of
         // the two they press — the labels on their keyboard still say 1 and
         // 2, and neither should do nothing.
-        return this.player === 1 ? index : mine(binding);
+        //
+        // Not every cabinet has two of each. Space Invaders takes both
+        // players' money through one slot, and a joiner whose own slot does
+        // not exist was left unable to coin up at all — so where there is
+        // only the one, they reach for the same one the host does, which is
+        // what standing at that cabinet together would have them do.
+        return this.player === 1 ? index : mine(binding) ?? index;
       }
       // A player's own controls belong to whoever is playing that player,
       // second local gamepad or not: two sources driving one would fight.
