@@ -504,7 +504,14 @@ own fractional line position for the same reason.
   replace only those two hops;
 - `netplay.ts`: the two-player lifecycle -- the lobby, and putting both
   machines back to the state they booted in so a room starts from one agreed
-  place. Neither browser sends the other a ROM or a machine state: only which
+  place. The lobby is a state machine over the handshake rather than a form:
+  with no server to pass an offer and an answer through, the two players are
+  the transport, and that is three hops nothing can remove -- so each one is a
+  single action (share, or copy; a paste anywhere on the page; connect) and
+  the dialog always names the hop it is on. It opens over the screen instead
+  of joining the page column, so a lobby no longer resizes the machine behind
+  it, and leaving a game is its own labelled button rather than a second
+  meaning for the control that opened the lobby. Neither browser sends the other a ROM or a machine state: only which
   control moved, on which frame. A room never runs faster than the board's
   own refresh: the frames an input delay keeps in hand are not a backlog, so
   time for a frame the room would not let run is handed back to the timestep
@@ -520,6 +527,11 @@ own fractional line position for the same reason.
 - `memorystore.ts` and `romstore.ts`: where that memory (IndexedDB
   `mamekit-memory`) and the visitor's own arcade sets (`mamekit-roms`) are
   kept, keyed by machine alone so both outlive a rebuild;
+- `controls.ts`: the one look the shell's own controls wear -- the pill
+  buttons in the toolbar under the title, the panels a deck opens, and the
+  tones that keep a control which throws something away from looking like the
+  one beside it. Shared rather than copied: the two-player pills were green
+  among gold ones because the lobby had its own copy of the painter;
 - `menu.ts`: catalog and dossier presentation;
 - `console.ts`: console cartridge workflow;
 - `software.ts`: computer software workflow, one shelf per software list;

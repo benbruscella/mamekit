@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { KeyboardInput, type FieldBinding } from './input.ts';
 import type { PeerLink, RoomIdentity } from './netlink.ts';
-import { createNetplay, delayForRtt } from './netplay.ts';
+import { createNetplay, delayForRtt, extractCode } from './netplay.ts';
 
 // --- how long to wait for the other player --------------------------------
 {
@@ -12,16 +12,34 @@ import { createNetplay, delayForRtt } from './netplay.ts';
   assert.equal(delayForRtt(100, 50), 4, 'a PAL board counts its own frames');
 }
 
+// --- the code inside whatever got pasted -----------------------------------
+{
+  const code = 'k'.repeat(40);
+  assert.equal(extractCode(code), code, 'a bare code is the code');
+  assert.equal(extractCode(`  ${code}\n`), code, 'and so is one with a chat client\'s whitespace round it');
+  assert.equal(extractCode(`my code is "${code}" — see you there`), code,
+    'a sentence wrapped round it does not stop it being found');
+  assert.equal(extractCode(`${'a'.repeat(30)} ${code}`), code, 'the longest run wins');
+  assert.equal(extractCode('here you go!'), undefined, 'and a message with no code in it is refused');
+  assert.equal(extractCode(''), undefined);
+}
+
 // --- a DOM small enough to build a lobby in --------------------------------
 interface FakeElement {
   tag: string;
   children: FakeElement[];
   style: { cssText: string };
   attrs: Record<string, string>;
+  dataset: Record<string, string>;
   textContent: string;
+  title: string;
   disabled: boolean;
+  readOnly: boolean;
+  placeholder: string;
   value: string;
   onclick?: () => void;
+  onfocus?: () => void;
+  onkeydown?: (event: { key: string }) => void;
   setAttribute(name: string, value: string): void;
   addEventListener(): void;
   append(...items: FakeElement[]): void;
@@ -32,8 +50,8 @@ interface FakeElement {
 
 function fakeElement(tag: string): FakeElement {
   const element: FakeElement = {
-    tag, children: [], style: { cssText: '' }, attrs: {}, textContent: '',
-    disabled: false, value: '',
+    tag, children: [], style: { cssText: '' }, attrs: {}, dataset: {}, textContent: '',
+    title: '', disabled: false, readOnly: false, placeholder: '', value: '',
     setAttribute(name, value) { element.attrs[name] = value; },
     addEventListener() { /* the lobby only swallows key events */ },
     append(...items) { element.children.push(...items); },
@@ -42,7 +60,17 @@ function fakeElement(tag: string): FakeElement {
   };
   return element;
 }
-(globalThis as { document?: unknown }).document = { createElement: fakeElement };
+/** ⌘V anywhere on the page is one of the ways a reply arrives. */
+let pasteHandler: ((event: unknown) => void) | undefined;
+(globalThis as { document?: unknown }).document = {
+  createElement: fakeElement,
+  addEventListener(type: string, handler: (event: unknown) => void) {
+    if (type === 'paste') pasteHandler = handler;
+  },
+  removeEventListener(type: string) {
+    if (type === 'paste') pasteHandler = undefined;
+  },
+};
 
 /** The first control in a tree carrying this accessible name. */
 function byLabel(root: FakeElement, label: string): FakeElement | undefined {
@@ -52,6 +80,11 @@ function byLabel(root: FakeElement, label: string): FakeElement | undefined {
     if (found) return found;
   }
   return undefined;
+}
+
+/** Everything the lobby is currently saying, for asserting on the guidance. */
+function text(root: FakeElement): string {
+  return [root.textContent, ...root.children.map(text)].join(' ');
 }
 
 // --- a peer link with no network under it ----------------------------------
@@ -137,23 +170,47 @@ const settle = async (): Promise<void> => { for (let i = 0; i < 6; i++) await Pr
   host.link.other = guest.link;
   guest.link.other = host.link;
 
-  // The host opens the lobby and makes an invite.
+  // The host opens the lobby. Opening it is the whole ask: the invite starts
+  // building immediately rather than behind a second button.
   const toggle = byLabel(host.net.control as unknown as FakeElement, 'Two player game');
-  assert.ok(toggle, 'the title line carries a two-player control');
+  assert.ok(toggle, 'the toolbar carries a two-player control');
   toggle.onclick?.();
-  assert.equal(host.panels.length, 1, 'the lobby drops under the screen when asked for');
-  const start = byLabel(host.panels[0]!, 'Invite a player');
-  assert.ok(start, 'and offers to make an invite');
-  start.onclick?.();
+  assert.equal(host.panels.length, 1, 'the lobby opens when asked for');
+  assert.match(text(host.panels[0]!), /Working out how the other browser can reach yours/,
+    'and says what it is doing while the offer is built');
   await settle();
   const invite = byLabel(host.panels[0]!, 'invite link');
   assert.ok(invite, 'which produces a link to hand out');
   assert.equal(invite.value, 'https://mamehistory.com/app/g/joust/#join=OFFER');
+  assert.match(text(host.panels[0]!), /Send them this link[\s\S]*Paste the code they send back/,
+    'and lays the handshake out as the two steps it actually is');
 
   // The joiner opened the invite, so its lobby is already showing its reply.
   await settle();
   assert.equal(guest.panels.length, 1, 'an invited page opens its own lobby');
   assert.equal(byLabel(guest.panels[0]!, 'reply code')?.value, 'ANSWER');
+  assert.match(text(guest.panels[0]!), /send this code back/i,
+    'and tells the joiner what to do with it');
+
+  // Pasting the wrong thing says so and leaves the invite alone: the other
+  // player may already be answering the one that is out.
+  assert.ok(pasteHandler, 'the lobby is listening while an invite is out');
+  pasteHandler({
+    clipboardData: { getData: () => 'https://mamehistory.com/app/g/joust/#join=OFFER' },
+    preventDefault: () => {},
+  });
+  assert.match(text(host.panels[0]!), /your own invite link/i, 'it names the mistake');
+  assert.ok(byLabel(host.panels[0]!, 'invite link'), 'and the invite is still the one they handed out');
+
+  // The reply comes back the way it actually arrives: pasted, from whatever
+  // the two of them were talking in, anywhere on the page.
+  let prevented = false;
+  pasteHandler({
+    clipboardData: { getData: () => `here you go: ${'A'.repeat(40)}` },
+    preventDefault: () => { prevented = true; },
+  });
+  assert.ok(prevented, 'a paste meant for the lobby does not also land in the page');
+  assert.match(text(host.panels[0]!), /Connecting/, 'and the lobby says so');
 
   // The link comes up on both sides.
   host.link.ready();
@@ -189,6 +246,29 @@ const settle = async (): Promise<void> => { for (let i = 0; i < 6; i++) await Pr
   assert.equal(host.input.read('IN0'), 0xed,
     'the host is firing on player one and the joiner walking on player two');
   assert.equal(host.input.dump(), guest.input.dump());
+
+  // The toggle opens and closes the lobby. It used to also BE the leave
+  // button, so one mis-click ended the game and restarted the machine.
+  toggle.onclick?.();
+  assert.equal(host.net.live, true, 'opening the lobby mid-game does not end it');
+  assert.match(text(host.panels[0]!), /You are player 1/, 'it shows the room instead');
+  assert.ok(byLabel(host.panels[0]!, 'Leave the game'), 'and leaving is its own labelled button');
+  host.net.dismiss();
+  assert.equal(host.panels.length, 0, 'Esc or a click outside puts the lobby away');
+  assert.equal(host.net.live, true, 'and still does not end the game');
+  frame();
+
+  // A room that will not run has not crashed: the other browser is behind.
+  // The picture simply stops, so the status line has to say which it is.
+  for (let index = 0; index < 40; index++) {
+    if (!host.net.begin()) break;
+    host.input.advance(host.net.take());
+    host.net.end(() => 'same');
+  }
+  assert.equal(host.net.begin(), false, 'the host runs ahead by the input delay and then waits');
+  for (let index = 0; index < 40; index++) host.net.begin();
+  assert.match(host.net.status() ?? '', /waiting for player two/,
+    'and says so rather than leaving a frozen picture unexplained');
 
   // One of them leaves, and the other carries on alone.
   guest.link.close();

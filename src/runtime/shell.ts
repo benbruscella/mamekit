@@ -16,6 +16,9 @@ import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacC
 import { fetchRomBytes } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
+import {
+  DECK_GOLD, deckButton, deckPanel, paintTitleButton, setDeckButtonState, titleButton, toolbarDivider,
+} from './controls.ts';
 import { openRomStore, type RomStore, type StoredZip } from './romstore.ts';
 import { openMemoryStore } from './memorystore.ts';
 import { createMachineMemory, type MachineMemory } from './machine-memory.ts';
@@ -758,10 +761,13 @@ export async function runShell(
   }
 
   // Esc: back to the boot menu (registered first + capture so a single press
-  // always works, at any stage of loading)
+  // always works, at any stage of loading). A dialog gets first refusal: a
+  // player closing the two-player lobby is not asking to leave the game, and
+  // before this the same key did both at once.
   addEventListener('keydown', ev => {
     if (ev.code !== 'Escape') return;
     ev.preventDefault();
+    if (ui.modalOpen()) { ui.dismissModal(); return; }
     location.href = cfg.menuUrl ?? './';
   }, { capture: true });
 
@@ -805,7 +811,9 @@ export async function runShell(
       regions = assembleRegions(cfg.roms, kept, ui.status, critical);
       keptRom = true;
     } else {
-      const zone = ui.dropZone(cfg.game);
+      // A page opened from an invite still needs its own dump, and the drop
+      // screen used to say nothing about why they were here (issue #140).
+      const zone = ui.dropZone(cfg.game, inviteCode() !== undefined);
       const companionText = dependencies.length
         ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
         : '';
@@ -951,9 +959,12 @@ export async function runShell(
     refresh: cfg.board.screen.refresh,
     coldBoot: () => board.load(coldMachine),
     freezeMemory: () => memory.disable(),
+    machine: cfg.title,
     toast: ui.toast,
-    showPanel: panel => ui.addControls(panel),
-    hidePanel: panel => ui.removeControls(panel),
+    // Over the screen, not under it: the lobby used to join the page column,
+    // so opening it shrank the machine you were playing (issue #140).
+    showPanel: panel => ui.showModal(panel, () => netplay.dismiss()),
+    hidePanel: () => ui.hideModal(),
     inviteUrl: code => `${location.href.split('#')[0]}#join=${code}`,
     joinCode,
   });
@@ -1431,15 +1442,50 @@ function buildDom(cfg: ShellConfig) {
 
   const h1 = document.createElement('h1');
   h1.textContent = cfg.title;
-  h1.style.cssText = 'font-size:15px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center';
+  h1.style.cssText = 'font-size:15px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;text-align:center';
   if (cfg.preview) h1.appendChild(betaBadge());
+  root.appendChild(h1);
+
+  // The machine's controls, on their own line rather than jammed into the
+  // title (issue #140). They used to be appended straight into the <h1>, six
+  // pills of equal weight that wrapped into the name of the game; here they
+  // read as one object, grouped by what they do, with the destructive pair
+  // held back at the end in a quieter tone.
+  const toolbar = document.createElement('div');
+  toolbar.dataset.toolbar = '';
+  toolbar.setAttribute('role', 'toolbar');
+  toolbar.setAttribute('aria-label', `${cfg.title} controls`);
+  toolbar.style.cssText = `display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;
+    padding:5px 8px;border-radius:999px;background:#12162e;border:1px solid #222950;max-width:min(880px,94vw)`;
   // Controller badge: a pad in hand should be unmistakable, not a word in
   // the legend. Filled by ui.pads() as pads come and go.
   const padBadge = document.createElement('span');
   padBadge.dataset.pads = '';
   padBadge.style.cssText = 'display:none;align-items:center;gap:6px;background:#1f6f3a;color:#dfffe6;border:1px solid #3ccf6a;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;letter-spacing:.02em';
-  h1.appendChild(padBadge);
-  root.appendChild(h1);
+  toolbar.appendChild(padBadge);
+  root.appendChild(toolbar);
+  /** The toolbar only earns its chrome once something is in it. */
+  const showToolbar = (): void => {
+    const filled = [...toolbar.children].some(child => (child as HTMLElement).style.display !== 'none');
+    toolbar.style.display = filled ? 'flex' : 'none';
+  };
+  showToolbar();
+
+  // A dialog over the screen: the two-player lobby, and anything else that
+  // deserves the player's whole attention. It is fixed to the viewport rather
+  // than added to the column, so opening it never resizes the machine.
+  const modal = document.createElement('div');
+  modal.dataset.modal = '';
+  modal.style.cssText = `position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+    padding:20px;box-sizing:border-box;background:rgba(4,6,16,.74);backdrop-filter:blur(3px)`;
+  // A dialog is where somebody types a code; the machine must not also see
+  // those keys as gameplay.
+  for (const type of ['keydown', 'keyup']) {
+    modal.addEventListener(type, event => event.stopPropagation());
+  }
+  let dismissModal: (() => void) | undefined;
+  modal.addEventListener('click', event => { if (event.target === modal) dismissModal?.(); });
+  document.body.appendChild(modal);
 
   // cabinet column: screen inside cropped bezel art — no banner/marquee or
   // control panel, the screen is the star
@@ -1543,8 +1589,30 @@ function buildDom(cfg: ShellConfig) {
     canvas,
     addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
     removeControls: (controls: HTMLElement) => { controls.remove(); fit(); },
-    /** a small control group beside the title: costs the screen no height */
-    addTitleControls: (controls: HTMLElement) => { h1.appendChild(controls); fit(); },
+    /** a control group in the toolbar under the title: one line for all of them */
+    addTitleControls: (controls: HTMLElement) => {
+      // A hairline between groups, so "2 player", the save buttons and the
+      // browser-storage pair read as three things rather than six.
+      if (toolbar.querySelector('[role="group"]')) toolbar.appendChild(toolbarDivider());
+      toolbar.appendChild(controls);
+      showToolbar();
+      fit();
+    },
+    /** put a dialog over the screen; `onDismiss` runs on Esc or a backdrop click */
+    showModal: (panel: HTMLElement, onDismiss: () => void) => {
+      dismissModal = onDismiss;
+      modal.replaceChildren(panel);
+      modal.style.display = 'flex';
+    },
+    hideModal: () => {
+      dismissModal = undefined;
+      modal.style.display = 'none';
+      modal.replaceChildren();
+    },
+    /** true while a dialog is up: Esc belongs to it, not to leaving the game */
+    modalOpen: () => modal.style.display !== 'none',
+    /** close whatever dialog is up, telling it so */
+    dismissModal: () => dismissModal?.(),
     /** a control changed height (a deck opened or closed): give the screen what is left */
     refit: () => fit(),
     /** replace the controls hint, e.g. when a gamepad arrives or leaves */
@@ -1553,6 +1621,7 @@ function buildDom(cfg: ShellConfig) {
     pads: (names: string[]) => {
       padBadge.style.display = names.length ? 'inline-flex' : 'none';
       padBadge.textContent = names.length ? `🎮 ${names.join(' · ')}` : '';
+      showToolbar();
       fit();
     },
     /** flash a message over the screen for a few seconds */
@@ -1575,7 +1644,7 @@ function buildDom(cfg: ShellConfig) {
       fit();
     },
     // ROM missing: turn the dark CRT into an inviting drop target
-    dropZone: (game: string): DropZone => {
+    dropZone: (game: string, invited = false): DropZone => {
       overlay.textContent = '';
       const zone = document.createElement('div');
       zone.dataset.dropzone = '1';
@@ -1584,6 +1653,14 @@ function buildDom(cfg: ShellConfig) {
         display:flex;flex-direction:column;align-items:center;gap:8px;
         box-shadow:0 0 0 rgba(242,194,0,0);
         transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease,background .15s ease`;
+      // Why they are here, when they arrived on somebody else's invite. The
+      // invite waits in the address bar until the machine has a ROM to run.
+      const invite = document.createElement('div');
+      invite.dataset.invited = '1';
+      invite.style.cssText = `display:${invited ? 'block' : 'none'};align-self:stretch;margin-bottom:4px;
+        padding:8px 10px;border-radius:8px;background:rgba(60,207,106,.1);border:1px solid rgba(60,207,106,.35);
+        color:#8fe3aa;font-size:12px;font-weight:700;text-align:center;line-height:1.5`;
+      invite.textContent = '⇄ Somebody invited you to a two-player game. Bring your own copy of the set and you will join them.';
       const icon = document.createElement('div');
       icon.style.cssText = 'font-size:46px;line-height:1;filter:drop-shadow(0 4px 12px rgba(242,194,0,.35));animation:m2j-bob 2.2s ease-in-out infinite';
       icon.textContent = '🕹️';
@@ -1657,7 +1734,7 @@ function buildDom(cfg: ShellConfig) {
       manifest.append(sum, list);
       manifest.addEventListener('click', ev => ev.stopPropagation()); // don't open the file picker
 
-      zone.append(style, icon, big, small, note, searchWrap, manifest);
+      zone.append(style, invite, icon, big, small, note, searchWrap, manifest);
       overlay.appendChild(zone);
       const idle = () => {
         zone.style.transform = '';
@@ -1991,7 +2068,8 @@ function machineMemoryDeck(options: {
   deck.style.cssText = 'display:inline-flex;align-items:center;gap:6px';
   for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
   if (options.keptRom) {
-    const forget = titleButton('⏏ Forget ROM', 'Forget ROM', 'Remove the ROM set from this browser; the drop screen returns next time');
+    const forget = titleButton('Forget ROM', 'Forget ROM',
+      'Remove the ROM set from this browser; the drop screen returns next time', 'danger');
     forget.onclick = () => {
       forget.disabled = true;
       paintTitleButton(forget, false);
@@ -2003,10 +2081,11 @@ function machineMemoryDeck(options: {
     deck.appendChild(forget);
   }
   if (options.keepsMemory) {
-    const clear = titleButton('🧹 Clear memory', 'Clear memory',
+    const clear = titleButton('Clear memory', 'Clear memory',
       options.persistent
         ? 'Forget the high scores and battery-backed settings kept in this browser and boot cold'
-        : 'Memory lasts only this visit: browser storage is unavailable');
+        : 'Memory lasts only this visit: browser storage is unavailable',
+      'danger');
     clear.onclick = () => {
       if (!confirm('Clear the high scores and settings this browser keeps for the machine, and boot it cold?')) return;
       clear.disabled = true;
@@ -2022,45 +2101,11 @@ function machineMemoryDeck(options: {
   return deck;
 }
 
-/** A small pill button for the title line: the saves deck and the memory deck share it. */
-function titleButton(text: string, label: string, title: string): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = text;
-  button.setAttribute('aria-label', label);
-  button.title = title;
-  paintTitleButton(button, false);
-  return button;
-}
-
-function paintTitleButton(button: HTMLButtonElement, active: boolean): void {
-  const enabled = !button.disabled;
-  button.style.cssText = `padding:2px 9px;border-radius:999px;font:700 11px ui-sans-serif,system-ui,sans-serif;
-    cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
-    ${active
-      ? `background:${DECK_GOLD};color:#1b1b1b;border:1px solid ${DECK_GOLD}`
-      : `background:${enabled ? '#111633' : '#0c0f26'};border:1px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}`;
-}
-
 // --- control decks -------------------------------------------------------------
-// The shell's own controls share one look: a dark panel with the room's gold
-// accent, buttons that read as pressed when the thing they control is on, and
+// The shell's own controls share one look, kept in `controls.ts` so the
+// two-player lobby wears it too: a dark panel with the room's gold accent,
+// buttons that read as pressed when the thing they control is on, and
 // readouts taken from the device rather than from what was last clicked.
-
-const DECK_GOLD = '#f2c200';
-
-function deckPanel(title: string): HTMLElement {
-  const panel = document.createElement('div');
-  panel.style.cssText = `display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;
-    padding:10px 14px;margin:6px 0;border-radius:10px;max-width:880px;
-    background:linear-gradient(135deg,rgba(24,30,67,.96),rgba(9,12,29,.96));border:1px solid #252d62;
-    box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.3);font:13px ui-sans-serif,system-ui,sans-serif`;
-  const label = document.createElement('span');
-  label.textContent = title;
-  label.style.cssText = 'color:#7f8ac9;font:700 10px ui-monospace,monospace;letter-spacing:2px;margin-right:4px';
-  panel.appendChild(label);
-  return panel;
-}
 
 /** The save-state deck: two buttons, a shelf of what this browser holds, and the store behind them. */
 function saveStateDeck(options: {
@@ -2095,8 +2140,8 @@ function saveStateDeck(options: {
   const mini = titleButton;
   const paintMini = paintTitleButton;
   const shortcut = (key: string) => cfg.kind === 'computer' ? '' : ` (${key})`;
-  const saveButton = mini('💾 Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`);
-  const loadButton = mini('⟲ Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`);
+  const saveButton = mini('Save', 'Save state', `Capture the whole machine as it is now${shortcut('Shift+F7')}`);
+  const loadButton = mini('Load', 'Load latest save', `Put the machine back to the newest save${shortcut('F7')}`);
   const toggle = mini('▸ Saves', 'Show saves', 'Show or hide the shelf of saves');
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-controls', 'mamekit-saves-shelf');
@@ -2253,26 +2298,6 @@ function saveStateDeck(options: {
     list: async () => (await store).list(cfg.game),
     remove: async id => { await (await store).remove(id); await render(); },
   };
-}
-
-function deckButton(text: string, options: { solid?: boolean } = {}): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = text;
-  button.dataset.solid = options.solid ? '1' : '';
-  setDeckButtonState(button, false);
-  return button;
-}
-
-/** Paint a deck button as idle, active (the thing it controls is on) or disabled. */
-function setDeckButtonState(button: HTMLButtonElement, active: boolean): void {
-  const enabled = !button.disabled;
-  button.style.cssText = `padding:6px 14px;border-radius:8px;font:700 12px ui-sans-serif,system-ui,sans-serif;
-    letter-spacing:.3px;cursor:${enabled ? 'pointer' : 'default'};transition:background .12s ease,color .12s ease;
-    ${active
-      ? `background:${DECK_GOLD};color:#1b1b1b;border:2px solid ${DECK_GOLD};box-shadow:0 0 14px ${DECK_GOLD}55`
-      : `background:${enabled ? '#111633' : '#0c0f26'};border:2px solid ${enabled ? '#303a78' : '#1e2450'};color:${enabled ? '#cbd1ff' : '#555c86'}`}
-    ${enabled ? '' : ';opacity:.6'}`;
 }
 
 /** mm:ss for a tape counter */

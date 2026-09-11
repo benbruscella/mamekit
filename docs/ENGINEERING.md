@@ -549,7 +549,9 @@ or a real browser. Required checks:
     (`e2e/specs/memory.spec.ts`);
 11. two browsers join a room from the invite link, restart together, stay
    frame for frame identical, run at the board's own refresh, and take every
-   coin and start button from both sides (`e2e/specs/netplay.spec.ts`);
+   coin and start button from both sides; the reply code connects from a
+   paste anywhere on the page as well as from the box
+   (`e2e/specs/netplay.spec.ts`);
 12. page and console error logs remain empty;
 13. desktop/mobile layout has no overlap.
 
