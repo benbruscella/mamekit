@@ -10,7 +10,6 @@ export type GeneratedDirectScreenShape =
   | 'gauntlet-tilemaps'
   | 'galaxian-no-bullets'
   | 'm62-category-sprites'
-  | 'outrun-sega16-layers'
   | 'system16a-layers'
   | 'system16b-layers'
   | 'system1-prom-mixer'
@@ -40,14 +39,6 @@ export function generatedDirectScreenShape(
     body.includes('m_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0)')
   ) {
     return 'gauntlet-tilemaps';
-  }
-  if (
-    body.includes('m_sprites->draw_async(cliprect)') &&
-    body.includes('m_segaic16road->segaic16_road_draw') &&
-    body.includes('m_segaic16vid->tilemap_draw') &&
-    body.includes('m_sprites->iterate_dirty_rects(')
-  ) {
-    return 'outrun-sega16-layers';
   }
   if (
     body.includes('m_sprites->draw_async(cliprect)') &&

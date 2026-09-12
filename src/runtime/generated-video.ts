@@ -3521,11 +3521,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return true;
     }
-    if (
-      this.directScreenShape === 'outrun-sega16-layers' ||
-      this.directScreenShape === 'system16b-layers'
-    ) {
-      return this.drawOutrunLayers(screen, bitmap, cliprect);
+    if (this.directScreenShape === 'system16b-layers') {
+      return this.drawSystem16BLayers(screen, bitmap, cliprect);
     }
     if (this.directScreenShape === 'system16a-layers') {
       return this.drawSystem16ALayers(bitmap, cliprect);
@@ -3957,14 +3954,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   }
 
   /**
-   * Compose OutRun's source-declared System 16B tile/text layers and road RAM.
-   * The dedicated Sega devices are not standalone generated cores yet, so the
-   * renderer reads the same shared RAM and 8x8 graphics layout directly.  The
-   * road is a conservative horizon/stripe representation until the road ROM
-   * pixel generator joins the hardware closure; tile codes, colors, paging,
-   * scrolling and text are the real board data.
+   * Compose a System 16B board's source-declared tile and text layers.
+   * SEGAIC16VID is not a standalone generated core yet, so the renderer reads
+   * the same shared RAM and 8x8 graphics layout directly; tile codes, colors,
+   * paging, scrolling and text are the real board data.
    */
-  private drawOutrunLayers(
+  private drawSystem16BLayers(
     screen: { visible_area(): GeneratedRectangle },
     bitmap: BitmapTarget,
     cliprect: GeneratedRectangle,
@@ -3979,9 +3974,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     };
     const tile = wordsView(this.state.m_tileram);
     const text = wordsView(this.state.m_textram);
-    const road = wordsView(
-      this.state.m_segaic16road_roadram ?? this.state['m_segaic16road:roadram'],
-    );
     const palette = wordsView(this.state.m_paletteram);
     const gfx = this.gfx[0];
     if (!tile || !text || !gfx) return false;
@@ -3999,18 +3991,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     }
 
     bitmap.fill(0, cliprect);
-    // OutRun's road hardware is line based. Preserve the live road-RAM color
-    // and horizon motion even before the specialized ROM pixel generator is
-    // available, leaving the source tile/text layers fully visible above it.
-    if (road) {
-      for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
-        const control = road[(y * 2) % road.length] ?? 0;
-        const color = 0x400 + ((control >>> 1) & 0x3f);
-        for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
-          bitmap['pix='](y, x, color);
-        }
-      }
-    }
 
     const drawLayer = (which: 0 | 1, transparent: boolean) => {
       const rawPages = system16a

@@ -62,24 +62,6 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
     ],
     handlerGaps: [],
   },
-  outrun: {
-    generationGaps: [
-      'i8255:I8255',
-      'mapper:SEGA_315_5195_MEM_MAPPER',
-      'pcm:SEGA_315_5218',
-      'segaic16road:SEGAIC16_ROAD',
-      'segaic16vid:SEGAIC16VID',
-      'sprites:SEGA_OUTRUN_SPRITES',
-    ],
-    handlerGaps: [
-      'mapper.pread',
-      'mapper.read',
-      'mapper.write',
-      'segaic16road.segaic16_road_control_0_r',
-      'segaic16road.segaic16_road_control_0_w',
-    ],
-    allowDirectScreen: true,
-  },
   polepos: {
     generationGaps: [
       '52xx:NAMCO_52XX',

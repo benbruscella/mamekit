@@ -11,7 +11,6 @@ assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'gauntlet',
   'mario',
   'mslug',
-  'outrun',
   'polepos',
   'pooyan',
   'qbert',

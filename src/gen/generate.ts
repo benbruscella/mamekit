@@ -194,6 +194,17 @@ export function sixButtonKeys(type: string): string[] | undefined {
 // convention. Keep these local: swapping the global X/Z mapping would silently
 // change every established game and the NES pad.
 const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
+  // Spy Hunter's wheel has five weapon switches and MAME names every one. The
+  // shared map stops at BUTTON3, so the oil slick, the smoke screen and the
+  // machine guns -- the primary weapon -- had no keys at all and were dropped
+  // from the emitted bindings. Machine Guns takes Space, the universal fire
+  // key on every other machine; the rest sit around it in panel order.
+  spyhunt: {
+    IPT_BUTTON6: ['Space'],  // Right Trigger / Machine Guns
+    IPT_BUTTON3: ['KeyC'],   // Left Trigger / Missiles
+    IPT_BUTTON4: ['KeyX'],   // Left Button / Oil Slick
+    IPT_BUTTON5: ['KeyV'],   // Right Button / Smoke Screen
+  },
   asteroid: {
     // Asteroids numbers its buttons by schematic input rather than by role.
     // Keep the cabinet controls intuitive while avoiding macOS-reserved
@@ -1983,6 +1994,41 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             port: tag, mask, keys: ['ArrowRight'], label: named ? `${named} Right` : `${type}_RIGHT`,
             type: `${type}_RIGHT`, activeLow: false, relativeDelta: delta, sensitivity,
           });
+          continue;
+        }
+        // An absolute analog stick, not a relative one: MAME's AD_STICK holds
+        // a position inside PORT_MINMAX and springs back to the field's own
+        // default when nothing drives it. A digital key therefore drives full
+        // deflection and release recentres, which is exactly what `activeValue`
+        // already does. Sinistar's 49-way stick is one of these, and without
+        // it the ship has no controls at all.
+        if (
+          type === 'IPT_AD_STICK_X' || type === 'IPT_AD_STICK_Y' ||
+          type === 'IPT_PADDLE' || type === 'IPT_PADDLE_V'
+        ) {
+          if (player !== 1) continue;
+          const low = minMax ? sourceNumber(minMax[1]!) : 0;
+          const high = minMax ? sourceNumber(minMax[2]!) : mask;
+          const reversed = mods.includes('PORT_REVERSE');
+          const vertical = type === 'IPT_AD_STICK_Y' || type === 'IPT_PADDLE_V';
+          const negativeKey = vertical ? 'ArrowUp' : 'ArrowLeft';
+          const positiveKey = vertical ? 'ArrowDown' : 'ArrowRight';
+          const negativeName = vertical ? 'Up' : 'Left';
+          const positiveName = vertical ? 'Down' : 'Right';
+          for (const [key, name, value] of [
+            [negativeKey, negativeName, reversed ? high : low],
+            [positiveKey, positiveName, reversed ? low : high],
+          ] as [string, string, number][]) {
+            bindings.push({
+              port: tag,
+              mask,
+              keys: [key],
+              label: named ? `${named} ${name}` : `${type}_${name.toUpperCase()}`,
+              type: `${type}_${name.toUpperCase()}`,
+              activeLow: false,
+              activeValue: value,
+            });
+          }
           continue;
         }
         if (type === 'IPT_TRACKBALL_X' || type === 'IPT_TRACKBALL_Y') {
