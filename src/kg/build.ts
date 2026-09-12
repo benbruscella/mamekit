@@ -1551,6 +1551,36 @@ function isSourceAccessor(body: string): boolean {
   return /^return\b[^;]*;$/.test(statements) && !/[-+]{2}|[^=!<>]=[^=]/.test(statements);
 }
 
+
+/**
+ * The devcb member a `auto <accessor>() { return m_x.bind(); }` hands out.
+ *
+ * MAME declares every devcb this way, so the accessor a machine
+ * configuration calls and the member the device's own code calls are both in
+ * the class declaration and need not share a name.
+ */
+function devcbAccessorMember(ast: MameAstIndex, accessor: string): string | undefined {
+  // Both MAME spellings: a devcb hands out `m_x.bind()`, a device_delegate is
+  // assigned through a forwarding setter that calls `m_x.set(...)`.
+  const patterns = [
+    new RegExp(
+      `\\bauto\\s+${accessor}\\s*\\(\\s*\\)[^{;]*\\{\\s*return\\s+(m_\\w+)(?:\\[[^\\]]*\\])?\\.bind\\s*\\(`,
+    ),
+    new RegExp(
+      `\\b${accessor}\\s*\\([^)]*\\)\\s*\\{\\s*(m_\\w+)(?:\\[[^\\]]*\\])?\\.set\\s*\\(`,
+    ),
+  ];
+  for (const unit of ast.ast.units) {
+    for (const declaration of unit.classes) {
+      for (const pattern of patterns) {
+        const found = pattern.exec(declaration.body ?? '');
+        if (found) return found[1];
+      }
+    }
+  }
+  return undefined;
+}
+
 function emitCallbacks(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -1606,8 +1636,17 @@ function emitCallbacks(
     );
     const callbackOwner = deviceTag.replace(/[^A-Za-z0-9_]+/g, '_');
     const callbackId = `${devId}/callback:${callbackOwner}:${callbackIndex++}`;
+    // The devcb member behind this accessor, from the owning device class's
+    // own declaration. MAME usually names the accessor after the member
+    // (`busack_cb()` over `m_busack_cb`), and the runtime's `m_<signal>`
+    // guess works whenever it does -- but it need not: toaplan_dsp_device
+    // spells `auto halt_callback() { return m_halt_cb.bind(); }`, so
+    // `m_halt_cb(ASSERT_LINE)` in its own handler resolved to nothing and the
+    // host CPU was never halted. Record the real member instead of guessing.
+    const devcbMember = devcbAccessorMember(ast, signal.name);
     const props: Record<string, PropValue> = {
       signal: signal.name,
+      ...(devcbMember && devcbMember !== `m_${signal.name}` ? { member: devcbMember } : {}),
       // A device_delegate setter is machine configuration, not a devcb the
       // board dispatches at runtime: the device calls the delegate itself.
       ...(DELEGATE_SETTER_RE.test(operation.name) &&
@@ -1773,13 +1812,29 @@ function handlerProps(
   }
   const identifiers = new Set(body?.match(/\b[A-Za-z_]\w*\b/g) ?? []);
   const specializedConstants: Record<string, number> = {};
-  const specialization = /_(-?\d+)$/.exec(method);
+  const specialization = /_(-?\d+(?:_-?\d+)*)$/.exec(method);
   if (fn && specialization) {
     const unit = ast.ast.units.find(candidate => candidate.file === fn.span.file);
     const prefix = unit?.source.slice(Math.max(0, fn.span.start - 256), fn.span.start) ?? '';
-    const template = /template\s*<\s*(?:[\w:]+\s+)+(\w+)(?:\s*=\s*[^>]+)?\s*>\s*$/.exec(prefix);
-    if (template && identifiers.has(template[1]!)) {
-      specializedConstants[template[1]!] = Number(specialization[1]);
+    // The whole parameter list, not just a lone parameter: MAME writes the
+    // Williams sound-command callback as
+    // `template <unsigned A, unsigned... B>`, and a pattern that only matched
+    // a single parameter left `A` unresolved, so the specialized handler
+    // addressed `m_pia[A]` and reached no PIA at all. A pack contributes no
+    // parameter, which is what an empty pack is.
+    const declaration = /template\s*<([^<>]*)>\s*$/.exec(prefix);
+    const names = splitMameArgs(declaration?.[1] ?? '').flatMap(parameter => {
+      const text = parameter.trim();
+      if (!text || text.includes('...')) return [];
+      const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(text)?.[1];
+      return name ? [name] : [];
+    });
+    const values = specialization[1]!.split('_').map(Number);
+    for (const [index, name] of names.entries()) {
+      const value = values[index];
+      if (value !== undefined && Number.isInteger(value) && identifiers.has(name)) {
+        specializedConstants[name] = value;
+      }
     }
   }
   const sourceConstants = Object.entries({ ...constants, ...specializedConstants })

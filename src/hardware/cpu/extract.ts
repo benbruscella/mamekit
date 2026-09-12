@@ -22,6 +22,7 @@ import {
   compileMameRp2a03,
   compileMameZ80,
   compileMameZ8002,
+  compileMameTms320c10,
   compileMameV30,
 } from '../../mame/cpu-compiler.ts';
 import { generatedCpuExecutableSource } from '../../mame/cpu-codegen.ts';
@@ -65,6 +66,7 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   RP2A03: compileMameRp2a03,
   RP2A03G: compileMameRp2a03,
   LR35902: compileMameLr35902,
+  TMS320C10: compileMameTms320c10,
 };
 
 export function compileCpuType(type: string, mameSource: string): unknown {

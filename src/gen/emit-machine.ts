@@ -42,14 +42,20 @@ export function generatedCpuCycleClock(type: string | undefined, clock: number):
 /** Explicit address-space facts emitted once instead of rediscovered by the runtime. */
 export function generatedCpuAddressSpace(type: string | undefined, ownerTag: string) {
   const normalized = type?.toLowerCase() ?? '';
-  const dataWidth = ['m68000', 'm68010', 'z8002', 'v30', 'tms34010'].includes(normalized)
+  const dataWidth = ['m68000', 'm68010', 'z8002', 'v30', 'tms34010', 'tms320c10'].includes(normalized)
     ? 16 as const
     : 8 as const;
+  // MAME declares every TMS320C1x space with an address shift of -1, but the
+  // generated core normalizes word addresses to byte addresses at each access
+  // site and its map ranges are scaled to match
+  // (generatedCpuAddressUnitBytes), so nothing is left for the bus to shift.
+  // tms34010 is bit addressed and still converts here.
+  const addressShift = normalized === 'tms34010' ? -3 : 0;
   return {
     ownerTag,
     name: 'program' as const,
     dataWidth,
-    addressShift: normalized === 'tms34010' ? -3 : 0,
+    addressShift,
     endianness: ['v30', 'tms34010'].includes(normalized) ? 'little' as const : 'big' as const,
   };
 }
@@ -200,6 +206,7 @@ export function lowerGeneratedMachine(
         signal: String(props.signal),
         operation: String(props.operation),
       };
+      if (props.member) callback.member = String(props.member);
       if (props.delegate) callback.delegate = true;
       if (props.slot !== undefined && Number.isFinite(Number(props.slot))) {
         callback.slot = Number(props.slot);

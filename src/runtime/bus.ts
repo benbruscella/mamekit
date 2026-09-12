@@ -563,4 +563,11 @@ export class Bus {
   /** io space: unused on this board family */
   in = (_port: number): number => OPEN_BUS;
   out = (_port: number, _data: number): void => { /* unused */ };
+  /**
+   * Atomic word access to the io space, installed only when the CPU declares
+   * a 16-bit one. Left undefined otherwise so a core that has no such space
+   * keeps taking the byte path rather than silently widening its accesses.
+   */
+  in16be?: (port: number) => number;
+  out16be?: (port: number, data: number) => void;
 }

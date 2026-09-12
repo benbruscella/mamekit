@@ -67,6 +67,12 @@ export interface GeneratedCallback {
   id: string;
   ownerTag: string;
   signal: string;
+  /**
+   * The owning device's devcb member, when MAME does not name it after the
+   * accessor. `toaplan_dsp_device` declares `halt_callback()` over
+   * `m_halt_cb`, and its own handlers raise the line by the member name.
+   */
+  member?: string;
   slot?: number;
   operation: string;
   targetTag?: string;
@@ -1204,6 +1210,11 @@ export interface GeneratedHandlerRuntime {
   };
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /**
+   * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
+   * copied, so the wider view writes through to the same shared bytes.
+   */
+  packedView(value: unknown, signed: boolean): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */

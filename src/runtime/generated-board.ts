@@ -140,6 +140,12 @@ export function generatedCompositeCallbackBindings(
     };
     calls[`m_${callback.signal}`] ??= emit;
     calls[callback.signal] ??= emit;
+    // MAME need not name the devcb member after its accessor; when it does
+    // not, the IR carries the real member and the device's own handlers call
+    // it by that name. A device_delegate is not a devcb -- the owning device
+    // calls it directly, with the callee's own parameters -- so it is bound
+    // where the delegates are, and must not be shadowed by an effect here.
+    if (callback.member && !callback.delegate) calls[callback.member] ??= emit;
   }
   return { ...bindings, calls };
 }
@@ -413,6 +419,8 @@ class IrBoard implements Board {
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
+  /** `scheduler().synchronize()` work, run once the posting CPU has yielded. */
+  private readonly scheduledWork: (() => void)[] = [];
   private currentLineFraction = 0;
   private inFrame = false;
   /**
@@ -1018,6 +1026,7 @@ class IrBoard implements Board {
         setters: generatedStateSetters(this.state, machine.stateMembers),
       } : {}),
       inputs: generatedInputs,
+      schedule: (run: () => void) => { this.scheduledWork.push(run); },
       calls,
       referenceCalls: {
         // MAME's region finder. Video handlers already have it; a machine
@@ -1139,7 +1148,17 @@ class IrBoard implements Board {
         return generatedAttotime(seconds);
       });
     }
-    const sourceHandlers = generatedHandlerRegistry(machine, this.bindings);
+    const sourceHandlers = generatedHandlerRegistry(
+      machine,
+      this.bindings,
+      handler => generatedCompositeCallbackBindings(
+        machine,
+        handler.ownerClass,
+        tag => this.devices.has(tag),
+        () => this.effects,
+        this.bindings,
+      ),
+    );
     const registry: HandlerRegistry = {
       read: { ...sourceHandlers.read },
       write: { ...sourceHandlers.write },
@@ -1324,18 +1343,28 @@ class IrBoard implements Board {
         bus.readOpcode = address => opcodeBus.read(address & opcodeMask);
       }
       if (specification.io) {
+        const ioDataWidth = specification.io.space?.dataWidth === 16
+          ? 16
+          : generatedCpuDataWidth(type);
         const ioBus = new Bus(
           specification.io.ranges,
           new Uint8Array(0),
           registry,
           this.shares,
-          specification.io.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(type),
+          ioDataWidth,
           undefined,
           specification.io.space?.endianness ?? generatedCpuEndianness(type),
         );
         const mask = specification.io.globalMask ?? 0xffff;
         bus.in = port => ioBus.read(port & mask);
         bus.out = (port, data) => ioBus.write(port & mask, data);
+        // Keep a natively 16-bit port atomic, for the same reason read16be
+        // exists on the program bus: a word handler shown two byte halves
+        // sees the second overwrite the first.
+        if (ioDataWidth === 16) {
+          bus.in16be = port => ioBus.read16be(port & mask);
+          bus.out16be = (port, data) => ioBus.write16be(port & mask, data);
+        }
       }
       const programSpace = {
         read_byte: (address: number) => bus.read(address),
@@ -1373,7 +1402,11 @@ class IrBoard implements Board {
         write16be: (address, data) => bus.write16be(busAddress(address), data),
         write32be: (address, data) => bus.write32be(busAddress(address), data),
         in: bus.in,
+        ...(bus.in16be ? { in16be: (port: number) => bus.in16be!(port) } : {}),
         out: bus.out,
+        ...(bus.out16be
+          ? { out16be: (port: number, data: number) => bus.out16be!(port, data) }
+          : {}),
         ...(specification.interruptAcknowledge ? {
           acknowledge: (level: number) => registry.read[specification.interruptAcknowledge!]?.(
             0xfffff0 | (level << 1),
@@ -1750,14 +1783,17 @@ class IrBoard implements Board {
     // without either side naming the other.
     for (const callback of machine.callbacks) {
       const device = this.devices.get(callback.ownerTag);
-      const member = device?.delegates?.()[callback.signal];
-      if (!device || !member || !callback.targetMethod) continue;
+      // A device with its own generated module carries the setter -> member
+      // map itself. A device whose methods are the board's handlers has no
+      // module to ask, so the IR carries the member on the callback.
+      const member = device?.delegates?.()[callback.signal] ?? callback.member;
+      if (!member || !callback.targetMethod) continue;
       const handler = machine.handlers?.find(candidate =>
         candidate.ownerClass === callback.targetClass &&
         candidate.method === callback.targetMethod);
       if (!handler?.program || handler.program.diagnostics.length) continue;
       const parameters = handlerParameterDescriptors(handler.parameters);
-      device.bindCall(member, (...args: unknown[]) =>
+      const invoke = (...args: unknown[]) =>
         executeGeneratedMachineHandler(
           machine,
           handler,
@@ -1768,7 +1804,23 @@ class IrBoard implements Board {
               ? args[index] ?? 0
               : generatedReferent(args[index] ?? 0),
           ])),
-        ) ?? 0, handler.parameters);
+        ) ?? 0;
+      if (device) {
+        device.bindCall(member, invoke, handler.parameters);
+        continue;
+      }
+      // Only a delegate the device calls itself; a devcb is dispatched as a
+      // board connection and must keep going through its effect.
+      if (!callback.delegate) continue;
+      this.bindings.calls![member] ??= invoke;
+      // The callee's own parameter list, so a `u32 &seg` argument reaches it
+      // as an lvalue and its writes land back in the calling device's member.
+      // wardner's DSP addresses host RAM entirely through two such
+      // out-parameters; without them every segment stayed zero.
+      (this.bindings.callParameters ??= {})[member] ??= (handler.parameters ?? '')
+        .split(',')
+        .map(parameter => parameter.trim())
+        .filter(Boolean);
     }
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
@@ -1812,6 +1864,7 @@ class IrBoard implements Board {
           if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
         },
         address => this.cpuBuses.get(machine.execution.cpus[0]?.tag ?? '')?.read(address) ?? 0,
+        this.shares,
       );
       // video_start is a machine lifecycle handler executed below through the
       // board bindings. Carry the video package's framework factories (bitmap
@@ -1907,6 +1960,10 @@ class IrBoard implements Board {
             // one's slice; restore what it interrupted rather than resetting.
             this.runningCpu = outerCpu;
             if (outerCpu) this.currentLineFraction = outerFraction;
+            // `scheduler().synchronize()` work posted by this slice runs here,
+            // once the CPU that posted it has yielded -- never nested inside
+            // another processor's slice.
+            if (!outerCpu) this.drainScheduledWork();
           }
         },
       }))],
@@ -2279,6 +2336,7 @@ class IrBoard implements Board {
     this.vicdualCoinPrevious = false;
     this.vicdualCoinFrames = 0;
     this.currentLine = 0;
+    this.scheduledWork.length = 0;
     this.timedHardwareDelivered = this.lineSeconds();
     this.runMachineReset();
   }
@@ -2292,6 +2350,18 @@ class IrBoard implements Board {
    * arithmetic needs the fraction — `vpos()` stays the whole line MAME's
    * drivers read.
    */
+  /**
+   * Run everything `scheduler().synchronize()` posted during the slice that
+   * just ended. Draining in order, and re-checking the queue, matches MAME:
+   * a synchronized callback may itself synchronize.
+   */
+  private drainScheduledWork(): void {
+    for (let guard = 0; this.scheduledWork.length && guard < 64; guard++) {
+      const run = this.scheduledWork.shift()!;
+      run();
+    }
+  }
+
   private beamPosition(): number {
     return this.currentLine +
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();

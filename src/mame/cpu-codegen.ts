@@ -127,6 +127,71 @@ class Pair16 {
   set w(value: number) { this.value = value & 0xffff; }
 }
 
+/**
+ * The word halves of a Pair32: MAME's PAIR union viewed as \`w.l\` / \`w.h\`.
+ *
+ * Split into its own class for the same reason as Pair16Bytes -- one hidden
+ * class and one pair of prototype accessors shared by every 32-bit register
+ * on every core, instead of a closure per instance.
+ */
+class Pair32Words {
+  private readonly pair: Pair32;
+
+  constructor(pair: Pair32) { this.pair = pair; }
+
+  get h(): number { return (this.pair.value >>> 16) & 0xffff; }
+  set h(next: number) {
+    this.pair.value = (((this.pair.value & 0x0000ffff) | ((next & 0xffff) << 16))) >>> 0;
+  }
+
+  get l(): number { return this.pair.value & 0xffff; }
+  set l(next: number) {
+    this.pair.value = ((this.pair.value & 0xffff0000) | (next & 0xffff)) >>> 0;
+  }
+}
+
+/**
+ * The byte halves of a Pair32. MAME's PAIR aliases \`b.l\`/\`b.h\` onto the
+ * low word only (bits 0-7 and 8-15), which is what the TMS320C1x opcode
+ * register relies on: \`m_opcode.b.h\` is the instruction's major byte.
+ */
+class Pair32Bytes {
+  private readonly pair: Pair32;
+
+  constructor(pair: Pair32) { this.pair = pair; }
+
+  get h(): number { return (this.pair.value >>> 8) & 0xff; }
+  set h(next: number) {
+    this.pair.value = ((this.pair.value & 0xffff00ff) | ((next & 0xff) << 8)) >>> 0;
+  }
+
+  get l(): number { return this.pair.value & 0xff; }
+  set l(next: number) {
+    this.pair.value = ((this.pair.value & 0xffffff00) | (next & 0xff)) >>> 0;
+  }
+}
+
+/**
+ * MAME's 32-bit PAIR union. \`.d\` is the whole doubleword, \`.w.h\`/\`.w.l\`
+ * its 16-bit halves and \`.b.h\`/\`.b.l\` the bytes of the low word, matching
+ * the LSB_FIRST layout in MAME's own osdcomm.h.
+ */
+class Pair32 {
+  /** Read by Pair32Words and Pair32Bytes; not the emitted core's vocabulary. */
+  value = 0;
+  readonly w: Pair32Words;
+  readonly b: Pair32Bytes;
+
+  constructor(value = 0) {
+    this.value = value >>> 0;
+    this.w = new Pair32Words(this);
+    this.b = new Pair32Bytes(this);
+  }
+
+  get d(): number { return this.value; }
+  set d(value: number) { this.value = value >>> 0; }
+}
+
 class WordByteRegisterFile {
   readonly w: Uint16Array;
   readonly b: Uint8Array;
@@ -528,6 +593,9 @@ function emitMember(member: GeneratedCpuMember): string {
     const values = Object.keys(member.fields).map(name => `${name}: 0`).join(', ');
     return `  private ${member.name} = { ${values} };`;
   }
+  if (member.pair32) {
+    return `  private ${member.name} = new Pair32(${member.initial ?? 0});`;
+  }
   if (member.pair) {
     return `  private ${member.name} = new Pair16(${member.initial ?? 0});`;
   }
@@ -634,7 +702,13 @@ function emitPublicGetCases(definition: GeneratedCpuDefinition): string {
   }
   for (const member of definition.members) {
     if (member.values || member.wordByteRegisters || member.z8000Registers) continue;
-    if (member.pair) {
+    // A PAIR is one 32-bit cell, so only `.d` is enumerated for capture: the
+    // word and byte views alias the same storage, and capturing them too
+    // would restore the same register several times over.
+    if (member.pair32) {
+      lines.push(`      case ${JSON.stringify(member.name)}:`);
+      lines.push(`      case ${JSON.stringify(`${member.name}.d`)}: return this.${member.name}.d;`);
+    } else if (member.pair) {
       lines.push(`      case ${JSON.stringify(member.name)}:`);
       lines.push(`      case ${JSON.stringify(`${member.name}.w`)}: return this.${member.name}.w;`);
       lines.push(`      case ${JSON.stringify(`${member.name}.b.h`)}: return this.${member.name}.b.h;`);
@@ -661,7 +735,12 @@ function emitPublicSetCases(definition: GeneratedCpuDefinition): string {
   }
   for (const member of definition.members) {
     if (member.values || member.wordByteRegisters || member.z8000Registers) continue;
-    if (member.pair) {
+    if (member.pair32) {
+      lines.push(`      case ${JSON.stringify(member.name)}:`);
+      lines.push(
+        `      case ${JSON.stringify(`${member.name}.d`)}: this.${member.name}.d = value; return;`,
+      );
+    } else if (member.pair) {
       lines.push(`      case ${JSON.stringify(member.name)}:`);
       lines.push(
         `      case ${JSON.stringify(`${member.name}.w`)}: this.${member.name}.w = value; return;`,
@@ -1056,6 +1135,22 @@ function emitCall(
   if (name === 'PORT_WRITE') {
     return `(this.bus.out((${args[0] ?? '0'}) & 0xffff, (${args[1] ?? '0'}) & 0xff), 0)`;
   }
+  // A natively 16-bit port, kept atomic when the board installed a word io
+  // bus; the byte pair is the fallback for a board that did not.
+  if (name === 'PORT_READ16BE') {
+    const port = `(${args[0] ?? '0'})`;
+    return `(this.bus.in16be?.(${port} & 0xffff) ?? ` +
+      `(((this.bus.in(${port} & 0xffff) & 0xff) << 8) | ` +
+      `(this.bus.in((${port} + 1) & 0xffff) & 0xff)))`;
+  }
+  if (name === 'PORT_WRITE16BE') {
+    const port = `(${args[0] ?? '0'})`;
+    const value = `(${args[1] ?? '0'})`;
+    return `(this.bus.out16be ` +
+      `? (this.bus.out16be(${port} & 0xffff, ${value} & 0xffff), 0) ` +
+      `: (this.bus.out(${port} & 0xffff, (${value} >>> 8) & 0xff), ` +
+      `this.bus.out((${port} + 1) & 0xffff, ${value} & 0xff), 0))`;
+  }
   if (name === 'PORT_WRITE16') {
     const port = `(${args[0] ?? '0'})`;
     const value = `(${args[1] ?? '0'})`;
@@ -1198,10 +1293,16 @@ function targetInfo(
 
   const member = memberForPath(path, context.definition);
   if (member) {
+    if (path === member.name && member.pair32) {
+      return { code: `this.${member.name}.d`, bits: 32 };
+    }
     if (path === member.name && member.pair) {
       return { code: `this.${member.name}.w`, bits: 16 };
     }
     const suffix = path.slice(member.name.length + 1);
+    if (member.pair32) {
+      return { code: `this.${path}`, bits: pair32SuffixBits(suffix) };
+    }
     if (member.pair) {
       return {
         code: `this.${path}`,
@@ -1224,7 +1325,10 @@ function emitIdentifier(name: string, context: EmitContext): string {
   if (constant !== undefined) return String(constant);
   if (context.definition.aliases[name]) return `this.${name}`;
   const member = context.definition.members.find(candidate => candidate.name === name);
-  if (member) return member.pair ? `this.${name}.w` : `this.${name}`;
+  if (member) {
+    if (member.pair32) return `this.${name}.d`;
+    return member.pair ? `this.${name}.w` : `this.${name}`;
+  }
   // Emitting 0 for a name the definition never declared is how the M68000's
   // per-variant cycle counts went missing without a single diagnostic: every
   // `m_icount -= m_cyc_bcc_notake_b` became `-= 0` and the core ran slow. An
@@ -1247,10 +1351,19 @@ function emitPath(path: string, context: EmitContext): string {
   if (context.definition.aliases[path]) return `this.${path}`;
   const member = memberForPath(path, context.definition);
   if (member) {
+    if (path === member.name && member.pair32) return `this.${path}.d`;
     if (path === member.name && member.pair) return `this.${path}.w`;
     return `this.${path}`;
   }
   return '0';
+}
+
+/** Width of one `PAIR` union view, or undefined for a spelling MAME never uses. */
+function pair32SuffixBits(suffix: string): 8 | 16 | 32 | undefined {
+  if (suffix === 'd') return 32;
+  if (suffix === 'w.h' || suffix === 'w.l') return 16;
+  if (suffix === 'b.h' || suffix === 'b.l') return 8;
+  return undefined;
 }
 
 function memberForPath(

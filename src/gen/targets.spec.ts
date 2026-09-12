@@ -56,11 +56,13 @@ check('the catalogue exposes every generated target', () => {
 
 // Disabling a game is a move into src/games/disabled, so the guarantee worth
 // testing is that parking a contract there actually takes it out of the build.
+// An empty directory is the goal state, not a broken test: issue #142 is about
+// emptying it, so the assertion is on what a parked contract does, not on
+// there being one.
 check('disabled contracts are not generated', () => {
   const disabled = readdirSync(join(projectRoot, 'src/games/disabled'))
     .filter(name => name.endsWith('.game.ts') && !name.endsWith('.game.spec.ts'))
     .map(name => name.replace(/\.game\.ts$/, ''));
-  assert.ok(disabled.length > 0, 'issue #53 parked broken games in src/games/disabled');
   for (const game of disabled) {
     assert.ok(!REQUIRED_TARGETS.includes(game), `disabled game "${game}" is still built`);
   }

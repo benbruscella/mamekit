@@ -10,7 +10,13 @@ import {
   type Z80OpcodeDsl,
 } from './opcode-dsl.ts';
 import { parseM6809Dsl } from './m6809-dsl.ts';
-import { collectFunctionMacros, expandFunctionMacros } from './preprocessor.ts';
+import {
+  collectDynamicMacros,
+  collectFunctionMacros,
+  expandDynamicMacros,
+  expandFunctionMacros,
+} from './preprocessor.ts';
+import { monomorphizeClassTemplate } from './function-template.ts';
 
 export interface GeneratedCpuAlias {
   member: string;
@@ -30,6 +36,11 @@ export interface GeneratedCpuMember {
    */
   signed?: boolean;
   pair?: boolean;
+  /**
+   * MAME's 32-bit `PAIR` union rather than `PAIR16`: `.d` is the doubleword,
+   * `.w.h`/`.w.l` its halves and `.b.h`/`.b.l` the bytes of the low word.
+   */
+  pair32?: boolean;
   values?: number[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
@@ -3396,6 +3407,16 @@ function compileOpcodeOperations(
 }
 
 export function normalizeMameExecutionSource(source: string): string {
+  // A variadic template pack is always empty here: mamekit specializes only
+  // the argument lists its call sites name, and it cannot expand a pack. C++
+  // discards the branch in that case, so the text goes before parsing --
+  // otherwise `if constexpr (sizeof...(B) > 0)` is a condition the handler
+  // parser cannot read and the whole method is dropped for a diagnostic.
+  source = source.replace(
+    /\bif\s+constexpr\s*\(\s*sizeof\s*\.\.\.\s*\([^)]*\)[^;{}]*\)\s*[^;{}]*;/g,
+    '',
+  );
+
   let normalized = stripTracingCalls(stripInactivePreprocessorBranches(source))
     .replace(/^[ \t]*#if\s+0[^\r\n]*\r?\n[\s\S]*?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm, '')
     .replaceAll('[[fallthrough]];', '')
@@ -3436,6 +3457,15 @@ export function normalizeMameExecutionSource(source: string): string {
     .replace(
       /\bstd::make_unique\s*<\s*(?:u8|uint8_t)\s*\[\s*\]\s*>\s*\(/g,
       'ALLOC(',
+    )
+    // Carry the element width. `make_unique_clear<u16[]>` is a word array,
+    // and allocating bytes for it silently truncated every store: wardner's
+    // three tile layers are u16 arrays written a byte at a time through
+    // COMBINE_DATA, so every high byte vanished and the board's own power-on
+    // test reported "FRAM ERROR".
+    .replace(
+      /\bmake_unique_clear\s*<\s*([A-Za-z_][A-Za-z_0-9:]*)\s*\[\s*\]\s*>\s*\(/g,
+      (_, type: string) => `${allocIntrinsic(type)}(`,
     )
     .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(')
     // A default-constructed local std::vector is an empty, growable array.
@@ -3702,8 +3732,10 @@ function extractDefineConstants(source: string): Record<string, number> {
 
 function extractConstexprConstants(source: string): Record<string, number> {
   const expressions = new Map<string, string>();
+  // `static inline constexpr` is the modern MAME spelling; the TMS320C1x
+  // interrupt states are declared that way and were invisible without it.
   for (const match of source.matchAll(
-    /\bstatic\s+constexpr\s+\w+\s+(\w+)\s*=\s*([^;]+);/g,
+    /\bstatic\s+(?:inline\s+)?constexpr\s+\w+\s+(\w+)\s*=\s*([^;]+);/g,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
@@ -4117,4 +4149,338 @@ function lr35902DevcbAliases(header: string): Record<string, string> {
     throw new Error('MAME LR35902 header declares no devcb accessors');
   }
   return aliases;
+}
+
+/**
+ * Compile the Toaplan coprocessor's TMS320C10 from MAME's own TMS320C1x core.
+ *
+ * Three things make this core different from the others here, and all three
+ * are properties of the MAME source rather than special cases for one board:
+ *
+ * 1. It is a class template. `tms320c10_device` is `tms320c1x_device_base<12>`,
+ *    so the unit is monomorphized before parsing and `HighBits` becomes an
+ *    ordinary literal -- which is also where `m_addr_mask` comes from.
+ * 2. It is word addressed. Every space is declared with an address shift of
+ *    -1, so a source address of N is byte address 2N on the generated bus.
+ *    The scaling lives in the read/write lowering below, next to the MAME
+ *    macros it translates, so the emitted core speaks the same byte addresses
+ *    as every other core.
+ * 3. Cycles come from the opcode table, not from the handlers. MAME charges
+ *    `s_opcode_main[major].cycles` before dispatching, and the 0x7F row is a
+ *    second table indexed by the minor byte.
+ */
+export function compileMameTms320c10(mameSrc: string): GeneratedCpuDefinition {
+  const cppFile = 'src/devices/cpu/tms320c1x/tms320c1x.cpp';
+  const headerFile = 'src/devices/cpu/tms320c1x/tms320c1x.h';
+  const baseClass = 'tms320c1x_device_base';
+  // tms320c10_device : tms320c1x_device_base<12> -- read from the header so a
+  // MAME revision that re-sizes the program space is not silently ignored.
+  const rawHeader = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const highBits = Number(
+    new RegExp(`class\\s+tms320c10_device\\s*:\\s*public\\s+${baseClass}\\s*<\\s*(\\d+)\\s*>`)
+      .exec(rawHeader)?.[1],
+  );
+  if (!Number.isInteger(highBits)) {
+    throw new Error('MAME TMS320C1x header does not declare tms320c10_device over the base template');
+  }
+  const cpp = monomorphizeClassTemplate(
+    readFileSync(join(mameSrc, cppFile), 'utf8'),
+    baseClass,
+    { HighBits: highBits },
+  );
+  const header = monomorphizeClassTemplate(rawHeader, baseClass, { HighBits: highBits });
+  const unit = parseMameSource(cppFile, cpp);
+  const functionByName = new Map(
+    unit.functions.filter(fn => fn.className === baseClass).map(fn => [fn.name, fn]),
+  );
+
+  const constants = {
+    ...extractDefineConstants(cpp),
+    ...extractConstexprConstants(header),
+    ...extractEnumConstants(header, { CLEAR_LINE: 0, ASSERT_LINE: 1 }),
+  };
+
+  // Word-addressed spaces: MAME declares program, data and io with an address
+  // shift of -1, so one source address covers two bus bytes.
+  const word = (argument: string): string => `((${argument}) * 2)`;
+  // MAME gives the C10 its data space as an internal address map of nothing
+  // but RAM: map(0x00,0x7f) page 0 and map(0x80,0x8f) page 1. Nothing outside
+  // the core can reach it, so it is the core's own storage. The array is
+  // rounded up to a power of two so an access the map leaves unmapped is
+  // contained rather than running off the end.
+  const ramRanges = [...(
+    /void\s+tms320c1x_device_base::tms320c10_ram\s*\(address_map\s*&\s*map\s*\)\s*\{([\s\S]*?)\n\}/
+      .exec(cpp)?.[1] ?? ''
+  ).matchAll(/map\s*\(\s*(0x[\da-f]+|\d+)\s*,\s*(0x[\da-f]+|\d+)\s*\)\s*\.ram\s*\(\s*\)/gi)]
+    .map(match => ({ start: Number(match[1]), end: Number(match[2]) }));
+  if (!ramRanges.length) {
+    throw new Error('MAME TMS320C1x source has no tms320c10_ram internal map');
+  }
+  const ramWords = 2 ** Math.ceil(
+    Math.log2(Math.max(...ramRanges.map(range => range.end)) + 1),
+  );
+  const dataMask = `0x${(ramWords - 1).toString(16)}`;
+  // OV/OVM/INTM/ARP/DP and the M_RD*/P_IN family are object- and
+  // function-like macros over members, so they carry real behaviour and must
+  // be expanded before anything reads the source as expressions. The emitter
+  // fails closed on an unexpanded one rather than answering zero.
+  const macros = collectDynamicMacros(cpp);
+  const spaceAccess = (body: string): string => {
+    let source = body;
+    source = rewriteMameCall(source, 'm_cache.read_word', args => `READ16BE(${word(args[0]!)})`);
+    source = rewriteMameCall(source, 'm_program.read_word', args => `READ16BE(${word(args[0]!)})`);
+    source = rewriteMameCall(
+      source, 'm_program.write_word', args => `WRITE16BE(${word(args[0]!)}, ${args[1]})`,
+    );
+    source = rewriteMameCall(
+      source, 'm_data.read_word', args => `m_ram[(${args[0]!}) & ${dataMask}]`,
+    );
+    source = rewriteMameCall(
+      source, 'm_data.write_word', args => `m_ram[(${args[0]!}) & ${dataMask}] = (${args[1]})`,
+    );
+    source = rewriteMameCall(source, 'm_io.read_word', args => `PORT_READ16BE(${word(args[0]!)})`);
+    source = rewriteMameCall(
+      source, 'm_io.write_word', args => `PORT_WRITE16BE(${word(args[0]!)}, ${args[1]})`,
+    );
+    return source;
+  };
+  const normalize = (body: string): string => normalizeMameExecutionSource(
+    spaceAccess(expandDynamicMacros(body, macros)),
+  )
+    .replace(/\bstandard_irq_callback\s*\([^;]*\)\s*;/g, '')
+    .replace(/\b(?:logerror|fatalerror|debugger_\w+)\s*\([^;]*\)\s*;/g, '')
+    .replace(/\bm_icount\s*-=\s*([^;]+);/g, 'cycles += $1;')
+    // The opcode tables pair a cycle count with a member-function pointer.
+    // Only the cycle column is addressable behaviour -- MAME reads it from
+    // add_branch_cycle() and Ext_IRQ() -- so it is lowered as a plain array
+    // and the function column becomes the generated dispatch table below.
+    .replace(/\bs_opcode_main\s*\[([^\]]+)\]\s*\.cycles/g, 's_opcode_main_cycles[$1]')
+    .replace(/\bs_opcode_7F\s*\[([^\]]+)\]\s*\.cycles/g, 's_opcode_7f_cycles[$1]');
+
+  const tableRows = (name: string, size: number): { cycles: number; method: string }[] => {
+    const table = new RegExp(`s_opcode_${name}\\s*\\[\\s*${size}\\s*\\]\\s*=\\s*\\{([\\s\\S]*?)\\n\\};`)
+      .exec(stripCppComments(cpp))?.[1];
+    if (!table) throw new Error(`MAME TMS320C1x source has no s_opcode_${name}[${size}] table`);
+    const rows = [...table.matchAll(
+      new RegExp(`\\{\\s*(\\d+)\\s*,\\s*&${baseClass}::(\\w+)\\s*\\}`, 'g'),
+    )].map(match => ({ cycles: Number(match[1]), method: match[2]! }));
+    if (rows.length !== size) {
+      throw new Error(`MAME TMS320C1x s_opcode_${name} has ${rows.length} of ${size} entries`);
+    }
+    return rows;
+  };
+  const mainTable = tableRows('main', 256);
+  const subTable = tableRows('7F', 32);
+  const cycleTables: GeneratedCpuMember[] = [
+    { name: 's_opcode_main_cycles', bits: 8, values: mainTable.map(row => row.cycles) },
+    { name: 's_opcode_7f_cycles', bits: 8, values: subTable.map(row => row.cycles) },
+  ];
+
+  const helperNames = [
+    'CLR', 'SET_FLAG', 'CALCULATE_ADD_OVERFLOW', 'CALCULATE_SUB_OVERFLOW',
+    'POP_STACK', 'PUSH_STACK', 'UPDATE_AR', 'UPDATE_ARP',
+    'getdata', 'putdata', 'putdata_sar', 'putdata_sst',
+    'add_branch_cycle', 'Ext_IRQ',
+  ];
+  // `opcodes_7F` is MAME's placeholder for the row that dispatches into the
+  // second table; it fatalerrors and is never called, so it is not lowered.
+  const methodNames = [...new Set([
+    ...helperNames,
+    ...[...mainTable, ...subTable].map(row => row.method),
+  ])].filter(name => name !== 'opcodes_7F');
+  const methods = methodNames.map(name => {
+    const fn = functionByName.get(name);
+    if (!fn) throw new Error(`MAME TMS320C1x source is missing ${name}()`);
+    return {
+      name,
+      parameters: fn.parameters,
+      program: compileMameHandler(normalize(fn.body)),
+      source: sourceRef(fn.span.file, fn.span.line),
+    };
+  });
+
+  const startMethod = functionByName.get('device_start');
+  const resetMethod = functionByName.get('device_reset');
+  const inputMethod = functionByName.get('execute_set_input');
+  if (!startMethod || !resetMethod || !inputMethod) {
+    throw new Error('MAME TMS320C1x source is missing start/reset/input definitions');
+  }
+  const start = compileMameHandler(normalize(stripMameFrameworkSetup(startMethod.body)));
+  const reset = compileMameHandler(normalize(resetMethod.body));
+  const input = compileMameHandler(normalize(inputMethod.body));
+  // execute_run()'s per-iteration preamble: the interrupt is not serviced
+  // after MPY, MPYK or EINT, which is a property of the previous opcode.
+  const service = compileMameHandler(normalize(`
+    if (m_INTF) {
+      if ((m_opcode.b.h != 0x6d) && ((m_opcode.b.h & 0xe0) != 0x80) && (m_opcode.w.l != 0x7f82))
+        m_icount -= Ext_IRQ();
+    }
+    m_PREVPC = m_PC;
+  `));
+  // The fetch and the two-level dispatch selector, mirroring execute_run():
+  // the major byte selects in the main table, except 0x7F, whose minor byte
+  // selects in the second. The generic dispatcher switches on m_ref >> 8.
+  const fetch = compileMameHandler(normalize(`
+    m_opcode.d = M_RDOP(m_PC);
+    m_PC++;
+    if (m_opcode.b.h != 0x7f) m_ref = m_opcode.b.h << 16;
+    else m_ref = (0x7f00 | (m_opcode.b.l & 0x1f)) << 8;
+  `));
+
+  const opcodes: GeneratedCpuOpcode[] = [];
+  for (const [major, row] of mainTable.entries()) {
+    if (major === 0x7f) continue;
+    const method = methods.find(candidate => candidate.name === row.method)!;
+    opcodes.push({
+      key: `${major.toString(16).padStart(2, '0')}00`,
+      description: row.method,
+      dispatch: false,
+      program: compileMameHandler(`cycles += ${row.cycles}; ${row.method}();`),
+      source: method.source,
+    });
+  }
+  for (const [minor, row] of subTable.entries()) {
+    const method = methods.find(candidate => candidate.name === row.method)!;
+    opcodes.push({
+      key: `7f${minor.toString(16).padStart(2, '0')}`,
+      description: row.method,
+      dispatch: false,
+      program: compileMameHandler(`cycles += ${row.cycles}; ${row.method}();`),
+      source: method.source,
+    });
+  }
+
+  const members: GeneratedCpuMember[] = [
+    { name: 'm_PC', bits: 16 },
+    { name: 'm_PREVPC', bits: 16 },
+    { name: 'm_STR', bits: 16 },
+    { name: 'm_ACC', bits: 32, pair32: true },
+    { name: 'm_ALU', bits: 32, pair32: true },
+    { name: 'm_Preg', bits: 32, pair32: true },
+    { name: 'm_Treg', bits: 16 },
+    { name: 'm_AR', bits: 16, values: [0, 0] },
+    { name: 'm_STACK', bits: 16, values: [0, 0, 0, 0] },
+    { name: 'm_opcode', bits: 32, pair32: true },
+    { name: 'm_INTF', bits: 32 },
+    { name: 'm_icount', bits: 32, signed: true },
+    { name: 'm_oldacc', bits: 32, pair32: true },
+    { name: 'm_memaccess', bits: 16 },
+    { name: 'm_addr_mask', bits: 32, initial: (2 ** highBits) - 1 },
+    { name: 'm_ref', bits: 32 },
+    { name: 'cycles', bits: 32 },
+    { name: 'm_ram', bits: 16, values: new Array(ramWords).fill(0) },
+    ...cycleTables,
+  ];
+  const declared = new Set(
+    [...header.matchAll(/^\s*(?:PAIR|uint16_t|uint8_t|int)\s+(m_\w+)\s*(?:\[[^\]]*\])?\s*;/gm)]
+      .map(match => match[1]!),
+  );
+  const missing = members
+    .filter(member => member.name.startsWith('m_'))
+    .filter(member => !['m_ref', 'm_ram'].includes(member.name))
+    .filter(member => !declared.has(member.name));
+  if (missing.length) {
+    throw new Error(
+      `MAME TMS320C1x header no longer declares ${missing.map(m => m.name).join(', ')}`,
+    );
+  }
+
+  // The BIO test pin is a devcb the machine configuration binds
+  // (`m_dsp->bio().set(...)` in toaplan_dsp.cpp), so reading it goes through
+  // the generic CPU signal path under the config accessor's own name.
+  const callbacks: Record<string, string> = {};
+  for (const binding of header.matchAll(
+    /auto\s+(\w+)\(\)\s*\{\s*return\s+(m_\w+)\.bind\(\);\s*\}/g,
+  )) callbacks[binding[2]!] = binding[1]!;
+  if (!Object.keys(callbacks).length) {
+    throw new Error('MAME TMS320C1x header declares no devcb accessor for the BIO pin');
+  }
+
+  const programs = [
+    start, reset, input, service, fetch,
+    ...methods.map(method => method.program),
+    ...opcodes.map(opcode => opcode.program),
+  ];
+  return {
+    schemaVersion: 1,
+    type: 'TMS320C10',
+    // Word addresses are doubled at every access, so the byte-address mask is
+    // one bit wider than the source's own HighBits.
+    addressMask: (2 ** (highBits + 1)) - 1,
+    dialect: 'mame-tms320c1x-opcode-table',
+    fixedInstructionCycles: true,
+    sourceFiles: [cppFile, headerFile],
+    constants,
+    aliases: {},
+    members: members.sort((left, right) => left.name.localeCompare(right.name)),
+    methods,
+    callbacks,
+    start,
+    reset,
+    input,
+    service,
+    fetch,
+    opcodes,
+    summary: {
+      opcodes: opcodes.length,
+      compiledOpcodes: opcodes.filter(opcode => !opcode.program.diagnostics.length).length,
+      methods: methods.length,
+      compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
+      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
+    },
+  };
+}
+
+/**
+ * Rewrite every call to `name(...)` in MAME source, arguments intact.
+ *
+ * A regex cannot do this: MAME nests parentheses inside call arguments
+ * (`m_data.read_word(((m_memaccess)))`), and a non-greedy pattern closes on
+ * the first `)` it meets, producing unbalanced source the handler parser then
+ * rejects -- which is a diagnostic if you are lucky and a silent zero if you
+ * are not. Scanning for the matching parenthesis is the only correct form.
+ */
+function rewriteMameCall(
+  source: string,
+  name: string,
+  replace: (args: string[]) => string,
+): string {
+  const needle = `${name}(`;
+  let result = '';
+  let index = 0;
+  while (true) {
+    const start = source.indexOf(needle, index);
+    if (start < 0) return result + source.slice(index);
+    // Only a whole identifier, never the tail of a longer member path.
+    const preceding = source[start - 1];
+    if (preceding !== undefined && /[\w.]/.test(preceding)) {
+      result += source.slice(index, start + needle.length);
+      index = start + needle.length;
+      continue;
+    }
+    let depth = 0;
+    let end = start + needle.length - 1;
+    for (; end < source.length; end++) {
+      if (source[end] === '(') depth++;
+      else if (source[end] === ')' && --depth === 0) break;
+    }
+    if (end >= source.length) throw new Error(`unterminated ${name}( in MAME source`);
+    const args = splitMameArgs(source.slice(start + needle.length, end));
+    result += source.slice(index, start) + replace(args.map(argument => argument.trim()));
+    index = end + 1;
+  }
+}
+
+/**
+ * The allocation intrinsic for one C++ element type.
+ *
+ * MAME sizes an array by its element type, and a generated board that
+ * allocates bytes for a `u16[]` loses the high half of every store without
+ * a diagnostic -- which is what a byte-wide COMBINE_DATA into a word array
+ * looks like from the outside.
+ */
+function allocIntrinsic(type: string): 'ALLOC' | 'ALLOC16' | 'ALLOC32' {
+  if (/^(?:u|s|int|uint)16(?:_t)?$/.test(type) || /^u?int16_t$/.test(type)) return 'ALLOC16';
+  if (/^(?:u|s|int|uint)32(?:_t)?$/.test(type) || /^u?int32_t$/.test(type)) return 'ALLOC32';
+  return 'ALLOC';
 }

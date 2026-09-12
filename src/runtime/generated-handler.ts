@@ -48,6 +48,17 @@ export {
 export function generatedHandlerRegistry(
   machine: BoardIr,
   bindings: GeneratedHandlerBindings = {},
+  /**
+   * Bindings for one handler, when the caller layers something on top of the
+   * board's own. A device whose methods are compiled board handlers still has
+   * devcb members to raise, and those are resolved per owning class -- the
+   * same overlay the callback path applies. Without it a method reached
+   * through an address map could not raise a line the same method raises
+   * when a callback calls it: wardner's DSP released the host CPU from
+   * dsp_int_w and could not from dsp_bio_w, which is an I/O write.
+   */
+  bindingsFor: (handler: GeneratedHandler) => GeneratedHandlerBindings =
+    () => bindings,
 ): HandlerRegistry {
   const registry: HandlerRegistry = { read: {}, write: {} };
   const handlers = new Map(
@@ -108,14 +119,14 @@ export function generatedHandlerRegistry(
         const handler = resolve(range.read);
         if (handler?.program && !registry.read[range.read]) {
           registry.read[range.read] =
-            makeReadHandler(machine, handler, bindings, cpuTagFor(range.read));
+            makeReadHandler(machine, handler, bindingsFor(handler), cpuTagFor(range.read));
         }
       }
       if (range.write) {
         const handler = resolve(range.write);
         if (handler?.program && !registry.write[range.write]) {
           registry.write[range.write] =
-            makeWriteHandler(machine, handler, bindings, cpuTagFor(range.write));
+            makeWriteHandler(machine, handler, bindingsFor(handler), cpuTagFor(range.write));
         }
       }
     }

@@ -73,6 +73,20 @@ export function compileMameHandler(body: string): GeneratedHandlerProgram {
       /\b(?:reinterpret|dynamic|static|const)_cast\s*<([^>]+)>\s*\(([^;]+)\)/g,
       '($1)($2)',
     )
+    // A delegate that names a *template* member has to name the specialization
+    // the compiler actually generated. `specializeFunctionTemplate` emits
+    // `deferred_snd_cmd_w<2>` as `deferred_snd_cmd_w_2`, and dropping the
+    // argument here left `FUNC(williams_state::deferred_snd_cmd_w<2>)`
+    // resolving to a method nobody declared -- so Sinistar's sound command was
+    // handed to the scheduler and silently went nowhere, and its sound board
+    // never answered the handshake the main CPU spins on.
+    .replace(
+      /\bFUNC\s*\(\s*([\w:]+)\s*<([^<>()]*)>\s*\)/g,
+      (_all, name: string, args: string) => `FUNC(${name}_${args
+        .split(',')
+        .map(argument => argument.trim().replace(/^true$/, '1').replace(/^false$/, '0'))
+        .join('_')})`,
+    )
     // MAME's frequency literal macros are preprocessing tokens whose leading
     // digit otherwise looks like a number followed by a stray identifier.
     .replace(/\b(\d+(?:\.\d+)?)_MHz_XTAL\b/g, (_all, mhz) =>

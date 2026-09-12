@@ -181,11 +181,18 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const braceEnd = matchPair(masked, braceStart, '{', '}');
     if (braceEnd < 0) continue;
     const bodyStart = braceStart + 1;
+    // A member-macro definition can itself be a template. MAME writes
+    // `template <unsigned A, unsigned... B> TIMER_CALLBACK_MEMBER(...)`, and
+    // without its parameter list the method was emitted with the parameter
+    // still spelled `A` -- Sinistar's sound command went to `m_pia[A]`, which
+    // resolves to nothing, so its sound board was never addressed.
+    const macroTemplate = memberMacroTemplateParameters(masked, fm.index);
     functions.push({
       kind: 'function',
       className: fm[2],
       name: fm[3],
       parameters: memberMacroParameters(fm[1]),
+      ...(macroTemplate.length ? { templateParameters: macroTemplate } : {}),
       body: source.slice(bodyStart, braceEnd),
       statements: parseStatements(file, source, masked, bodyStart, braceEnd, lineStarts),
       span: span(fm.index, braceEnd + 1),
@@ -484,6 +491,29 @@ function functionTemplateParameters(
   if (!match) return [];
   return splitMameArgs(match[1]!).flatMap(parameter => {
     const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(parameter.trim())?.[1];
+    return name ? [name] : [];
+  });
+}
+
+
+/**
+ * Template parameters on a member-macro definition, ignoring any variadic
+ * pack.
+ *
+ * MAME spells the Williams sound-command callback
+ * `template <unsigned A, unsigned... B> TIMER_CALLBACK_MEMBER(...)`, and only
+ * the leading non-pack parameters are ever supplied by the call sites the
+ * compiler specializes (`deferred_snd_cmd_w<2>`). A pack is reported as no
+ * parameter at all, which is what an empty pack is.
+ */
+function memberMacroTemplateParameters(masked: string, macroIndex: number): string[] {
+  const before = masked.slice(Math.max(0, macroIndex - 512), macroIndex);
+  const match = /template\s*<([^<>]*)>\s*$/.exec(before);
+  if (!match) return [];
+  return splitMameArgs(match[1]!).flatMap(parameter => {
+    const text = parameter.trim();
+    if (text.includes('...')) return [];
+    const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(text)?.[1];
     return name ? [name] : [];
   });
 }

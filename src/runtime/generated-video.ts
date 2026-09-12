@@ -672,11 +672,24 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
   /** palette_device::device_start halves bytes-per-entry across a split share. */
   private readonly bytesPerEntry: number;
 
-  constructor(plan: GeneratedRamPalettePlan) {
+  constructor(plan: GeneratedRamPalettePlan, shares: Record<string, Uint8Array> = {}) {
     this.plan = plan;
     this.bytesPerEntry = plan.extShare ? plan.bytesPerEntry / 2 : plan.bytesPerEntry;
-    this.ram = new Uint8Array(plan.entries * this.bytesPerEntry);
-    if (plan.extShare) this.ext = new Uint8Array(plan.entries * this.bytesPerEntry);
+    const bytes = plan.entries * this.bytesPerEntry;
+    // MAME's palette_device does not own a private copy of its colour RAM:
+    // the driver's address map names the very same memory as a share, so a
+    // board that maps the window readable reads back exactly what
+    // palette_device::write8 stored. Adopting the share keeps the two halves
+    // one buffer. Wardner maps its palette write-only through the device and
+    // readable through `m_rom_ram_view[0]`, and its power-on RAM test walks a
+    // bit through 0xa000 and reads it back -- against a private buffer that
+    // read zero and the board hung on "LRAM ERROR".
+    const adopt = (tag: string): Uint8Array => {
+      const share = shares[tag];
+      return share && share.length >= bytes ? share.subarray(0, bytes) : new Uint8Array(bytes);
+    };
+    this.ram = adopt(plan.tag);
+    if (plan.extShare) this.ext = adopt(plan.extShare);
     this.colors = new Uint32Array(plan.entries);
     for (let pen = 0; pen < plan.entries; pen++) this.update(pen);
     this.reset();
@@ -2653,6 +2666,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     bindings: GeneratedHandlerBindings,
     updatePartial?: (line: number) => void,
     memoryRead?: (address: number) => number,
+    shares: Record<string, Uint8Array> = {},
   ) {
     this.machine = machine;
     this.regions = regions;
@@ -2741,7 +2755,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       state.resistances ??= [3900, 2200, 1000, 470, 220];
     }
     if (ramPalettePlan) {
-      this.ramPalette = new GeneratedRamPalette(ramPalettePlan);
+      this.ramPalette = new GeneratedRamPalette(ramPalettePlan, shares);
       this.palettes.set('m_palette', this.ramPalette);
     }
     if (bitmapPlan?.paletteRam) {
