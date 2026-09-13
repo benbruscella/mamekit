@@ -35,6 +35,7 @@ import {
   HOST_SERVICE_CALLS,
   DISCRETE_INPUT_CALLS,
   type BoardIr,
+  type GeneratedHandler,
   type GeneratedStateMember,
 } from '../ir/board.ts';
 import {
@@ -1151,13 +1152,7 @@ class IrBoard implements Board {
     const sourceHandlers = generatedHandlerRegistry(
       machine,
       this.bindings,
-      handler => generatedCompositeCallbackBindings(
-        machine,
-        handler.ownerClass,
-        tag => this.devices.has(tag),
-        () => this.effects,
-        this.bindings,
-      ),
+      handler => this.deviceHandlerBindings(handler),
     );
     const registry: HandlerRegistry = {
       read: { ...sourceHandlers.read },
@@ -2074,6 +2069,7 @@ class IrBoard implements Board {
       video,
     });
     this.installAccessTaps(machine);
+    this.runDeviceStarts();
     this.runMachineLifecycle('startHandlers');
     this.runMachineReset();
     if (neoGeoInterrupts && Number(this.state.m_irq3_pending ?? 0)) {
@@ -4435,6 +4431,70 @@ class IrBoard implements Board {
    * closed union; the MAME method names that used to be re-parsed here are
    * interpreted once, during generation, by src/ir/lower-connections.ts.
    */
+  /**
+   * A device class's own handler, resolved the way MAME resolves it for that
+   * device rather than for the board. Two finders are device-relative:
+   * `m_cpu`, the conventional name for a sound board's own processor, which
+   * more than one class on a board can declare (Spy Hunter carries both an
+   * SSIO and a Cheap Squeak Deluxe); and `memregion`, whose tag MAME looks up
+   * under the device ("proms" is "ssio:proms"). Left board-scoped,
+   * midway_ssio_device::irq_clear could not drop the /SINT line it is read to
+   * clear and the sound CPU never left its interrupt handler.
+   */
+  private deviceHandlerBindings(handler: GeneratedHandler): GeneratedHandlerBindings {
+    let bindings = generatedCompositeCallbackBindings(
+      this.machine,
+      handler.ownerClass,
+      tag => this.devices.has(tag),
+      () => this.effects,
+      this.bindings,
+    );
+    const cpuTag = hostedCpuTagForClass(this.machine, handler.ownerClass);
+    if (cpuTag) bindings = generatedCpuMemberBindings(bindings, cpuTag);
+    const owners = (this.machine.devices ?? [])
+      .filter(device => device.classHierarchy?.includes(handler.ownerClass));
+    const deviceTag = owners.length === 1 ? owners[0]!.tag : undefined;
+    if (deviceTag) {
+      bindings = {
+        ...bindings,
+        referenceCalls: {
+          ...bindings.referenceCalls,
+          memregion: (...args: unknown[]) => {
+            const tag = String(generatedCallValue(args[0]) ?? '');
+            const bytes = this.regions[`${deviceTag}:${tag}`] ?? this.regions[tag];
+            if (!bytes) throw new Error(`${this.machine.game}: no ROM region "${tag}"`);
+            return { base: () => bytes, bytes: () => bytes.length };
+          },
+        },
+      };
+    }
+    return bindings;
+  }
+
+  /**
+   * MAME starts every device before the machine runs, and device_start is
+   * where a device derives the constants its own methods then read. A device
+   * with a generated core starts itself; a board-level device whose methods
+   * are the board's handlers has nowhere else to do it. Midway's SSIO reads
+   * its 82S123 duty-cycle PROM there, and every AY output gain it sets comes
+   * out of that table -- unstarted, each gain it wrote was NaN.
+   */
+  private runDeviceStarts(): void {
+    for (const specification of this.machine.devices ?? []) {
+      const key = specification.startHandler;
+      if (!key || this.devices.has(specification.tag)) continue;
+      const handler = this.machine.handlers?.find(candidate =>
+        `${candidate.ownerClass}.${candidate.method}` === key);
+      if (!handler?.program || handler.program.diagnostics.length) continue;
+      executeGeneratedMachineHandler(
+        this.machine,
+        handler,
+        this.deviceHandlerBindings(handler),
+        {},
+      );
+    }
+  }
+
   /** Execute a generated handler program, when one compiled for this key. */
   private handlerExecutor(
     key: string,
@@ -4729,6 +4789,21 @@ class IrBoard implements Board {
       },
     };
   }
+}
+
+/** The CPU a device class's conventional `m_cpu` finder names: its own child. */
+export function hostedCpuTagForClass(
+  machine: BoardIr,
+  ownerClass: string,
+): string | undefined {
+  const owners = (machine.devices ?? [])
+    .filter(device => device.classHierarchy?.includes(ownerClass));
+  const tags = owners.flatMap(owner => machine.execution.cpus
+    .filter(cpu => cpu.tag.startsWith(`${owner.tag}:`))
+    .map(cpu => cpu.tag));
+  // Ambiguity is not a licence to guess: a class hosting two processors, or
+  // instantiated twice, has no single `m_cpu`.
+  return tags.length === 1 ? tags[0] : undefined;
 }
 
 /** Scope a composite device's conventional m_cpu finder to its hosted CPU. */

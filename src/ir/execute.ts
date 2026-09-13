@@ -518,13 +518,7 @@ function preparedHandlerRuntime(
     // interpreted path. Emitted code dropped it, so a byte-backed sprite RAM
     // written a half-word at a time (wardner's wardner_sprite_w) stored the
     // low byte at the word index and lost every high byte.
-    packedView: (value, signed) => {
-      if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
-      const bytes: Uint8Array | Int8Array = value;
-      return signed
-        ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
-        : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
-    },
+    packedView: generatedPackedView,
     container: generatedContainerAccessor,
     pointerStore: generatedPointerStore,
     add: generatedAdd,
@@ -2966,6 +2960,20 @@ function resizeGeneratedMemory(
  * `m_sp_palette->transpen_mask(*m_sp_gfxdecode->gfx(0), ...)` read `.source`
  * off a gfx element that never had one.
  */
+/**
+ * A `u16*`/`s16*` declaration over byte memory is a reinterpreting view, not a
+ * copy. Shared with the device runtime: a generated device core emits the same
+ * `runtime.packedView` call, and without it the Neo Geo sprite core stopped on
+ * "runtime.packedView is not a function".
+ */
+export function generatedPackedView(value: unknown, signed: boolean): unknown {
+  if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
+  const bytes: Uint8Array | Int8Array = value;
+  return signed
+    ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
+    : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
+}
+
 export function dereferenceGeneratedValue(value: unknown): unknown {
   if (isGeneratedPointer(value)) return pointerValue(value, 0);
   if (isIndexableMemory(value)) return indexValue(value, 0);

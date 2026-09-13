@@ -655,6 +655,23 @@ interface GeneratedPaletteDevice {
  * affected entry, so mid-frame writes reach partial screen updates the same way
  * they do in MAME.
  */
+/**
+ * Share tags an address-map range stores into. A share only a device writes is
+ * that device's own memory; one the bus writes has storage of its own.
+ */
+export function generatedBusWrittenShares(machine: BoardIr): ReadonlySet<string> {
+  const written = new Set<string>();
+  const ranges = machine.execution.cpus.flatMap(cpu => [
+    ...(cpu.ranges ?? []),
+    ...(cpu.opcode?.ranges ?? []),
+    ...(cpu.io?.ranges ?? []),
+  ]);
+  for (const range of ranges) {
+    if (range.share && range.kind === 'ram' && !range.readOnly) written.add(range.share);
+  }
+  return written;
+}
+
 class GeneratedRamPalette implements GeneratedPaletteDevice {
   /**
    * Save-state roots (machine-state.ts). The colors are saved as they are,
@@ -672,20 +689,32 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
   /** palette_device::device_start halves bytes-per-entry across a split share. */
   private readonly bytesPerEntry: number;
 
-  constructor(plan: GeneratedRamPalettePlan, shares: Record<string, Uint8Array> = {}) {
+  constructor(
+    plan: GeneratedRamPalettePlan,
+    shares: Record<string, Uint8Array> = {},
+    /** Share tags some address-map range stores into. See `adopt` below. */
+    busWrittenShares: ReadonlySet<string> = new Set(),
+  ) {
     this.plan = plan;
     this.bytesPerEntry = plan.extShare ? plan.bytesPerEntry / 2 : plan.bytesPerEntry;
     const bytes = plan.entries * this.bytesPerEntry;
-    // MAME's palette_device does not own a private copy of its colour RAM:
-    // the driver's address map names the very same memory as a share, so a
-    // board that maps the window readable reads back exactly what
-    // palette_device::write8 stored. Adopting the share keeps the two halves
-    // one buffer. Wardner maps its palette write-only through the device and
-    // readable through `m_rom_ram_view[0]`, and its power-on RAM test walks a
-    // bit through 0xa000 and reads it back -- against a private buffer that
-    // read zero and the board hung on "LRAM ERROR".
+    // Whether the device's colour RAM *is* the board's share is a fact of the
+    // address map, and MAME spells both arrangements:
+    //
+    //  - Wardner maps the window write-only through the device and readable
+    //    through `m_rom_ram_view[0]` as a read-only share. Nothing on the bus
+    //    ever stores into that share, so palette_device::write8 is its only
+    //    writer -- they have to be one buffer, or the board's power-on RAM
+    //    test walks a bit through 0xa000, reads back zero and hangs on
+    //    "LRAM ERROR".
+    //  - Gauntlet maps it `.ram().w("palette", write16).share("palette")`.
+    //    The bus stores the word itself and the device keeps its own copy,
+    //    which is exactly what MAME does; adopting the share there instead
+    //    took the palette from 1020 of 1024 entries matching MAME to 891.
+    //
+    // So: adopt only a share the bus never writes.
     const adopt = (tag: string): Uint8Array => {
-      const share = shares[tag];
+      const share = busWrittenShares.has(tag) ? undefined : shares[tag];
       return share && share.length >= bytes ? share.subarray(0, bytes) : new Uint8Array(bytes);
     };
     this.ram = adopt(plan.tag);
@@ -2755,7 +2784,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       state.resistances ??= [3900, 2200, 1000, 470, 220];
     }
     if (ramPalettePlan) {
-      this.ramPalette = new GeneratedRamPalette(ramPalettePlan, shares);
+      this.ramPalette = new GeneratedRamPalette(
+        ramPalettePlan,
+        shares,
+        generatedBusWrittenShares(machine),
+      );
       this.palettes.set('m_palette', this.ramPalette);
     }
     if (bitmapPlan?.paletteRam) {

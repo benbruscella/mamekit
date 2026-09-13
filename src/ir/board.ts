@@ -200,6 +200,12 @@ export interface GeneratedDevice {
   classHierarchy?: string[];
   /** Owning board device for a device_add_mconfig child. */
   hostTag?: string;
+  /**
+   * `<class>.device_start`, when the device's class declares one and it
+   * lowered. MAME starts a device before the machine runs, and that is where
+   * a device derives the constant tables its own methods then read.
+   */
+  startHandler?: string;
   member?: string;
   clock?: number;
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */

@@ -4,6 +4,7 @@ import {
   applyGeneratedDivision,
   applyGeneratedMacro,
   dereferenceGeneratedValue,
+  generatedPackedView,
   generatedContainerAccessor,
   generatedAdd,
   generatedPointerStore,
@@ -117,6 +118,11 @@ export interface GeneratedDeviceExecutionContext {
   addressOf(value: unknown, index: number): GeneratedPointer;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /**
+   * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
+   * copied, so the wider view writes through to the same shared bytes.
+   */
+  packedView(value: unknown, signed: boolean): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
   /** The container an indexed write stores into, addressed by member name. */
@@ -818,6 +824,7 @@ class IrDevice implements Device {
           offset: index,
         },
       dereference: dereferenceGeneratedValue,
+      packedView: generatedPackedView,
       container: generatedContainerAccessor,
       pointerStore: generatedPointerStore,
       add: generatedAdd,

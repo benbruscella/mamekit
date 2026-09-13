@@ -2111,12 +2111,16 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           type,
           ...(player !== 1 ? { player } : {}),
           activeLow,
-          // A pedal keeps its established full-on/full-off behaviour: Pole
-          // Position ships a golden recorded against it, and a pedal is the
-          // one absolute control a digital key models honestly. Only the
-          // two-direction controls below ramp.
+          // A pedal is an absolute analog control like the stick and the
+          // wheel above, and MAME travels it by PORT_KEYDELTA per frame
+          // rather than jumping: Spy Hunter's throttle is
+          // PORT_MINMAX(0x30,0xff) PORT_KEYDELTA(10), roughly 21 frames from
+          // idle to the floor. Snapping it made the car undrivable.
           ...(/^IPT_PEDAL\d*$/.test(type)
-            ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
+            ? {
+                activeValue: minMax ? sourceNumber(minMax[2]!) : mask,
+                keyDelta: keyDelta ? sourceNumber(keyDelta[1]!) : 1,
+              }
             : {}),
           ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
         });

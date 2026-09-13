@@ -315,6 +315,9 @@ export function lowerGeneratedMachine(
         ? { classHierarchy: node.props.clsHierarchy.map(String) }
         : {}),
       ...(hostTag ? { hostTag } : {}),
+      ...(node.props.startHandler
+        ? { startHandler: String(node.props.startHandler) }
+        : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
       ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),

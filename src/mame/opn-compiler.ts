@@ -1705,7 +1705,11 @@ export class GeneratedYm2203Mixer {
       { length: Math.max(0, chips) },
       () => new GeneratedYm2203Chip(deviceType, sampleRom),
     );
-    const oplDevices = (auxiliaryDevices ?? []).filter(device => device.type === 'YM3526');
+    // Either OPL part voices through the same generated chip; YM3812 is a
+    // YM3526 plus OPL2's waveform select. Filtering on YM3526 alone left
+    // Wardner -- whose only sound chip is an OPL2 -- completely silent.
+    const oplDevices = (auxiliaryDevices ?? []).filter(device =>
+      device.type === 'YM3526' || device.type === 'YM3812');
     this.oplChips = oplDevices.map(device =>
       new GeneratedYm3526Chip(device.clock, outputRate));
     this.oplGains = oplDevices.map(device => device.gain);

@@ -30,6 +30,7 @@ export {
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
   generatedContainerAccessor,
+  generatedPackedView,
   generatedPeriodicLines,
   generatedAdd,
   generatedPointerStore,
