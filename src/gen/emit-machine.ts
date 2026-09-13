@@ -699,7 +699,10 @@ export function lowerGeneratedMachine(
   const ymDevices = devices.filter(device =>
     device.type === 'YM2203' || device.type === 'YM2610');
   const opmDevices = devices.filter(device => device.type === 'YM2151');
-  const oplDevices = devices.filter(device => device.type === 'YM3526');
+  // Both OPL parts the generated FM worklet hosts; YM3812 is a YM3526 plus
+  // OPL2's waveform select.
+  const oplDevices = devices.filter(device =>
+    device.type === 'YM3526' || device.type === 'YM3812');
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
@@ -772,7 +775,7 @@ export function lowerGeneratedMachine(
           kind: 'ym2203',
           deviceTag: (ymDevices[0] ?? oplDevices[0])!.tag,
           deviceTags: ymDevices.map(device => device.tag),
-          deviceType: ymDevices.length ? ymDevices[0]!.type : 'YM3526',
+          deviceType: ymDevices.length ? ymDevices[0]!.type : oplDevices[0]!.type,
           // ym2203_device maps a two-byte address/data port pair.
           writeMethods: ymDevices.length ? ['write'] : [],
           enableMethods: [],
@@ -1480,6 +1483,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
+  YM3812: ['write'],
   HC55516: ['digit_w', 'clock_w'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
   OKIM6295: ['write', 'set_pin7'],

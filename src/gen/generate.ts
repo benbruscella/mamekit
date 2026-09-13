@@ -1216,7 +1216,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     .map(({ node: region }) => String(region.props.tag))
     .find(region => region.endsWith(':ymsnd:adpcma'));
   const opmChips = devices.filter(d => d.props.type === 'YM2151');
-  const oplChips = devices.filter(d => d.props.type === 'YM3526');
+  // OPL parts hosted by the same generated FM worklet. YM3812 is a YM3526
+  // plus OPL2's waveform select, and Wardner's only sound chip is one.
+  const oplChips = devices.filter(d =>
+    d.props.type === 'YM3526' || d.props.type === 'YM3812');
   const snChips = devices.filter(d =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
@@ -2027,6 +2030,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               type: `${type}_${name.toUpperCase()}`,
               activeLow: false,
               activeValue: value,
+              // MAME travels an analog field by PORT_KEYDELTA per frame rather
+              // than jumping; a wheel that snapped to full lock is undrivable.
+              keyDelta: keyDelta ? sourceNumber(keyDelta[1]!) : 1,
             });
           }
           continue;
@@ -2105,6 +2111,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           type,
           ...(player !== 1 ? { player } : {}),
           activeLow,
+          // A pedal keeps its established full-on/full-off behaviour: Pole
+          // Position ships a golden recorded against it, and a pedal is the
+          // one absolute control a digital key models honestly. Only the
+          // two-direction controls below ramp.
           ...(/^IPT_PEDAL\d*$/.test(type)
             ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
             : {}),
