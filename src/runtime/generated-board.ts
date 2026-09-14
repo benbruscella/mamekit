@@ -398,6 +398,9 @@ class IrBoard implements Board {
   private readonly shares: Record<string, Uint8Array> = {};
   private readonly declarativeEeprom = new Map<string, SerialEepromEr5911>();
   private videoPrimitives?: GeneratedMameVideoPrimitives;
+  /** Driver-armed one-shots awaiting their expiry; see genericTimers. */
+  private readonly pendingTimers = new Map<string, { at: number; param: number }>();
+  private readonly genericTimerFires = new Map<string, () => void>();
   private video?: GeneratedVideoRenderer;
   private readonly regions: Regions;
   /**
@@ -1076,6 +1079,74 @@ class IrBoard implements Board {
         };
       }
       calls[`${motionObjectsFinder}.bank`] = () => sprites()?.bankIndex() ?? 0;
+    }
+    // The driver's own screen finder. MAME's device-facing services are bound
+    // as `screen().<name>` (HOST_SERVICE_CALLS), but driver code reaches the
+    // same screen through its required_device member, and only width/height
+    // were ever answered there. Atari System 1 arms every one of its scanline
+    // timers with `m_screen->time_until_pos(...)`, which returned 0 -- so each
+    // one expired immediately and the video timing chain never advanced.
+    {
+      const screenMember = (machine.devices ?? [])
+        .find(device => device.type === 'SCREEN')?.member ?? 'm_screen';
+      const vtotal = Math.max(1, machine.execution.screen.vtotal);
+      const refresh = machine.execution.screen.refresh;
+      calls[`${screenMember}.vpos`] ??= () => Math.floor(this.beamPosition()) % vtotal;
+      calls[`${screenMember}.hpos`] ??= () => 0;
+      calls[`${screenMember}.frame_number`] ??= () => this.frameRunner?.frameCount ?? 0;
+      calls[`${screenMember}.time_until_pos`] ??= position => {
+        const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal;
+        let lines = target - this.beamPosition();
+        if (lines <= 0) lines += vtotal;
+        return lines / (refresh * vtotal);
+      };
+      // A partial update is a presentation request; the frame runner already
+      // renders at vbstart, so this only has to not be a hole in the map.
+      calls[`${screenMember}.update_partial`] ??= () => 0;
+    }
+
+    // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: the driver arms
+    // these itself with `m_x->adjust(when, param)`, and the callback runs once
+    // at that time. Atari System 1's whole scanline-interrupt chain is three
+    // of them; unmodelled, `adjust` resolved to nothing, int3 never fired and
+    // the board spun in its own video timing with a black screen.
+    for (const timer of machine.execution.genericTimers ?? []) {
+      const fire = (): void => {
+        const pending = this.pendingTimers.get(timer.member);
+        if (!pending) return;
+        this.pendingTimers.delete(timer.member);
+        const handler = machine.handlers?.find(candidate =>
+          `${candidate.ownerClass}.${candidate.method}` === timer.handler);
+        if (!handler?.program || handler.program.diagnostics.length) return;
+        executeGeneratedMachineHandler(machine, handler, this.bindings, {
+          param: pending.param,
+          // MAME hands a TIMER_DEVICE_CALLBACK_MEMBER its own device too.
+          timer: pending.param,
+        });
+      };
+      this.genericTimerFires.set(timer.member, fire);
+      calls[`${timer.member}.adjust`] = (when, param = 0) => {
+        // `attotime::never` disables the timer rather than scheduling it.
+        const seconds = Number(when);
+        if (!Number.isFinite(seconds) || seconds < 0) {
+          this.pendingTimers.delete(timer.member);
+          return 0;
+        }
+        this.pendingTimers.set(timer.member, {
+          at: this.machineSeconds() + seconds,
+          param: Number(param) || 0,
+        });
+        return 0;
+      };
+      calls[`${timer.member}.reset`] = () => {
+        this.pendingTimers.delete(timer.member);
+        return 0;
+      };
+      calls[`${timer.member}.enable`] = enabled => {
+        if (!enabled) this.pendingTimers.delete(timer.member);
+        return 0;
+      };
+      calls[`${timer.member}.enabled`] = () => this.pendingTimers.has(timer.member) ? 1 : 0;
     }
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -2015,6 +2086,16 @@ class IrBoard implements Board {
         this.currentLine = line;
         this.currentLineFraction = 0;
         if (phase === 'before-processors') {
+          // Driver-armed one-shots expire at the line boundary at or after
+          // their time, which is the finest grain this schedule offers -- the
+          // same grain MAME's own scanline timers are armed against.
+          if (this.pendingTimers.size) {
+            const now = this.machineSeconds();
+            for (const [member, pending] of [...this.pendingTimers]) {
+              if (pending.at > now) continue;
+              this.genericTimerFires.get(member)?.();
+            }
+          }
           for (let index = spriteDmaLineSignals.length - 1; index >= 0; index--) {
             const signal = spriteDmaLineSignals[index]!;
             if (signal.line !== line) continue;

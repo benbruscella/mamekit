@@ -499,8 +499,29 @@ export interface GeneratedFrameEvent {
   source?: BoardSourceRef;
 }
 
+/**
+ * A `TIMER` device the driver arms itself.
+ *
+ * `TIMER(config, m_x).configure_generic(FUNC(cls::cb))` declares a one-shot
+ * with no period: driver code sets it with `m_x->adjust(when, param)` and the
+ * callback runs once, at that time, with that parameter. Atari System 1 drives
+ * its whole scanline-interrupt chain this way, so without it the board runs,
+ * takes its vblank interrupts, and never draws.
+ */
+export interface GeneratedGenericTimer {
+  /** Device tag, for save state and diagnostics. */
+  tag: string;
+  /** Driver finder the `->adjust()` call names. */
+  member: string;
+  /** `<class>.<method>` of the TIMER_DEVICE_CALLBACK_MEMBER it fires. */
+  handler: string;
+  source?: BoardSourceRef;
+}
+
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /** Driver-armed one-shot timers; see GeneratedGenericTimer. */
+  genericTimers?: GeneratedGenericTimer[];
   /** Every independently clocked execute participant, CPUs included. */
   participants?: {
     tag: string;

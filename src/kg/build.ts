@@ -1431,6 +1431,11 @@ const CALLBACK_OPERATIONS = new Set([
   'set_screen_update', 'set_vblank_int', 'set_periodic_int',
   'set_irq_acknowledge_callback',
   'set_maincpu', 'configure_scanline',
+  // A generic TIMER is armed by the driver rather than by a period, but the
+  // method it names still has to be lowered: without this, Atari System 1's
+  // int3_callback and int3off_callback were never compiled at all, so the
+  // scanline-interrupt chain had nothing to run even once `adjust` existed.
+  'configure_generic',
 ]);
 
 /** Return the complete argument of attotime::from_hz, including nested parens. */

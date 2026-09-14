@@ -503,6 +503,25 @@ export function lowerGeneratedMachine(
   const startHandlers = Array.isArray(selectedMachine?.props.startHandlers)
     ? selectedMachine.props.startHandlers.map(String)
     : [];
+  // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: a one-shot the
+  // driver arms itself. Atari System 1's scanline-interrupt chain is three of
+  // them, and with no model for `->adjust()` the board took its vblank
+  // interrupts and never drew a thing.
+  const genericTimers = devices.flatMap(device => {
+    if (device.type !== 'TIMER' || !device.member) return [];
+    const declaration = (byId.get(device.id)?.props.config as string[] | undefined ?? [])
+      .find(line => line.includes('configure_generic'));
+    const handler = declaration
+      ? /configure_generic\s*\(\s*FUNC\(\s*([\w:]+)\s*\)/.exec(declaration)?.[1]
+      : undefined;
+    if (!handler || !handler.includes('::')) return [];
+    return [{
+      tag: device.tag,
+      member: device.member,
+      handler: handler.replace('::', '.'),
+      ...(device.source ? { source: device.source } : {}),
+    }];
+  });
   const shareBindings = lowerShareBindings(graph);
   // Any config in the selected machine's chain may declare it; MAME applies
   // the request to the whole machine however deep it is set.
@@ -596,6 +615,7 @@ export function lowerGeneratedMachine(
       : {}),
     cpus: executionCpus,
     participants: executionParticipants,
+    ...(genericTimers.length ? { genericTimers } : {}),
     ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),

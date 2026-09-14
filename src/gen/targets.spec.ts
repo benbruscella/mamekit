@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGameContracts } from '../games/contracts.ts';
@@ -60,7 +60,11 @@ check('the catalogue exposes every generated target', () => {
 // emptying it, so the assertion is on what a parked contract does, not on
 // there being one.
 check('disabled contracts are not generated', () => {
-  const disabled = readdirSync(join(projectRoot, 'src/games/disabled'))
+  // Emptying the directory removes it: git tracks files, not directories, so
+  // a checkout of the goal state has no src/games/disabled at all. Absent and
+  // empty mean the same thing here, exactly as discoverDirectory treats them.
+  const directory = join(projectRoot, 'src/games/disabled');
+  const disabled = (existsSync(directory) ? readdirSync(directory) : [])
     .filter(name => name.endsWith('.game.ts') && !name.endsWith('.game.spec.ts'))
     .map(name => name.replace(/\.game\.ts$/, ''));
   for (const game of disabled) {
