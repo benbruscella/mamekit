@@ -7,8 +7,17 @@ export const sf2ce = sourceTarget({
   screen: { width: 384, height: 224 },
   soundKind: 'ym2151',
   // Issue #77: wired-hot handler codegen (bus handlers, tile-info callbacks)
-  // took this board from 48 to ~97 fps in Node; hold it above real time.
-  minimumFps: 50,
+  // took this board from 48 to ~97 fps in Node, and this floor holds that
+  // gain. It is deliberately well under real time rather than at it: this is
+  // the slowest CPS1 contract, and a hosted runner's throughput varies far
+  // more than the margin a 50 fps floor leaves. Measured on main across four
+  // CI runs of identical code, sf2ce took 67.1s, 67.4s, 85.7s and 86.9s -- a
+  // 30% spread, or roughly 49 to 64 fps, so a 50 fps floor sits *inside* the
+  // observed range and fails on runner luck alone. It did: the same commit
+  // both failed at 49.8 fps and passed on re-run. 40 clears the whole
+  // observed range and still catches the regression the floor is for.
+  // sf2 is the next closest (61.4s to 79.7s on the same runs).
+  minimumFps: 40,
   // The default schedule coins at 300 and presses start at 330, which CPS1 is
   // still in its power-on RAM test to notice: the golden then graded a title
   // screen holding one credit, and no sprite-bearing frame was ever reached.
