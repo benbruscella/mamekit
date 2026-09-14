@@ -21,7 +21,7 @@
 // OPL1. Timers, status and IRQ -- everything the board's logic depends on --
 // are the real chip.
 
-import { sourceTarget } from '../source-contract.ts';
+import { sourceTarget } from "./source-contract.ts";
 
 export const wardner = sourceTarget({
   game: 'wardner',
@@ -37,4 +37,33 @@ export const wardner = sourceTarget({
     { atFrame: 3200, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },
     { atFrame: 3400, code: 'Space', heldFrames: 30, releasedFrames: 20 },
   ],
+  golden: {
+    regions: {
+      audiocpu: '03e45d7e',
+      bg_tiles: 'ebf0ecb1',
+      chars: '6f2e4255',
+      'dsp:dsp': '62d783dc',
+      fg_tiles: 'e92f6c97',
+      maincpu: 'ecaead0f',
+      proms: '239bbe6c',
+      scu: 'e6d88d06',
+    },
+    checkpoints: {
+      1: { video: '8d083400', state: 'a7626fca' },
+      60: { video: '8d083400', state: '8a70d61c' },
+      600: { video: 'a2e250ee', state: '9f0f687e' },
+      1500: { video: 'f2e76dc2', state: '9b38d83b' },
+      2400: { video: '8d083400', state: 'de26195d' },
+      3000: { video: 'bcf4167b', state: 'd78ca1df' },
+      3300: { video: 'b0c42843', state: 'd9c00939' },
+      3600: { video: '94ae16f9', state: '54613b34' },
+    },
+    audio: {
+      writes: 778078,
+      nonzeroWrites: 566535,
+      writeHash: '77cc46b9',
+      pcmHash: '6ea69a2f',
+      rms: 0.014825,
+    },
+  },
 });

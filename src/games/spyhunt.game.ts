@@ -16,7 +16,7 @@
 // smoke screen and machine guns had no keys either. All five weapon switches
 // and the wheel are now bound and verified against the SSIO port bits.
 
-import { sourceTarget } from '../source-contract.ts';
+import { sourceTarget } from "./source-contract.ts";
 
 export const spyhunt = sourceTarget({
   game: 'spyhunt',
@@ -35,4 +35,32 @@ export const spyhunt = sourceTarget({
     { atFrame: 850, codes: ['ArrowUp', 'Space'], heldFrames: 100, releasedFrames: 10 },
     { atFrame: 980, codes: ['ArrowUp', 'ArrowLeft'], heldFrames: 120, releasedFrames: 20 },
   ],
+  golden: {
+    regions: {
+      'csd:cpu': '7ce5b22f',
+      'csd:pal': '8b401aee',
+      gfx1: 'd32f76c8',
+      gfx2: '47edff2e',
+      gfx3: '936dc87f',
+      maincpu: 'ebf34374',
+      'ssio:cpu': '66638961',
+      'ssio:proms': 'e1281ee9',
+    },
+    checkpoints: {
+      1: { video: '230fe52e', state: 'efef722a' },
+      60: { video: '46862ad0', state: '6abb2e87' },
+      180: { video: '587f816d', state: 'f1be7457' },
+      300: { video: 'd0d8fdf0', state: 'f1836bdc' },
+      600: { video: 'cfedd063', state: 'b007e14c' },
+      900: { video: '0cfec94d', state: 'd804cd3f' },
+      1200: { video: 'd8a1933c', state: '5356f906' },
+    },
+    audio: {
+      writes: 7119,
+      nonzeroWrites: 6896,
+      writeHash: '295f1aea',
+      pcmHash: '5f4999f4',
+      rms: 0.045855,
+    },
+  },
 });
