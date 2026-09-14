@@ -1060,26 +1060,6 @@ class IrBoard implements Board {
         };
       },
     };
-    // A device the video plan models answers its own driver finder. This must
-    // be bound before any handler runs: the device-member call table is
-    // prepared on first use and cached, and once it holds the compiled
-    // atari_motion_objects_device.set_yscroll, `m_mob->set_yscroll(256)`
-    // writes the *driver's* m_yscroll -- a shared pointer of the same name --
-    // through the one member namespace every generated handler shares.
-    const motionObjectsTag = machine.video?.motionObjects?.tag;
-    const motionObjectsFinder = motionObjectsTag
-      ? (machine.devices ?? []).find(device => device.tag === motionObjectsTag)?.member ?? 'm_mob'
-      : undefined;
-    if (motionObjectsFinder) {
-      const sprites = () => this.videoPrimitives?.motionObjectsDevice?.();
-      for (const method of ['set_xscroll', 'set_yscroll', 'set_bank'] as const) {
-        calls[`${motionObjectsFinder}.${method}`] = value => {
-          sprites()?.[method](Number(value) || 0);
-          return 0;
-        };
-      }
-      calls[`${motionObjectsFinder}.bank`] = () => sprites()?.bankIndex() ?? 0;
-    }
     // The driver's own screen finder. MAME's device-facing services are bound
     // as `screen().<name>` (HOST_SERVICE_CALLS), but driver code reaches the
     // same screen through its required_device member, and only width/height
@@ -1091,18 +1071,18 @@ class IrBoard implements Board {
         .find(device => device.type === 'SCREEN')?.member ?? 'm_screen';
       const vtotal = Math.max(1, machine.execution.screen.vtotal);
       const refresh = machine.execution.screen.refresh;
-      calls[`${screenMember}.vpos`] ??= () => Math.floor(this.beamPosition()) % vtotal;
-      calls[`${screenMember}.hpos`] ??= () => 0;
-      calls[`${screenMember}.frame_number`] ??= () => this.frameRunner?.frameCount ?? 0;
+      // Only `time_until_pos`, and only because it demonstrably answered zero:
+      // Atari System 1 armed every scanline timer with it and each expired
+      // immediately. The rest of the screen's methods already resolve through
+      // the fallback paths, and binding them here shadows those -- a stubbed
+      // `update_partial` cost Centiped the mid-frame render its interrupt
+      // performs, which is visible in its very first frame.
       calls[`${screenMember}.time_until_pos`] ??= position => {
         const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal;
         let lines = target - this.beamPosition();
         if (lines <= 0) lines += vtotal;
         return lines / (refresh * vtotal);
       };
-      // A partial update is a presentation request; the frame runner already
-      // renders at vbstart, so this only has to not be a hole in the map.
-      calls[`${screenMember}.update_partial`] ??= () => 0;
     }
 
     // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: the driver arms

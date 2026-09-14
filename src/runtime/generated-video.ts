@@ -3327,16 +3327,17 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       state.m_gfxdecode = { gfx: (index: number) => this.gfx[index] };
       state.m_palette = this.palette;
     }
-    // The driver reaches its motion-object device through its own finder, and
-    // every generated handler shares one member namespace -- so this binding
-    // is what keeps `m_mob->set_yscroll(...)` from resolving to the compiled
-    // device method of the same name and writing the driver's member instead.
-    if (this.motionObjects) {
-      const mob = this.motionObjects;
-      const finder = (machine.devices ?? [])
-        .find(device => device.tag === machine.video?.motionObjects?.tag)?.member ?? 'm_mob';
-      state[finder] = mob;
-    }
+    // NOT bound: the driver's motion-object finder (`m_mob`).
+    //
+    // Binding the sprite engine there is what Marble Madness needs -- its
+    // screen update reads `m_mob->bitmap()` -- but it changes what Gauntlet's
+    // handlers see, and Gauntlet composes its picture through a direct-screen
+    // shape that reads the engine itself. The two cannot both be right while
+    // device-class handlers and driver handlers share one member namespace:
+    // `atari_motion_objects_device::set_yscroll` writes `m_yscroll`, which is
+    // also the name of Atari System 1's own shared pointer. Separating those
+    // namespaces is the real fix; until then the finder stays unbound, which
+    // is what every shipped board was verified against. See issue #93.
     for (const [member, palette] of this.palettes) {
       state[member] = palette;
     }
