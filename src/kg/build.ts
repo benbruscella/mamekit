@@ -1889,9 +1889,23 @@ function handlerProps(
       }
     }
   }
-  const sourceConstants = Object.entries({ ...constants, ...specializedConstants })
-    .filter(([name]) => identifiers.has(name))
-    .map(([name, value]) => `${name}=${value}`);
+  const available = { ...constants, ...specializedConstants };
+  // A class-scoped constant is written qualified where it is used and
+  // unqualified where it is declared: atarimo.h declares PRIORITY_MASK inside
+  // atari_motion_objects_device, and Atari's screen update names it
+  // `atari_motion_objects_device::PRIORITY_MASK`. Carry the value under the
+  // spelling the body actually uses, or the emitter falls back to a member
+  // lookup and writes `members.atari_motion_objects_device::PRIORITY_MASK`,
+  // which is not even valid JavaScript.
+  const qualified = (body?.match(/\b[A-Za-z_]\w*::[A-Za-z_]\w*\b/g) ?? [])
+    .flatMap(name => {
+      const tail = name.slice(name.indexOf('::') + 2);
+      return available[tail] !== undefined ? [[name, available[tail]!] as const] : [];
+    });
+  const sourceConstants = [
+    ...Object.entries(available).filter(([name]) => identifiers.has(name)),
+    ...qualified,
+  ].map(([name, value]) => `${name}=${value}`);
   return {
     method,
     ownerClass,

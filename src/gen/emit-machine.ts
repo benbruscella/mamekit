@@ -1035,12 +1035,20 @@ export function lowerShareBindings(
         wordShares.add(share);
       }
       const combinedMembers = [
-        ...body.matchAll(/\bCOMBINE_DATA\s*\(\s*&\s*(m_\w+)\s*\[/g),
+        ...body.matchAll(/\bCOMBINE_DATA\s*\(\s*&\s*(m_\w+)\s*[[)]/g),
       ].map(match => match[1]!);
+      // A share of a single element is a pointer, not an array: MAME writes
+      // `*m_xscroll = newscroll`, never `m_xscroll[0] = newscroll`. Matching
+      // only the subscripted form left Atari System 1's scroll registers
+      // bound to nothing, and the board stopped on a dereference of 0.
       const writtenMembers = new Set(combinedMembers.length
         ? combinedMembers
-        : [...body.matchAll(/\b(m_\w+)\s*\[[^\]]+\]\s*(?:[|&^+\-]?=)/g)]
-          .map(match => match[1]!));
+        : [
+            ...[...body.matchAll(/\b(m_\w+)\s*\[[^\]]+\]\s*(?:[|&^+\-]?=)/g)]
+              .map(match => match[1]!),
+            ...[...body.matchAll(/\*\s*(m_\w+)\s*(?:[|&^+\-]?=)(?!=)/g)]
+              .map(match => match[1]!),
+          ]);
       if (!writtenMembers.size) {
         const referenced = [...new Set(
           [...body.matchAll(/\b(m_\w+)\s*\[/g)].map(match => match[1]!),

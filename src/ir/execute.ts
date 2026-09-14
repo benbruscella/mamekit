@@ -2321,7 +2321,10 @@ function assign(
       const received = pointer && typeof pointer === 'object'
         ? `object with keys ${Object.keys(pointer).join(', ') || '(none)'}`
         : `${typeof pointer} ${String(pointer)}`;
-      throw new Error(`generated dereference assignment has no pointer (received ${received})`);
+      throw new Error(
+        `generated dereference assignment has no pointer: ` +
+        `*${describeGeneratedTarget(target.operand)} received ${received}`,
+      );
     }
     const current = pointerValue(pointer, 0);
     setPointerValue(pointer, 0, assignmentValue(operator, current, value));
@@ -2974,6 +2977,17 @@ export function generatedPackedView(value: unknown, signed: boolean): unknown {
     : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
 }
 
+/** The source spelling of an assignment target, for diagnostics. */
+function describeGeneratedTarget(expression: unknown): string {
+  const node = expression as { kind?: string; name?: string; property?: string; object?: unknown };
+  if (node?.kind === 'identifier') return String(node.name);
+  if (node?.kind === 'member') return `${describeGeneratedTarget(node.object)}.${node.property}`;
+  if (node?.kind === 'call') {
+    return `${describeGeneratedTarget((node as { callee?: unknown }).callee)}()`;
+  }
+  return node?.kind ? `<${node.kind}>` : '<unknown>';
+}
+
 export function dereferenceGeneratedValue(value: unknown): unknown {
   if (isGeneratedPointer(value)) return pointerValue(value, 0);
   if (isIndexableMemory(value)) return indexValue(value, 0);
@@ -3048,7 +3062,17 @@ export function generatedPointerStore(pointer: unknown, value: unknown): unknown
 export function generatedContainerAccessor(value: unknown, method: string): unknown {
   const held = isLValue(value) ? value.get() : value;
   const pointer = isGeneratedPointer(held);
-  if (!pointer && !isIndexableMemory(held)) return 0;
+  if (!pointer && !isIndexableMemory(held)) {
+    // Not a memory container: a device accessor handing back a reference to
+    // one of its own members. `atari_motion_objects_device::bitmap()` returns
+    // the sprite bitmap that way, and answering 0 left Atari's screen update
+    // taking `&mobitmap.pix(y)` on a number.  Only a non-callable member: a
+    // method is something the caller invokes itself.
+    const member = held && typeof held === 'object'
+      ? (held as Record<string, unknown>)[method]
+      : undefined;
+    return member !== undefined && typeof member !== 'function' ? member : 0;
+  }
   const length = pointer
     ? Math.max(0, (held.source as ArrayLike<unknown>).length - held.offset)
     : (held as ArrayLike<unknown>).length;

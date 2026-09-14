@@ -1560,24 +1560,33 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const biosRomSet = parentGame && String(parentGame.props.flags ?? '').includes('MACHINE_IS_BIOS_ROOT')
     ? parentRomSet
     : undefined;
-  const inheritedBiosSet = (region: KGNode): string | undefined => {
-    if (!biosRomSet) return undefined;
+  const loadKey = (props: KGNode['props']): string =>
+    `${props.file}/${props.crc}/${props.offset}/${props.size}`;
+  /** The BIOS parent's own chips in the region with this tag, by identity. */
+  const biosLoadKeys = (region: KGNode): Set<string> => {
+    if (!biosRomSet) return new Set();
     const parentRegion = lineage.out(biosRomSet.id, 'HAS_REGION')
       .map(edge => edge.node)
       .find(candidate => candidate.props.tag === region.props.tag);
-    if (!parentRegion) return undefined;
-    const parentLoads = lineage.out(parentRegion.id, 'LOADS').map(edge => edge.node);
+    if (!parentRegion) return new Set();
+    return new Set(lineage.out(parentRegion.id, 'LOADS')
+      .map(edge => loadKey(edge.node.props)));
+  };
+  const inheritedBiosSet = (region: KGNode): string | undefined => {
+    if (!biosRomSet) return undefined;
+    const keys = biosLoadKeys(region);
     const loads = g.out(region.id, 'LOADS').map(edge => edge.node);
-    if (!loads.length || !loads.every(load => parentLoads.some(parent =>
-      parent.props.file === load.props.file &&
-      parent.props.crc === load.props.crc &&
-      parent.props.offset === load.props.offset &&
-      parent.props.size === load.props.size))) return undefined;
+    if (!loads.length || !loads.every(load => keys.has(loadKey(load.props)))) return undefined;
     return String(biosRomSet.props.name);
   };
   const cloneRomSet = !biosRomSet ? parentSetName : undefined;
   const roms = g.out(romset.id, 'HAS_REGION').map(({ node: region }) => {
     const assignedRomSet = inheritedBiosSet(region) ?? cloneRomSet;
+    // A BIOS parent that owns only *part* of a region: Atari System 1 loads
+    // the motherboard BIOS into the game's own `maincpu` alongside its code,
+    // so the whole-region rule above never fires and `atarisy1.zip` was never
+    // asked for. Attribute those chips one at a time instead.
+    const biosKeys = assignedRomSet ? new Set<string>() : biosLoadKeys(region);
     return {
       region: String(region.props.tag),
       size: Number(region.props.size),
@@ -1598,6 +1607,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           file: String(rom.props.file),
           offset: Number(rom.props.offset),
           size: Number(rom.props.size),
+          ...(biosKeys.has(loadKey(rom.props))
+            ? { romSet: String(biosRomSet!.props.name) }
+            : {}),
           crc,
           ...(alts.length ? { alt: alts } : {}),
           ...(rom.props.reloadOffsets

@@ -877,6 +877,16 @@ export interface GeneratedTilemapPlan {
   rows: number;
   mapper: string;
   tileInfo: string;
+  /**
+   * Share holding the device's own base memory, and its element width.
+   *
+   * `tilemap_device` binds `m_basemem` to the share named after the device tag
+   * and the driver reads its map through `basemem_read(tile_index)` rather
+   * than through a driver member -- Atari System 1 has no `m_playfieldram` at
+   * all, only `m_playfield_tilemap->basemem_read()`.
+   */
+  baseShare?: string;
+  bytesPerEntry?: number;
   scrollColumns?: number;
   scrollRows?: number;
   /** MAME tilemap origin offsets for normal and flipped rendering. */

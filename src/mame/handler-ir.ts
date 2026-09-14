@@ -1105,7 +1105,14 @@ class HandlerParser {
         if (!value) return undefined;
         captures.push({ name: name.text, value });
       } else {
-        this.take();
+        // A capture that binds no new name: `this`, a bare `&` or `=`, or a
+        // by-reference capture like `&bitmap`. Those are two tokens, and
+        // taking exactly one left the parser on the captured name, where the
+        // separator check broke out of the loop and the whole lambda failed
+        // to parse. Skip to the next separator instead. Atari's screen update
+        // merges its sprites through `[this, &bitmap, &mobitmap]`, so this
+        // one token cost Gauntlet and Marble Madness their screen_update.
+        while (!this.at('eof') && !this.atText(',') && !this.atText(']')) this.take();
       }
       if (!this.consume(',')) break;
     }

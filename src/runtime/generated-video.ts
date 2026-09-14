@@ -1314,6 +1314,47 @@ class GeneratedMotionObjects {
     this.draw(clip);
   }
 
+  // The device's own accessors, as the driver calls them through its finder.
+  // These must exist on the object bound to `m_mob`, because every generated
+  // handler shares one flat member namespace: with no `set_yscroll` here,
+  // `m_mob->set_yscroll(256)` fell through to the compiled
+  // atari_motion_objects_device.set_yscroll handler, whose body is
+  // `m_yscroll = ...` -- and that overwrote Atari System 1's *driver* member
+  // of the same name, a required_shared_ptr, with a plain number.
+  set_xscroll(value: number): void {
+    this.xscroll = value & (this.plan.bitmapWidth - 1);
+  }
+
+  set_yscroll(value: number): void {
+    this.yscroll = value & (this.plan.bitmapHeight - 1);
+  }
+
+  set_bank(value: number): void {
+    this.bank = value;
+  }
+
+  /** MAME returns the live bank index; the driver compares against it. */
+  bankIndex(): number {
+    return this.bank;
+  }
+
+  spriteram(): ArrayLike<number> | undefined {
+    return this.spriteRam();
+  }
+
+  /**
+   * MAME redraws only the rectangles the sprite pass touched. The generated
+   * renderer tracks no dirty list, so the whole clip is one rectangle: the
+   * callback's own test (`mo[x] != 0xffff`) is what skips untouched pixels,
+   * which is why MAME's own merge loops read correctly either way.
+   */
+  iterate_dirty_rects(
+    clip: GeneratedRectangle,
+    body: (rect: GeneratedRectangle) => void,
+  ): void {
+    body(clip);
+  }
+
   private extract(parameter: { word: number; shift: number; mask: number }, at: number): number {
     return (this.activeList[at + parameter.word]! >>> parameter.shift) & parameter.mask;
   }
@@ -1894,6 +1935,8 @@ class GeneratedTilemap {
   }
 
   private readonly plan: GeneratedTilemapPlan;
+  /** The share `tilemap_device::m_basemem` binds; see GeneratedTilemapPlan. */
+  private readonly baseMemory?: Uint8Array;
   private readonly mapper?: GeneratedHandler;
   private readonly tileInfo: GeneratedHandler;
   private readonly machine: BoardIr;
@@ -1919,7 +1962,9 @@ class GeneratedTilemap {
     machine: BoardIr,
     bindings: () => GeneratedHandlerBindings,
     gfx: GeneratedGfxElement[],
+    baseMemory?: Uint8Array,
   ) {
+    this.baseMemory = baseMemory;
     this.plan = plan;
     this.machine = machine;
     this.bindings = bindings;
@@ -1934,6 +1979,37 @@ class GeneratedTilemap {
       plan.columns * plan.tileWidth,
       plan.rows * plan.tileHeight,
     );
+  }
+
+  /**
+   * MAME `tilemap_device::basemem_read`/`basemem_write`, over the share the
+   * device binds. A driver whose tilemaps are devices reads its own map this
+   * way and owns no member for it at all.
+   */
+  basemem_read(offset: number): number {
+    const bytes = this.baseMemory;
+    if (!bytes) return 0;
+    const index = Math.trunc(offset);
+    if (index < 0) return 0;
+    if ((this.plan.bytesPerEntry ?? 1) < 2) return bytes[index] ?? 0;
+    // The share is a byte array written by the board's own bus, so the entry's
+    // byte order is the bus's; a 16-bit CPU maps it big-endian.
+    const at = index * 2;
+    return ((bytes[at] ?? 0) << 8) | (bytes[at + 1] ?? 0);
+  }
+
+  basemem_write(offset: number, data: number): void {
+    const bytes = this.baseMemory;
+    if (!bytes) return;
+    const index = Math.trunc(offset);
+    if (index < 0) return;
+    if ((this.plan.bytesPerEntry ?? 1) < 2) bytes[index] = data & 0xff;
+    else {
+      const at = index * 2;
+      bytes[at] = (data >>> 8) & 0xff;
+      bytes[at + 1] = data & 0xff;
+    }
+    this.mark_tile_dirty(index);
   }
 
   user_data(): unknown {
@@ -3251,6 +3327,16 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       state.m_gfxdecode = { gfx: (index: number) => this.gfx[index] };
       state.m_palette = this.palette;
     }
+    // The driver reaches its motion-object device through its own finder, and
+    // every generated handler shares one member namespace -- so this binding
+    // is what keeps `m_mob->set_yscroll(...)` from resolving to the compiled
+    // device method of the same name and writing the driver's member instead.
+    if (this.motionObjects) {
+      const mob = this.motionObjects;
+      const finder = (machine.devices ?? [])
+        .find(device => device.tag === machine.video?.motionObjects?.tag)?.member ?? 'm_mob';
+      state[finder] = mob;
+    }
     for (const [member, palette] of this.palettes) {
       state[member] = palette;
     }
@@ -3274,6 +3360,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         plan.decodeMember
           ? this.gfxByDecode.get(plan.decodeMember) ?? []
           : this.gfx,
+        plan.baseShare ? shares[plan.baseShare] : undefined,
       );
       createdTilemaps.push(tilemap);
       const indexed = /^(m_\w+)\[\s*(\d+)\s*\]$/.exec(plan.member);
@@ -3430,6 +3517,17 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
 
   generatedVideoBindings(_frame: Uint32Array): GeneratedHandlerBindings {
     return this.bindings;
+  }
+
+  /** The sprite engine the plan models, for the board's own device finders. */
+  motionObjectsDevice(): {
+    set_xscroll(value: number): void;
+    set_yscroll(value: number): void;
+    set_bank(value: number): void;
+    bankIndex(): number;
+    draw_async(clip: GeneratedRectangle): void;
+  } | undefined {
+    return this.motionObjects;
   }
 
   directScreenUpdate(

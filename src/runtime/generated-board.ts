@@ -1057,6 +1057,26 @@ class IrBoard implements Board {
         };
       },
     };
+    // A device the video plan models answers its own driver finder. This must
+    // be bound before any handler runs: the device-member call table is
+    // prepared on first use and cached, and once it holds the compiled
+    // atari_motion_objects_device.set_yscroll, `m_mob->set_yscroll(256)`
+    // writes the *driver's* m_yscroll -- a shared pointer of the same name --
+    // through the one member namespace every generated handler shares.
+    const motionObjectsTag = machine.video?.motionObjects?.tag;
+    const motionObjectsFinder = motionObjectsTag
+      ? (machine.devices ?? []).find(device => device.tag === motionObjectsTag)?.member ?? 'm_mob'
+      : undefined;
+    if (motionObjectsFinder) {
+      const sprites = () => this.videoPrimitives?.motionObjectsDevice?.();
+      for (const method of ['set_xscroll', 'set_yscroll', 'set_bank'] as const) {
+        calls[`${motionObjectsFinder}.${method}`] = value => {
+          sprites()?.[method](Number(value) || 0);
+          return 0;
+        };
+      }
+      calls[`${motionObjectsFinder}.bank`] = () => sprites()?.bankIndex() ?? 0;
+    }
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
       bindGeneratedRegionState(
@@ -4480,9 +4500,16 @@ class IrBoard implements Board {
    * out of that table -- unstarted, each gain it wrote was NaN.
    */
   private runDeviceStarts(): void {
+    // A device the video plan already models is started by the renderer from
+    // that plan, not from its C++ lifecycle: running
+    // atari_motion_objects_device::device_start over the board's flat member
+    // namespace zeroed Atari System 1's own `m_yscroll`, a shared pointer of
+    // the same name as the device's scroll register.
+    const modelled = new Set([this.machine.video?.motionObjects?.tag]);
     for (const specification of this.machine.devices ?? []) {
       const key = specification.startHandler;
       if (!key || this.devices.has(specification.tag)) continue;
+      if (modelled.has(specification.tag)) continue;
       const handler = this.machine.handlers?.find(candidate =>
         `${candidate.ownerClass}.${candidate.method}` === key);
       if (!handler?.program || handler.program.diagnostics.length) continue;
