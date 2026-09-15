@@ -36,7 +36,11 @@ export function generatedDirectScreenShape(
     body.includes('m_mob->draw_async(cliprect)') &&
     body.includes('m_playfield_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
     body.includes('m_mob->iterate_dirty_rects(') &&
-    body.includes('m_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0)')
+    body.includes('m_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    // The merge is what the executor replicates: MO pen 1 toggles playfield
+    // colour bit 0x80. Atari System 1 calls the same four framework routines
+    // but merges by priority, and drawn as Gauntlet its picture went black.
+    body.includes('pf[x] ^= 0x80')
   ) {
     return 'gauntlet-tilemaps';
   }

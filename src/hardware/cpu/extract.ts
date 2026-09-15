@@ -55,7 +55,9 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   M6803: compileMameM6803,
   M6808: compileMameM6808,
   M68000: compileMameM68000,
-  M68010: source => ({ ...compileMameM68000(source), type: 'M68010' }),
+  // Its own decode column and initializer, not a relabelled 68000: see
+  // M68000_VARIANTS in cpu-compiler.ts.
+  M68010: source => compileMameM68000(source, 'M68010'),
   NSC8105: compileMameNsc8105,
   KONAMI1: compileMameKonami1,
   KONAMI: compileMameKonami,

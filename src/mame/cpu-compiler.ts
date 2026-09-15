@@ -1070,7 +1070,26 @@ export function compileMameM6808(mameSrc: string): GeneratedCpuDefinition {
  * opcodes, so the emitted core retains the compact state dispatch rather than
  * duplicating identical programs for every register encoding.
  */
-export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
+/**
+ * The Musashi family members this compiler can emit, and what distinguishes
+ * them. MAME's generated m68kops.cpp carries one decode row per handler
+ * variant with a cycle column per CPU type (0xff = not on this CPU), and each
+ * `init_cpu_*` picks its column with `m68ki_instruction_state_table[n]`. The
+ * variant is therefore a column and an initializer, not a separate core.
+ */
+const M68000_VARIANTS = {
+  M68000: { column: 0, initializer: 'init_cpu_m68000', formatWord: false, cpuType: 0x1, prefetch: false },
+  // init_cpu_m68010: `m_state_table = m68ki_instruction_state_table[2]`.
+  // MAME's 68010 is still the Musashi core, prefetch queue included; its 68000
+  // is the microcoded m68000_device, which this core already matches.
+  M68010: { column: 2, initializer: 'init_cpu_m68010', formatWord: true, cpuType: 0x4, prefetch: true },
+} as const;
+
+export function compileMameM68000(
+  mameSrc: string,
+  variant: keyof typeof M68000_VARIANTS = 'M68000',
+): GeneratedCpuDefinition {
+  const cpu = M68000_VARIANTS[variant];
   const operationsFile = 'src/devices/cpu/m68000/m68kops.cpp';
   const headerFile = 'src/devices/cpu/m68000/m68kcpu.h';
   const dataFile = 'src/devices/cpu/m68000/m68kcpu.cpp';
@@ -1115,7 +1134,10 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
   const stateCycles = new Array<number>(handlers.length).fill(4);
   for (let state = 0; state < opcodeRows.length; state++) {
     const row = opcodeRows[state]!;
-    const cycles = row.cycles[0]!;
+    // The column this CPU type reads. Taking column 0 for every variant built
+    // Atari System 1's 68010 as a 68000: its `_71` handlers -- the RTE that
+    // pops the 68010 format word, MOVEC -- were never selected at all.
+    const cycles = row.cycles[cpu.column]!;
     if (cycles === 0xff) continue;
     stateCycles[state] = cycles;
     let extra = 0;
@@ -1137,7 +1159,7 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
       source: sourceRef(operationsFile, fn.span.line),
     };
   });
-  methods.push(...m68000SupportMethods(operationsFile));
+  methods.push(...m68000SupportMethods(operationsFile, cpu.formatWord, cpu.prefetch));
 
   const opcodes = activeStates.map(state => ({
     key: state.toString(16).padStart(4, '0'),
@@ -1157,9 +1179,15 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
     m_stopped = 0;
     m_instr_mode = INSTRUCTION_YES;
     m_run_mode = RUN_MODE_NORMAL;
-    m_dar[15] = m68ki_read_32(0);
+${cpu.prefetch ? `    // m68kcpu.cpp device_reset: "Invalidate the prefetch queue", then
+    // execute_run reads both vectors as immediates from address 0.
+    m_pref_addr = 0x1000;
+    m_pc = 0;
+    m_dar[15] = m68ki_read_imm_32();
     m_sp[4] = m_dar[15];
-    m_pc = m68ki_read_32(4);
+    m_pc = m68ki_read_imm_32();` : `    m_dar[15] = m68ki_read_32(0);
+    m_sp[4] = m_dar[15];
+    m_pc = m68ki_read_32(4);`}
     cycles = m_cyc_reset;
   `);
   const input = compileMameHandler(`
@@ -1231,7 +1259,16 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
     EXCEPTION_INTERRUPT_AUTOVECTOR: 24,
     EXCEPTION_TRAP_BASE: 32,
     EXCEPTION_MMU_CONFIGURATION: 56,
-    ...m68000CycleConstants(dataFile, dataSource, operations),
+    ...m68000CycleConstants(dataFile, dataSource, operations, cpu.initializer),
+    // m_cpu_type is fixed per variant; the 68010's MOVEC compares it against
+    // these (m68kcpu.h) to decide which control registers exist. No 68000
+    // handler reads it, so the 68000 core is left exactly as it was.
+    ...(cpu.formatWord ? {
+      CPU_TYPE_000: 0x1,
+      CPU_TYPE_010: 0x4,
+      CPU_TYPE_COLDFIRE: 0x1000,
+      m_cpu_type: cpu.cpuType,
+    } : {}),
   };
   const shiftTable = (name: string): number[] => {
     const body = new RegExp(`${name}\\[65\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`)
@@ -1252,7 +1289,24 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
       'm_x_flag', 'm_n_flag', 'm_not_z_flag', 'm_v_flag', 'm_c_flag', 'm_int_mask',
       'm_int_level', 'm_virq_state', 'm_stopped', 'm_ref',
       'm_instr_mode', 'm_run_mode', 'm_hold_irq',
+      // m68010+: the vector base, and MOVEC's source/destination function codes.
+      ...(cpu.formatWord ? ['m_vbr', 'm_sfc', 'm_dfc'] : []),
+      // m68kmusashi.h: the last prefetch address and the word it holds.
+      ...(cpu.prefetch ? ['m_pref_addr', 'm_pref_data'] : []),
     ].map(name => ({ name, bits: 32 as const })),
+    // The exception costs this CPU type charges, from MAME's own table.
+    ...(cpu.formatWord
+      ? [{ name: 'm_cyc_exception', bits: 8 as const, values: exceptionCycles(dataSource, cpu.column) }]
+      : []),
+    // MOVEC reads these only under `m_cpu_type == CPU_TYPE_COLDFIRE`, which a
+    // 68010 never is; declared so the untaken branch names real storage.
+    // (m68kmusashi.h: `u32 m_rombar[2], m_rambar[2]`, the rest scalar.)
+    ...(cpu.formatWord
+      ? [
+          ...['m_rombar', 'm_rambar'].map(name => ({ name, bits: 32 as const, values: [0, 0] })),
+          ...['m_mpcr', 'm_edrambar', 'm_secmbar', 'm_mbar'].map(name => ({ name, bits: 32 as const })),
+        ]
+      : []),
     { name: 'cycles' },
     { name: 'm_icount' },
   ];
@@ -1263,7 +1317,7 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
   ];
   return {
     schemaVersion: 1,
-    type: 'M68000',
+    type: variant,
     addressMask: 0xffffff,
     dialect: 'mame-musashi-generated-handler-table',
     fixedInstructionCycles: true,
@@ -1303,10 +1357,12 @@ function m68000CycleConstants(
   dataFile: string,
   dataSource: string,
   operations: string,
+  initializer: string,
 ): Record<string, number> {
-  const body = /::init_cpu_m68000\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/.exec(dataSource)?.[1];
+  const body = new RegExp(`::${initializer}\\s*\\([^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`)
+    .exec(dataSource)?.[1];
   if (!body) {
-    throw new Error(`MAME M68000 source is missing init_cpu_m68000 in ${dataFile}`);
+    throw new Error(`MAME M68000 source is missing ${initializer} in ${dataFile}`);
   }
   const constants: Record<string, number> = {};
   for (const [name] of operations.matchAll(/\bm_cyc_\w+/g)) {
@@ -1318,7 +1374,7 @@ function m68000CycleConstants(
     assigned++;
   }
   if (assigned === 0) {
-    throw new Error(`MAME init_cpu_m68000 declares no m_cyc_* cycle counts in ${dataFile}`);
+    throw new Error(`MAME ${initializer} declares no m_cyc_* cycle counts in ${dataFile}`);
   }
   return constants;
 }
@@ -1327,6 +1383,12 @@ function normalizeM68000Source(body: string): string {
   // JavaScript numbers exactly represent the 33-bit intermediates used by
   // ROXL/ROXR; keeping these locals unwrapped preserves that extra carry bit.
   let source = body.replace(/\bu64\b/g, 'int');
+  // `(void)expr;` discards a value, which is all the statement means. The
+  // 68010's BKPT runs a breakpoint-acknowledge bus cycle that way before
+  // taking the illegal-instruction exception, and the one diagnostic it raised
+  // was enough to stop the whole 68010 core from being emitted. No 68000
+  // handler contains one, so that core is unaffected.
+  source = source.replace(/\(\s*void\s*\)\s*/g, '');
   const pointers = new Map<string, string>();
   source = source.replace(
     /\b(?:u32|uint32_t)\s*\*\s*(\w+)\s*=\s*&\s*([^;]+);/g,
@@ -1361,7 +1423,46 @@ function normalizeM68000Source(body: string): string {
     .replace(/\bm68ki_shift_cycles\([^)]*\)/g, '0');
 }
 
-function m68000SupportMethods(sourceFile: string): GeneratedCpuMethod[] {
+/**
+ * One CPU type's column of `m68ki_exception_cycle_table` (m68kcpu.cpp): 256
+ * per-vector costs, in the same column order as the instruction state table.
+ * A 68010 interrupt costs 46 cycles against a 68000's 44, and a trap 38
+ * against 34 -- small, but paid on every vblank, and enough over a few hundred
+ * frames to move a foreground task onto a different frame than MAME's.
+ */
+function exceptionCycles(dataSource: string, column: number): number[] {
+  const start = dataSource.indexOf('m68ki_exception_cycle_table[NUM_CPU_TYPES][256]');
+  if (start < 0) throw new Error('MAME M68000 source is missing m68ki_exception_cycle_table');
+  const open = dataSource.indexOf('{', start);
+  const blocks: string[] = [];
+  let depth = 0;
+  let blockStart = -1;
+  for (let index = open + 1; index < dataSource.length; index++) {
+    const character = dataSource[index];
+    if (character === '{') {
+      if (depth === 0) blockStart = index + 1;
+      depth++;
+    } else if (character === '}') {
+      if (depth === 0) break;
+      depth--;
+      if (depth === 0) blocks.push(dataSource.slice(blockStart, index));
+    }
+  }
+  const block = blocks[column];
+  if (!block) throw new Error(`m68ki_exception_cycle_table has no column ${column}`);
+  const values = [...block.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+    .matchAll(/\d+/g)].map(match => Number(match[0]));
+  if (values.length !== 256) {
+    throw new Error(`m68ki_exception_cycle_table column ${column} has ${values.length} entries`);
+  }
+  return values;
+}
+
+function m68000SupportMethods(
+  sourceFile: string,
+  formatWord = false,
+  prefetch = false,
+): GeneratedCpuMethod[] {
   const source = (name: string, parameters: string, body: string): GeneratedCpuMethod => ({
     name,
     parameters,
@@ -1377,8 +1478,33 @@ function m68000SupportMethods(sourceFile: string): GeneratedCpuMethod[] {
     source('m68ki_write_32', 'u32 address, u32 value', 'WRITE32BE(address, value);'),
     source('m68ki_write_32_pd', 'u32 address, u32 value', 'WRITE32BE(address, value);'),
     source('m68ki_read_imm_8', '', 'return m68ki_read_imm_16() & 0xff;'),
-    source('m68ki_read_imm_16', '', 'u32 value = m68ki_read_16(m_pc); m_pc += 2; return value;'),
-    source('m68ki_read_imm_32', '', 'u32 value = m68ki_read_32(m_pc); m_pc += 4; return value;'),
+    // m68kcpu.h m68ki_read_imm_16/32 on a CPU with no bus error or MMU. The
+    // queue re-reads the word after every one it hands out, and those reads
+    // reach the address space: the Atari slapstic counts them, and a 68010
+    // that skips them walks its bank state off MAME's (Marble Madness).
+    ...(prefetch ? [
+      source('m68ki_read_imm_16', '', `
+        if (m_pc != m_pref_addr) { m_pref_data = m68ki_read_16(m_pc); m_pref_addr = m_pc; }
+        u32 value = m_pref_data & 0xffff;
+        m_pc += 2;
+        m_pref_data = m68ki_read_16(m_pc);
+        m_pref_addr = m_pc;
+        return value;`),
+      source('m68ki_read_imm_32', '', `
+        if (m_pc != m_pref_addr) { m_pref_addr = m_pc; m_pref_data = m68ki_read_16(m_pref_addr); }
+        u32 value = m_pref_data & 0xffff;
+        m_pc += 2;
+        m_pref_addr = m_pc;
+        m_pref_data = m68ki_read_16(m_pref_addr);
+        value = u32((value << 16) | (m_pref_data & 0xffff));
+        m_pc += 2;
+        m_pref_data = m68ki_read_16(m_pc);
+        m_pref_addr = m_pc;
+        return value;`),
+    ] : [
+      source('m68ki_read_imm_16', '', 'u32 value = m68ki_read_16(m_pc); m_pc += 2; return value;'),
+      source('m68ki_read_imm_32', '', 'u32 value = m68ki_read_32(m_pc); m_pc += 4; return value;'),
+    ]),
     source('OPER_I_8', '', 'return m68ki_read_imm_8();'),
     source('OPER_I_16', '', 'return m68ki_read_imm_16();'),
     source('OPER_I_32', '', 'return m68ki_read_imm_32();'),
@@ -1588,28 +1714,42 @@ function m68000SupportMethods(sourceFile: string): GeneratedCpuMethod[] {
   );
 
   methods.push(
+    // m68ki_stack_frame_0000 and m68ki_jump_vector. A 68000 stacks a 3-word
+    // frame and reads its vectors from address zero; a 68010 first pushes a
+    // format/vector word (format 0, `vector << 2`) and reads through its
+    // vector base register. Building the 68010 with the 68000's frame left
+    // every interrupt two bytes short, so anything that walks the stack --
+    // RTE's format check, Marble Madness's task switcher -- read one word off.
     source('m68ki_exception_common', 'u32 vector, u32 stacked_pc', `
       u32 sr = m68ki_get_sr();
       m_t1_flag = 0;
       m_t0_flag = 0;
       m68ki_set_s_flag(SFLAG_SET);
+      ${formatWord ? 'm_dar[15] -= 2;\n      m68ki_write_16(m_dar[15], vector << 2);' : ''}
       m68ki_push_32(stacked_pc);
       m_dar[15] -= 2;
       m68ki_write_16(m_dar[15], sr);
-      m_pc = m68ki_read_32(vector << 2);
+      m_pc = m68ki_read_32(${formatWord ? '(vector << 2) + m_vbr' : 'vector << 2'});
       m_stopped &= ~STOP_LEVEL_STOP;
-      cycles += 30;
+      ${formatWord ? '' : 'cycles += 30;'}
     `),
-    source('m68ki_exception_trap', 'u32 vector', 'm68ki_exception_common(vector, m_pc);'),
-    source('m68ki_exception_trapN', 'u32 vector', 'm68ki_exception_common(vector, m_pc);'),
-    source('m68ki_exception_privilege_violation', '', 'm68ki_exception_common(EXCEPTION_PRIVILEGE_VIOLATION, m_ppc);'),
-    source('m68ki_exception_1010', '', 'm68ki_exception_common(EXCEPTION_1010, m_ppc);'),
-    source('m68ki_exception_1111', '', 'm68ki_exception_common(EXCEPTION_1111, m_ppc);'),
-    source('m68ki_exception_illegal', '', 'm68ki_exception_common(EXCEPTION_ILLEGAL_INSTRUCTION, m_ppc);'),
+    // The 68010 charges each exception its own entry in m_cyc_exception, as
+    // MAME does (m68kcpu.h). MAME's illegal-class exceptions also refund the
+    // faulting opcode's cycles; this core charges those after the handler
+    // returns, so a 68010 illegal instruction costs its opcode's few cycles
+    // more than MAME's. Interrupts and traps -- what boards actually take --
+    // are exact. The 68000 keeps the costs its goldens were verified against.
+    source('m68ki_exception_trap', 'u32 vector', `m68ki_exception_common(vector, m_pc);${formatWord ? ' cycles += m_cyc_exception[vector];' : ''}`),
+    source('m68ki_exception_trapN', 'u32 vector', `m68ki_exception_common(vector, m_pc);${formatWord ? ' cycles += m_cyc_exception[vector];' : ''}`),
+    source('m68ki_exception_privilege_violation', '', `m68ki_exception_common(EXCEPTION_PRIVILEGE_VIOLATION, m_ppc);${formatWord ? ' cycles += m_cyc_exception[EXCEPTION_PRIVILEGE_VIOLATION];' : ''}`),
+    source('m68ki_exception_1010', '', `m68ki_exception_common(EXCEPTION_1010, m_ppc);${formatWord ? ' cycles += m_cyc_exception[EXCEPTION_1010];' : ''}`),
+    source('m68ki_exception_1111', '', `m68ki_exception_common(EXCEPTION_1111, m_ppc);${formatWord ? ' cycles += m_cyc_exception[EXCEPTION_1111];' : ''}`),
+    source('m68ki_exception_illegal', '', `m68ki_exception_common(EXCEPTION_ILLEGAL_INSTRUCTION, m_ppc);${formatWord ? ' cycles += m_cyc_exception[EXCEPTION_ILLEGAL_INSTRUCTION];' : ''}`),
     source('m68ki_service_interrupt', 'u32 level', `
       u32 vector = standard_irq_callback(level, m_pc);
       if (vector == 0xff) vector = 24 + level;
       m68ki_exception_common(vector, m_pc);
+      ${formatWord ? 'cycles += m_cyc_exception[vector];' : ''}
       m_int_mask = level << 8;
       if (m_hold_irq & (1 << level)) {
         m_hold_irq &= ~(1 << level);
@@ -1622,10 +1762,29 @@ function m68000SupportMethods(sourceFile: string): GeneratedCpuMethod[] {
           m_int_level = m_virq_state << 8;
         }
       }
-      cycles += 14;
+      ${formatWord ? '' : 'cycles += 14;'}
     `),
     source('m_reset_cb', 'u32 state', 'return 0;'),
   );
+  if (formatWord) {
+    methods.push(
+      // m68kcpu.h: what the 68010's `_71` handlers call and the 68000's never
+      // do. RTE pulls past the format word with these and raises a format
+      // error on a frame it does not recognise; MOVES addresses memory by
+      // function code, which on a board with no MMU is the same bus.
+      source('m68ki_fake_pull_16', '', 'm_dar[15] += 2;'),
+      source('m68ki_fake_pull_32', '', 'm_dar[15] += 4;'),
+      source('m68ki_exception_format_error', '', 'm68ki_exception_common(EXCEPTION_FORMAT_ERROR, m_pc); cycles += m_cyc_exception[EXCEPTION_FORMAT_ERROR];'),
+      source('m68ki_read_8_fc', 'u32 address, u32 fc', 'return m68ki_read_8(address);'),
+      source('m68ki_read_16_fc', 'u32 address, u32 fc', 'return m68ki_read_16(address);'),
+      source('m68ki_read_32_fc', 'u32 address, u32 fc', 'return m68ki_read_32(address);'),
+      source('m68ki_write_8_fc', 'u32 address, u32 fc, u32 value', 'm68ki_write_8(address, value);'),
+      source('m68ki_write_16_fc', 'u32 address, u32 fc, u32 value', 'm68ki_write_16(address, value);'),
+      source('m68ki_write_32_fc', 'u32 address, u32 fc, u32 value', 'm68ki_write_32(address, value);'),
+      source('BIT_B', 'u32 value', 'return value & 0x00000800;'),
+      source('BIT_F', 'u32 value', 'return value & 0x00008000;'),
+    );
+  }
   return methods;
 }
 

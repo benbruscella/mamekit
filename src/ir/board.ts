@@ -1063,6 +1063,8 @@ export interface GeneratedVideoPlan {
   tilemaps: GeneratedTilemapPlan[];
   /** MAME `ATARI_MOTION_OBJECTS` sprite engine, configured by the driver. */
   motionObjects?: GeneratedMotionObjectsPlan;
+  /** Layouts named by `std::make_unique<gfx_element>(...)`, by source name. */
+  gfxLayouts?: Record<string, GeneratedGfxLayout>;
   initialState: Record<string, unknown>;
   /** MAME may render at a hardware sub-pixel scale (Galaxian uses 3x horizontally). */
   renderScale?: { x: number; y: number };

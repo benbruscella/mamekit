@@ -947,7 +947,15 @@ class HandlerParser {
         };
         // Explicit template arguments (std::min<size_t>) select an overload;
         // they carry no numeric behavior, so the IR keeps the bare name.
-        this.consumeTemplateArguments();
+        const templateArgs = this.consumeTemplateArguments();
+        // Except a graphics set built at run time: make_unique<gfx_element>
+        // takes (palette, layout, source, ...), nothing like the (width,
+        // height) of the bitmaps every other make_unique here allocates, so
+        // the type has to survive lowering.
+        if (expression.name === 'std::make_unique' &&
+            templateArgs?.length === 1 && templateArgs[0] === 'gfx_element') {
+          expression = { kind: 'identifier', name: 'std::make_unique<gfx_element>' };
+        }
       } else if (this.consume('++') || this.consume('--')) {
         expression = {
           kind: 'assignment',

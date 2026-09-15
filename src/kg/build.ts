@@ -137,7 +137,11 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   // cpu/m6502/rp2a03.h defines NTSC_APU_CLOCK) — defines only, no graph nodes.
   // Externals seed first, the driver family's own defines win.
   const externalSources: string[] = [];
-  const pendingExternalIncludes = [...slashIncludes];
+  // Framework vocabulary every driver reaches through emu.h rather than an
+  // include of its own: digfx.h's MAX_GFX_ELEMENTS bounds the free-slot scan a
+  // driver runs before building a graphics set at run time (Atari System 1),
+  // and unresolved it made that loop run zero times.
+  const pendingExternalIncludes = ['emu/digfx.h', ...slashIncludes];
   const seenExternalIncludes = new Set<string>();
   while (pendingExternalIncludes.length) {
     const inc = pendingExternalIncludes.shift()!;

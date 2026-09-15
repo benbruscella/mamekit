@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
-import { evalExpr } from '../kg/parse.ts';
-import type { BoardSourceRef, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
+import { evalExpr, parseGfxLayouts, stripComments } from '../kg/parse.ts';
+import type { BoardSourceRef, GeneratedGfxLayout, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
 import { compileAtariMotionObjects } from './atarimo-compiler.ts';
 import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
@@ -474,6 +474,7 @@ export function compileMameVideo(
     return fail(`palette callback did not lower`);
   }
   const motionObjects = compileMotionObjects(graph, mameSrc, driver, start?.body);
+  const runtimeGfxLayouts = compileRuntimeGfxLayouts(source);
   const colorTables = compileVideoColorTables(source, constants);
   const lfsrTable = compileVideoLfsr(ast, String(machine.props.cls), constants);
   const needsClassDefaults = renderScale !== 1 ||
@@ -494,6 +495,7 @@ export function compileMameVideo(
       ...(paletteProgram ? { paletteProgram } : {}),
       tilemaps: executableTilemaps,
       ...(motionObjects ? { motionObjects } : {}),
+      ...(Object.keys(runtimeGfxLayouts).length ? { gfxLayouts: runtimeGfxLayouts } : {}),
       initialState: {
         ...arrayState(memberDefaults),
         ...(needsClassDefaults ? memberDefaults : {}),
@@ -515,6 +517,25 @@ export function compileMameVideo(
     },
     handlers,
   };
+}
+
+/**
+ * Layouts a driver hands to `std::make_unique<gfx_element>(palette, layout,
+ * ...)` at run time rather than naming in a GFXDECODE table. Atari System 1
+ * builds one graphics set per ROM bank this way, as its PROMs select them.
+ */
+function compileRuntimeGfxLayouts(source: string): Record<string, GeneratedGfxLayout> {
+  const used = new Set([...source.matchAll(
+    /make_unique\s*<\s*gfx_element\s*>\s*\(\s*[^,()]+,\s*(\w+)\s*,/g,
+  )].map(match => match[1]!));
+  const layouts: Record<string, GeneratedGfxLayout> = {};
+  if (!used.size) return layouts;
+  for (const layout of parseGfxLayouts(stripComments(source))) {
+    if (!used.has(layout.name)) continue;
+    const { name: _name, ...shape } = layout;
+    layouts[layout.name] = shape;
+  }
+  return layouts;
 }
 
 /**

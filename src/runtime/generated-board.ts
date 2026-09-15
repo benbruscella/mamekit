@@ -446,9 +446,8 @@ class IrBoard implements Board {
    * still land where the deltas put them and no drift accumulates.
    */
   private timedHardwareDelivered = 0;
-  /** The processor whose slice is executing, so a boost never re-enters it. */
+  /** The processor whose slice is executing. */
   private runningCpu?: string;
-  private boosting = false;
   private soundRuntime?: SoundRuntimeHooks;
   private boardSpecificReset?: () => void;
   private readonly peripheralResets: Array<() => void> = [];
@@ -637,6 +636,7 @@ class IrBoard implements Board {
         const device = createDevice(specification.type, {
           clock: specification.clock,
           tag: specification.tag,
+          schedule: run => this.synchronize(run),
           shares: this.shares,
           inputs,
           members: {
@@ -1030,7 +1030,7 @@ class IrBoard implements Board {
         setters: generatedStateSetters(this.state, machine.stateMembers),
       } : {}),
       inputs: generatedInputs,
-      schedule: (run: () => void) => { this.scheduledWork.push(run); },
+      schedule: run => this.synchronize(run),
       calls,
       referenceCalls: {
         // MAME's region finder. Video handlers already have it; a machine
@@ -1127,6 +1127,28 @@ class IrBoard implements Board {
         return 0;
       };
       calls[`${timer.member}.enabled`] = () => this.pendingTimers.has(timer.member) ? 1 : 0;
+    }
+    // The driver reaches its motion-object device through a finder member
+    // (`m_mob->set_yscroll(...)`). Without a call binding, the device's inline
+    // accessor lowers into the driver's own namespace and writes a driver
+    // member of the same name -- Atari System 1's `m_yscroll` share.
+    const motionObjectsMember = machine.devices?.find(device =>
+      device.tag === machine.video?.motionObjects?.tag)?.member;
+    if (motionObjectsMember) {
+      const sprites = () => this.videoPrimitives?.motionObjectsDevice?.();
+      for (const accessor of ['set_xscroll', 'set_yscroll', 'set_bank'] as const) {
+        calls[`${motionObjectsMember}.${accessor}`] = value => {
+          sprites()?.[accessor](Number(value) || 0);
+          return 0;
+        };
+      }
+      calls[`${motionObjectsMember}.bank`] = () => sprites()?.bankIndex() ?? 0;
+      // Accessors that hand back the device's own storage: video_start
+      // rewrites the lookups through these references, and the screen update
+      // merges the object bitmap.
+      for (const accessor of ['code_lookup', 'color_lookup', 'gfx_lookup', 'bitmap'] as const) {
+        calls[`${motionObjectsMember}.${accessor}`] = () => sprites()?.[accessor]() ?? 0;
+      }
     }
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -1998,6 +2020,7 @@ class IrBoard implements Board {
       processors: [...machine.execution.cpus.map(specification => ({
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
+        abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
         run: (cycles: number) => {
           const outerCpu = this.runningCpu;
           const outerFraction = this.currentLineFraction;
@@ -2021,17 +2044,14 @@ class IrBoard implements Board {
             );
             return executed;
           } finally {
-            // A perfect_quantum boost runs another processor from inside this
-            // one's slice; restore what it interrupted rather than resetting.
             this.runningCpu = outerCpu;
             if (outerCpu) this.currentLineFraction = outerFraction;
-            // `scheduler().synchronize()` work posted by this slice runs here,
-            // once the CPU that posted it has yielded -- never nested inside
-            // another processor's slice.
-            if (!outerCpu) this.drainScheduledWork();
           }
         },
       }))],
+      // `scheduler().synchronize()` work runs once the processor that posted
+      // it has yielded and the ones behind it have caught up.
+      onSynchronize: () => this.drainScheduledWork(),
       onEvent: event => {
         const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
         if (callback?.promGate && !generatedPromGateOpen(
@@ -2398,14 +2418,35 @@ class IrBoard implements Board {
    * drivers read.
    */
   /**
+   * MAME `scheduler().synchronize()`: post work at the current time and end
+   * the running processor's timeslice, so the processors behind it catch up
+   * before the work runs. The frame schedule drains it at the end of the round.
+   */
+  private synchronize(run: () => void): void {
+    this.scheduledWork.push(run);
+    if (this.frameRunner?.requestSynchronize()) return;
+    // Outside a slice (a line callback, an event, construction) it is due now;
+    // inside a drain the loop below picks it up in order.
+    if (!this.drainingScheduledWork) this.drainScheduledWork();
+  }
+
+  private drainingScheduledWork = false;
+
+  /**
    * Run everything `scheduler().synchronize()` posted during the slice that
    * just ended. Draining in order, and re-checking the queue, matches MAME:
    * a synchronized callback may itself synchronize.
    */
   private drainScheduledWork(): void {
-    for (let guard = 0; this.scheduledWork.length && guard < 64; guard++) {
-      const run = this.scheduledWork.shift()!;
-      run();
+    if (!this.scheduledWork.length) return;
+    this.drainingScheduledWork = true;
+    try {
+      for (let guard = 0; this.scheduledWork.length && guard < 64; guard++) {
+        const run = this.scheduledWork.shift()!;
+        run();
+      }
+    } finally {
+      this.drainingScheduledWork = false;
     }
   }
 
@@ -2634,21 +2675,16 @@ class IrBoard implements Board {
   }
 
   /**
-   * MAME `scheduler::perfect_quantum(duration)`.
+   * MAME `scheduler::perfect_quantum(duration)`, asked for by a handler.
    *
-   * Hand the requested window to the frame schedule so every other processor
-   * observes what the running one just published. Re-entrant calls are
-   * ignored: a boosted processor that boosts in turn would recurse.
+   * The window starts where the running processor stops: its slice ends
+   * after the instruction in progress, as if the request had been
+   * synchronized, which is how every driver here issues it -- straight after
+   * a latch write, or from the device that stands in for one.
    */
   perfectQuantum(seconds: number): void {
-    const active = this.runningCpu;
-    if (!active || this.boosting) return;
-    this.boosting = true;
-    try {
-      this.frameRunner?.boost(active, seconds);
-    } finally {
-      this.boosting = false;
-    }
+    this.frameRunner?.quantumWindow(seconds);
+    this.frameRunner?.requestSynchronize();
   }
 
   private installDeviceHandlers(

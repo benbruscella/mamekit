@@ -2140,9 +2140,13 @@ function evaluateCall(
         ? context.bindings.referenceCalls?.[callback]
         : undefined;
       if (!generatedCallback) return 0;
-      return generatedCallback(
-        expression.args[1] ? evaluate(expression.args[1], context) : 0,
-      );
+      const parameter = expression.args[1] ? evaluate(expression.args[1], context) : 0;
+      // Posted at the current time, as below: it fires once the running
+      // processor has yielded and the others have caught up to it.
+      const schedule = context.bindings.schedule;
+      if (!schedule) return generatedCallback(parameter);
+      schedule(() => void generatedCallback(parameter));
+      return 0;
     }
     const generated = context.bindings.referenceCalls?.[generatedName];
     if (generated) {

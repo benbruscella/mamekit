@@ -123,6 +123,8 @@ export interface Cpu {
   reset(): void;
   step(): number;
   run(cycles: number): number;
+  /** MAME abort_timeslice: the running run() returns after this instruction. */
+  abortTimeslice?(): void;
   /**
    * Cycles the instruction currently executing has consumed, for a core that
    * charges them per bus access. MAME's `total_cycles()` includes these.
@@ -310,13 +312,23 @@ class IrCpu implements Cpu {
     return this.get('cycles');
   }
 
+  /** MAME abort_timeslice; see the generated cores' run(). */
+  private timesliceAborted = false;
+
+  abortTimeslice(): void {
+    this.timesliceAborted = true;
+  }
+
   run(target: number): number {
     let total = 0;
+    this.timesliceAborted = false;
     while (total < target) {
       this.bus.timing?.(total, target);
       total += this.step();
+      if (this.timesliceAborted) break;
     }
-    this.bus.timing?.(target, target);
+    const settled = Math.min(total, target);
+    this.bus.timing?.(settled, settled);
     return total;
   }
 

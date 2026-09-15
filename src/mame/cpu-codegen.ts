@@ -297,11 +297,24 @@ ${step}
    */
   stallCycles = 0;
 
+  /**
+   * MAME device_execute_interface::abort_timeslice: finish the instruction in
+   * progress and hand the rest of the slice back to the scheduler, so the
+   * processors behind this one catch up to it before a synchronized callback
+   * changes what they can see.
+   */
+  timesliceAborted = false;
+
+  abortTimeslice(): void {
+    this.timesliceAborted = true;
+  }
+
   run(target: number): number {
     let executed = 0;
     let stalled = 0;
     let total = 0;
     this.stallCycles = 0;
+    this.timesliceAborted = false;
     while (total < target) {
 ${countsBusCycles ? `      // Cleared before the callback, not after: timing() is where device
       // timers run, and they read total_cycles(). Leaving the finished
@@ -315,8 +328,11 @@ ${countsBusCycles ? `      // Cleared before the callback, not after: timing() i
         this.stallCycles = 0;
       }
       total = executed + stalled;
+      if (this.timesliceAborted) break;
     }
-${countsBusCycles ? '    this.cycles = 0;\n' : ''}    this.bus.timing?.(target, target);
+${countsBusCycles ? '    this.cycles = 0;\n' : ''}    // An aborted slice ends where the processor stopped, not at its target.
+    const settled = Math.min(total, target);
+    this.bus.timing?.(settled, settled);
     return total;
   }
 ${countsBusCycles ? `

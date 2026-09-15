@@ -155,11 +155,10 @@ const offscreenRunner = new GeneratedFrameRunner({
 offscreenRunner.frame(new Uint32Array(1));
 assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
 
-// MAME scheduler::perfect_quantum. A CPU that publishes a value another
-// processor must read before it is overwritten cannot wait for the next
-// scanline boundary; MCR's Sounds Good command latch presents two nibbles
-// inside one slice. The boost runs the others now and charges the cycles
-// against their carry, so the total work per frame is unchanged.
+// MAME scheduler().synchronize() from inside a slice. The posting processor
+// stops after its instruction, the processors behind it run only up to where
+// it stopped, the posted work runs, and the round resumes. Nobody observes the
+// work before the time it was posted, and nobody loses cycles.
 {
   const twoCpu: BoardIr = {
     ...machine,
@@ -175,35 +174,38 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   };
   const ran: Record<string, number> = { maincpu: 0, sound: 0 };
   const order: string[] = [];
-  let boosted = false;
+  let posted = false;
   let runner!: GeneratedFrameRunner;
   runner = new GeneratedFrameRunner({
     machine: twoCpu,
+    onSynchronize: () => { if (posted) { order.push('sync'); posted = false; } },
     processors: ['maincpu', 'sound'].map(tag => ({
       tag,
       run: (budget: number) => {
-        ran[tag]! += budget;
         order.push(`${tag}:${budget}`);
-        // The main CPU publishes something mid-slice, once.
-        if (tag === 'maincpu' && !boosted) {
-          boosted = true;
-          runner.boost('maincpu', 0.005);
+        // The main CPU synchronizes a quarter of the way into its first slice.
+        if (tag === 'maincpu' && ran.maincpu === 0) {
+          posted = true;
+          assert.equal(runner.requestSynchronize(), true, 'a running slice is ended');
+          ran[tag]! += 500;
+          return 500;
         }
+        ran[tag]! += budget;
         return budget;
       },
     })),
   });
+  assert.equal(runner.requestSynchronize(), false, 'outside a slice the work is already due');
   runner.frame(new Uint32Array(1));
-  // 60 kHz across three lines at 10 Hz is 2000 cycles per processor per line;
-  // the 250 us boost is 15 of them.
+  // 60 kHz across three lines at 10 Hz is 2000 cycles per processor per line.
   assert.deepEqual(
     order,
-    ['maincpu:2000', 'sound:15', 'sound:1985', 'maincpu:2000', 'sound:2000',
-      'maincpu:2000', 'sound:2000'],
-    'the other processor runs at once and repays the borrowed cycles in its own slice',
+    ['maincpu:2000', 'sound:500', 'sync', 'maincpu:1500', 'sound:1500',
+      'maincpu:2000', 'sound:2000', 'maincpu:2000', 'sound:2000'],
+    'the other processor catches up to the synchronize, then the round resumes',
   );
-  assert.equal(ran.maincpu, 6000, 'the boosting processor keeps its own budget');
-  assert.equal(ran.sound, 6000, 'a boost moves when a processor runs, never how much');
+  assert.equal(ran.maincpu, 6000, 'the posting processor keeps its own budget');
+  assert.equal(ran.sound, 6000, 'a synchronize moves when a processor runs, never how much');
 }
 
 // The quantum is the interval between scheduled events, as MAME's is the
@@ -262,8 +264,8 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   );
 }
 
-// A perfect_quantum window drops back to the per-line schedule for as long as
-// the source asks for, without running anyone from inside the caller's slice.
+// A perfect_quantum window runs the processors in lockstep for as long as the
+// source asks for, without running anyone from inside the caller's slice.
 {
   // Real screen timing, so the source's own microsecond window is meaningful:
   // 60 Hz over 264 lines is 63 us a line, and MAME's usual request is 100 us.
@@ -299,10 +301,20 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   slices.length = 0;
   runner.quantumWindow(0.0001);
   runner.frame(new Uint32Array(1));
+  // 100 us is 1.584 lines: 158 single instructions, then the rest of line 1.
   assert.deepEqual(
-    slices.slice(0, 3),
-    [100, 100, 300],
-    'the window interleaves per line for as long as it lasts, then reopens',
+    slices.slice(0, 158),
+    new Array(158).fill(1),
+    'the window runs one instruction at a time for as long as it lasts',
+  );
+  assert.ok(
+    slices[158]! >= 41 && slices[158]! <= 42 && slices[159]! >= 299,
+    `then the quantum reopens: ${slices.slice(158, 160)}`,
+  );
+  assert.equal(
+    slices.reduce((total, slice) => total + slice, 0),
+    26_400,
+    'the window changes how the frame is divided, never what it is worth',
   );
 }
 
