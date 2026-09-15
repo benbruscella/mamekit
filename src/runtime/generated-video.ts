@@ -555,6 +555,16 @@ class GeneratedRectangle {
     this.max_y = maxY;
   }
 
+  // emu/rendertypes.h accessors. A screen update's merge loop is written
+  // `for (int y = rect.top(); y <= rect.bottom(); y++)`; unresolved, they
+  // answered 0 and Atari System 1 merged one pixel of its sprites.
+  left(): number { return this.min_x; }
+  right(): number { return this.max_x; }
+  top(): number { return this.min_y; }
+  bottom(): number { return this.max_y; }
+  width(): number { return this.max_x + 1 - this.min_x; }
+  height(): number { return this.max_y + 1 - this.min_y; }
+
   contains(x: number, y: number): number {
     return x >= this.min_x && x <= this.max_x && y >= this.min_y && y <= this.max_y ? 1 : 0;
   }
@@ -1324,12 +1334,10 @@ class GeneratedMotionObjects {
     // atarimo.cpp device_start: sizes are round_to_powerof2 of each mask.
     const powerOfTwo = (mask: number) => 2 ** Math.ceil(Math.log2(Math.max(1, mask)));
     const codeSize = powerOfTwo(plan.code.mask);
-    this.codeLookup = new Uint32Array(codeSize);
-    // The xor a driver's video_start applies to the identity table, where
-    // the compiler folded it rather than executing that loop.
-    for (let code = 0; code < codeSize; code++) {
-      this.codeLookup[code] = plan.codeXor === undefined ? code : code ^ plan.codeXor;
-    }
+    // Identity, as device_start leaves it. The driver's video_start then
+    // rewrites it through code_lookup() -- Gauntlet's `elem ^= 0x800` loop
+    // executes -- so folding that xor in here as well applied it twice.
+    this.codeLookup = new Uint32Array(codeSize).map((_, code) => code);
     this.colorLookup = new Uint32Array(powerOfTwo(plan.color.mask)).map((_, color) => color);
     this.gfxLookup = new Uint8Array(Math.max(1, codeSize / 256)).fill(plan.gfxIndex);
   }
@@ -2036,10 +2044,21 @@ class GeneratedTilemap {
     const index = Math.trunc(offset);
     if (index < 0) return 0;
     if ((this.plan.bytesPerEntry ?? 1) < 2) return bytes[index] ?? 0;
-    // The share is a byte array written by the board's own bus, so the entry's
-    // byte order is the bus's; a 16-bit CPU maps it big-endian.
     const at = index * 2;
+    if (this.wordShare()) return new Uint16Array(bytes.buffer, bytes.byteOffset + at, 1)[0]!;
+    // An 8-bit bus stores the share byte by byte in its own order.
     return ((bytes[at] ?? 0) << 8) | (bytes[at + 1] ?? 0);
+  }
+
+  /**
+   * A 16-bit big-endian bus keeps RAM as native words (bus.ts), so the share's
+   * bytes are in host order, not the CPU's. Assembled big-endian here, every
+   * Atari System 1 playfield word came back byte-swapped.
+   */
+  private wordShare(): boolean {
+    const space = this.machine.execution.participants?.[0]?.space;
+    return space?.dataWidth === 16 && space.endianness === 'big' && this.baseMemory?.byteLength !== undefined &&
+      this.baseMemory.byteOffset % 2 === 0;
   }
 
   basemem_write(offset: number, data: number): void {
@@ -2048,7 +2067,9 @@ class GeneratedTilemap {
     const index = Math.trunc(offset);
     if (index < 0) return;
     if ((this.plan.bytesPerEntry ?? 1) < 2) bytes[index] = data & 0xff;
-    else {
+    else if (this.wordShare()) {
+      new Uint16Array(bytes.buffer, bytes.byteOffset + index * 2, 1)[0] = data & 0xffff;
+    } else {
       const at = index * 2;
       bytes[at] = (data >>> 8) & 0xff;
       bytes[at + 1] = data & 0xff;
@@ -2959,9 +2980,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const motionObjectsPlan = machine.video?.motionObjects;
     const motionObjectsGfx = motionObjectsPlan && this.gfx[motionObjectsPlan.gfxIndex];
     if (motionObjectsPlan && motionObjectsGfx) {
-      const share = (name?: string) => (): ArrayLike<number> | undefined => {
-        const bytes = name === undefined ? undefined : state[`m_${name}`];
-        return ArrayBuffer.isView(bytes) ? bytes as unknown as ArrayLike<number> : undefined;
+      // Taken now, while `m_<share>` is still the share's bound view: the
+      // device's own finder member can carry the same name (Atari System 1's
+      // sprite RAM share is "mob", its motion-object finder `m_mob`) and is
+      // bound over it below.
+      const share = (name?: string) => {
+        const bound = name === undefined ? undefined : state[`m_${name}`];
+        const memory = ArrayBuffer.isView(bound) ? bound as unknown as ArrayLike<number> : undefined;
+        return (): ArrayLike<number> | undefined => memory;
       };
       this.motionObjects = new GeneratedMotionObjects(
         motionObjectsPlan,

@@ -4067,9 +4067,18 @@ class IrBoard implements Board {
       const deviceTag = key.slice(0, key.indexOf('.'));
       const deviceType = machine.devices?.find(device => device.tag === deviceTag)?.type ?? '';
       if (key.endsWith('.write16') && deviceType === 'TILEMAP') {
-        // The Bus writes the aliased RAM before invoking this notification;
-        // tile dirtiness is implicit in the generated renderer's frame pass.
-        registry.write[key] = () => {};
+        // tilemap_device::write16: the Bus has already stored the word in the
+        // shared RAM; what remains is `mark_tile_dirty(offset)`. The generated
+        // tilemap caches resolved tiles, so without it a playfield written
+        // after the first draw kept its power-on contents (Marble Madness's
+        // screen stayed black).
+        const member = machine.devices?.find(device => device.tag === deviceTag)?.member;
+        registry.write[key] = (_address, offset) => {
+          const tilemap = member
+            ? this.state[member] as { mark_tile_dirty?: (index: number) => void } | undefined
+            : undefined;
+          tilemap?.mark_tile_dirty?.(offset);
+        };
         continue;
       }
       if (deviceType.startsWith('EEPROM_')) {
