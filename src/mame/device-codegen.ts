@@ -565,7 +565,8 @@ function emitOperation(
     // run time (compileValueWrapper); these are the IR's aggregate producers.
     const allocated = operation.value?.kind === 'call' &&
       operation.value.callee.kind === 'identifier' &&
-      ['ALLOC', 'make_unique_clear', 'ARRAY'].includes(operation.value.callee.name);
+      ['ALLOC', 'ALLOC16', 'ALLOC32', 'make_unique_clear', 'ARRAY']
+        .includes(operation.value.callee.name);
     // `rectangle draw = cliprect` is a C++ value copy. Aliasing it lets a
     // handler narrow its own clip rectangle and hand the mutated one back to
     // its caller — the interpreter copies here for exactly that reason.
@@ -849,7 +850,16 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'cast') {
     const operand = emitExpression(expression.operand, context);
     // A cast to a pointer or reference retypes an address; it never narrows.
-    return expression.pointer ? operand : wrapType(operand, expression.valueType);
+    // Retyping is not always identity, though: `reinterpret_cast<u16 *>` over
+    // byte memory is a reinterpreting view, which is how MAME writes a
+    // byte-backed sprite RAM a half-word at a time (wardner_sprite_w).
+    // Emitting the bare byte array stored each half-word at the word index
+    // and dropped every high byte.
+    if (expression.pointer) {
+      const view = packedPointerView(expression.valueType);
+      return view === undefined ? operand : `runtime.packedView(${operand}, ${view})`;
+    }
+    return wrapType(operand, expression.valueType);
   }
   if (expression.kind === 'binary') {
     // A 64-bit literal promotes the whole expression around it, exactly as in
@@ -1126,9 +1136,13 @@ function emitCall(
     }
     if (name.startsWith('new::')) return `runtime.invoke(${JSON.stringify(name)}${args.length ? ', ' + args.join(', ') : ''})`;
     if (name === 'bool') return `((${args[0] ?? '0'}) ? 1 : 0)`;
-    if (name === 'ALLOC' || name === 'make_unique_clear') {
+    if (name === 'ALLOC' || name === 'make_unique_clear' ||
+        name === 'ALLOC16' || name === 'ALLOC32') {
+      const array = name === 'ALLOC16' ? 'Uint16Array'
+        : name === 'ALLOC32' ? 'Uint32Array'
+        : 'Uint8Array';
       return yieldToOverride(
-        `new Uint8Array(Math.max(0, Number(${args[0] ?? '0'})))`,
+        `new ${array}(Math.max(0, Number(${args[0] ?? '0'})))`,
         args,
       );
     }
@@ -1935,8 +1949,31 @@ function wrapBits(value: string, bits?: 1 | 8 | 16 | 32, signed = false): string
   return value;
 }
 
+
+/**
+ * Whether a pointee type reinterprets byte memory as 16-bit, and with which
+ * sign. Undefined for every other pointer cast, which stays an identity.
+ */
+function packedPointerView(valueType: string | undefined): boolean | undefined {
+  const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
+  if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
+  if (/^(?:s16|int16_t)$/.test(pointee)) return true;
+  return undefined;
+}
+
 function wrapType(value: string, valueType?: string): string {
-  if (valueType?.includes('*')) return value;
+  if (valueType?.includes('*')) {
+    // A pointer declaration is not a narrowing, but a *wider* element type
+    // over byte memory is a reinterpreting view. MAME's byte-backed sprite
+    // RAM is written through exactly this (`u16 *const spriteram16 =
+    // reinterpret_cast<u16 *>(...)`), and emitting the bare byte array kept
+    // the interpreter's view and the compiled one disagreeing: every
+    // half-word store dropped its high byte.
+    const pointee = valueType.replace(/\bconst\b/g, '').replace(/\s/g, '');
+    if (/^(?:u16|uint16_t)\*$/.test(pointee)) return `runtime.packedView(${value}, false)`;
+    if (/^(?:s16|int16_t)\*$/.test(pointee)) return `runtime.packedView(${value}, true)`;
+    return value;
+  }
   const normalized = valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
   if (normalized === 'bool') return `((${value}) ? 1 : 0)`;
   if (normalized === 'u8' || normalized === 'uint8_t') return `((${value}) & 0xff)`;

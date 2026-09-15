@@ -11,7 +11,7 @@
 // driver's initializer, and each mask/word/shift triple is derived exactly as
 // `sprite_parameter::set` derives it at device_start.
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { BoardSourceRef, GeneratedMotionObjectsPlan } from '../ir/board.ts';
 import {
@@ -128,6 +128,16 @@ export interface AtariMotionObjectsInput {
 }
 
 /**
+ * MAME splits a large driver's video and audio into `<stem>_v.cpp` and
+ * `<stem>_a.cpp` beside it. A driver-state static the driver declares but does
+ * not define lives in one of those.
+ */
+function videoSiblings(driverFile: string): string[] {
+  const stem = driverFile.replace(/\.cpp$/, '');
+  return [`${stem}_v.cpp`, `${stem}_a.cpp`];
+}
+
+/**
  * Lower one driver's motion-object configuration into an executable plan.
  *
  * Returns undefined when the driver's aggregate cannot be found or uses a
@@ -139,16 +149,27 @@ export function compileAtariMotionObjects(
   input: AtariMotionObjectsInput,
 ): GeneratedMotionObjectsPlan | undefined {
   const header = stripCppComments(readFileSync(join(mameSrc, ATARIMO_HEADER), 'utf8'));
-  const driver = stripCppComments(readFileSync(join(mameSrc, input.driverFile), 'utf8'));
   const escaped = input.configName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const declaration = new RegExp(
-    `atari_motion_objects_config\\s+${escaped}\\s*=\\s*\\{`,
-  ).exec(driver);
-  if (!declaration) return undefined;
+  const pattern = new RegExp(`atari_motion_objects_config\\s+${escaped}\\s*=\\s*\\{`);
+  // The aggregate is a driver-state static, and MAME puts it wherever that
+  // driver's video code lives: gauntlet.cpp declares its own, while Atari
+  // System 1 splits video out and s_mob_config sits in atarisy1_v.cpp. Reading
+  // only the driver file found Gauntlet's and walked past Marble Madness's, so
+  // the board compiled no sprite pass at all.
+  const sources = [input.driverFile, ...videoSiblings(input.driverFile)];
+  const found = sources.flatMap(file => {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) return [];
+    const text = stripCppComments(readFileSync(path, 'utf8'));
+    const declaration = pattern.exec(text);
+    return declaration ? [{ file, text, declaration }] : [];
+  })[0];
+  if (!found) return undefined;
+  const { file: configFile, text: driver, declaration } = found;
   const body = braceBody(
     driver,
     declaration.index + declaration[0].length - 1,
-    input.driverFile,
+    configFile,
   );
   const items = initializerItems(body);
   const fields = configFields(header);
@@ -157,16 +178,16 @@ export function compileAtariMotionObjects(
   for (const [index, field] of fields.entries()) {
     const item = items[index];
     if (item === undefined) {
-      throw new Error(`${input.driverFile}: ${input.configName} has no ${field.name}`);
+      throw new Error(`${configFile}: ${input.configName} has no ${field.name}`);
     }
     if (field.kind === 'scalar') {
-      scalars[field.name] = initializerNumbers(item, input.driverFile)[0] ?? 0;
+      scalars[field.name] = initializerNumbers(item, configFile)[0] ?? 0;
       continue;
     }
     // Both entry and dual_entry are written as one brace group; a dual_entry
     // whose upper half is omitted leaves those words zero, and only the lower
     // four words carry a parameter this compiler can lower.
-    const words = initializerNumbers(item, input.driverFile);
+    const words = initializerNumbers(item, configFile);
     if (field.kind === 'dual_entry' && words.length > 4 && words.slice(4).some(Boolean)) {
       return undefined;
     }

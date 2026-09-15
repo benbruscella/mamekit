@@ -73,6 +73,20 @@ export function compileMameHandler(body: string): GeneratedHandlerProgram {
       /\b(?:reinterpret|dynamic|static|const)_cast\s*<([^>]+)>\s*\(([^;]+)\)/g,
       '($1)($2)',
     )
+    // A delegate that names a *template* member has to name the specialization
+    // the compiler actually generated. `specializeFunctionTemplate` emits
+    // `deferred_snd_cmd_w<2>` as `deferred_snd_cmd_w_2`, and dropping the
+    // argument here left `FUNC(williams_state::deferred_snd_cmd_w<2>)`
+    // resolving to a method nobody declared -- so Sinistar's sound command was
+    // handed to the scheduler and silently went nowhere, and its sound board
+    // never answered the handshake the main CPU spins on.
+    .replace(
+      /\bFUNC\s*\(\s*([\w:]+)\s*<([^<>()]*)>\s*\)/g,
+      (_all, name: string, args: string) => `FUNC(${name}_${args
+        .split(',')
+        .map(argument => argument.trim().replace(/^true$/, '1').replace(/^false$/, '0'))
+        .join('_')})`,
+    )
     // MAME's frequency literal macros are preprocessing tokens whose leading
     // digit otherwise looks like a number followed by a stray identifier.
     .replace(/\b(\d+(?:\.\d+)?)_MHz_XTAL\b/g, (_all, mhz) =>
@@ -933,7 +947,15 @@ class HandlerParser {
         };
         // Explicit template arguments (std::min<size_t>) select an overload;
         // they carry no numeric behavior, so the IR keeps the bare name.
-        this.consumeTemplateArguments();
+        const templateArgs = this.consumeTemplateArguments();
+        // Except a graphics set built at run time: make_unique<gfx_element>
+        // takes (palette, layout, source, ...), nothing like the (width,
+        // height) of the bitmaps every other make_unique here allocates, so
+        // the type has to survive lowering.
+        if (expression.name === 'std::make_unique' &&
+            templateArgs?.length === 1 && templateArgs[0] === 'gfx_element') {
+          expression = { kind: 'identifier', name: 'std::make_unique<gfx_element>' };
+        }
       } else if (this.consume('++') || this.consume('--')) {
         expression = {
           kind: 'assignment',
@@ -1091,7 +1113,14 @@ class HandlerParser {
         if (!value) return undefined;
         captures.push({ name: name.text, value });
       } else {
-        this.take();
+        // A capture that binds no new name: `this`, a bare `&` or `=`, or a
+        // by-reference capture like `&bitmap`. Those are two tokens, and
+        // taking exactly one left the parser on the captured name, where the
+        // separator check broke out of the loop and the whole lambda failed
+        // to parse. Skip to the next separator instead. Atari's screen update
+        // merges its sprites through `[this, &bitmap, &mobitmap]`, so this
+        // one token cost Gauntlet and Marble Madness their screen_update.
+        while (!this.at('eof') && !this.atText(',') && !this.atText(']')) this.take();
       }
       if (!this.consume(',')) break;
     }

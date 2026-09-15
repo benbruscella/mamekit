@@ -4,6 +4,7 @@ import {
   applyGeneratedDivision,
   applyGeneratedMacro,
   dereferenceGeneratedValue,
+  generatedPackedView,
   generatedContainerAccessor,
   generatedAdd,
   generatedPointerStore,
@@ -117,6 +118,11 @@ export interface GeneratedDeviceExecutionContext {
   addressOf(value: unknown, index: number): GeneratedPointer;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /**
+   * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
+   * copied, so the wider view writes through to the same shared bytes.
+   */
+  packedView(value: unknown, signed: boolean): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
   /** The container an indexed write stores into, addressed by member name. */
@@ -339,6 +345,8 @@ export interface GeneratedDeviceOptions {
   configuration?: unknown;
   banks?: Record<string, GeneratedMemoryBank>;
   resourceCache?: Record<string, unknown>;
+  /** MAME `scheduler().synchronize()`: run once the processor that asked has yielded. */
+  schedule?: (run: () => void) => void;
 }
 
 export interface GeneratedMemoryBank {
@@ -685,6 +693,7 @@ class IrDevice implements Device {
       getters,
       setters,
       constants: definition.constants,
+      ...(options.schedule ? { schedule: options.schedule } : {}),
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
@@ -818,6 +827,7 @@ class IrDevice implements Device {
           offset: index,
         },
       dereference: dereferenceGeneratedValue,
+      packedView: generatedPackedView,
       container: generatedContainerAccessor,
       pointerStore: generatedPointerStore,
       add: generatedAdd,
@@ -1280,12 +1290,17 @@ class IrDevice implements Device {
         method.name === 'write'
       ) {
         // generic_latch_8_device defers the store with
-        // scheduler().synchronize(sync_callback, data) so the reading
-        // processor cannot observe each write of a burst separately. The
-        // quantum is what provides that here — it runs to the next scheduled
-        // event, as MAME's runs to the next timer — so the store itself is
-        // applied directly rather than dropping the timer_expired_delegate.
-        return this.invoke('sync_callback', args[0] ?? 0);
+        // scheduler().synchronize(sync_callback, data): the writer's slice
+        // ends, every processor behind it catches up to the write, and only
+        // then does the reader see the byte. Applied inline, a reader that
+        // runs later in the same round sees the command before the time it
+        // was sent: Marble Madness's sound board answered 13 main-CPU
+        // instructions away from where MAME's does.
+        const data = args[0] ?? 0;
+        const schedule = this.bindings.schedule;
+        if (!schedule) return this.invoke('sync_callback', data);
+        schedule(() => void this.invoke('sync_callback', data));
+        return 0;
       }
       const defaults = this.methodDefaults.get(method);
       const compiled = this.definition.compiledMethods?.[method.name];

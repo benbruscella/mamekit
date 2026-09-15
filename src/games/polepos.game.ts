@@ -68,14 +68,14 @@ export const polepos = sourceTarget({
       300: { video: '9bbefd2e', state: '5c33112c' },
       600: { video: 'b8a3cea9', state: '378cd397' },
       900: { video: '5fb07a52', state: '6b2af217' },
-      1200: { video: 'ba36bab2', state: '1201869a' },
+      1200: { video: '03b28e84', state: 'c9f21a6b' },
     },
     audio: {
       writes: 387202,
       nonzeroWrites: 151194,
-      writeHash: '7d5a666e',
-      pcmHash: '9af5d2e4',
-      rms: 0.186159,
+      writeHash: '98792fb6',
+      pcmHash: 'c456cf44',
+      rms: 0.186187,
     },
   },
 });

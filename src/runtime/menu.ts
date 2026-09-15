@@ -128,6 +128,40 @@ export function browseSlug(value: string): string {
     .replace(/-{2,}/g, '-') || 'unknown';
 }
 
+/**
+ * The one corner sash a shelf box wears, in order of what matters most about
+ * it: a board that will not run, a machine still being brought up, a set this
+ * browser has not been given, and otherwise that it is ready to play.
+ *
+ * EXPERIMENTAL is deliberately not conditional on `supported` -- a candidate
+ * that plays perfectly well is still a candidate, and saying so is the whole
+ * point of the label.
+ *
+ * The last two are the two halves of the same fact about the visitor's own ROM
+ * library: without the set, INSERT ROM; with it, PLAY. Consoles have no romset
+ * of their own, so neither applies to them -- their cartridge count badge is
+ * what says whether there is anything to run.
+ */
+export function menuTileSash(
+  entry: Pick<GameEntry, 'kind' | 'supported' | 'preview' | 'hasRom' | 'generationGaps'>,
+): { text: string; background: string; color: string } | undefined {
+  // A game generated before its board compiles must never offer Play
+  // (stale-bundle protection); its story card still opens.
+  if (entry.supported === false) {
+    const gaps = entry.generationGaps?.length ?? 0;
+    return {
+      text: entry.preview ? 'EXPERIMENTAL' : `BLOCKED${gaps ? ` · ${gaps}` : ''}`,
+      background: '#666',
+      color: '#fff',
+    };
+  }
+  if (entry.preview) return { text: 'EXPERIMENTAL', background: '#e0a000', color: '#1b1b1b' };
+  if (entry.kind === 'console') return undefined;
+  return entry.hasRom
+    ? { text: 'PLAY', background: '#1e8e3e', color: '#fff' }
+    : { text: 'INSERT ROM', background: '#c22', color: '#fff' };
+}
+
 export function menuShelfMaxWidth(tab: MenuTab): string {
   // 4 × 320px tiles + 3 × 26px gaps + 72px horizontal padding.
   return tab === 'arcade' ? '1470px' : '1280px';
@@ -408,23 +442,25 @@ export async function runMenu(): Promise<void> {
     label.append(name, meta);
     box.appendChild(label);
 
-    // consoles have no romset, so "INSERT ROM" is meaningless there — only
-    // the stale-bundle "IN DEVELOPMENT" ribbon applies to them
-    if (entry.supported === false || (entry.kind !== 'console' && !entry.hasRom)) {
+    // One corner, so the sash says the most important thing about the box, in
+    // order: a board that will not run, a machine still being brought up, then
+    // a set this browser has not been given. EXPERIMENTAL is deliberately not
+    // conditional on `supported` -- a candidate that plays perfectly well is
+    // still a candidate, and saying so is the whole point of the label.
+    // Consoles have no romset, so "INSERT ROM" is meaningless there.
+    const sash = menuTileSash(entry);
+    if (sash) {
       // corner sash: band centered on the box's top-right diagonal so
       // overflow:hidden cuts both ends cleanly at the edges
       const ribbon = el('div', `position:absolute;top:30px;right:-48px;width:180px;text-align:center;
         transform:rotate(45deg);z-index:4;
-        background:${entry.supported === false ? '#666' : '#c22'};color:#fff;font-size:10px;font-weight:700;
+        background:${sash.background};color:${sash.color};font-size:10px;font-weight:700;
         letter-spacing:1px;padding:4px 0;box-shadow:0 2px 6px rgba(0,0,0,.5)`);
-      // a game generated before its board compiles must never offer Play
-      // (stale-bundle protection) — story card still opens
-      const gapCount = entry.generationGaps?.length ?? 0;
-      ribbon.textContent = entry.supported === false
-        ? entry.preview ? 'EXPERIMENTAL' : `BLOCKED${gapCount ? ` · ${gapCount}` : ''}`
-        : 'INSERT ROM';
+      ribbon.textContent = sash.text;
       if (entry.generationGaps?.length) {
         ribbon.title = `Missing generated hardware: ${entry.generationGaps.join(', ')}`;
+      } else if (sash.text === 'EXPERIMENTAL') {
+        ribbon.title = 'Still being brought up: it plays, but it has no recorded acceptance run yet';
       }
       box.appendChild(ribbon);
     }

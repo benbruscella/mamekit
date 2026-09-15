@@ -4,6 +4,7 @@ import {
   matchesMenuEntry,
   menuShelfMaxWidth,
   menuTabs,
+  menuTileSash,
   menuTitle,
   runMenu,
 } from './menu.ts';
@@ -40,3 +41,21 @@ assert.equal(menuShelfMaxWidth('computer'), '1280px');
 assert.equal(typeof runMenu, 'function');
 
 console.log('menu.spec: generated entry tab and search filtering passed');
+
+// The shelf box wears one corner sash, and which one is a precedence, not a
+// pile of independent conditions. A candidate that plays and whose set the
+// visitor already keeps still says EXPERIMENTAL -- issue #142's three games
+// wore nothing at all while the label was gated on `supported === false`.
+assert.equal(menuTileSash({ supported: true, hasRom: true })?.text, 'PLAY');
+assert.equal(menuTileSash({ supported: true, hasRom: false })?.text, 'INSERT ROM');
+// A console has no romset of its own, so neither half of that pair applies.
+assert.equal(menuTileSash({ supported: true, hasRom: false, kind: 'console' }), undefined);
+assert.equal(menuTileSash({ supported: true, hasRom: true, kind: 'console' }), undefined);
+assert.equal(menuTileSash({ supported: true, hasRom: true, preview: true })?.text, 'EXPERIMENTAL');
+assert.equal(menuTileSash({ supported: true, hasRom: false, preview: true })?.text, 'EXPERIMENTAL');
+assert.equal(menuTileSash({ supported: false, hasRom: true, preview: true })?.text, 'EXPERIMENTAL');
+assert.equal(
+  menuTileSash({ supported: false, hasRom: true, generationGaps: ['a', 'b'] })?.text,
+  'BLOCKED · 2',
+);
+assert.equal(menuTileSash({ supported: false, hasRom: true })?.text, 'BLOCKED');

@@ -137,7 +137,11 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   // cpu/m6502/rp2a03.h defines NTSC_APU_CLOCK) — defines only, no graph nodes.
   // Externals seed first, the driver family's own defines win.
   const externalSources: string[] = [];
-  const pendingExternalIncludes = [...slashIncludes];
+  // Framework vocabulary every driver reaches through emu.h rather than an
+  // include of its own: digfx.h's MAX_GFX_ELEMENTS bounds the free-slot scan a
+  // driver runs before building a graphics set at run time (Atari System 1),
+  // and unresolved it made that loop run zero times.
+  const pendingExternalIncludes = ['emu/digfx.h', ...slashIncludes];
   const seenExternalIncludes = new Set<string>();
   while (pendingExternalIncludes.length) {
     const inc = pendingExternalIncludes.shift()!;
@@ -441,10 +445,17 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (cls && defaultClocks[cls] !== undefined) dev.clock = defaultClocks[cls];
     }
   }
+  // What `clock()` means inside a class's own device_add_mconfig: the clock of
+  // the device being configured, never a sub-device's. Midway's SSIO derives
+  // both its Z80 (DERIVED_CLOCK(1, 2*4)) and that Z80's periodic /SINT
+  // (clock() / (2*16*10)) from the board's 16 MHz; resolving clock() against
+  // the sub-device ran the sound board's whole interrupt engine 8x slow.
+  const ownerClocks: Record<string, number> = {};
   for (const cfg of machineConfigs) {
     for (const dev of cfg.devices) {
       const devCls = deviceTypes[dev.type];
       if (!devCls || dev.clock === null) continue;
+      ownerClocks[devCls] = dev.clock;
       const sub = machineConfigs.find(c => c.cls === devCls && c.name === 'device_add_mconfig');
       for (const sd of sub?.devices ?? []) {
         const clock = derivedDeviceClock(sd.clockExpr, dev.clock, consts);
@@ -452,9 +463,18 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       }
     }
   }
+  // device_start, deferred until every other handler is on the graph: whether
+  // to lower it at all depends on what else the class contributes. See the
+  // post-pass below.
+  const pendingDeviceStarts: { devId: string; fn: MameFunction }[] = [];
   for (const cfg of machineConfigs) {
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
+    // `clock()` in a device_add_mconfig body is the configured device's own
+    // clock; a driver's machine config has no clock() to resolve.
+    const configClock = cfg.name === 'device_add_mconfig'
+      ? ownerClocks[cfg.cls] ?? defaultClocks[cfg.cls]
+      : undefined;
     const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
     const timerStartHandlers = new Set<string>();
     const pendingTimerStarts = resolveMachineLifecycle(
@@ -725,6 +745,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         patch.config,
         memberTags,
         consts,
+        configClock,
       );
     }
     for (const dev of cfg.devices) {
@@ -739,6 +760,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         .filter(member => /^(?:required|optional)_device\s*</.test(member.valueType)
           && memberTags[member.name] === dev.tag)
         .map(member => member.name))];
+      const deviceStart = deviceTypes[dev.type]
+        ? ast.findFunctionInHierarchy(deviceTypes[dev.type]!, 'device_start')
+        : undefined;
       const props: Record<string, PropValue> = {
         type: dev.type, tag: dev.tag, clock: dev.clock, config: dev.config,
         ...(finders.length === 1 ? { member: finders[0]! } : {}),
@@ -806,7 +830,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         dev.config,
         memberTags,
         consts,
-        dev.clock ?? undefined,
+        configClock,
       );
       // Since MAME split screen_device by display type, a vector display is
       // its own video-output device and renders itself: the driver no longer
@@ -846,6 +870,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (devCls) {
         const sub = machineConfigs.find(c => c.cls === devCls && c.name === 'device_add_mconfig');
         if (sub) g.edge(devId, `machine:${sub.cls}.${sub.name}`, 'CALLS');
+        if (deviceStart) pendingDeviceStarts.push({ devId, fn: deviceStart });
       }
       for (const [space, mapName] of Object.entries(dev.addrMaps)) {
         // resolve by map NAME: set_addrmap may reference the map through a
@@ -858,6 +883,36 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         g.edge(cfgId, `gfxdecode:${dev.gfxDecodeName}`, 'DECODES', { deviceTag: dev.tag });
       }
     }
+  }
+
+  // --- device start ---
+  // device_start is where a device derives the constants its own methods then
+  // read: Midway's SSIO reads its 82S123 duty-cycle PROM there, and every AY
+  // output gain it ever sets comes out of that table -- unstarted, each gain
+  // it wrote was NaN.
+  //
+  // Only for a device whose methods the board runs *as handlers*, which is the
+  // condition that gives it nowhere else to do this. A device with a generated
+  // core of its own starts itself, and a second, partially lowered device_start
+  // run over its state does nothing but corrupt what the core already derived:
+  // lowering Atari's motion-object and slapstic starts unconditionally moved
+  // gauntlet off its golden from frame 60. The test has to run here, after
+  // every address map and devcb has put its own handlers on the graph.
+  const classesWithHandlers = new Set([...g.nodes.values()]
+    .filter(node => node.label === 'Handler')
+    .map(node => String(node.props.ownerClass ?? '')));
+  for (const { devId, fn } of pendingDeviceStarts) {
+    if (!classesWithHandlers.has(fn.className)) continue;
+    const device = g.nodes.get(devId);
+    if (device) device.props.startHandler = `${fn.className}.device_start`;
+    g.edge(devId, emitSourceHandlerClosure(
+      g,
+      ast,
+      fn.className,
+      'device_start',
+      consts,
+      fn.span,
+    ), 'CALLS_HANDLER');
   }
 
   // --- inputs ---
@@ -1380,6 +1435,11 @@ const CALLBACK_OPERATIONS = new Set([
   'set_screen_update', 'set_vblank_int', 'set_periodic_int',
   'set_irq_acknowledge_callback',
   'set_maincpu', 'configure_scanline',
+  // A generic TIMER is armed by the driver rather than by a period, but the
+  // method it names still has to be lowered: without this, Atari System 1's
+  // int3_callback and int3off_callback were never compiled at all, so the
+  // scanline-interrupt chain had nothing to run even once `adjust` existed.
+  'configure_generic',
 ]);
 
 /** Return the complete argument of attotime::from_hz, including nested parens. */
@@ -1551,6 +1611,36 @@ function isSourceAccessor(body: string): boolean {
   return /^return\b[^;]*;$/.test(statements) && !/[-+]{2}|[^=!<>]=[^=]/.test(statements);
 }
 
+
+/**
+ * The devcb member a `auto <accessor>() { return m_x.bind(); }` hands out.
+ *
+ * MAME declares every devcb this way, so the accessor a machine
+ * configuration calls and the member the device's own code calls are both in
+ * the class declaration and need not share a name.
+ */
+function devcbAccessorMember(ast: MameAstIndex, accessor: string): string | undefined {
+  // Both MAME spellings: a devcb hands out `m_x.bind()`, a device_delegate is
+  // assigned through a forwarding setter that calls `m_x.set(...)`.
+  const patterns = [
+    new RegExp(
+      `\\bauto\\s+${accessor}\\s*\\(\\s*\\)[^{;]*\\{\\s*return\\s+(m_\\w+)(?:\\[[^\\]]*\\])?\\.bind\\s*\\(`,
+    ),
+    new RegExp(
+      `\\b${accessor}\\s*\\([^)]*\\)\\s*\\{\\s*(m_\\w+)(?:\\[[^\\]]*\\])?\\.set\\s*\\(`,
+    ),
+  ];
+  for (const unit of ast.ast.units) {
+    for (const declaration of unit.classes) {
+      for (const pattern of patterns) {
+        const found = pattern.exec(declaration.body ?? '');
+        if (found) return found[1];
+      }
+    }
+  }
+  return undefined;
+}
+
 function emitCallbacks(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -1560,7 +1650,8 @@ function emitCallbacks(
   config: string[],
   memberTags: Record<string, string>,
   constants: Record<string, number>,
-  deviceClock?: number,
+  /** What `clock()` resolves to in this config: the configured device's clock. */
+  configClock?: number,
 ): void {
   let callbackIndex = 0;
   const configPrefix = devId.slice(0, devId.lastIndexOf('/') + 1);
@@ -1606,8 +1697,17 @@ function emitCallbacks(
     );
     const callbackOwner = deviceTag.replace(/[^A-Za-z0-9_]+/g, '_');
     const callbackId = `${devId}/callback:${callbackOwner}:${callbackIndex++}`;
+    // The devcb member behind this accessor, from the owning device class's
+    // own declaration. MAME usually names the accessor after the member
+    // (`busack_cb()` over `m_busack_cb`), and the runtime's `m_<signal>`
+    // guess works whenever it does -- but it need not: toaplan_dsp_device
+    // spells `auto halt_callback() { return m_halt_cb.bind(); }`, so
+    // `m_halt_cb(ASSERT_LINE)` in its own handler resolved to nothing and the
+    // host CPU was never halted. Record the real member instead of guessing.
+    const devcbMember = devcbAccessorMember(ast, signal.name);
     const props: Record<string, PropValue> = {
       signal: signal.name,
+      ...(devcbMember && devcbMember !== `m_${signal.name}` ? { member: devcbMember } : {}),
       // A device_delegate setter is machine configuration, not a devcb the
       // board dispatches at runtime: the device calls the delegate itself.
       ...(DELEGATE_SETTER_RE.test(operation.name) &&
@@ -1644,7 +1744,7 @@ function emitCallbacks(
           ).exec(cfgFunction?.body ?? '')?.[1]
         : undefined;
       const period = localPeriod ?? periodArg;
-      const hz = period ? attotimeFrequency(period, constants, deviceClock) : undefined;
+      const hz = period ? attotimeFrequency(period, constants, configClock) : undefined;
       if (hz !== undefined) props.periodHz = hz;
       if (period) props.periodExpr = period;
     }
@@ -1773,18 +1873,48 @@ function handlerProps(
   }
   const identifiers = new Set(body?.match(/\b[A-Za-z_]\w*\b/g) ?? []);
   const specializedConstants: Record<string, number> = {};
-  const specialization = /_(-?\d+)$/.exec(method);
+  const specialization = /_(-?\d+(?:_-?\d+)*)$/.exec(method);
   if (fn && specialization) {
     const unit = ast.ast.units.find(candidate => candidate.file === fn.span.file);
     const prefix = unit?.source.slice(Math.max(0, fn.span.start - 256), fn.span.start) ?? '';
-    const template = /template\s*<\s*(?:[\w:]+\s+)+(\w+)(?:\s*=\s*[^>]+)?\s*>\s*$/.exec(prefix);
-    if (template && identifiers.has(template[1]!)) {
-      specializedConstants[template[1]!] = Number(specialization[1]);
+    // The whole parameter list, not just a lone parameter: MAME writes the
+    // Williams sound-command callback as
+    // `template <unsigned A, unsigned... B>`, and a pattern that only matched
+    // a single parameter left `A` unresolved, so the specialized handler
+    // addressed `m_pia[A]` and reached no PIA at all. A pack contributes no
+    // parameter, which is what an empty pack is.
+    const declaration = /template\s*<([^<>]*)>\s*$/.exec(prefix);
+    const names = splitMameArgs(declaration?.[1] ?? '').flatMap(parameter => {
+      const text = parameter.trim();
+      if (!text || text.includes('...')) return [];
+      const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(text)?.[1];
+      return name ? [name] : [];
+    });
+    const values = specialization[1]!.split('_').map(Number);
+    for (const [index, name] of names.entries()) {
+      const value = values[index];
+      if (value !== undefined && Number.isInteger(value) && identifiers.has(name)) {
+        specializedConstants[name] = value;
+      }
     }
   }
-  const sourceConstants = Object.entries({ ...constants, ...specializedConstants })
-    .filter(([name]) => identifiers.has(name))
-    .map(([name, value]) => `${name}=${value}`);
+  const available = { ...constants, ...specializedConstants };
+  // A class-scoped constant is written qualified where it is used and
+  // unqualified where it is declared: atarimo.h declares PRIORITY_MASK inside
+  // atari_motion_objects_device, and Atari's screen update names it
+  // `atari_motion_objects_device::PRIORITY_MASK`. Carry the value under the
+  // spelling the body actually uses, or the emitter falls back to a member
+  // lookup and writes `members.atari_motion_objects_device::PRIORITY_MASK`,
+  // which is not even valid JavaScript.
+  const qualified = (body?.match(/\b[A-Za-z_]\w*::[A-Za-z_]\w*\b/g) ?? [])
+    .flatMap(name => {
+      const tail = name.slice(name.indexOf('::') + 2);
+      return available[tail] !== undefined ? [[name, available[tail]!] as const] : [];
+    });
+  const sourceConstants = [
+    ...Object.entries(available).filter(([name]) => identifiers.has(name)),
+    ...qualified,
+  ].map(([name, value]) => `${name}=${value}`);
   return {
     method,
     ownerClass,

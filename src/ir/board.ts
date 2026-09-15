@@ -67,6 +67,12 @@ export interface GeneratedCallback {
   id: string;
   ownerTag: string;
   signal: string;
+  /**
+   * The owning device's devcb member, when MAME does not name it after the
+   * accessor. `toaplan_dsp_device` declares `halt_callback()` over
+   * `m_halt_cb`, and its own handlers raise the line by the member name.
+   */
+  member?: string;
   slot?: number;
   operation: string;
   targetTag?: string;
@@ -194,6 +200,12 @@ export interface GeneratedDevice {
   classHierarchy?: string[];
   /** Owning board device for a device_add_mconfig child. */
   hostTag?: string;
+  /**
+   * `<class>.device_start`, when the device's class declares one and it
+   * lowered. MAME starts a device before the machine runs, and that is where
+   * a device derives the constant tables its own methods then read.
+   */
+  startHandler?: string;
   member?: string;
   clock?: number;
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
@@ -487,8 +499,29 @@ export interface GeneratedFrameEvent {
   source?: BoardSourceRef;
 }
 
+/**
+ * A `TIMER` device the driver arms itself.
+ *
+ * `TIMER(config, m_x).configure_generic(FUNC(cls::cb))` declares a one-shot
+ * with no period: driver code sets it with `m_x->adjust(when, param)` and the
+ * callback runs once, at that time, with that parameter. Atari System 1 drives
+ * its whole scanline-interrupt chain this way, so without it the board runs,
+ * takes its vblank interrupts, and never draws.
+ */
+export interface GeneratedGenericTimer {
+  /** Device tag, for save state and diagnostics. */
+  tag: string;
+  /** Driver finder the `->adjust()` call names. */
+  member: string;
+  /** `<class>.<method>` of the TIMER_DEVICE_CALLBACK_MEMBER it fires. */
+  handler: string;
+  source?: BoardSourceRef;
+}
+
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /** Driver-armed one-shot timers; see GeneratedGenericTimer. */
+  genericTimers?: GeneratedGenericTimer[];
   /** Every independently clocked execute participant, CPUs included. */
   participants?: {
     tag: string;
@@ -865,6 +898,16 @@ export interface GeneratedTilemapPlan {
   rows: number;
   mapper: string;
   tileInfo: string;
+  /**
+   * Share holding the device's own base memory, and its element width.
+   *
+   * `tilemap_device` binds `m_basemem` to the share named after the device tag
+   * and the driver reads its map through `basemem_read(tile_index)` rather
+   * than through a driver member -- Atari System 1 has no `m_playfieldram` at
+   * all, only `m_playfield_tilemap->basemem_read()`.
+   */
+  baseShare?: string;
+  bytesPerEntry?: number;
   scrollColumns?: number;
   scrollRows?: number;
   /** MAME tilemap origin offsets for normal and flipped rendering. */
@@ -1020,6 +1063,8 @@ export interface GeneratedVideoPlan {
   tilemaps: GeneratedTilemapPlan[];
   /** MAME `ATARI_MOTION_OBJECTS` sprite engine, configured by the driver. */
   motionObjects?: GeneratedMotionObjectsPlan;
+  /** Layouts named by `std::make_unique<gfx_element>(...)`, by source name. */
+  gfxLayouts?: Record<string, GeneratedGfxLayout>;
   initialState: Record<string, unknown>;
   /** MAME may render at a hardware sub-pixel scale (Galaxian uses 3x horizontally). */
   renderScale?: { x: number; y: number };
@@ -1204,6 +1249,11 @@ export interface GeneratedHandlerRuntime {
   };
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /**
+   * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
+   * copied, so the wider view writes through to the same shared bytes.
+   */
+  packedView(value: unknown, signed: boolean): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */

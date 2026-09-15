@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
-import { evalExpr } from '../kg/parse.ts';
-import type { BoardSourceRef, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
+import { evalExpr, parseGfxLayouts, stripComments } from '../kg/parse.ts';
+import type { BoardSourceRef, GeneratedGfxLayout, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
 import { compileAtariMotionObjects } from './atarimo-compiler.ts';
 import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
@@ -19,6 +19,8 @@ export function compileMameVideo(
   graph: KnowledgeGraph,
   mameSrc: string,
   machineId: string,
+  /** The target's short name; a driver file's graph holds every game in it. */
+  gameName?: string,
 ): CompiledMameVideo | undefined {
   const fail = (reason: string): undefined => {
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error(`video compiler: ${reason}`);
@@ -267,7 +269,12 @@ export function compileMameVideo(
   const renderScale = gfxRenderScale(graph, machineId);
   const numericDefaults = numericState(memberDefaults);
   const configState = machineConfigInitialState(ast, source, config, constants);
-  const game = graph.nodes.find(node => node.label === 'Game');
+  // The target's own GAME entry, not the file's first: atarisy1.cpp lists
+  // Peter Pack Rat first, and Marble Madness took its init_peterpak --
+  // `m_trackball_type = 0`, a joystick -- so the trackball was never read.
+  const game = (gameName
+    ? graph.nodes.find(node => node.label === 'Game' && node.props.name === gameName)
+    : undefined) ?? graph.nodes.find(node => node.label === 'Game');
   const boardSpecificState = compileCps1GameConfig(
     source,
     String(game?.props.name ?? ''),
@@ -322,16 +329,21 @@ export function compileMameVideo(
         decodeMember: k052109Member,
       }))
     : [];
+  // A tilemap the machine configuration declares rather than video_start.
+  const configuredTilemaps = compileDeviceTilemaps(graph, machineIds, ast, constants)
+    .filter(tilemap => !tilemaps.some(created => created.member === tilemap.member));
   // Some boards allocate temporary bitmaps in video_start and render decoded
   // gfx into them directly (Mat Mania is the common example).  A video_start
   // with no tilemap is therefore still a valid source-derived video plan when
   // the selected screen handler exists; the generated runtime supplies the
   // temporary bitmap and copy primitives used by that handler.
-  if (start && !tilemaps.length && !screen) return fail(`video_start emitted no tilemaps`);
+  if (start && !tilemaps.length && !configuredTilemaps.length && !screen) {
+    return fail(`video_start emitted no tilemaps`);
+  }
   // FUNC() in an inherited video_start often names the selected derived
   // state even though the TILE_GET_INFO implementation lives on its base.
   // Store the declaring-class key used by the compiled handler registry.
-  const executableTilemaps = [...tilemaps, ...deviceTilemaps].map(tilemap => ({
+  const executableTilemaps = [...tilemaps, ...deviceTilemaps, ...configuredTilemaps].map(tilemap => ({
     ...tilemap,
     tileInfo: resolvedHandlerKey(ast, tilemap.tileInfo),
     mapper: tilemap.mapper.startsWith('TILEMAP_SCAN_')
@@ -469,6 +481,7 @@ export function compileMameVideo(
     return fail(`palette callback did not lower`);
   }
   const motionObjects = compileMotionObjects(graph, mameSrc, driver, start?.body);
+  const runtimeGfxLayouts = compileRuntimeGfxLayouts(source);
   const colorTables = compileVideoColorTables(source, constants);
   const lfsrTable = compileVideoLfsr(ast, String(machine.props.cls), constants);
   const needsClassDefaults = renderScale !== 1 ||
@@ -489,6 +502,7 @@ export function compileMameVideo(
       ...(paletteProgram ? { paletteProgram } : {}),
       tilemaps: executableTilemaps,
       ...(motionObjects ? { motionObjects } : {}),
+      ...(Object.keys(runtimeGfxLayouts).length ? { gfxLayouts: runtimeGfxLayouts } : {}),
       initialState: {
         ...arrayState(memberDefaults),
         ...(needsClassDefaults ? memberDefaults : {}),
@@ -510,6 +524,25 @@ export function compileMameVideo(
     },
     handlers,
   };
+}
+
+/**
+ * Layouts a driver hands to `std::make_unique<gfx_element>(palette, layout,
+ * ...)` at run time rather than naming in a GFXDECODE table. Atari System 1
+ * builds one graphics set per ROM bank this way, as its PROMs select them.
+ */
+function compileRuntimeGfxLayouts(source: string): Record<string, GeneratedGfxLayout> {
+  const used = new Set([...source.matchAll(
+    /make_unique\s*<\s*gfx_element\s*>\s*\(\s*[^,()]+,\s*(\w+)\s*,/g,
+  )].map(match => match[1]!));
+  const layouts: Record<string, GeneratedGfxLayout> = {};
+  if (!used.size) return layouts;
+  for (const layout of parseGfxLayouts(stripComments(source))) {
+    if (!used.has(layout.name)) continue;
+    const { name: _name, ...shape } = layout;
+    layouts[layout.name] = shape;
+  }
+  return layouts;
 }
 
 /**
@@ -1381,6 +1414,84 @@ function compileMotionObjects(
       }
       : {}),
   });
+}
+
+/**
+ * Lower `tilemap_device` instances declared in the machine configuration.
+ *
+ * MAME offers two ways to spell the same tilemap. A driver may call
+ * `tilemap_create(gfxdecode, tile_info, mapper, w, h, cols, rows)` from
+ * `video_start`, which compileTilemaps reads, or it may declare a
+ * TILEMAP device and let the machine config carry the identical parameters:
+ *
+ *   TILEMAP(config, m_playfield_tilemap, m_gfxdecode, 2, 8,8,
+ *           TILEMAP_SCAN_ROWS, 64,64).set_info_callback(FUNC(...))
+ *
+ * (emu/tilemap.h: the constructor forwards these to set_gfxdecode,
+ * set_bytes_per_entry, set_layout and set_tile_size, with an optional
+ * trailing transparent pen.) Only the first form was lowered, so Atari's
+ * boards produced no tilemaps at all and had to be composed by a
+ * hand-written renderer instead of their own screen update.
+ */
+function compileDeviceTilemaps(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  ast: MameAstIndex | undefined,
+  constants: Record<string, number>,
+): GeneratedVideoPlan['tilemaps'] {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  const plans: GeneratedVideoPlan['tilemaps'] = [];
+  for (const device of graph.nodes) {
+    if (!deviceIds.has(device.id) || device.label !== 'Device') continue;
+    if (device.props.type !== 'TILEMAP') continue;
+    const member = String(device.props.member ?? '');
+    const raw = (Array.isArray(device.props.config) ? device.props.config.map(String) : []);
+    const construction = raw.find(line => line.startsWith('TILEMAP('));
+    if (!member || !construction) continue;
+    const open = construction.indexOf('(');
+    const close = matchingPair(construction, open, '(', ')');
+    if (close < 0) continue;
+    // (config, tag, gfxtag, entrybytes, tilewidth, tileheight, mapper,
+    //  columns, rows[, transpen])
+    const args = splitMameArgs(construction.slice(open + 1, close));
+    if (args.length < 9) continue;
+    const chained = raw.join('\n');
+    const tileInfo = funcKey(
+      /\.set_info_callback\s*\(([^;]*?)\)\s*$/.exec(chained.trim())?.[1] ??
+      /\.set_info_callback\s*\(\s*(FUNC\([^)]*\))/.exec(chained)?.[1],
+    );
+    const mapper = funcKey(args[6]) ?? standardTilemapMapper(args[6]);
+    if (!tileInfo || !mapper) continue;
+    const transparentPen = args.length > 9
+      ? expressionNumber(args[9], constants)
+      : undefined;
+    // tilemap_device::device_start binds m_basemem to memshare(tag()), the
+    // same tag-named convention palette_device uses.
+    const tag = String(device.props.tag ?? '');
+    const hasShare = graph.nodes.some(node =>
+      node.label === 'AddressRange' && node.props.share === tag);
+    plans.push({
+      member,
+      ...(hasShare ? { baseShare: tag, bytesPerEntry: expressionNumber(args[3], constants) } : {}),
+      ...(/\b(m_\w+)\b/.exec(args[2] ?? '')?.[1]
+        ? { decodeMember: /\b(m_\w+)\b/.exec(args[2] ?? '')![1] }
+        : {}),
+      tileWidth: expressionNumber(args[4], constants),
+      tileHeight: expressionNumber(args[5], constants),
+      columns: expressionNumber(args[7], constants),
+      rows: expressionNumber(args[8], constants),
+      mapper,
+      tileInfo: ast ? resolvedHandlerKey(ast, tileInfo) : tileInfo,
+      ...(transparentPen !== undefined && transparentPen >= 0 ? { transparentPen } : {}),
+      ...(typeof device.props.sourceFile === 'string' &&
+        typeof device.props.sourceLine === 'number'
+        ? { source: { file: device.props.sourceFile, line: device.props.sourceLine } }
+        : {}),
+    });
+  }
+  return plans;
 }
 
 function compileTilemaps(
@@ -2274,18 +2385,25 @@ function compileSetFormatRamPalette(
     `palette_device::set_format\\s*\\(\\s*${overloadType}\\s*,[^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`,
   ).exec(implementation);
   if (!overload) return fail(`emupal.cpp has no set_format(${overloadType}) overload`);
-  const decoder = /set_format\s*\(\s*(\d+)\s*,\s*&raw_to_rgb_converter::(\w+)_rgb_decoder\s*<([^>]*)>/
+  // The converter's own name, whole: emupal.h spells the intensity decoder
+  // `standard_irgb_decoder`, one word, so a pattern anchored on `_rgb_decoder`
+  // walked straight past it. That is the format Atari's boards use
+  // (`IRGB_4444`), and missing it is why Gauntlet had no source-derived
+  // palette at all and Marble Madness would not compile a video plan.
+  const decoder = /set_format\s*\(\s*(\d+)\s*,\s*&raw_to_rgb_converter::(\w+)_decoder\s*<([^>]*)>/
     .exec(overload[1]!);
-  if (!decoder) return fail(`set_format(${overloadType}) is not a standard rgb decoder`);
+  if (!decoder) return fail(`set_format(${overloadType}) is not a templated rgb decoder`);
   const template = splitMameArgs(decoder[3]!).map(value => Number(value.trim()));
-  const irgb = decoder[2] === 'standard_i';
+  const irgb = decoder[2] === 'standard_irgb';
+  const inverted = decoder[2] === 'inverted_rgb';
+  if (!irgb && !inverted && decoder[2] !== 'standard_rgb') {
+    return fail(`unsupported rgb decoder kind ${decoder[2]}`);
+  }
+  // standard/inverted take <RBits,GBits,BBits, RShift,GShift,BShift>; the
+  // intensity decoder prepends an intensity width and shift to each triple.
   if ((irgb ? template.length !== 8 : template.length !== 6) ||
     template.some(value => !Number.isFinite(value))) {
     return fail(`unsupported rgb decoder template <${decoder[3]}>`);
-  }
-  const inverted = decoder[2] === 'inverted';
-  if (!inverted && decoder[2] !== 'standard' && !irgb) {
-    return fail(`unsupported rgb decoder kind ${decoder[2]}`);
   }
   const configuredEndianness =
     /\.set_endianness\s*\(\s*ENDIANNESS_(LITTLE|BIG)\s*\)/.exec(raw)?.[1];
@@ -3494,9 +3612,20 @@ function addHandler(
     parameters: fn.parameters.trim(),
     body: fn.body.trim(),
     program: compileMameHandler(executableBody),
-    constants: Object.fromEntries(
-      Object.entries(constants).filter(([name]) => new RegExp(`\\b${name}\\b`).test(fn.body)),
-    ),
+    constants: Object.fromEntries([
+      ...Object.entries(constants).filter(([name]) => new RegExp(`\\b${name}\\b`).test(fn.body)),
+      // A class-scoped constant is declared unqualified and used qualified:
+      // atarimo.h declares PRIORITY_MASK inside atari_motion_objects_device,
+      // and Atari's screen update names it
+      // `atari_motion_objects_device::PRIORITY_MASK`. Carry the value under
+      // the spelling the body uses, or the emitter falls back to a member
+      // lookup and writes `members.atari_motion_objects_device::PRIORITY_MASK`,
+      // which is not valid JavaScript and fails the whole app compile.
+      ...(fn.body.match(/\b[A-Za-z_]\w*::[A-Za-z_]\w*\b/g) ?? []).flatMap(name => {
+        const tail = name.slice(name.indexOf('::') + 2);
+        return constants[tail] !== undefined ? [[name, constants[tail]!] as const] : [];
+      }),
+    ]),
     source: sourceRef(fn),
   });
 }
@@ -3614,8 +3743,12 @@ function sourceNumericConstants(source: string): Record<string, number> {
       expressions.set(match[1]!, match[2]!.trim());
     }
   }
+  // `const` as well as `constexpr`: MAME still declares class-scoped
+  // constants the older way, and atarimo.h's PRIORITY_SHIFT/PRIORITY_MASK --
+  // which Atari's screen update tests every sprite pixel against -- are
+  // written `static const uint16_t NAME = expr;`.
   for (const match of source.matchAll(
-    /\b(?:static\s+)?constexpr\s+(?:\w+\s+)+(\w+)\s*(?:\([^)]*\))?\s*=\s*([^;]+);/g,
+    /\b(?:static\s+)?(?:constexpr|const)\s+(?:\w+\s+)+(\w+)\s*(?:\([^)]*\))?\s*=\s*([^;]+);/g,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }

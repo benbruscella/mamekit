@@ -35,6 +35,7 @@ import {
   HOST_SERVICE_CALLS,
   DISCRETE_INPUT_CALLS,
   type BoardIr,
+  type GeneratedHandler,
   type GeneratedStateMember,
 } from '../ir/board.ts';
 import {
@@ -140,6 +141,12 @@ export function generatedCompositeCallbackBindings(
     };
     calls[`m_${callback.signal}`] ??= emit;
     calls[callback.signal] ??= emit;
+    // MAME need not name the devcb member after its accessor; when it does
+    // not, the IR carries the real member and the device's own handlers call
+    // it by that name. A device_delegate is not a devcb -- the owning device
+    // calls it directly, with the callee's own parameters -- so it is bound
+    // where the delegates are, and must not be shadowed by an effect here.
+    if (callback.member && !callback.delegate) calls[callback.member] ??= emit;
   }
   return { ...bindings, calls };
 }
@@ -391,6 +398,9 @@ class IrBoard implements Board {
   private readonly shares: Record<string, Uint8Array> = {};
   private readonly declarativeEeprom = new Map<string, SerialEepromEr5911>();
   private videoPrimitives?: GeneratedMameVideoPrimitives;
+  /** Driver-armed one-shots awaiting their expiry; see genericTimers. */
+  private readonly pendingTimers = new Map<string, { at: number; param: number }>();
+  private readonly genericTimerFires = new Map<string, () => void>();
   private video?: GeneratedVideoRenderer;
   private readonly regions: Regions;
   /**
@@ -413,6 +423,8 @@ class IrBoard implements Board {
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
+  /** `scheduler().synchronize()` work, run once the posting CPU has yielded. */
+  private readonly scheduledWork: (() => void)[] = [];
   private currentLineFraction = 0;
   private inFrame = false;
   /**
@@ -434,9 +446,8 @@ class IrBoard implements Board {
    * still land where the deltas put them and no drift accumulates.
    */
   private timedHardwareDelivered = 0;
-  /** The processor whose slice is executing, so a boost never re-enters it. */
+  /** The processor whose slice is executing. */
   private runningCpu?: string;
-  private boosting = false;
   private soundRuntime?: SoundRuntimeHooks;
   private boardSpecificReset?: () => void;
   private readonly peripheralResets: Array<() => void> = [];
@@ -625,6 +636,7 @@ class IrBoard implements Board {
         const device = createDevice(specification.type, {
           clock: specification.clock,
           tag: specification.tag,
+          schedule: run => this.synchronize(run),
           shares: this.shares,
           inputs,
           members: {
@@ -1018,6 +1030,7 @@ class IrBoard implements Board {
         setters: generatedStateSetters(this.state, machine.stateMembers),
       } : {}),
       inputs: generatedInputs,
+      schedule: run => this.synchronize(run),
       calls,
       referenceCalls: {
         // MAME's region finder. Video handlers already have it; a machine
@@ -1047,6 +1060,96 @@ class IrBoard implements Board {
         };
       },
     };
+    // The driver's own screen finder. MAME's device-facing services are bound
+    // as `screen().<name>` (HOST_SERVICE_CALLS), but driver code reaches the
+    // same screen through its required_device member, and only width/height
+    // were ever answered there. Atari System 1 arms every one of its scanline
+    // timers with `m_screen->time_until_pos(...)`, which returned 0 -- so each
+    // one expired immediately and the video timing chain never advanced.
+    {
+      const screenMember = (machine.devices ?? [])
+        .find(device => device.type === 'SCREEN')?.member ?? 'm_screen';
+      const vtotal = Math.max(1, machine.execution.screen.vtotal);
+      const refresh = machine.execution.screen.refresh;
+      // Only `time_until_pos`, and only because it demonstrably answered zero:
+      // Atari System 1 armed every scanline timer with it and each expired
+      // immediately. The rest of the screen's methods already resolve through
+      // the fallback paths, and binding them here shadows those -- a stubbed
+      // `update_partial` cost Centiped the mid-frame render its interrupt
+      // performs, which is visible in its very first frame.
+      calls[`${screenMember}.time_until_pos`] ??= position => {
+        const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal;
+        let lines = target - this.beamPosition();
+        if (lines <= 0) lines += vtotal;
+        return lines / (refresh * vtotal);
+      };
+    }
+
+    // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: the driver arms
+    // these itself with `m_x->adjust(when, param)`, and the callback runs once
+    // at that time. Atari System 1's whole scanline-interrupt chain is three
+    // of them; unmodelled, `adjust` resolved to nothing, int3 never fired and
+    // the board spun in its own video timing with a black screen.
+    for (const timer of machine.execution.genericTimers ?? []) {
+      const fire = (): void => {
+        const pending = this.pendingTimers.get(timer.member);
+        if (!pending) return;
+        this.pendingTimers.delete(timer.member);
+        const handler = machine.handlers?.find(candidate =>
+          `${candidate.ownerClass}.${candidate.method}` === timer.handler);
+        if (!handler?.program || handler.program.diagnostics.length) return;
+        executeGeneratedMachineHandler(machine, handler, this.bindings, {
+          param: pending.param,
+          // MAME hands a TIMER_DEVICE_CALLBACK_MEMBER its own device too.
+          timer: pending.param,
+        });
+      };
+      this.genericTimerFires.set(timer.member, fire);
+      calls[`${timer.member}.adjust`] = (when, param = 0) => {
+        // `attotime::never` disables the timer rather than scheduling it.
+        const seconds = Number(when);
+        if (!Number.isFinite(seconds) || seconds < 0) {
+          this.pendingTimers.delete(timer.member);
+          return 0;
+        }
+        this.pendingTimers.set(timer.member, {
+          at: this.machineSeconds() + seconds,
+          param: Number(param) || 0,
+        });
+        return 0;
+      };
+      calls[`${timer.member}.reset`] = () => {
+        this.pendingTimers.delete(timer.member);
+        return 0;
+      };
+      calls[`${timer.member}.enable`] = enabled => {
+        if (!enabled) this.pendingTimers.delete(timer.member);
+        return 0;
+      };
+      calls[`${timer.member}.enabled`] = () => this.pendingTimers.has(timer.member) ? 1 : 0;
+    }
+    // The driver reaches its motion-object device through a finder member
+    // (`m_mob->set_yscroll(...)`). Without a call binding, the device's inline
+    // accessor lowers into the driver's own namespace and writes a driver
+    // member of the same name -- Atari System 1's `m_yscroll` share.
+    const motionObjectsMember = machine.devices?.find(device =>
+      device.tag === machine.video?.motionObjects?.tag)?.member;
+    if (motionObjectsMember) {
+      const sprites = () => this.videoPrimitives?.motionObjectsDevice?.();
+      for (const accessor of ['set_xscroll', 'set_yscroll', 'set_bank'] as const) {
+        calls[`${motionObjectsMember}.${accessor}`] = value => {
+          sprites()?.[accessor](Number(value) || 0);
+          return 0;
+        };
+      }
+      calls[`${motionObjectsMember}.bank`] = () => sprites()?.bankIndex() ?? 0;
+      // Accessors that hand back the device's own storage: video_start
+      // rewrites the lookups through these references, and the screen update
+      // merges the object bitmap.
+      for (const accessor of ['code_lookup', 'color_lookup', 'gfx_lookup', 'bitmap'] as const) {
+        calls[`${motionObjectsMember}.${accessor}`] = () => sprites()?.[accessor]() ?? 0;
+      }
+    }
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
       bindGeneratedRegionState(
@@ -1139,7 +1242,11 @@ class IrBoard implements Board {
         return generatedAttotime(seconds);
       });
     }
-    const sourceHandlers = generatedHandlerRegistry(machine, this.bindings);
+    const sourceHandlers = generatedHandlerRegistry(
+      machine,
+      this.bindings,
+      handler => this.deviceHandlerBindings(handler),
+    );
     const registry: HandlerRegistry = {
       read: { ...sourceHandlers.read },
       write: { ...sourceHandlers.write },
@@ -1324,18 +1431,28 @@ class IrBoard implements Board {
         bus.readOpcode = address => opcodeBus.read(address & opcodeMask);
       }
       if (specification.io) {
+        const ioDataWidth = specification.io.space?.dataWidth === 16
+          ? 16
+          : generatedCpuDataWidth(type);
         const ioBus = new Bus(
           specification.io.ranges,
           new Uint8Array(0),
           registry,
           this.shares,
-          specification.io.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(type),
+          ioDataWidth,
           undefined,
           specification.io.space?.endianness ?? generatedCpuEndianness(type),
         );
         const mask = specification.io.globalMask ?? 0xffff;
         bus.in = port => ioBus.read(port & mask);
         bus.out = (port, data) => ioBus.write(port & mask, data);
+        // Keep a natively 16-bit port atomic, for the same reason read16be
+        // exists on the program bus: a word handler shown two byte halves
+        // sees the second overwrite the first.
+        if (ioDataWidth === 16) {
+          bus.in16be = port => ioBus.read16be(port & mask);
+          bus.out16be = (port, data) => ioBus.write16be(port & mask, data);
+        }
       }
       const programSpace = {
         read_byte: (address: number) => bus.read(address),
@@ -1373,7 +1490,11 @@ class IrBoard implements Board {
         write16be: (address, data) => bus.write16be(busAddress(address), data),
         write32be: (address, data) => bus.write32be(busAddress(address), data),
         in: bus.in,
+        ...(bus.in16be ? { in16be: (port: number) => bus.in16be!(port) } : {}),
         out: bus.out,
+        ...(bus.out16be
+          ? { out16be: (port: number, data: number) => bus.out16be!(port, data) }
+          : {}),
         ...(specification.interruptAcknowledge ? {
           acknowledge: (level: number) => registry.read[specification.interruptAcknowledge!]?.(
             0xfffff0 | (level << 1),
@@ -1750,14 +1871,17 @@ class IrBoard implements Board {
     // without either side naming the other.
     for (const callback of machine.callbacks) {
       const device = this.devices.get(callback.ownerTag);
-      const member = device?.delegates?.()[callback.signal];
-      if (!device || !member || !callback.targetMethod) continue;
+      // A device with its own generated module carries the setter -> member
+      // map itself. A device whose methods are the board's handlers has no
+      // module to ask, so the IR carries the member on the callback.
+      const member = device?.delegates?.()[callback.signal] ?? callback.member;
+      if (!member || !callback.targetMethod) continue;
       const handler = machine.handlers?.find(candidate =>
         candidate.ownerClass === callback.targetClass &&
         candidate.method === callback.targetMethod);
       if (!handler?.program || handler.program.diagnostics.length) continue;
       const parameters = handlerParameterDescriptors(handler.parameters);
-      device.bindCall(member, (...args: unknown[]) =>
+      const invoke = (...args: unknown[]) =>
         executeGeneratedMachineHandler(
           machine,
           handler,
@@ -1768,12 +1892,27 @@ class IrBoard implements Board {
               ? args[index] ?? 0
               : generatedReferent(args[index] ?? 0),
           ])),
-        ) ?? 0, handler.parameters);
+        ) ?? 0;
+      if (device) {
+        device.bindCall(member, invoke, handler.parameters);
+        continue;
+      }
+      // Only a delegate the device calls itself; a devcb is dispatched as a
+      // board connection and must keep going through its effect.
+      if (!callback.delegate) continue;
+      this.bindings.calls![member] ??= invoke;
+      // The callee's own parameter list, so a `u32 &seg` argument reaches it
+      // as an lvalue and its writes land back in the calling device's member.
+      // wardner's DSP addresses host RAM entirely through two such
+      // out-parameters; without them every segment stayed zero.
+      (this.bindings.callParameters ??= {})[member] ??= (handler.parameters ?? '')
+        .split(',')
+        .map(parameter => parameter.trim())
+        .filter(Boolean);
     }
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
     const neoGeoInterrupts = hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED');
-    const outrunInterrupts = hasDeviceType(machine, 'SEGAIC16_ROAD');
     // Simpsons' vblank callback starts sprite DMA, then two source timers
     // assert and clear the Konami CPU's FIRQ 256 and 2304 sprite-clock ticks
     // later. TIMER_CALLBACK_MEMBER bodies are not graph handlers yet, so keep
@@ -1812,6 +1951,7 @@ class IrBoard implements Board {
           if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
         },
         address => this.cpuBuses.get(machine.execution.cpus[0]?.tag ?? '')?.read(address) ?? 0,
+        this.shares,
       );
       // video_start is a machine lifecycle handler executed below through the
       // board bindings. Carry the video package's framework factories (bitmap
@@ -1880,6 +2020,7 @@ class IrBoard implements Board {
       processors: [...machine.execution.cpus.map(specification => ({
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
+        abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
         run: (cycles: number) => {
           const outerCpu = this.runningCpu;
           const outerFraction = this.currentLineFraction;
@@ -1903,13 +2044,14 @@ class IrBoard implements Board {
             );
             return executed;
           } finally {
-            // A perfect_quantum boost runs another processor from inside this
-            // one's slice; restore what it interrupted rather than resetting.
             this.runningCpu = outerCpu;
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
       }))],
+      // `scheduler().synchronize()` work runs once the processor that posted
+      // it has yielded and the ones behind it have caught up.
+      onSynchronize: () => this.drainScheduledWork(),
       onEvent: event => {
         const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
         if (callback?.promGate && !generatedPromGateOpen(
@@ -1944,6 +2086,16 @@ class IrBoard implements Board {
         this.currentLine = line;
         this.currentLineFraction = 0;
         if (phase === 'before-processors') {
+          // Driver-armed one-shots expire at the line boundary at or after
+          // their time, which is the finest grain this schedule offers -- the
+          // same grain MAME's own scanline timers are armed against.
+          if (this.pendingTimers.size) {
+            const now = this.machineSeconds();
+            for (const [member, pending] of [...this.pendingTimers]) {
+              if (pending.at > now) continue;
+              this.genericTimerFires.get(member)?.();
+            }
+          }
           for (let index = spriteDmaLineSignals.length - 1; index >= 0; index--) {
             const signal = spriteDmaLineSignals[index]!;
             if (signal.line !== line) continue;
@@ -1996,35 +2148,6 @@ class IrBoard implements Board {
           // odd list; dispatch the source method at the exact raster edge.
           this.devices.get('spritegen')?.invoke('parse_sprites', line);
         }
-        if (outrunInterrupts && phase === 'before-processors') {
-          const main = this.cpus.get('maincpu');
-          const sub = this.cpus.get('subcpu');
-          // segaorun_state::scanline_tick drives three short IRQ2 pulses and
-          // a level-4 vblank on both 68000s.  The source timers land at HBLANK;
-          // scanline granularity is sufficient for the same handshake while
-          // preserving assertion/clear ordering.
-          if (line === 65 || line === 129 || line === 193) {
-            this.state.m_irq2_state = 1;
-            main?.setInputLine(2, 1);
-          } else if (line === 66 || line === 130 || line === 194) {
-            this.state.m_irq2_state = 0;
-            main?.setInputLine(2, 0);
-          } else if (line === 223) {
-            this.state.m_vblank_irq_state = 1;
-            main?.setInputLine(4, 1);
-            sub?.setInputLine(4, 1);
-            // The sub-68000's vblank handler raises bit 0 of the shared
-            // synchronization byte and the main CPU consumes it with BCLR.
-            // Both processors are coarsely sliced at the scanline boundary in
-            // the generated scheduler, so publish the same edge before the
-            // main slice instead of one processor quantum too late.
-            this.cpuBuses.get('maincpu')?.write(0x260048, 1);
-          } else if (line === 224) {
-            this.state.m_vblank_irq_state = 0;
-            main?.setInputLine(4, 0);
-            sub?.setInputLine(4, 0);
-          }
-        }
         // onLine is invoked at both boundaries of the CPU interval. Advance
         // hardware timers once at its leading edge; doing it at both phases
         // runs every device clock at 2x (Neo Geo's per-line sprite parser then
@@ -2047,6 +2170,7 @@ class IrBoard implements Board {
       video,
     });
     this.installAccessTaps(machine);
+    this.runDeviceStarts();
     this.runMachineLifecycle('startHandlers');
     this.runMachineReset();
     if (neoGeoInterrupts && Number(this.state.m_irq3_pending ?? 0)) {
@@ -2279,6 +2403,7 @@ class IrBoard implements Board {
     this.vicdualCoinPrevious = false;
     this.vicdualCoinFrames = 0;
     this.currentLine = 0;
+    this.scheduledWork.length = 0;
     this.timedHardwareDelivered = this.lineSeconds();
     this.runMachineReset();
   }
@@ -2292,6 +2417,39 @@ class IrBoard implements Board {
    * arithmetic needs the fraction — `vpos()` stays the whole line MAME's
    * drivers read.
    */
+  /**
+   * MAME `scheduler().synchronize()`: post work at the current time and end
+   * the running processor's timeslice, so the processors behind it catch up
+   * before the work runs. The frame schedule drains it at the end of the round.
+   */
+  private synchronize(run: () => void): void {
+    this.scheduledWork.push(run);
+    if (this.frameRunner?.requestSynchronize()) return;
+    // Outside a slice (a line callback, an event, construction) it is due now;
+    // inside a drain the loop below picks it up in order.
+    if (!this.drainingScheduledWork) this.drainScheduledWork();
+  }
+
+  private drainingScheduledWork = false;
+
+  /**
+   * Run everything `scheduler().synchronize()` posted during the slice that
+   * just ended. Draining in order, and re-checking the queue, matches MAME:
+   * a synchronized callback may itself synchronize.
+   */
+  private drainScheduledWork(): void {
+    if (!this.scheduledWork.length) return;
+    this.drainingScheduledWork = true;
+    try {
+      for (let guard = 0; this.scheduledWork.length && guard < 64; guard++) {
+        const run = this.scheduledWork.shift()!;
+        run();
+      }
+    } finally {
+      this.drainingScheduledWork = false;
+    }
+  }
+
   private beamPosition(): number {
     return this.currentLine +
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
@@ -2517,21 +2675,16 @@ class IrBoard implements Board {
   }
 
   /**
-   * MAME `scheduler::perfect_quantum(duration)`.
+   * MAME `scheduler::perfect_quantum(duration)`, asked for by a handler.
    *
-   * Hand the requested window to the frame schedule so every other processor
-   * observes what the running one just published. Re-entrant calls are
-   * ignored: a boosted processor that boosts in turn would recurse.
+   * The window starts where the running processor stops: its slice ends
+   * after the instruction in progress, as if the request had been
+   * synchronized, which is how every driver here issues it -- straight after
+   * a latch write, or from the device that stands in for one.
    */
   perfectQuantum(seconds: number): void {
-    const active = this.runningCpu;
-    if (!active || this.boosting) return;
-    this.boosting = true;
-    try {
-      this.frameRunner?.boost(active, seconds);
-    } finally {
-      this.boosting = false;
-    }
+    this.frameRunner?.quantumWindow(seconds);
+    this.frameRunner?.requestSynchronize();
   }
 
   private installDeviceHandlers(
@@ -3178,206 +3331,6 @@ class IrBoard implements Board {
         this.state.__system16bFlip = 0;
         this.state.__system16bDisplayEnable = 0;
         this.state.__system16bOutputs = 0;
-      };
-      reset();
-      return reset;
-    }
-    if (hasDeviceType(machine, 'SEGAIC16_ROAD')) {
-      // Sega's 315-5195 is not a fixed address decoder.  All eight regions
-      // power up at zero with 64K windows; the first ROM page then programs
-      // registers $10-$1f to place ROM, RAM and I/O around the 24-bit space.
-      // Treating the mapper as a flat ROM (or using only its eventual windows)
-      // strands OutRun in the first-stage bootstrap.
-      const rom = regions.maincpu ?? new Uint8Array(0);
-      const subRom = regions.subcpu ?? new Uint8Array(0);
-      const mapper = this.hostModel('outrun.mapper', { registers: new Uint8Array(0x20), ppi: new Uint8Array(4) });
-      const registers = mapper.registers;
-      const ppi = mapper.ppi;
-      // The road device's control method mutates an internal road_info
-      // structure that is deliberately opaque to the generic machine-handler
-      // executor.  The OutRun board uses only the low two control bits here;
-      // keep that real register protocol without fabricating the C++ object.
-      registry.read['segaic16road.segaic16_road_control_0_r'] = () => 0xffff;
-      registry.write['segaic16road.segaic16_road_control_0_w'] =
-        (_address, _offset, data, memMask = 0xffff) => {
-          if (memMask & 0x00ff) this.state.__outrunRoadControl = data & 3;
-        };
-      const sizeMasks = [0x00ffff, 0x01ffff, 0x07ffff, 0x1fffff] as const;
-      type MapperWindow = {
-        kind: 'rom' | 'subrom' | 'ram' | 'io' | 'road-control';
-        offset: number;
-        share?: string;
-      };
-      const window = (
-        address: number,
-        index: number,
-        offset: number,
-        length: number,
-        mirror: number,
-        kind: MapperWindow['kind'],
-        share?: string,
-      ): MapperWindow | undefined => {
-        const sizeMask = sizeMasks[registers[0x10 + 2 * index]! & 3]!;
-        const base = (registers[0x11 + 2 * index]! << 16) & ~sizeMask;
-        const mirrorMask = mirror & sizeMask;
-        const start = base + (offset & sizeMask);
-        const end = start + Math.min(length - 1, sizeMask);
-        const decoded = address & ~mirrorMask;
-        if (decoded < start || decoded > end) return undefined;
-        return { kind, share, offset: decoded - start };
-      };
-      const decode = (address: number): MapperWindow | undefined => {
-        address &= 0xffffff;
-        // Lower-numbered regions are installed last by update_mapping(), and
-        // later calls within one region win.  Test in that exact priority.
-        for (let index = 0; index <= 5; index++) {
-          let hit: MapperWindow | undefined;
-          if (index === 0) {
-            hit = window(address, 0, 0, Math.min(0x60000, rom.length), 0xf80000, 'rom')
-              ?? window(address, 0, 0x60000, 0x08000, 0xf98000, 'ram', 'workram');
-          } else if (index === 1) {
-            hit = window(address, 1, 0x10000, 0x01000, 0xfef000, 'ram', 'textram')
-              ?? window(address, 1, 0, 0x10000, 0xfe0000, 'ram', 'tileram');
-          } else if (index === 2) {
-            hit = window(address, 2, 0, 0x02000, 0xffe000, 'ram', 'paletteram');
-          } else if (index === 3) {
-            hit = window(address, 3, 0, 0x01000, 0xfff000, 'ram', 'sprites');
-          } else if (index === 4) {
-            hit = window(address, 4, 0x90000, 0x10000, 0xf00000, 'io');
-          } else {
-            hit = window(address, 5, 0, 0x60000, 0xf00000, 'subrom')
-              ?? window(address, 5, 0x60000, 0x08000, 0xf18000, 'ram', 'cpu1ram')
-              ?? window(address, 5, 0x80000, 0x01000, 0xf0f000, 'ram', 'segaic16road:roadram')
-              ?? window(address, 5, 0x90000, 0x10000, 0xf00000, 'road-control');
-          }
-          if (hit) return hit;
-        }
-        return undefined;
-      };
-      const shareWord = (tag: string, offset: number) => {
-        const bytes = this.shares[tag];
-        if (!bytes || offset < 0 || offset + 1 >= bytes.length) return 0xffff;
-        return new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1)[offset >>> 1]!;
-      };
-      const writeShareWord = (tag: string, offset: number, data: number, memMask: number) => {
-        const bytes = this.shares[tag];
-        if (!bytes || offset < 0 || offset + 1 >= bytes.length) return;
-        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
-        const index = offset >>> 1;
-        words[index] = (words[index]! & ~memMask) | (data & memMask);
-      };
-      const mapperRegister = (wordOffset: number) => wordOffset & 0x1f;
-      const ioRead = (byteOffset: number): number => {
-        const offset = (byteOffset >>> 1) & 0x3f;
-        switch (offset & 0x38) {
-          case 0x00: {
-            const port = offset & 3;
-            if (port === 0) return 0xef;
-            if (port === 1) return 0;
-            return ppi[port]!;
-          }
-          case 0x08:
-            return this.inputs.read(['SERVICE', 'UNKNOWN', 'COINAGE', 'DSW'][offset & 3]!);
-          case 0x18: {
-            const select = Number(this.state.m_adc_select ?? 0) & 7;
-            return this.inputs.read(`ADC.${select}`);
-          }
-          case 0x30:
-            return 0xffff;
-          default:
-            return 0xffff;
-        }
-      };
-      const ioWrite = (byteOffset: number, data: number, memMask: number) => {
-        const offset = (byteOffset >>> 1) & 0x3f;
-        switch (offset & 0x38) {
-          case 0x00:
-            if (memMask & 0x00ff) {
-              const port = offset & 3;
-              ppi[port] = data & 0xff;
-              if (port === 2) {
-                this.state.m_adc_select = (data >>> 2) & 7;
-                this.state.__outrunDisplayEnable = data & 0x20;
-              }
-            }
-            break;
-          case 0x10:
-            if (memMask & 0x00ff) this.state.__outrunOutputs = data & 0xff;
-            break;
-          case 0x18:
-          case 0x30:
-            break;
-          case 0x38:
-            this.state.__outrunSpriteDraw = data & 0xffff;
-            break;
-        }
-      };
-      const readMappedWord = (address: number): number => {
-        const hit = decode(address);
-        if (!hit) {
-          const slot = mapperRegister(address >>> 1);
-          if (slot <= 1) return registers[slot]!;
-          if (slot === 2) return (registers[2]! & 3) === 3 ? 0 : 0x0f;
-          if (slot === 3) return Number(this.state.m_from_sound ?? 0) & 0xff;
-          return 0xffff;
-        }
-        if (hit.kind === 'rom' || hit.kind === 'subrom') {
-          const source = hit.kind === 'rom' ? rom : subRom;
-          return ((source[hit.offset] ?? 0xff) << 8) | (source[hit.offset + 1] ?? 0xff);
-        }
-        if (hit.kind === 'ram') return shareWord(hit.share!, hit.offset);
-        if (hit.kind === 'io') return ioRead(hit.offset);
-        return registry.read['segaic16road.segaic16_road_control_0_r']?.(
-          address, hit.offset >>> 1,
-        ) ?? 0xffff;
-      };
-      const writeMappedWord = (address: number, data: number, memMask = 0xffff) => {
-        const hit = decode(address);
-        if (!hit) {
-          if (!(memMask & 0x00ff)) return;
-          const slot = mapperRegister(address >>> 1);
-          registers[slot] = data & 0xff;
-          if (slot === 3) {
-            this.state.m_to_sound = data & 0xff;
-            // 315-5195 PBF is wired directly to the Z80 NMI input.  The
-            // peripheral read acknowledges it; nmi() models that asserted
-            // edge without stretching it for a whole scanline.
-            this.cpus.get('soundcpu')?.nmi();
-          }
-          if (slot === 5) {
-            if ((data & 0xff) === 1) {
-              const target = (registers[0x0a]! << 17) |
-                (registers[0x0b]! << 9) | (registers[0x0c]! << 1);
-              writeMappedWord(target, (registers[0]! << 8) | registers[1]!, 0xffff);
-            } else if ((data & 0xff) === 2) {
-              const target = (registers[7]! << 17) |
-                (registers[8]! << 9) | (registers[9]! << 1);
-              const result = readMappedWord(target);
-              registers[0] = result >>> 8;
-              registers[1] = result & 0xff;
-            }
-          }
-          return;
-        }
-        if (hit.kind === 'ram') writeShareWord(hit.share!, hit.offset, data, memMask);
-        else if (hit.kind === 'io') ioWrite(hit.offset, data, memMask);
-        else if (hit.kind === 'road-control') {
-          registry.write['segaic16road.segaic16_road_control_0_w']?.(
-            address, hit.offset >>> 1, data, memMask,
-          );
-        }
-        // Writes to mapped ROM/sub-CPU ROM are intentionally swallowed.
-      };
-      registry.read['mapper.read'] = (address) => readMappedWord(address & ~1);
-      registry.write['mapper.write'] = (address, _offset, data, memMask) =>
-        writeMappedWord(address & ~1, data, memMask);
-      registry.read['mapper.pread'] = () => Number(this.state.m_to_sound ?? 0) & 0xff;
-      const reset = () => {
-        registers.fill(0);
-        ppi.fill(0);
-        this.state.m_to_sound = 0;
-        this.state.m_from_sound = 0;
-        this.state.m_adc_select = 0;
       };
       reset();
       return reset;
@@ -4114,9 +4067,18 @@ class IrBoard implements Board {
       const deviceTag = key.slice(0, key.indexOf('.'));
       const deviceType = machine.devices?.find(device => device.tag === deviceTag)?.type ?? '';
       if (key.endsWith('.write16') && deviceType === 'TILEMAP') {
-        // The Bus writes the aliased RAM before invoking this notification;
-        // tile dirtiness is implicit in the generated renderer's frame pass.
-        registry.write[key] = () => {};
+        // tilemap_device::write16: the Bus has already stored the word in the
+        // shared RAM; what remains is `mark_tile_dirty(offset)`. The generated
+        // tilemap caches resolved tiles, so without it a playfield written
+        // after the first draw kept its power-on contents (Marble Madness's
+        // screen stayed black).
+        const member = machine.devices?.find(device => device.tag === deviceTag)?.member;
+        registry.write[key] = (_address, offset) => {
+          const tilemap = member
+            ? this.state[member] as { mark_tile_dirty?: (index: number) => void } | undefined
+            : undefined;
+          tilemap?.mark_tile_dirty?.(offset);
+        };
         continue;
       }
       if (deviceType.startsWith('EEPROM_')) {
@@ -4595,6 +4557,77 @@ class IrBoard implements Board {
    * closed union; the MAME method names that used to be re-parsed here are
    * interpreted once, during generation, by src/ir/lower-connections.ts.
    */
+  /**
+   * A device class's own handler, resolved the way MAME resolves it for that
+   * device rather than for the board. Two finders are device-relative:
+   * `m_cpu`, the conventional name for a sound board's own processor, which
+   * more than one class on a board can declare (Spy Hunter carries both an
+   * SSIO and a Cheap Squeak Deluxe); and `memregion`, whose tag MAME looks up
+   * under the device ("proms" is "ssio:proms"). Left board-scoped,
+   * midway_ssio_device::irq_clear could not drop the /SINT line it is read to
+   * clear and the sound CPU never left its interrupt handler.
+   */
+  private deviceHandlerBindings(handler: GeneratedHandler): GeneratedHandlerBindings {
+    let bindings = generatedCompositeCallbackBindings(
+      this.machine,
+      handler.ownerClass,
+      tag => this.devices.has(tag),
+      () => this.effects,
+      this.bindings,
+    );
+    const cpuTag = hostedCpuTagForClass(this.machine, handler.ownerClass);
+    if (cpuTag) bindings = generatedCpuMemberBindings(bindings, cpuTag);
+    const owners = (this.machine.devices ?? [])
+      .filter(device => device.classHierarchy?.includes(handler.ownerClass));
+    const deviceTag = owners.length === 1 ? owners[0]!.tag : undefined;
+    if (deviceTag) {
+      bindings = {
+        ...bindings,
+        referenceCalls: {
+          ...bindings.referenceCalls,
+          memregion: (...args: unknown[]) => {
+            const tag = String(generatedCallValue(args[0]) ?? '');
+            const bytes = this.regions[`${deviceTag}:${tag}`] ?? this.regions[tag];
+            if (!bytes) throw new Error(`${this.machine.game}: no ROM region "${tag}"`);
+            return { base: () => bytes, bytes: () => bytes.length };
+          },
+        },
+      };
+    }
+    return bindings;
+  }
+
+  /**
+   * MAME starts every device before the machine runs, and device_start is
+   * where a device derives the constants its own methods then read. A device
+   * with a generated core starts itself; a board-level device whose methods
+   * are the board's handlers has nowhere else to do it. Midway's SSIO reads
+   * its 82S123 duty-cycle PROM there, and every AY output gain it sets comes
+   * out of that table -- unstarted, each gain it wrote was NaN.
+   */
+  private runDeviceStarts(): void {
+    // A device the video plan already models is started by the renderer from
+    // that plan, not from its C++ lifecycle: running
+    // atari_motion_objects_device::device_start over the board's flat member
+    // namespace zeroed Atari System 1's own `m_yscroll`, a shared pointer of
+    // the same name as the device's scroll register.
+    const modelled = new Set([this.machine.video?.motionObjects?.tag]);
+    for (const specification of this.machine.devices ?? []) {
+      const key = specification.startHandler;
+      if (!key || this.devices.has(specification.tag)) continue;
+      if (modelled.has(specification.tag)) continue;
+      const handler = this.machine.handlers?.find(candidate =>
+        `${candidate.ownerClass}.${candidate.method}` === key);
+      if (!handler?.program || handler.program.diagnostics.length) continue;
+      executeGeneratedMachineHandler(
+        this.machine,
+        handler,
+        this.deviceHandlerBindings(handler),
+        {},
+      );
+    }
+  }
+
   /** Execute a generated handler program, when one compiled for this key. */
   private handlerExecutor(
     key: string,
@@ -4889,6 +4922,21 @@ class IrBoard implements Board {
       },
     };
   }
+}
+
+/** The CPU a device class's conventional `m_cpu` finder names: its own child. */
+export function hostedCpuTagForClass(
+  machine: BoardIr,
+  ownerClass: string,
+): string | undefined {
+  const owners = (machine.devices ?? [])
+    .filter(device => device.classHierarchy?.includes(ownerClass));
+  const tags = owners.flatMap(owner => machine.execution.cpus
+    .filter(cpu => cpu.tag.startsWith(`${owner.tag}:`))
+    .map(cpu => cpu.tag));
+  // Ambiguity is not a licence to guess: a class hosting two processors, or
+  // instantiated twice, has no single `m_cpu`.
+  return tags.length === 1 ? tags[0] : undefined;
 }
 
 /** Scope a composite device's conventional m_cpu finder to its hosted CPU. */
