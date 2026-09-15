@@ -2386,7 +2386,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // (runtime/machine-memory.ts). Absent when the file has no entry.
   const hiscore = hiscoreTable(opts.mameSrc, opts.game);
 
-  const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
+  const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id, opts.game);
   if (compiledVideo?.plan.updateMode) {
     screen.updateMode = compiledVideo.plan.updateMode;
   }

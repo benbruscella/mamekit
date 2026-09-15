@@ -19,6 +19,8 @@ export function compileMameVideo(
   graph: KnowledgeGraph,
   mameSrc: string,
   machineId: string,
+  /** The target's short name; a driver file's graph holds every game in it. */
+  gameName?: string,
 ): CompiledMameVideo | undefined {
   const fail = (reason: string): undefined => {
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error(`video compiler: ${reason}`);
@@ -267,7 +269,12 @@ export function compileMameVideo(
   const renderScale = gfxRenderScale(graph, machineId);
   const numericDefaults = numericState(memberDefaults);
   const configState = machineConfigInitialState(ast, source, config, constants);
-  const game = graph.nodes.find(node => node.label === 'Game');
+  // The target's own GAME entry, not the file's first: atarisy1.cpp lists
+  // Peter Pack Rat first, and Marble Madness took its init_peterpak --
+  // `m_trackball_type = 0`, a joystick -- so the trackball was never read.
+  const game = (gameName
+    ? graph.nodes.find(node => node.label === 'Game' && node.props.name === gameName)
+    : undefined) ?? graph.nodes.find(node => node.label === 'Game');
   const boardSpecificState = compileCps1GameConfig(
     source,
     String(game?.props.name ?? ''),
