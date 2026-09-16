@@ -151,10 +151,24 @@ function activeControls(pad: PadState, hats: Set<number>): Set<Control> {
   noteHats(pad, hats);
   const stick = (index: number): number => (hats.has(index) ? 0 : pad.axes[index] ?? 0);
   const [x, y, rx, ry] = [stick(0), stick(1), stick(2), stick(3)];
-  if (x < -DEADZONE) active.add('left');
-  if (x > DEADZONE) active.add('right');
-  if (y < -DEADZONE) active.add('up');
-  if (y > DEADZONE) active.add('down');
+  // The lever's two axes go in leaning-last order.
+  //
+  // A digital switch says only whether a direction is on, and when a lever
+  // is shoved into a corner both cross the deadzone in the same poll -- at
+  // which point which one the player meant is unanswerable from the bits
+  // alone. The magnitudes answer it, and this is the only place that still
+  // has them, so the stronger axis is added second and the order carries
+  // what the numbers knew. Nothing downstream learns about axes: it reads
+  // the same "which arrived later" it reads from a keyboard.
+  const horizontal = (): void => {
+    if (x < -DEADZONE) active.add('left');
+    if (x > DEADZONE) active.add('right');
+  };
+  const vertical = (): void => {
+    if (y < -DEADZONE) active.add('up');
+    if (y > DEADZONE) active.add('down');
+  };
+  if (Math.abs(y) > Math.abs(x)) { horizontal(); vertical(); } else { vertical(); horizontal(); }
   if (pad.mapping === 'standard') {
     if (rx < -DEADZONE) active.add('rleft');
     if (rx > DEADZONE) active.add('rright');

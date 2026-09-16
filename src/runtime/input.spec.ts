@@ -275,12 +275,41 @@ console.log('input.spec: frame interpolation of relative controls passed');
   gate.advance();
   assert.equal(asserted(gate), 0, 'and the lever centres');
 
-  // Rest straight to a diagonal names no direction that changed on its own,
-  // and MAME's documented fallback is the horizontal axis.
+  // Rest straight to a diagonal names no direction that changed on its own.
+  // MAME's documented fallback is the horizontal axis, and it stands when the
+  // two switches closed on the same frame in the order the table lists them.
   gate.press(four[0]!, true, 'lever');
   gate.press(four[3]!, true, 'lever');
   gate.advance();
   assert.equal(asserted(gate), RIGHT, 'a diagonal from rest falls to the horizontal axis');
+  gate.press(four[0]!, false, 'lever');
+  gate.press(four[3]!, false, 'lever');
+  gate.advance();
+
+  // A source that knew which way the lever was leaning says so by posting
+  // that direction last. Always answering "horizontal" meant shoving a 4-way
+  // stick up-left from centre gave left and held it, so the player could not
+  // climb -- which is the whole complaint the gate was meant to fix.
+  gate.press(four[3]!, true, 'lever');  // right, the weaker axis
+  gate.press(four[0]!, true, 'lever');  // up, the one it is leaning on
+  gate.advance();
+  assert.equal(asserted(gate), UP, 'a corner leaning vertical reads the vertical axis');
+  gate.advance();
+  assert.equal(asserted(gate), UP, 'and holds it while the lever stays there');
+  gate.press(four[0]!, false, 'lever');
+  gate.press(four[3]!, false, 'lever');
+  gate.advance();
+
+  // A switch that closed on a later frame still outranks any ordering inside
+  // one frame: that is a real direction change and MAME's own rule owns it.
+  gate.press(four[0]!, true, 'lever');
+  gate.advance();
+  gate.press(four[2]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), LEFT, 'a later frame beats an ordering within one');
+  gate.press(four[0]!, false, 'lever');
+  gate.press(four[2]!, false, 'lever');
+  gate.advance();
 
   // The same lever declared 8-way keeps its diagonal: that machine was built
   // for a round gate and reads both switches.

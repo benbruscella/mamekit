@@ -216,6 +216,46 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   assert.equal(input.read('IN1') & 0x10, 0x10, 'and lets go on the next frame');
 }
 
+// A lever shoved from centre straight into a corner of a 4-way gate.
+//
+// Both switches cross the deadzone in the same poll, so the bits alone
+// cannot say which direction the player meant. The magnitudes can, and the
+// pad is the last place that still has them: it posts the leaning axis
+// second, and the gate reads that as "arrived later" exactly as it reads a
+// keyboard. Without this a stick shoved up-left always gave left and held
+// it, so the player could not climb.
+{
+  const lever: FieldBinding[] = [
+    { port: 'IN1', mask: 0x08, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways: 4 },
+    { port: 'IN1', mask: 0x04, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways: 4 },
+    { port: 'IN1', mask: 0x02, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+    { port: 'IN1', mask: 0x01, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(lever, [], [{ tag: 'IN1', init: 0xff }]);
+  const source = new GamepadInput(input, lever, () => pads);
+  /** Which directions the port asserts, by label. */
+  const held = (): string[] => lever.filter(b => (~input.read('IN1') & b.mask) !== 0).map(b => b.label);
+  const shove = (x: number, y: number): string[] => {
+    pads = [pad(0, { axes: [x, y, 0, 0] })];
+    source.poll();
+    input.advance();
+    return held();
+  };
+
+  assert.deepEqual(shove(0, 0), []);
+  assert.deepEqual(shove(-0.8, -0.95), ['Up'], 'a corner leaning up reads up');
+  assert.deepEqual(shove(-0.8, -0.95), ['Up'], 'and holds it while the lever stays there');
+  assert.deepEqual(shove(0, 0), []);
+  assert.deepEqual(shove(-0.95, -0.8), ['Left'], 'a corner leaning left reads left');
+  assert.deepEqual(shove(0, 0), []);
+  // A real direction change still wins: that is MAME's own rule and it runs
+  // before any of this.
+  assert.deepEqual(shove(-0.9, 0), ['Left'], 'push left');
+  assert.deepEqual(shove(-0.9, -0.9), ['Up'], 'rolling to up-left lands on up');
+  assert.deepEqual(shove(0, -0.9), ['Up'], 'and easing off leaves up');
+}
+
 // A lever the browser could not map, on a POV hat.
 //
 // An unrecognised fight stick often reports an empty mapping and puts its
